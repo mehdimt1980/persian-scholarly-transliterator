@@ -9,7 +9,7 @@ function fallback(word: string): { text: string; rules: typeof RULES[keyof typeo
   let text = ''; const rules = [RULES.consonant]; for (const char of word) text += consonants[char] ?? char;
   return { text, rules };
 }
-function titleFormat(value: string): string { return value.replace(/[āīūĀĪŪḥṣṭẓż]/g, (c) => ({ā:'a',ī:'i',ū:'u',Ā:'A',Ī:'I',Ū:'U',ḥ:'h',ṣ:'s',ṭ:'t',ẓ:'z',ż:'z'}[c] ?? c)); }
+function titleFormat(value: string): string { return value.replace(/^ʾ/, '').replace(/[āīūĀĪŪḥṣṭẓż]/g, (c) => ({ā:'a',ī:'i',ū:'u',Ā:'A',Ī:'I',Ū:'U',ḥ:'h',ṣ:'s',ṭ:'t',ẓ:'z',ż:'z'}[c] ?? c)); }
 function statusFor(results: TokenResult[]): ResultStatus { if (results.some((r) => r.status === 'UNRESOLVED')) return 'UNRESOLVED'; if (results.some((r) => r.status === 'AMBIGUOUS')) return 'AMBIGUOUS'; if (results.some((r) => r.status === 'LEXICON_RESOLVED')) return 'LEXICON_RESOLVED'; return 'DETERMINISTIC'; }
 
 export function transliterate(input: string, profile: ProfileId = 'ijmes_full'): TransliterationResult {
