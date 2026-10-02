@@ -1,0 +1,13 @@
+import { RuleDefinition } from './types';
+export const RULES = {
+  lexicalResolution: { id: 'LEXICON-READING', title: 'Lexical reading', description: 'A reviewed lexical entry supplies the canonical scholarly reading.', authority: 'lexical-data', reference: 'Entry-specific source recorded with the token.' },
+  consonantalScaffold: { id: 'DIAGNOSTIC-CONSONANT-SCAFFOLD', title: 'Diagnostic scaffold', description: 'Character mappings provide diagnostic evidence only; this is not final transliteration.', authority: 'chart', reference: 'IJMES transliteration chart, Persian column.' },
+  initialHamzaDrop: { id: 'IJMES-P-INITIAL-HAMZA-DROP', title: 'Drop initial hamza', description: 'Drop initial hamza in canonical IJMES transliteration.', authority: 'current-guide', reference: 'Current IJMES Translation and Transliteration Guide.' },
+  medialHamza: { id: 'IJMES-P-NONINITIAL-HAMZA', title: 'Preserve non-initial hamza', description: 'Preserve non-initial hamza as Unicode ʾ.', authority: 'current-guide', reference: 'Current IJMES Translation and Transliteration Guide.' },
+  ayn: { id: 'IJMES-P-AYN', title: 'Preserve ʿayn', description: 'Preserve ʿayn as distinct Unicode ʿ.', authority: 'chart', reference: 'IJMES transliteration chart, Persian column.' },
+  persianTaMarbuta: { id: 'IJMES-P-TA-MARBUTA-IH', title: 'Persian tāʾ marbūṭa', description: 'Render tāʾ marbūṭa as ih in Persian; a diagnostic scaffold marks but does not synthesize this vowel-bearing ending.', authority: 'current-guide', reference: 'Current IJMES Translation and Transliteration Guide, Detailed Transliteration Guidelines.' },
+  izafatDetected: { id: 'PERSIAN-CONTEXT-IZAFAT-DETECTED', title: 'Izāfat detected', description: 'Lexical/context evidence identifies an izāfat relation at this position.', authority: 'linguistic-convention', reference: 'Entry-specific context evidence recorded with the token.' },
+  izafatRender: { id: 'IJMES-P-IZAFAT-RENDER', title: 'Render Persian izāfat', description: 'Render a detected Persian izāfat as -i.', authority: 'current-guide', reference: 'Current IJMES guide; example: vilāyat-i faqīh.' },
+  titleDiacritics: { id: 'IJMES-TITLE-DIACRITIC-REMOVAL', title: 'Title diacritic policy', description: 'Remove scholarly diacritics while preserving ʿayn and non-initial hamza.', authority: 'current-guide', reference: 'Current IJMES Translation and Transliteration Guide.' },
+  titleCase: { id: 'IJMES-TITLE-CAPITALIZATION', title: 'English title capitalization', description: 'Capitalize major title words; keep listed minor words lowercase except at title boundaries.', authority: 'current-guide', reference: 'Current IJMES Translation and Transliteration Guide.' }
+} satisfies Record<string, RuleDefinition>;
