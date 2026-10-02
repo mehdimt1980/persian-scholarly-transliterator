@@ -6,7 +6,7 @@ This is not an official IJMES or Cambridge product. It is not a general pronunci
 
 ## Current scope
 
-Implemented: loss-aware Unicode normalization, stable token offsets, structured Persian-column mapping data, reviewed lexical readings, explicit ambiguity, diagnostic-only consonantal scaffolds, a minimal data-driven izāfat context mechanism, canonical initial-hamza removal, non-initial hamza and ʿayn preservation, `ijmes_full` and `ijmes_title` profiles, deterministic title capitalization, token inspection, and guarded copy-to-clipboard behavior.
+Implemented: loss-aware Unicode normalization, stable token offsets, structured Persian-column mapping data, a separate guide-level Persian tāʾ marbūṭa rule (`ih`), reviewed lexical readings, explicit ambiguity, diagnostic-only consonantal scaffolds, a minimal data-driven izāfat context mechanism, canonical initial-hamza removal, non-initial hamza and ʿayn preservation, `ijmes_full` and `ijmes_title` profiles, structural handling of supported title prefixes/articles, token inspection, and guarded copy-to-clipboard behavior.
 
 The motivating title deliberately exposes unresolved editorial joining choices for `درباره` and `تجددخواهی`; IJMES supplies vowel and display policy but does not by itself settle those lexical segmentation decisions.
 

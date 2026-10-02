@@ -23,7 +23,12 @@ function applyCanonicalIjmes(value: string, rules: TokenResult['appliedRules']):
 function resolveToken(source: string, start: number, end: number, passthrough = false): TokenResult {
   if (passthrough) return { source, canonicalTransliteration: source, rendered: source, status: 'DETERMINISTIC', appliedRules: [], lexicalSources: [], warnings: [], alternatives: [], start, end };
   const entry = LEXICON.find((candidate) => candidate.normalized === source);
-  if (!entry) return { source, canonicalTransliteration: null, rendered: reviewPlaceholder(source, 'unresolved'), diagnosticScaffold: consonantalScaffold(source), status: 'UNRESOLVED', confidence: 0, appliedRules: [RULES.consonantalScaffold], lexicalSources: [], warnings: ['No reviewed lexical reading exists; the diagnostic scaffold is not final transliteration.'], alternatives: [], start, end };
+  if (!entry) {
+    const appliedRules: TokenResult['appliedRules'] = [RULES.consonantalScaffold];
+    const warnings = ['No reviewed lexical reading exists; the diagnostic scaffold is not final transliteration.'];
+    if (source.includes('ة')) { appliedRules.push(RULES.persianTaMarbuta); warnings.push('The guide requires Persian tāʾ marbūṭa to render as ih; the diagnostic scaffold records [TM] rather than guessing a final reading.'); }
+    return { source, canonicalTransliteration: null, rendered: reviewPlaceholder(source, 'unresolved'), diagnosticScaffold: consonantalScaffold(source), status: 'UNRESOLVED', confidence: 0, appliedRules, lexicalSources: [], warnings, alternatives: [], start, end };
+  }
   if (entry.readings.length !== 1) {
     const alternatives = entry.readings.map((reading) => reading.canonical);
     return { source, canonicalTransliteration: null, rendered: reviewPlaceholder(source, 'ambiguous', alternatives), status: 'AMBIGUOUS', confidence: Math.max(...entry.readings.map((reading) => reading.confidence)), appliedRules: [RULES.lexicalResolution], lexicalSources: entry.readings.map((reading) => reading.source), warnings: [entry.notes ?? 'Multiple supported readings require human review.'], alternatives, start, end };

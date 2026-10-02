@@ -24,5 +24,7 @@ export const LEXICON: LexicalEntry[] = [
   ] },
   { surface: 'امر', normalized: 'امر', readings: [{ canonical: 'ʾamr', confidence: 0.95, source: 'Hamza behavior test entry' }] },
   { surface: 'علم', normalized: 'علم', readings: [{ canonical: 'ʿilm', confidence: 0.95, source: 'ʿAyn behavior test entry' }] },
-  { surface: 'دور', normalized: 'دور', readings: [{ canonical: 'dūr', confidence: 0.9, source: 'Long-vowel behavior test entry' }] }
+  { surface: 'دور', normalized: 'دور', readings: [{ canonical: 'dūr', confidence: 0.9, source: 'Long-vowel behavior test entry' }] },
+  { surface: 'الهلال', normalized: 'الهلال', readings: [{ canonical: 'al-hilāl', confidence: 0.9, source: 'Title article behavior test entry' }] },
+  { surface: 'همکاری', normalized: 'همکاری', readings: [{ canonical: 'ham-kārī', confidence: 0.9, source: 'Hyphenated Persian compound behavior test entry' }] }
 ];
