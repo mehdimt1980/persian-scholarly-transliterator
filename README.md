@@ -1,24 +1,26 @@
 # Persian Scholarly Transliterator
 
-A provenance-aware foundation for scholarly Persian transliteration, initially targeting IJMES. It is a small working vertical slice: Persian input is normalized, tokenized, resolved through structured lexical data, rendered through a canonical representation, and formatted for either full scholarly or title presentation.
+A provenance-aware Phase 1 foundation for scholarly Persian transliteration, initially targeting IJMES. It normalizes and tokenizes Persian input, resolves reviewed lexical readings, detects limited context evidence, applies canonical IJMES rules, and then formats either full scholarly or title output.
 
-This is not an official IJMES or Cambridge product. It is not a character-substitution tool and it does not claim to reconstruct Persian short vowels from script alone. Unknown words remain visibly unresolved.
+This is not an official IJMES or Cambridge product. It is not a general pronunciation engine or a character-substitution transliterator. Persian short vowels are normally unwritten, so unknown and ambiguous words remain review items and cannot be copied as final transliteration.
 
-## Scope
+## Current scope
 
-Implemented: Unicode-safe normalization, stable token offsets, structured Persian IJMES mappings, lexical readings with provenance, a guide-grounded izāfat example (`vilāyat-i faqīh`), hamza/ʿayn preservation, `ijmes_full` and `ijmes_title` profiles, token inspection, and copy-to-clipboard UI.
+Implemented: loss-aware Unicode normalization, stable token offsets, structured Persian-column mapping data, reviewed lexical readings, explicit ambiguity, diagnostic-only consonantal scaffolds, a minimal data-driven izāfat context mechanism, canonical initial-hamza removal, non-initial hamza and ʿayn preservation, `ijmes_full` and `ijmes_title` profiles, deterministic title capitalization, token inspection, and guarded copy-to-clipboard behavior.
 
-Not yet implemented: complete Persian morphology, comprehensive lexicon, automatic short-vowel inference, user lexicon persistence, batch bibliography export, or AI-assisted resolution.
+The motivating title deliberately exposes unresolved editorial joining choices for `درباره` and `تجددخواهی`; IJMES supplies vowel and display policy but does not by itself settle those lexical segmentation decisions.
 
-## Run
+Not implemented: comprehensive morphology or lexicon, general short-vowel reconstruction, persistent corrections, batch/export workflows, or AI-assisted resolution.
+
+## Run and verify
 
 ```bash
 npm install
 npm run dev
+npm test
+npm run typecheck
+npm run lint
+npm run build
 ```
 
-Then open `http://localhost:3000`. Verify with `npm test`, `npm run typecheck`, `npm run lint`, and `npm run build`.
-
-## Design
-
-The engine is independent from React and follows: normalization → tokenization → lexical/context resolution → canonical transliteration → profile formatting. Rule definitions retain authority category, concise source notes, and stable IDs. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/IJMES_RULE_MODEL.md`](docs/IJMES_RULE_MODEL.md), and [`docs/AMBIGUITY_AND_AUTHORITY.md`](docs/AMBIGUITY_AND_AUTHORITY.md).
+The framework-independent engine is in `src/domain`. See the documents in `docs` for authority boundaries and extension points.
