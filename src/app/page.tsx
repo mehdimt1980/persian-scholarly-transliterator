@@ -83,7 +83,7 @@ export default function Home() {
   function applyAssistedCandidate(issue: ReviewIssue, candidate: AssistedCandidate, resolution: AssistedResolution) {
     try {
       const currentRequest = buildResolverRequest(result, issue.id);
-      const decision = candidateToReviewDecision(candidate, resolution, issue, currentRequest);
+      const decision = candidateToReviewDecision(candidate.id, resolution, issue, currentRequest);
       applyDecision(decision);
     } catch (err) {
       setAssistErrors((prev) => ({

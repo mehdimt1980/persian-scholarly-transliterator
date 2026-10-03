@@ -399,6 +399,209 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
         candidateToReviewDecision(fabricatedCandidate, resolution, issue, request)
       ).toThrow(/CANDIDATE_NOT_IN_RESOLUTION/);
     });
+
+    it('11E. rejects spoofed lexical candidate payload that reuses valid id/rank but changes alternative/canonical', () => {
+      const input = 'کرم';
+      const initial = transliterate(input, 'ijmes_full');
+      const issue = initial.reviewIssues[0];
+      const request = buildResolverRequest(initial, issue.id)!;
+
+      const resolution: AssistedResolution = {
+        issueId: issue.id,
+        candidates: [
+          {
+            id: 'sugg:kirm',
+            kind: 'EXISTING_LEXICAL_READING',
+            alternativeId: 'reading:kirm',
+            canonical: 'kirm',
+            rank: 1,
+            rationale: 'Validated suggestion for kirm',
+            basis: 'CONTEXTUAL_INFERENCE',
+            evidenceRefs: ['context:local-window']
+          }
+        ],
+        provider: 'fake-p',
+        model: 'fake-m',
+        promptVersion: request.promptVersion,
+        requestFingerprint: computeRequestFingerprint(request, 'fake-p', 'fake-m'),
+        warnings: []
+      };
+
+      // Attacker reuses id, kind, rank but alters alternativeId/canonical to karam
+      const spoofedCandidate = {
+        id: 'sugg:kirm',
+        kind: 'EXISTING_LEXICAL_READING' as const,
+        alternativeId: 'reading:karam',
+        canonical: 'karam',
+        rank: 1,
+        rationale: 'Spoofed payload for karam',
+        basis: 'CONTEXTUAL_INFERENCE' as const,
+        evidenceRefs: ['context:local-window']
+      };
+
+      const applicability = validateAssistedApplicability(spoofedCandidate, resolution, issue, request);
+      expect(applicability.applicable).toBe(false);
+      expect(applicability.reason).toBe('CANDIDATE_NOT_IN_RESOLUTION');
+
+      expect(() =>
+        candidateToReviewDecision(spoofedCandidate, resolution, issue, request)
+      ).toThrow(/CANDIDATE_NOT_IN_RESOLUTION/);
+    });
+
+    it('11F. rejects spoofed manual canonical candidate that reuses valid id/rank but alters canonical', () => {
+      const input = 'مشروطه‌خواهی';
+      const initial = transliterate(input, 'ijmes_full');
+      const issue = initial.reviewIssues[0] ?? {
+        id: 'issue:unknown:0:0',
+        type: 'UNKNOWN_TOKEN',
+        surface: 'مشروطه‌خواهی',
+        tokenIndexes: [0],
+        allowedActions: ['MANUAL_CANONICAL_OVERRIDE'],
+        alternatives: [],
+        severity: 'ERROR',
+        message: 'Unknown'
+      };
+      const request = buildResolverRequest(initial, issue.id) ?? {
+        issueId: issue.id,
+        issueType: issue.type,
+        normalizedSurface: issue.surface,
+        localContext: { before: [], target: issue.surface, after: [], fullWindow: issue.surface },
+        availableAlternatives: [],
+        allowedActions: issue.allowedActions,
+        orthographicEvidence: { explicitVowels: [], unsupportedMarks: [], explicitIzafat: null, zwnjBoundaries: [] },
+        evidenceCatalog: [],
+        allowedEvidenceRefs: ['context:local-window'],
+        lexicalSourceMetadata: [],
+        profile: 'ijmes_full',
+        promptVersion: 'v1'
+      };
+
+      const resolution: AssistedResolution = {
+        issueId: issue.id,
+        candidates: [
+          {
+            id: 'sugg:manual:1',
+            kind: 'MANUAL_CANONICAL',
+            canonical: 'mashrūṭa-khvāhī',
+            rank: 1,
+            rationale: 'Validated transliteration',
+            basis: 'CONTEXTUAL_INFERENCE',
+            evidenceRefs: ['context:local-window']
+          }
+        ],
+        provider: 'fake-p',
+        model: 'fake-m',
+        promptVersion: request.promptVersion,
+        requestFingerprint: computeRequestFingerprint(request, 'fake-p', 'fake-m'),
+        warnings: []
+      };
+
+      // Attacker reuses id, kind, rank but alters canonical string
+      const spoofedCandidate = {
+        id: 'sugg:manual:1',
+        kind: 'MANUAL_CANONICAL' as const,
+        canonical: 'tampered-canonical',
+        rank: 1,
+        rationale: 'Validated transliteration',
+        basis: 'CONTEXTUAL_INFERENCE' as const,
+        evidenceRefs: ['context:local-window']
+      };
+
+      const applicability = validateAssistedApplicability(spoofedCandidate, resolution, issue, request);
+      expect(applicability.applicable).toBe(false);
+      expect(applicability.reason).toBe('CANDIDATE_NOT_IN_RESOLUTION');
+
+      expect(() =>
+        candidateToReviewDecision(spoofedCandidate, resolution, issue, request)
+      ).toThrow(/CANDIDATE_NOT_IN_RESOLUTION/);
+    });
+
+    it('11G. rejects spoofed izafat decision that reuses valid id/rank but alters relationDecision', () => {
+      const input = 'تاریخ ایران';
+      const initial = transliterate(input, 'ijmes_full');
+      const issue = initial.reviewIssues.find((i) => i.type === 'IZAFAT_CANDIDATE')!;
+      const request = buildResolverRequest(initial, issue.id)!;
+
+      const resolution: AssistedResolution = {
+        issueId: issue.id,
+        candidates: [
+          {
+            id: 'sugg:izafat:1',
+            kind: 'IZAFAT_DECISION',
+            relationDecision: 'ACCEPT_IZAFAT',
+            rank: 1,
+            rationale: 'Accept izafat construct',
+            basis: 'MODEL_INFERENCE',
+            evidenceRefs: []
+          }
+        ],
+        provider: 'fake-p',
+        model: 'fake-m',
+        promptVersion: request.promptVersion,
+        requestFingerprint: computeRequestFingerprint(request, 'fake-p', 'fake-m'),
+        warnings: []
+      };
+
+      // Attacker tampers relationDecision to REJECT_IZAFAT
+      const spoofedCandidate = {
+        id: 'sugg:izafat:1',
+        kind: 'IZAFAT_DECISION' as const,
+        relationDecision: 'REJECT_IZAFAT' as const,
+        rank: 1,
+        rationale: 'Accept izafat construct',
+        basis: 'MODEL_INFERENCE' as const,
+        evidenceRefs: []
+      };
+
+      const applicability = validateAssistedApplicability(spoofedCandidate, resolution, issue, request);
+      expect(applicability.applicable).toBe(false);
+      expect(applicability.reason).toBe('CANDIDATE_NOT_IN_RESOLUTION');
+
+      expect(() =>
+        candidateToReviewDecision(spoofedCandidate, resolution, issue, request)
+      ).toThrow(/CANDIDATE_NOT_IN_RESOLUTION/);
+    });
+
+    it('11H. stored resolution candidate succeeds when accepting by candidateId string', () => {
+      const input = 'کرم';
+      const initial = transliterate(input, 'ijmes_full');
+      const issue = initial.reviewIssues[0];
+      const request = buildResolverRequest(initial, issue.id)!;
+
+      const resolution: AssistedResolution = {
+        issueId: issue.id,
+        candidates: [
+          {
+            id: 'sugg:real:1',
+            kind: 'EXISTING_LEXICAL_READING',
+            alternativeId: request.availableAlternatives[0].id,
+            canonical: request.availableAlternatives[0].canonical!,
+            rank: 1,
+            rationale: 'Stored candidate',
+            basis: 'CONTEXTUAL_INFERENCE',
+            evidenceRefs: ['context:local-window']
+          }
+        ],
+        provider: 'fake-p',
+        model: 'fake-m',
+        promptVersion: request.promptVersion,
+        requestFingerprint: computeRequestFingerprint(request, 'fake-p', 'fake-m'),
+        warnings: []
+      };
+
+      const decision = candidateToReviewDecision(
+        'sugg:real:1',
+        resolution,
+        issue,
+        request
+      );
+
+      expect(decision.action).toBe('SELECT_LEXICAL_READING');
+      expect(decision.selectedAlternativeId).toBe(request.availableAlternatives[0].id);
+      expect(decision.manualCanonicalTransliteration).toBe(request.availableAlternatives[0].canonical);
+      expect(decision.assistance?.suggestionId).toBe('sugg:real:1');
+      expect(decision.assistance?.requestFingerprint).toBe(resolution.requestFingerprint);
+    });
   });
 
   describe('Evidence Taxonomy & Semantic IDs (Sections 5, 6, 12)', () => {

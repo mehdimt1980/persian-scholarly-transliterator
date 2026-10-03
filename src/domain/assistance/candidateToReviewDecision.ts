@@ -8,7 +8,7 @@ import {
 } from './types';
 
 export function validateAssistedApplicability(
-  candidate: AssistedCandidate,
+  candidateOrId: string | AssistedCandidate,
   resolution: AssistedResolution,
   issue: ReviewIssue,
   currentRequest: AssistedResolverRequest | null
@@ -21,18 +21,68 @@ export function validateAssistedApplicability(
     };
   }
 
-  // 2. Candidate membership in resolution
-  const hasCandidate = resolution.candidates.some(
-    (c) =>
-      c.id === candidate.id &&
-      c.kind === candidate.kind &&
-      c.rank === candidate.rank
-  );
-  if (!hasCandidate) {
+  // 2. Candidate membership in resolution & spoof check
+  const candidateId = typeof candidateOrId === 'string' ? candidateOrId : candidateOrId.id;
+  const storedCandidate = resolution.candidates.find((c) => c.id === candidateId);
+  if (!storedCandidate) {
     return {
       applicable: false,
       reason: 'CANDIDATE_NOT_IN_RESOLUTION'
     };
+  }
+
+  // If caller provided a full candidate object, verify complete semantic parity with stored candidate
+  if (typeof candidateOrId !== 'string') {
+    if (
+      candidateOrId.kind !== storedCandidate.kind ||
+      candidateOrId.rank !== storedCandidate.rank ||
+      candidateOrId.basis !== storedCandidate.basis
+    ) {
+      return {
+        applicable: false,
+        reason: 'CANDIDATE_NOT_IN_RESOLUTION'
+      };
+    }
+
+    if (storedCandidate.kind === 'EXISTING_LEXICAL_READING') {
+      const caller = candidateOrId as typeof storedCandidate;
+      if (
+        caller.alternativeId !== storedCandidate.alternativeId ||
+        (caller.canonical ?? null) !== (storedCandidate.canonical ?? null)
+      ) {
+        return {
+          applicable: false,
+          reason: 'CANDIDATE_NOT_IN_RESOLUTION'
+        };
+      }
+    } else if (storedCandidate.kind === 'MANUAL_CANONICAL') {
+      const caller = candidateOrId as typeof storedCandidate;
+      if (caller.canonical !== storedCandidate.canonical) {
+        return {
+          applicable: false,
+          reason: 'CANDIDATE_NOT_IN_RESOLUTION'
+        };
+      }
+    } else if (storedCandidate.kind === 'IZAFAT_DECISION') {
+      const caller = candidateOrId as typeof storedCandidate;
+      if (caller.relationDecision !== storedCandidate.relationDecision) {
+        return {
+          applicable: false,
+          reason: 'CANDIDATE_NOT_IN_RESOLUTION'
+        };
+      }
+    } else if (storedCandidate.kind === 'MORPHOLOGY_BRANCH') {
+      const caller = candidateOrId as typeof storedCandidate;
+      if (
+        caller.morphologyBranch !== storedCandidate.morphologyBranch ||
+        (caller.canonical ?? null) !== (storedCandidate.canonical ?? null)
+      ) {
+        return {
+          applicable: false,
+          reason: 'CANDIDATE_NOT_IN_RESOLUTION'
+        };
+      }
+    }
   }
 
   // 3. Current request existence
@@ -58,20 +108,20 @@ export function validateAssistedApplicability(
     };
   }
 
-  // 5. Allowed actions check
-  if (candidate.kind === 'EXISTING_LEXICAL_READING') {
+  // 5. Allowed actions check on stored candidate
+  if (storedCandidate.kind === 'EXISTING_LEXICAL_READING') {
     if (!issue.allowedActions.includes('SELECT_LEXICAL_READING')) {
       return { applicable: false, reason: 'ACTION_NOT_ALLOWED' };
     }
-  } else if (candidate.kind === 'MANUAL_CANONICAL') {
+  } else if (storedCandidate.kind === 'MANUAL_CANONICAL') {
     if (!issue.allowedActions.includes('MANUAL_CANONICAL_OVERRIDE')) {
       return { applicable: false, reason: 'ACTION_NOT_ALLOWED' };
     }
-  } else if (candidate.kind === 'IZAFAT_DECISION') {
-    if (!issue.allowedActions.includes(candidate.relationDecision)) {
+  } else if (storedCandidate.kind === 'IZAFAT_DECISION') {
+    if (!issue.allowedActions.includes(storedCandidate.relationDecision)) {
       return { applicable: false, reason: 'ACTION_NOT_ALLOWED' };
     }
-  } else if (candidate.kind === 'MORPHOLOGY_BRANCH') {
+  } else if (storedCandidate.kind === 'MORPHOLOGY_BRANCH') {
     if (!issue.allowedActions.includes('SELECT_MORPHOLOGY')) {
       return { applicable: false, reason: 'ACTION_NOT_ALLOWED' };
     }
@@ -81,13 +131,13 @@ export function validateAssistedApplicability(
 }
 
 export function candidateToReviewDecision(
-  candidate: AssistedCandidate,
+  candidateOrId: string | AssistedCandidate,
   resolution: AssistedResolution,
   issue: ReviewIssue,
   currentRequest: AssistedResolverRequest | null
 ): ReviewDecision {
   const applicability = validateAssistedApplicability(
-    candidate,
+    candidateOrId,
     resolution,
     issue,
     currentRequest
@@ -98,6 +148,9 @@ export function candidateToReviewDecision(
       `Cannot apply assisted candidate: ${applicability.reason || 'Suggestion is stale or inapplicable.'}`
     );
   }
+
+  const candidateId = typeof candidateOrId === 'string' ? candidateOrId : candidateOrId.id;
+  const candidate = resolution.candidates.find((c) => c.id === candidateId)!;
 
   const assistanceMetadata = {
     suggestionId: candidate.id,
@@ -112,7 +165,7 @@ export function candidateToReviewDecision(
       issueId: issue.id,
       action: 'SELECT_LEXICAL_READING',
       selectedAlternativeId: candidate.alternativeId,
-      manualCanonicalTransliteration: candidate.canonical,
+      manualCanonicalTransliteration: candidate.canonical ?? undefined,
       assistance: assistanceMetadata
     };
   }
@@ -139,7 +192,7 @@ export function candidateToReviewDecision(
       issueId: issue.id,
       action: 'SELECT_MORPHOLOGY',
       selectedAlternativeId: candidate.morphologyBranch,
-      manualCanonicalTransliteration: candidate.canonical,
+      manualCanonicalTransliteration: candidate.canonical ?? undefined,
       assistance: assistanceMetadata
     };
   }
