@@ -38,12 +38,21 @@ export interface ReviewIssue {
   provenance?: RuleDefinition[];
 }
 
+export interface AssistanceDecisionMetadata {
+  suggestionId: string;
+  provider: string;
+  model: string;
+  promptVersion: string;
+  requestFingerprint: string;
+}
+
 export interface ReviewDecision {
   issueId: string;
   action: ReviewActionType;
   selectedAlternativeId?: string;
   manualCanonicalTransliteration?: string;
   note?: string;
+  assistance?: AssistanceDecisionMetadata;
 }
 
 export interface ValidationResult {
