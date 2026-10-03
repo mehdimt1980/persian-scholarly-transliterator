@@ -389,4 +389,134 @@ describe('Human Review and Override Workflow', () => {
       expect(postMorph.reviewIssues[0].type).toBe('LEXICAL_AMBIGUITY');
     });
   });
+
+  describe('Strict Input-Scoped and Payload-Scoped Issue Identity', () => {
+    it('invalidates lexical decision when surrounding input changes (کرم کتاب vs کرم دولت)', () => {
+      const inputA = 'کرم کتاب';
+      const initialA = transliterate(inputA);
+      expect(initialA.reviewIssues.length).toBe(1);
+      expect(initialA.reviewIssues[0].surface).toBe('کرم');
+
+      const decisionA: ReviewDecision = {
+        issueId: initialA.reviewIssues[0].id,
+        action: 'SELECT_LEXICAL_READING',
+        selectedAlternativeId: 'kirm'
+      };
+
+      // Apply decisionA to inputB where کرم occupies the exact same token index (0) and span (0-3)
+      const inputB = 'کرم دولت';
+      const resultB = transliterate(inputB, 'ijmes_full', [decisionA]);
+
+      // Decision must be treated as stale because full-input fingerprint differs
+      expect(resultB.appliedDecisions.length).toBe(0);
+      expect(resultB.staleDecisions.length).toBe(1);
+      expect(resultB.staleDecisions[0].issueId).toBe(decisionA.issueId);
+      expect(resultB.status).toBe('AMBIGUOUS');
+      expect(resultB.copyable).toBe(false);
+    });
+
+    it('invalidates relation decision when unrelated input context changes', () => {
+      const inputA = 'تاریخ ایران';
+      const initialA = transliterate(inputA);
+      expect(initialA.reviewIssues.length).toBe(1);
+      expect(initialA.reviewIssues[0].type).toBe('IZAFAT_CANDIDATE');
+
+      const decisionA: ReviewDecision = {
+        issueId: initialA.reviewIssues[0].id,
+        action: 'ACCEPT_IZAFAT'
+      };
+
+      // Prepend known word to input so all words are known
+      const inputB = 'کتاب تاریخ ایران';
+      const resultB = transliterate(inputB, 'ijmes_full', [decisionA]);
+
+      expect(resultB.appliedDecisions.length).toBe(0);
+      expect(resultB.staleDecisions.length).toBe(1);
+      expect(resultB.status).toBe('AMBIGUOUS');
+      expect(resultB.copyable).toBe(false);
+      // Ensure the relation was NOT confirmed by the stale decision
+      expect(resultB.relations.some((r) => r.status === 'CONFIRMED' && r.disposition === 'ACCEPTED')).toBe(false);
+    });
+
+    it('invalidates decision when the allowed candidate set changes for the same token surface and span', () => {
+      const repo2Alts = new LexiconRepository([
+        {
+          id: 'lex:token_test',
+          surface: 'کرم',
+          normalized: 'کرم',
+          category: 'noun',
+          readings: [
+            { canonical: 'karam', confidence: 0.5, source: 'Source 1' },
+            { canonical: 'kirm', confidence: 0.5, source: 'Source 2' }
+          ]
+        }
+      ]);
+
+      const repo3Alts = new LexiconRepository([
+        {
+          id: 'lex:token_test',
+          surface: 'کرم',
+          normalized: 'کرم',
+          category: 'noun',
+          readings: [
+            { canonical: 'karam', confidence: 0.33, source: 'Source 1' },
+            { canonical: 'kirm', confidence: 0.33, source: 'Source 2' },
+            { canonical: 'karem', confidence: 0.33, source: 'Source 3' }
+          ]
+        }
+      ]);
+
+      const input = 'کرم';
+      const initial2 = transliterate(input, 'ijmes_full', [], repo2Alts);
+      const initial3 = transliterate(input, 'ijmes_full', [], repo3Alts);
+
+      // Issue IDs must differ because candidate payload fingerprint differs
+      expect(initial2.reviewIssues[0].id).not.toBe(initial3.reviewIssues[0].id);
+
+      const decision2: ReviewDecision = {
+        issueId: initial2.reviewIssues[0].id,
+        action: 'SELECT_LEXICAL_READING',
+        selectedAlternativeId: 'kirm'
+      };
+
+      // Submitting decision for 2-alternative issue to 3-alternative scenario must be rejected as stale
+      const result3 = transliterate(input, 'ijmes_full', [decision2], repo3Alts);
+      expect(result3.appliedDecisions.length).toBe(0);
+      expect(result3.staleDecisions.length).toBe(1);
+      expect(result3.copyable).toBe(false);
+    });
+
+    it('generates identical issue IDs when identical candidate sets are provided in different ordering', () => {
+      const repoOrderA = new LexiconRepository([
+        {
+          id: 'lex:order_test',
+          surface: 'کرم',
+          normalized: 'کرم',
+          category: 'noun',
+          readings: [
+            { id: 'read:1', canonical: 'karam', confidence: 0.5, source: 'Source 1' },
+            { id: 'read:2', canonical: 'kirm', confidence: 0.5, source: 'Source 2' }
+          ]
+        }
+      ]);
+
+      const repoOrderB = new LexiconRepository([
+        {
+          id: 'lex:order_test',
+          surface: 'کرم',
+          normalized: 'کرم',
+          category: 'noun',
+          readings: [
+            { id: 'read:2', canonical: 'kirm', confidence: 0.5, source: 'Source 2' },
+            { id: 'read:1', canonical: 'karam', confidence: 0.5, source: 'Source 1' }
+          ]
+        }
+      ]);
+
+      const initialA = transliterate('کرم', 'ijmes_full', [], repoOrderA);
+      const initialB = transliterate('کرم', 'ijmes_full', [], repoOrderB);
+
+      expect(initialA.reviewIssues[0].id).toBe(initialB.reviewIssues[0].id);
+    });
+  });
 });

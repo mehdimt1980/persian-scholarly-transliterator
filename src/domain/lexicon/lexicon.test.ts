@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_LEXICON_REPOSITORY, LEXICON } from '../../data/lexicon';
-import { LexiconRepository } from './repository';
+import { LexiconIntegrityError, LexiconRepository } from './repository';
 import { LexicalEntry } from './types';
 
 describe('Lexicon Repository and Data Integrity', () => {
@@ -119,5 +119,49 @@ describe('Lexicon Repository and Data Integrity', () => {
     const dynasty = DEFAULT_LEXICON_REPOSITORY.findByNormalized('قاجار');
     expect(dynasty?.properName?.type).toBe('DYNASTY');
     expect(dynasty?.readings[0].canonical).toBe('qājār');
+  });
+
+  describe('Fail-Closed Integrity Enforcement', () => {
+    const entryA: LexicalEntry = {
+      id: 'lex:kitab_a',
+      surface: 'کتاب',
+      normalized: 'کتاب',
+      category: 'noun',
+      readings: [{ canonical: 'kitāb-a', confidence: 0.9, source: 'Source A' }]
+    };
+
+    const entryB: LexicalEntry = {
+      id: 'lex:kitab_b',
+      surface: 'کتاب',
+      normalized: 'کتاب',
+      category: 'noun',
+      readings: [{ canonical: 'kitāb-b', confidence: 0.9, source: 'Source B' }]
+    };
+
+    it('fails closed when duplicate normalized entries are passed in order [A, B]', () => {
+      const repoAB = new LexiconRepository([entryA, entryB]);
+      expect(repoAB.validateIntegrity().valid).toBe(false);
+      expect(() => repoAB.assertValid()).toThrow(LexiconIntegrityError);
+      expect(() => repoAB.findByNormalized('کتاب')).toThrow(LexiconIntegrityError);
+      expect(() => repoAB.findById('lex:kitab_a')).toThrow(LexiconIntegrityError);
+    });
+
+    it('fails closed when duplicate normalized entries are passed in reverse order [B, A]', () => {
+      const repoBA = new LexiconRepository([entryB, entryA]);
+      expect(repoBA.validateIntegrity().valid).toBe(false);
+      expect(() => repoBA.assertValid()).toThrow(LexiconIntegrityError);
+      expect(() => repoBA.findByNormalized('کتاب')).toThrow(LexiconIntegrityError);
+      expect(() => repoBA.findById('lex:kitab_b')).toThrow(LexiconIntegrityError);
+    });
+
+    it('fails closed on duplicate entry IDs regardless of normalized key', () => {
+      const dupIdRepo = new LexiconRepository([
+        { id: 'lex:same', surface: 'کتاب', normalized: 'کتاب', category: 'noun', readings: [{ canonical: 'kitāb', confidence: 0.9, source: 'Source 1' }] },
+        { id: 'lex:same', surface: 'دفتر', normalized: 'دفتر', category: 'noun', readings: [{ canonical: 'daftar', confidence: 0.9, source: 'Source 2' }] }
+      ]);
+      expect(dupIdRepo.validateIntegrity().valid).toBe(false);
+      expect(() => dupIdRepo.assertValid()).toThrow(LexiconIntegrityError);
+      expect(() => dupIdRepo.findById('lex:same')).toThrow(LexiconIntegrityError);
+    });
   });
 });

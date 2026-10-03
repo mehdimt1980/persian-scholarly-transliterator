@@ -3,12 +3,44 @@ import { LexiconRepository } from '../lexicon/repository';
 import { ContextRelation, LexicalEntry, MorphologicalAnalysis, Token, TokenAnalysis, TokenResult } from '../types';
 import { ReviewAlternative, ReviewIssue, ReviewIssueType } from './types';
 
-export function generateTokenIssueId(token: Token, tokenIndex: number, type: ReviewIssueType): string {
-  return `issue:token:${tokenIndex}:${token.normalizedSurface}:${token.normalizedStart}-${token.normalizedEnd}:${type}`;
+export function computeDeterministicFingerprint(input: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < input.length; i++) {
+    h ^= input.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (h >>> 0).toString(16).padStart(8, '0');
 }
 
-export function generateRelationIssueId(sourceToken: Token, sourceIndex: number, targetToken: Token, targetIndex: number, type: ReviewIssueType): string {
-  return `issue:relation:${sourceToken.normalizedSurface}[${sourceIndex}:${sourceToken.normalizedStart}-${sourceToken.normalizedEnd}]->${targetToken.normalizedSurface}[${targetIndex}:${targetToken.normalizedStart}-${targetToken.normalizedEnd}]:${type}`;
+export function computeInputFingerprint(tokens: Token[]): string {
+  const normalizedJoined = tokens
+    .map((t) => `${t.normalizedSurface}:${t.normalizedStart}-${t.normalizedEnd}`)
+    .join('|');
+  return computeDeterministicFingerprint(normalizedJoined);
+}
+
+export function generateTokenIssueId(
+  inputFingerprint: string,
+  token: Token,
+  tokenIndex: number,
+  type: ReviewIssueType,
+  payloadKey?: string
+): string {
+  const payloadPart = payloadKey ? `:${computeDeterministicFingerprint(payloadKey)}` : '';
+  return `issue:${inputFingerprint}:token:${tokenIndex}:${token.normalizedSurface}:${token.normalizedStart}-${token.normalizedEnd}:${type}${payloadPart}`;
+}
+
+export function generateRelationIssueId(
+  inputFingerprint: string,
+  sourceToken: Token,
+  sourceIndex: number,
+  targetToken: Token,
+  targetIndex: number,
+  type: ReviewIssueType,
+  payloadKey?: string
+): string {
+  const payloadPart = payloadKey ? `:${computeDeterministicFingerprint(payloadKey)}` : '';
+  return `issue:${inputFingerprint}:relation:${sourceToken.normalizedSurface}[${sourceIndex}:${sourceToken.normalizedStart}-${sourceToken.normalizedEnd}]->${targetToken.normalizedSurface}[${targetIndex}:${targetToken.normalizedStart}-${targetToken.normalizedEnd}]:${type}${payloadPart}`;
 }
 
 export function detectReviewIssues(
@@ -21,6 +53,7 @@ export function detectReviewIssues(
   lexicon: LexiconRepository = DEFAULT_LEXICON_REPOSITORY
 ): ReviewIssue[] {
   const issues: ReviewIssue[] = [];
+  const inputFingerprint = computeInputFingerprint(tokens);
   const analysisByToken = new Map(analyses.map((item) => [item.tokenIndex, item]));
   const morphologyByToken = new Map(morphologies.map((item) => [item.tokenIndex, item]));
 
@@ -68,8 +101,13 @@ export function detectReviewIssues(
         }
       ];
 
+      const payloadKey = alternatives
+        .map((a) => `${a.id}=${a.canonical ?? ''}`)
+        .sort()
+        .join(';');
+
       issues.push({
-        id: generateTokenIssueId(token, tokenIndex, 'MORPHOLOGY_AMBIGUITY'),
+        id: generateTokenIssueId(inputFingerprint, token, tokenIndex, 'MORPHOLOGY_AMBIGUITY', payloadKey),
         type: 'MORPHOLOGY_AMBIGUITY',
         tokenIndexes: [tokenIndex],
         morphologyIndex: tokenIndex,
@@ -84,8 +122,9 @@ export function detectReviewIssues(
 
     // B. Unsupported morphology allomorph (e.g. vowel-final possessive)
     if (result.blockingReason === 'UNSUPPORTED_ALLOMORPH' || (morph && morph.status === 'CANDIDATE' && morph.warnings.some((w) => w.includes('allomorphs require review') || w.includes('no authoritative')))) {
+      const payloadKey = `allomorph:${token.normalizedSurface}:${morph?.warnings.slice().sort().join(';') ?? ''}`;
       issues.push({
-        id: generateTokenIssueId(token, tokenIndex, 'UNSUPPORTED_ALLOMORPH'),
+        id: generateTokenIssueId(inputFingerprint, token, tokenIndex, 'UNSUPPORTED_ALLOMORPH', payloadKey),
         type: 'UNSUPPORTED_ALLOMORPH',
         tokenIndexes: [tokenIndex],
         morphologyIndex: tokenIndex,
@@ -100,8 +139,10 @@ export function detectReviewIssues(
 
     // C. Unsupported combining mark evidence
     if (result.blockingReason === 'UNSUPPORTED_ORTHOGRAPHIC_EVIDENCE' || (analysis && analysis.unsupportedCombiningMarks.length > 0)) {
+      const marks = analysis?.unsupportedCombiningMarks.map((m) => m.mark).sort().join(',') ?? '';
+      const payloadKey = `marks:${marks}`;
       issues.push({
-        id: generateTokenIssueId(token, tokenIndex, 'UNSUPPORTED_ORTHOGRAPHIC_EVIDENCE'),
+        id: generateTokenIssueId(inputFingerprint, token, tokenIndex, 'UNSUPPORTED_ORTHOGRAPHIC_EVIDENCE', payloadKey),
         type: 'UNSUPPORTED_ORTHOGRAPHIC_EVIDENCE',
         tokenIndexes: [tokenIndex],
         surface: token.normalizedSurface,
@@ -115,8 +156,9 @@ export function detectReviewIssues(
 
     // D. Insufficient vocalization metadata
     if (result.blockingReason === 'INSUFFICIENT_VOCALIZATION') {
+      const payloadKey = `insufficient:${token.normalizedSurface}:${result.alternatives.slice().sort().join(',')}`;
       issues.push({
-        id: generateTokenIssueId(token, tokenIndex, 'INSUFFICIENT_VOCALIZATION'),
+        id: generateTokenIssueId(inputFingerprint, token, tokenIndex, 'INSUFFICIENT_VOCALIZATION', payloadKey),
         type: 'INSUFFICIENT_VOCALIZATION',
         tokenIndexes: [tokenIndex],
         surface: token.normalizedSurface,
@@ -150,8 +192,13 @@ export function detectReviewIssues(
             description: `Alternative reading: ${alt}`
           }));
 
+      const payloadKey = alternatives
+        .map((a) => `${a.id}=${a.canonical ?? ''}`)
+        .sort()
+        .join(';');
+
       issues.push({
-        id: generateTokenIssueId(token, tokenIndex, 'LEXICAL_AMBIGUITY'),
+        id: generateTokenIssueId(inputFingerprint, token, tokenIndex, 'LEXICAL_AMBIGUITY', payloadKey),
         type: 'LEXICAL_AMBIGUITY',
         tokenIndexes: [tokenIndex],
         surface: token.normalizedSurface,
@@ -165,8 +212,9 @@ export function detectReviewIssues(
 
     // F. Unknown / Unresolved Token (including vocalization conflict or unknown stem)
     if (result.status === 'UNRESOLVED' || result.blockingReason === 'NO_LEXICAL_ENTRY' || result.blockingReason === 'VOCALIZATION_CONFLICT') {
+      const payloadKey = `unknown:${token.normalizedSurface}:${result.diagnosticScaffold ?? ''}`;
       issues.push({
-        id: generateTokenIssueId(token, tokenIndex, 'UNKNOWN_TOKEN'),
+        id: generateTokenIssueId(inputFingerprint, token, tokenIndex, 'UNKNOWN_TOKEN', payloadKey),
         type: 'UNKNOWN_TOKEN',
         tokenIndexes: [tokenIndex],
         surface: token.normalizedSurface,
@@ -184,9 +232,11 @@ export function detectReviewIssues(
       const sourceToken = tokens[relation.sourceTokenIndex];
       const targetToken = tokens[relation.targetTokenIndex];
       const surface = `${sourceToken.normalizedSurface} ${targetToken.normalizedSurface}`;
+      const evidenceKinds = relation.evidence.map((e) => e.kind).sort().join(',');
+      const payloadKey = `izafat:${relation.type}:${relation.rendering}:${evidenceKinds}`;
 
       issues.push({
-        id: generateRelationIssueId(sourceToken, relation.sourceTokenIndex, targetToken, relation.targetTokenIndex, 'IZAFAT_CANDIDATE'),
+        id: generateRelationIssueId(inputFingerprint, sourceToken, relation.sourceTokenIndex, targetToken, relation.targetTokenIndex, 'IZAFAT_CANDIDATE', payloadKey),
         type: 'IZAFAT_CANDIDATE',
         tokenIndexes: [relation.sourceTokenIndex, relation.targetTokenIndex],
         relationIndex,

@@ -308,6 +308,7 @@ export function transliterate(
   reviewDecisions: ReviewDecision[] = [],
   lexicon: LexiconRepository = DEFAULT_LEXICON_REPOSITORY
 ): TransliterationResult {
+  lexicon.assertValid();
   const normalization = normalizePersian(input);
   const tokens = tokenize(normalization.normalizedInput);
   const analyses = analyzeOrthography(tokens);

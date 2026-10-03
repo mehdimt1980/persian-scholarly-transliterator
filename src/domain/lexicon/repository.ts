@@ -5,31 +5,48 @@ export interface LexiconIntegrityReport {
   errors: string[];
 }
 
+export class LexiconIntegrityError extends Error {
+  public readonly errors: string[];
+
+  constructor(errors: string[]) {
+    super(`Lexicon repository failed integrity validation with ${errors.length} error(s):\n${errors.map((e) => `  - ${e}`).join('\n')}`);
+    this.name = 'LexiconIntegrityError';
+    this.errors = errors;
+  }
+}
+
 export class LexiconRepository {
   private readonly entriesById: Map<string, LexicalEntry> = new Map();
   private readonly entriesByNormalized: Map<string, LexicalEntry> = new Map();
   private readonly allEntries: LexicalEntry[];
+  private readonly integrityReport: LexiconIntegrityReport;
 
   constructor(entries: LexicalEntry[]) {
     this.allEntries = [...entries];
-    for (const entry of this.allEntries) {
-      if (this.entriesById.has(entry.id)) {
-        console.warn(`Duplicate lexical entry ID detected during index construction: ${entry.id}`);
-      }
-      this.entriesById.set(entry.id, entry);
+    this.integrityReport = this.computeIntegrity();
 
-      if (this.entriesByNormalized.has(entry.normalized)) {
-        console.warn(`Duplicate lexical entry normalized form detected during index construction: ${entry.normalized}`);
+    // Populate lookup indices only when integrity checks pass to prevent arbitrary first/last ordering authority
+    if (this.integrityReport.valid) {
+      for (const entry of this.allEntries) {
+        this.entriesById.set(entry.id, entry);
+        this.entriesByNormalized.set(entry.normalized, entry);
       }
-      this.entriesByNormalized.set(entry.normalized, entry);
+    }
+  }
+
+  public assertValid(): void {
+    if (!this.integrityReport.valid) {
+      throw new LexiconIntegrityError(this.integrityReport.errors);
     }
   }
 
   public findById(id: string): LexicalEntry | undefined {
+    this.assertValid();
     return this.entriesById.get(id);
   }
 
   public findByNormalized(normalized: string): LexicalEntry | undefined {
+    this.assertValid();
     return this.entriesByNormalized.get(normalized);
   }
 
@@ -38,6 +55,10 @@ export class LexiconRepository {
   }
 
   public validateIntegrity(): LexiconIntegrityReport {
+    return this.integrityReport;
+  }
+
+  private computeIntegrity(): LexiconIntegrityReport {
     const errors: string[] = [];
     const seenIds = new Set<string>();
     const seenNormalized = new Set<string>();
