@@ -10,3 +10,5 @@ export * from './csv/export';
 export * from './export/types';
 export * from './export/ris';
 export * from './export/bibtex';
+export * from './assistance';
+

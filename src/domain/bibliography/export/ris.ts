@@ -1,5 +1,5 @@
 import { BibliographyDiagnostic, ProcessedBibliographyBatch, ProcessedBibliographyRecord } from '../types';
-import { getAuthoritativeFinalFieldValue } from '../csv/export';
+import { validateRecordForFinalExport } from './validateRecord';
 import { BibliographyExportReport, ScholarlyExportMode } from './types';
 
 function sanitizeRisValue(
@@ -45,7 +45,7 @@ export function exportToRis(
   const skippedRecordIds: string[] = [];
   const skipReasons: Record<string, string[]> = {};
 
-  const eligibleRecords: ProcessedBibliographyRecord[] = [];
+  const eligibleRecords: Array<{ pr: ProcessedBibliographyRecord; authoritativeValues: Record<string, string> }> = [];
 
   for (const pr of batch.records) {
     const reasons: string[] = [];
@@ -58,10 +58,10 @@ export function exportToRis(
       }
     }
 
-    // Verify authoritative final values for all transformable fields
-    for (const [fieldPath, field] of Object.entries(pr.fields)) {
-      if (field.requiresTransliteration && field.finalText === null) {
-        reasons.push(`Field "${fieldPath}" is unauthoritative or unresolved for final export.`);
+    const validation = validateRecordForFinalExport(pr);
+    if (!validation.valid) {
+      for (const d of validation.diagnostics) {
+        reasons.push(d.message);
       }
     }
 
@@ -79,7 +79,7 @@ export function exportToRis(
         skipReasons[pr.record.id] = reasons;
       }
     } else {
-      eligibleRecords.push(pr);
+      eligibleRecords.push({ pr, authoritativeValues: validation.authoritativeValues });
     }
   }
 
@@ -100,38 +100,38 @@ export function exportToRis(
 
   const risBlocks: string[] = [];
 
-  for (const pr of eligibleRecords) {
+  for (const { pr, authoritativeValues } of eligibleRecords) {
     const r = pr.record;
     exportedRecordIds.push(r.id);
 
     const lines: string[] = [];
     lines.push(`TY  - ${mapRecordTypeToRis(r.type)}`);
 
-    const titleAuth = getAuthoritativeFinalFieldValue(pr.fields['title'], r.title);
-    if (titleAuth.value) {
-      lines.push(`TI  - ${sanitizeRisValue(titleAuth.value, r.id, 'title', diagnostics)}`);
+    const title = authoritativeValues['title'];
+    if (title) {
+      lines.push(`TI  - ${sanitizeRisValue(title, r.id, 'title', diagnostics)}`);
     }
 
     if (r.containerTitle) {
-      const containerAuth = getAuthoritativeFinalFieldValue(pr.fields['containerTitle'], r.containerTitle);
-      if (containerAuth.value) {
-        lines.push(`T2  - ${sanitizeRisValue(containerAuth.value, r.id, 'containerTitle', diagnostics)}`);
+      const containerTitle = authoritativeValues['containerTitle'];
+      if (containerTitle) {
+        lines.push(`T2  - ${sanitizeRisValue(containerTitle, r.id, 'containerTitle', diagnostics)}`);
       }
     }
 
     // Authors
-    r.authors.forEach((creator, idx) => {
-      const authorAuth = getAuthoritativeFinalFieldValue(pr.fields[`authors.${idx}.literal`], creator.literal);
-      if (authorAuth.value) {
-        lines.push(`AU  - ${sanitizeRisValue(authorAuth.value, r.id, `authors.${idx}`, diagnostics)}`);
+    r.authors.forEach((_, idx) => {
+      const authorText = authoritativeValues[`authors.${idx}.literal`];
+      if (authorText) {
+        lines.push(`AU  - ${sanitizeRisValue(authorText, r.id, `authors.${idx}`, diagnostics)}`);
       }
     });
 
     // Editors
-    r.editors.forEach((creator, idx) => {
-      const editorAuth = getAuthoritativeFinalFieldValue(pr.fields[`editors.${idx}.literal`], creator.literal);
-      if (editorAuth.value) {
-        lines.push(`ED  - ${sanitizeRisValue(editorAuth.value, r.id, `editors.${idx}`, diagnostics)}`);
+    r.editors.forEach((_, idx) => {
+      const editorText = authoritativeValues[`editors.${idx}.literal`];
+      if (editorText) {
+        lines.push(`ED  - ${sanitizeRisValue(editorText, r.id, `editors.${idx}`, diagnostics)}`);
       }
     });
 
@@ -140,16 +140,16 @@ export function exportToRis(
     }
 
     if (r.publisher) {
-      const pubAuth = getAuthoritativeFinalFieldValue(pr.fields['publisher'], r.publisher);
-      if (pubAuth.value) {
-        lines.push(`PB  - ${sanitizeRisValue(pubAuth.value, r.id, 'publisher', diagnostics)}`);
+      const pub = authoritativeValues['publisher'];
+      if (pub) {
+        lines.push(`PB  - ${sanitizeRisValue(pub, r.id, 'publisher', diagnostics)}`);
       }
     }
 
     if (r.place) {
-      const placeAuth = getAuthoritativeFinalFieldValue(pr.fields['place'], r.place);
-      if (placeAuth.value) {
-        lines.push(`CY  - ${sanitizeRisValue(placeAuth.value, r.id, 'place', diagnostics)}`);
+      const place = authoritativeValues['place'];
+      if (place) {
+        lines.push(`CY  - ${sanitizeRisValue(place, r.id, 'place', diagnostics)}`);
       }
     }
 

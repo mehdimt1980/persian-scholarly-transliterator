@@ -113,6 +113,7 @@ export interface BibliographyReviewDecision {
 export interface BibliographyAssistanceState {
   recordId: string;
   fieldPath: BibliographyFieldPath;
+  issueId: string;
   resolution: AssistedResolution;
 }
 

@@ -129,17 +129,11 @@ export function importBibliographyFromCsv(
 
   const parseResult = parseCsvString(csvContent);
   for (const err of parseResult.errors) {
+    const isRowWidth = err.includes('columns, expected');
     diagnostics.push({
       severity: 'ERROR',
-      code: 'CSV_PARSE_ERROR',
+      code: isRowWidth ? 'ROW_WIDTH_MISMATCH' : 'CSV_PARSE_ERROR',
       message: err
-    });
-  }
-  for (const warn of parseResult.warnings) {
-    diagnostics.push({
-      severity: 'WARNING',
-      code: 'ROW_WIDTH_MISMATCH',
-      message: warn
     });
   }
 

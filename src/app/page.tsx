@@ -18,9 +18,11 @@ import {
   exportToRis,
   exportToBibTeX,
   makeBibliographyIssueScopeKey,
+  candidateToBibliographyReviewDecision,
   BibliographyFieldPath,
   BibliographyRecord,
   BibliographyReviewDecision,
+  BibliographyAssistanceState,
   BibliographyDiagnostic,
   BibliographyExportReport,
   ScholarlyExportMode,
@@ -171,7 +173,7 @@ export default function Home() {
 
   // Batch Field-Scoped Assistance State
   const [batchAssistStatus, setBatchAssistStatus] = useState<Record<string, AssistStatusType>>({});
-  const [batchAssistResolutions, setBatchAssistResolutions] = useState<Record<string, AssistedResolution>>({});
+  const [batchAssistResolutions, setBatchAssistResolutions] = useState<Record<string, BibliographyAssistanceState>>({});
   const [batchAssistErrors, setBatchAssistErrors] = useState<Record<string, string>>({});
 
   const processedBatch = useMemo(
@@ -303,7 +305,15 @@ export default function Home() {
         return;
       }
 
-      setBatchAssistResolutions((prev) => ({ ...prev, [scopeKey]: data.resolution }));
+      setBatchAssistResolutions((prev) => ({
+        ...prev,
+        [scopeKey]: {
+          recordId,
+          fieldPath,
+          issueId: issue.id,
+          resolution: data.resolution
+        }
+      }));
       setBatchAssistStatus((prev) => ({ ...prev, [scopeKey]: 'available' }));
     } catch (err: unknown) {
       setBatchAssistStatus((prev) => ({ ...prev, [scopeKey]: 'error' }));
@@ -316,7 +326,7 @@ export default function Home() {
     fieldPath: BibliographyFieldPath,
     issue: ReviewIssue,
     candidate: AssistedCandidate,
-    resolution: AssistedResolution
+    assistanceState: BibliographyAssistanceState
   ) {
     const scopeKey = makeBibliographyIssueScopeKey(recordId, fieldPath, issue.id);
     const pr = processedBatch.records.find((r) => r.record.id === recordId);
@@ -325,8 +335,15 @@ export default function Home() {
 
     try {
       const currentRequest = buildResolverRequest(field.transliterationResult, issue.id);
-      const decision = candidateToReviewDecision(candidate.id, resolution, issue, currentRequest);
-      applyBatchFieldDecision(recordId, fieldPath, decision);
+      const batchDecision = candidateToBibliographyReviewDecision(
+        candidate.id,
+        assistanceState,
+        recordId,
+        fieldPath,
+        issue,
+        currentRequest
+      );
+      applyBatchFieldDecision(batchDecision.recordId, batchDecision.fieldPath, batchDecision.decision);
     } catch (err) {
       setBatchAssistErrors((prev) => ({
         ...prev,
@@ -1018,7 +1035,8 @@ export default function Home() {
                               {field.reviewIssues.map((issue) => {
                                 const scopeKey = makeBibliographyIssueScopeKey(selectedRecord.record.id, field.fieldPath, issue.id);
                                 const assistStat = batchAssistStatus[scopeKey] || 'idle';
-                                const assistRes = batchAssistResolutions[scopeKey];
+                                const assistState = batchAssistResolutions[scopeKey];
+                                const assistRes = assistState?.resolution;
                                 const assistErr = batchAssistErrors[scopeKey];
 
                                 let isStale = false;
@@ -1135,7 +1153,7 @@ export default function Home() {
                                                         field.fieldPath,
                                                         issue,
                                                         cand,
-                                                        assistRes
+                                                        assistState
                                                       )
                                                     }
                                                     disabled={isStale}

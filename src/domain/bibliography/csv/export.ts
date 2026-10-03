@@ -1,5 +1,8 @@
 import { BibliographyExportReport, ScholarlyExportMode } from '../export/types';
-import { BibliographyDiagnostic, ProcessedBibliographyBatch, ProcessedBibliographyField, ProcessedBibliographyRecord } from '../types';
+import { validateRecordForFinalExport } from '../export/validateRecord';
+import { BibliographyDiagnostic, ProcessedBibliographyBatch, ProcessedBibliographyRecord } from '../types';
+
+export { validateRecordForFinalExport };
 
 function escapeCsvField(val: string | undefined | null): string {
   if (val === undefined || val === null) {
@@ -10,22 +13,6 @@ function escapeCsvField(val: string | undefined | null): string {
     return `"${str.replace(/"/g, '""')}"`;
   }
   return str;
-}
-
-export function getAuthoritativeFinalFieldValue(
-  field: ProcessedBibliographyField | undefined,
-  fallbackSourceText: string | undefined
-): { value: string; isAuthoritative: boolean } {
-  if (!field) {
-    return { value: fallbackSourceText ?? '', isAuthoritative: true };
-  }
-  if (!field.requiresTransliteration) {
-    return { value: field.sourceText, isAuthoritative: true };
-  }
-  if (field.finalText !== null) {
-    return { value: field.finalText, isAuthoritative: true };
-  }
-  return { value: '', isAuthoritative: false };
 }
 
 function getDerivedCreatorCollection(
@@ -57,12 +44,41 @@ export function exportReviewCsv(batch: ProcessedBibliographyBatch): Bibliography
   if (firstWithSourceCols && firstWithSourceCols.record.sourceColumns) {
     baseHeaders = firstWithSourceCols.record.sourceColumns.map((c) => c.header);
   } else {
-    // Fallback if records were constructed without sourceColumns
     baseHeaders = [
       'id', 'type', 'title', 'container_title', 'authors', 'editors', 'translators',
       'year', 'publisher', 'place', 'volume', 'issue', 'page_start', 'page_end',
       'doi', 'url', 'isbn', 'issn', 'language', 'notes'
     ];
+  }
+
+  // Validate that all records carrying sourceColumns have matching header layout
+  for (const pr of batch.records) {
+    const sc = pr.record.sourceColumns;
+    if (sc && sc.length > 0) {
+      if (sc.length !== baseHeaders.length || !sc.every((cell, idx) => cell.header === baseHeaders[idx])) {
+        diagnostics.push({
+          recordId: pr.record.id,
+          row: pr.record.sourceRowIndex,
+          severity: 'ERROR',
+          code: 'SOURCE_COLUMN_LAYOUT_MISMATCH',
+          message: `Record "${pr.record.id}" source column layout does not match batch reference layout.`
+        });
+      }
+    }
+  }
+
+  if (diagnostics.some((d) => d.severity === 'ERROR')) {
+    return {
+      format: 'CSV_REVIEW',
+      success: false,
+      content: '',
+      filename: 'bibliography-review.csv',
+      mimeType: 'text/csv;charset=utf-8',
+      exportedRecordIds: [],
+      skippedRecordIds: batch.records.map((r) => r.record.id),
+      skipReasons: {},
+      diagnostics
+    };
   }
 
   const auditHeaders = [
@@ -84,15 +100,12 @@ export function exportReviewCsv(batch: ProcessedBibliographyBatch): Bibliography
     const r = pr.record;
     exportedRecordIds.push(r.id);
 
-    // Build base source cells preserving original header order and verbatim values
-    const baseRowValues: string[] = [];
+    // Positional source values preservation without collapsing repeated headers into a Map
+    let baseRowValues: string[] = [];
     if (r.sourceColumns && r.sourceColumns.length > 0) {
-      const colMap = new Map(r.sourceColumns.map((c) => [c.header, c.value]));
-      for (const h of baseHeaders) {
-        baseRowValues.push(colMap.get(h) ?? '');
-      }
+      baseRowValues = r.sourceColumns.map((cell) => cell.value);
     } else {
-      baseRowValues.push(
+      baseRowValues = [
         r.id,
         r.type,
         r.title,
@@ -113,7 +126,7 @@ export function exportReviewCsv(batch: ProcessedBibliographyBatch): Bibliography
         r.issn ?? '',
         r.language ?? '',
         r.notes ?? ''
-      );
+      ];
     }
 
     const translitTitle = pr.fields['title']?.finalText ?? '';
@@ -163,7 +176,7 @@ export function exportFinalCsv(
   const skippedRecordIds: string[] = [];
   const skipReasons: Record<string, string[]> = {};
 
-  const eligibleRecords: ProcessedBibliographyRecord[] = [];
+  const eligibleRecords: Array<{ pr: ProcessedBibliographyRecord; authoritativeValues: Record<string, string> }> = [];
 
   for (const pr of batch.records) {
     const reasons: string[] = [];
@@ -176,10 +189,10 @@ export function exportFinalCsv(
       }
     }
 
-    // Verify authoritative final values for all transformable fields
-    for (const [fieldPath, field] of Object.entries(pr.fields)) {
-      if (field.requiresTransliteration && field.finalText === null) {
-        reasons.push(`Field "${fieldPath}" is unauthoritative or unresolved for final export.`);
+    const validation = validateRecordForFinalExport(pr);
+    if (!validation.valid) {
+      for (const d of validation.diagnostics) {
+        reasons.push(d.message);
       }
     }
 
@@ -197,7 +210,7 @@ export function exportFinalCsv(
         skipReasons[pr.record.id] = reasons;
       }
     } else {
-      eligibleRecords.push(pr);
+      eligibleRecords.push({ pr, authoritativeValues: validation.authoritativeValues });
     }
   }
 
@@ -218,7 +231,7 @@ export function exportFinalCsv(
 
   // Collect passthrough headers
   const passthroughHeaderSet = new Set<string>();
-  for (const pr of eligibleRecords) {
+  for (const { pr } of eligibleRecords) {
     for (const k of Object.keys(pr.record.passthrough)) {
       passthroughHeaderSet.add(k);
     }
@@ -251,42 +264,30 @@ export function exportFinalCsv(
 
   const lines: string[] = [headers.map(escapeCsvField).join(',')];
 
-  for (const pr of eligibleRecords) {
+  for (const { pr, authoritativeValues } of eligibleRecords) {
     const r = pr.record;
     exportedRecordIds.push(r.id);
 
-    const titleAuth = getAuthoritativeFinalFieldValue(pr.fields['title'], r.title);
-    const containerTitleAuth = r.containerTitle
-      ? getAuthoritativeFinalFieldValue(pr.fields['containerTitle'], r.containerTitle)
-      : { value: '', isAuthoritative: true };
-    const publisherAuth = r.publisher
-      ? getAuthoritativeFinalFieldValue(pr.fields['publisher'], r.publisher)
-      : { value: '', isAuthoritative: true };
-    const placeAuth = r.place
-      ? getAuthoritativeFinalFieldValue(pr.fields['place'], r.place)
-      : { value: '', isAuthoritative: true };
+    const title = authoritativeValues['title'] ?? '';
+    const containerTitle = r.containerTitle ? (authoritativeValues['containerTitle'] ?? '') : '';
+    const publisher = r.publisher ? (authoritativeValues['publisher'] ?? '') : '';
+    const place = r.place ? (authoritativeValues['place'] ?? '') : '';
 
-    const authorValues = r.authors.map((a, i) =>
-      getAuthoritativeFinalFieldValue(pr.fields[`authors.${i}.literal`], a.literal).value
-    );
-    const editorValues = r.editors.map((e, i) =>
-      getAuthoritativeFinalFieldValue(pr.fields[`editors.${i}.literal`], e.literal).value
-    );
-    const translatorValues = r.translators.map((t, i) =>
-      getAuthoritativeFinalFieldValue(pr.fields[`translators.${i}.literal`], t.literal).value
-    );
+    const authorValues = r.authors.map((_, i) => authoritativeValues[`authors.${i}.literal`] ?? '');
+    const editorValues = r.editors.map((_, i) => authoritativeValues[`editors.${i}.literal`] ?? '');
+    const translatorValues = r.translators.map((_, i) => authoritativeValues[`translators.${i}.literal`] ?? '');
 
     const row = [
       r.id,
       r.type,
-      titleAuth.value,
-      containerTitleAuth.value,
+      title,
+      containerTitle,
       authorValues.join(' | '),
       editorValues.join(' | '),
       translatorValues.join(' | '),
       r.year ?? '',
-      publisherAuth.value,
-      placeAuth.value,
+      publisher,
+      place,
       r.volume ?? '',
       r.issue ?? '',
       r.pageStart ?? '',

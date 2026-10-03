@@ -1,5 +1,5 @@
 import { BibliographyDiagnostic, ProcessedBibliographyBatch, ProcessedBibliographyRecord } from '../types';
-import { getAuthoritativeFinalFieldValue } from '../csv/export';
+import { validateRecordForFinalExport } from './validateRecord';
 import { BibliographyExportReport, ScholarlyExportMode } from './types';
 
 export function escapeBibTeXValue(str: string): string {
@@ -46,7 +46,7 @@ export function exportToBibTeX(
   const skippedRecordIds: string[] = [];
   const skipReasons: Record<string, string[]> = {};
 
-  const eligibleRecords: ProcessedBibliographyRecord[] = [];
+  const eligibleRecords: Array<{ pr: ProcessedBibliographyRecord; authoritativeValues: Record<string, string> }> = [];
 
   for (const pr of batch.records) {
     const reasons: string[] = [];
@@ -59,10 +59,10 @@ export function exportToBibTeX(
       }
     }
 
-    // Verify authoritative final values for all transformable fields
-    for (const [fieldPath, field] of Object.entries(pr.fields)) {
-      if (field.requiresTransliteration && field.finalText === null) {
-        reasons.push(`Field "${fieldPath}" is unauthoritative or unresolved for final export.`);
+    const validation = validateRecordForFinalExport(pr);
+    if (!validation.valid) {
+      for (const d of validation.diagnostics) {
+        reasons.push(d.message);
       }
     }
 
@@ -80,7 +80,7 @@ export function exportToBibTeX(
         skipReasons[pr.record.id] = reasons;
       }
     } else {
-      eligibleRecords.push(pr);
+      eligibleRecords.push({ pr, authoritativeValues: validation.authoritativeValues });
     }
   }
 
@@ -103,7 +103,7 @@ export function exportToBibTeX(
   const seenKeys = new Map<string, string>(); // key -> recordId
   const entries: string[] = [];
 
-  for (const pr of eligibleRecords) {
+  for (const { pr, authoritativeValues } of eligibleRecords) {
     const r = pr.record;
     const key = sanitizeBibTeXKey(r.id);
 
@@ -123,34 +123,34 @@ export function exportToBibTeX(
     const entryType = mapRecordTypeToBibTeX(r.type);
     const lines: string[] = [];
 
-    const titleAuth = getAuthoritativeFinalFieldValue(pr.fields['title'], r.title);
-    if (titleAuth.value) {
-      lines.push(`  title = {${escapeBibTeXValue(titleAuth.value)}}`);
+    const title = authoritativeValues['title'];
+    if (title) {
+      lines.push(`  title = {${escapeBibTeXValue(title)}}`);
     }
 
     // Authors joined by " and "
     const authorNames = r.authors
-      .map((creator, idx) => getAuthoritativeFinalFieldValue(pr.fields[`authors.${idx}.literal`], creator.literal).value)
-      .filter((name) => name.length > 0);
+      .map((_, idx) => authoritativeValues[`authors.${idx}.literal`])
+      .filter((name) => name && name.length > 0);
     if (authorNames.length > 0) {
       lines.push(`  author = {${authorNames.map(escapeBibTeXValue).join(' and ')}}`);
     }
 
     // Editors joined by " and "
     const editorNames = r.editors
-      .map((creator, idx) => getAuthoritativeFinalFieldValue(pr.fields[`editors.${idx}.literal`], creator.literal).value)
-      .filter((name) => name.length > 0);
+      .map((_, idx) => authoritativeValues[`editors.${idx}.literal`])
+      .filter((name) => name && name.length > 0);
     if (editorNames.length > 0) {
       lines.push(`  editor = {${editorNames.map(escapeBibTeXValue).join(' and ')}}`);
     }
 
     if (r.containerTitle) {
-      const containerAuth = getAuthoritativeFinalFieldValue(pr.fields['containerTitle'], r.containerTitle);
-      if (containerAuth.value) {
+      const container = authoritativeValues['containerTitle'];
+      if (container) {
         if (r.type === 'JOURNAL_ARTICLE') {
-          lines.push(`  journal = {${escapeBibTeXValue(containerAuth.value)}}`);
+          lines.push(`  journal = {${escapeBibTeXValue(container)}}`);
         } else {
-          lines.push(`  booktitle = {${escapeBibTeXValue(containerAuth.value)}}`);
+          lines.push(`  booktitle = {${escapeBibTeXValue(container)}}`);
         }
       }
     }
@@ -160,16 +160,16 @@ export function exportToBibTeX(
     }
 
     if (r.publisher) {
-      const pubAuth = getAuthoritativeFinalFieldValue(pr.fields['publisher'], r.publisher);
-      if (pubAuth.value) {
-        lines.push(`  publisher = {${escapeBibTeXValue(pubAuth.value)}}`);
+      const pub = authoritativeValues['publisher'];
+      if (pub) {
+        lines.push(`  publisher = {${escapeBibTeXValue(pub)}}`);
       }
     }
 
     if (r.place) {
-      const placeAuth = getAuthoritativeFinalFieldValue(pr.fields['place'], r.place);
-      if (placeAuth.value) {
-        lines.push(`  address = {${escapeBibTeXValue(placeAuth.value)}}`);
+      const place = authoritativeValues['place'];
+      if (place) {
+        lines.push(`  address = {${escapeBibTeXValue(place)}}`);
       }
     }
 

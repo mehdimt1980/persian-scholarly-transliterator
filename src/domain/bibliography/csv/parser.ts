@@ -1,7 +1,7 @@
 /**
  * Strict RFC-4180 compliant CSV parser.
- * Handles quoted fields, embedded commas, embedded newlines (CRLF/LF), escaped quotes (""),
- * UTF-8 BOM, and enforces strict quote placement rules.
+ * Handles quoted fields, embedded commas, embedded newlines (preserving CRLF and LF), escaped quotes (""),
+ * UTF-8 BOM, strict quote placement rules, and strict row-width validation.
  */
 
 export interface CsvParseResult {
@@ -139,20 +139,30 @@ export function parseCsvString(csvText: string): CsvParseResult {
           col++;
           continue;
         }
-      } else {
-        if (char === '\n') {
+      } else if (char === '\r') {
+        if (i + 1 < len && input[i + 1] === '\n') {
+          // Quoted CRLF: preserve exact \r\n in source cell!
+          currentField += '\r\n';
+          i += 2;
           line++;
           col = 1;
-        } else if (char === '\r') {
-          if (i + 1 < len && input[i + 1] === '\n') {
-            i++;
-          }
-          line++;
-          col = 1;
+          continue;
         } else {
-          col++;
+          currentField += '\r';
+          i++;
+          line++;
+          col = 1;
+          continue;
         }
+      } else if (char === '\n') {
+        currentField += '\n';
+        i++;
+        line++;
+        col = 1;
+        continue;
+      } else {
         currentField += char;
+        col++;
         i++;
         continue;
       }
@@ -212,11 +222,11 @@ export function parseCsvString(csvText: string): CsvParseResult {
   const headers = rows[0];
   const dataRows = rows.slice(1);
 
-  // Validate row widths against header width
+  // Validate row widths against header width (Fatal error if mismatched)
   for (let rIdx = 0; rIdx < dataRows.length; rIdx++) {
     const row = dataRows[rIdx];
     if (row.length !== headers.length) {
-      warnings.push(`Row ${rIdx + 2} has ${row.length} columns, expected ${headers.length}.`);
+      errors.push(`Row ${rIdx + 2} has ${row.length} columns, expected ${headers.length}.`);
     }
   }
 

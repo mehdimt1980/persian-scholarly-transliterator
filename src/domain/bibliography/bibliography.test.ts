@@ -7,21 +7,23 @@ import {
   exportFinalCsv,
   exportToRis,
   exportToBibTeX,
+  validateRecordForFinalExport,
   containsArabicScript,
   generateFallbackRecordId,
   computeRecordContentFingerprint,
   makeBibliographyIssueScopeKey,
   sanitizeBibTeXKey,
+  validateBibliographyAssistanceApplicability,
+  candidateToBibliographyReviewDecision,
   BibliographyRecord,
   BibliographyReviewDecision,
+  BibliographyAssistanceState,
   ProcessedBibliographyRecord
 } from './index';
 import {
   AssistedResolution,
   buildResolverRequest,
-  candidateToReviewDecision,
-  computeRequestFingerprint,
-  validateAssistedApplicability
+  computeRequestFingerprint
 } from '../assistance';
 
 describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
@@ -72,7 +74,7 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
     });
   });
 
-  describe('CSV Parser & Importer Robustness (Sections 1, 3, 5, 6, 7, 8, 25)', () => {
+  describe('CSV Parser & Importer Robustness (Sections 1, 3, 5, 6, 7, 8, 10, 11, 12, 13, 25)', () => {
     it('parses standard CSV with UTF-8 BOM, Persian script, and literal creators', () => {
       const csv = `\uFEFFid,type,title,authors,year,publisher\nr1,BOOK,تاریخ ایران,حسن پیرنیا | عباس اقبال,1380,نشر علم`;
       const result = importBibliographyFromCsv(csv);
@@ -96,6 +98,23 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
       expect(result.records[0].notes).toBe('Line 1\nLine 2 with, comma');
     });
 
+    it('preserves exact CRLF inside quoted source cells and across review CSV export round-trip', () => {
+      const csv = `id,type,title,notes\r\nr1,BOOK,کتاب,"Line 1\r\nLine 2"\r\n`;
+      const result = importBibliographyFromCsv(csv);
+      expect(result.success).toBe(true);
+      expect(result.records[0].sourceColumns.find((c) => c.header === 'notes')?.value).toBe('Line 1\r\nLine 2');
+
+      const batch = processBibliographyBatch(result.records);
+      const reviewCsv = exportReviewCsv(batch);
+      expect(reviewCsv.success).toBe(true);
+      expect(reviewCsv.content).toContain('"Line 1\r\nLine 2"');
+
+      // Re-import review CSV and verify exact semantic preservation
+      const reimported = importBibliographyFromCsv(reviewCsv.content);
+      expect(reimported.success).toBe(true);
+      expect(reimported.records[0].sourceColumns.find((c) => c.header === 'notes')?.value).toBe('Line 1\r\nLine 2');
+    });
+
     it('rejects unexpected quote inside unquoted field with CSV_PARSE_ERROR', () => {
       const csv = `id,title\nr1,abc"def"\n`;
       const result = importBibliographyFromCsv(csv);
@@ -117,10 +136,20 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
       expect(result.diagnostics.some((d) => d.code === 'CSV_PARSE_ERROR')).toBe(true);
     });
 
-    it('emits ROW_WIDTH_MISMATCH diagnostic on column count discrepancy', () => {
-      const csv = `id,type,title\nr1,BOOK,کتاب,extra_col`;
+    it('row-width mismatch is fatal when row has too many columns', () => {
+      const csv = `id,type,title\nr1,BOOK,کتاب,extra_unnamed_column`;
       const result = importBibliographyFromCsv(csv);
-      expect(result.diagnostics.some((d) => d.code === 'ROW_WIDTH_MISMATCH')).toBe(true);
+      expect(result.success).toBe(false);
+      expect(result.records.length).toBe(0);
+      expect(result.diagnostics.some((d) => d.code === 'ROW_WIDTH_MISMATCH' && d.severity === 'ERROR')).toBe(true);
+    });
+
+    it('row-width mismatch is fatal when row has too few columns', () => {
+      const csv = `id,type,title,authors\nr1,BOOK,کتاب`;
+      const result = importBibliographyFromCsv(csv);
+      expect(result.success).toBe(false);
+      expect(result.records.length).toBe(0);
+      expect(result.diagnostics.some((d) => d.code === 'ROW_WIDTH_MISMATCH' && d.severity === 'ERROR')).toBe(true);
     });
 
     it('maps booktitle strictly to containerTitle and not to item title', () => {
@@ -406,8 +435,8 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
     });
   });
 
-  describe('Source-Preserving & Creator Completeness in Review CSV (Sections 4, 11)', () => {
-    it('review CSV preserves original source column names and order', () => {
+  describe('Source-Preserving Positional Layout in Review CSV (Sections 4, 11, 14, 15, 16)', () => {
+    it('review CSV preserves original source column names and order positionally', () => {
       const csv = `Record_ID,Article_Title,Author,My_Custom_Column\nr1,کتاب,نویسنده,Val1`;
       const imported = importBibliographyFromCsv(csv);
       const batch = processBibliographyBatch(imported.records);
@@ -417,6 +446,16 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
       const firstLine = review.content.split('\r\n')[0];
       expect(firstLine).toMatch(/^Record_ID,Article_Title,Author,My_Custom_Column,translit_title/);
       expect(review.content).toContain('Val1');
+    });
+
+    it('preserves duplicate source headers positionally without collapsing values', () => {
+      const csv = `title,Custom,Custom\nکتاب,ValA,ValB`;
+      const imported = importBibliographyFromCsv(csv);
+      const batch = processBibliographyBatch(imported.records);
+
+      const review = exportReviewCsv(batch);
+      expect(review.success).toBe(true);
+      expect(review.content).toContain('ValA,ValB');
     });
 
     it('partially unresolved creator list leaves derived review cell empty and never partially complete', () => {
@@ -436,8 +475,109 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
     });
   });
 
-  describe('Export Modes: STRICT_ALL vs READY_ONLY (Sections 18, 19, 45, 46)', () => {
-    it('45. rejects STRICT_ALL exports when any record is unresolved; diagnostic placeholders never leak', () => {
+  describe('Final-Export Consistency & Expected Field Validation (Sections 5, 6, 7, 8, 9)', () => {
+    it('rejects export when expected processed title is missing (9A)', () => {
+      const processedRec: ProcessedBibliographyRecord = {
+        record: {
+          id: 'r_missing_title',
+          type: 'BOOK',
+          title: 'دولت',
+          authors: [],
+          editors: [],
+          translators: [],
+          sourceRowIndex: 2,
+          sourceColumns: [],
+          passthrough: {}
+        },
+        fields: {}, // Missing title field
+        readiness: 'READY',
+        reviewIssueCount: 0,
+        invalidReasons: []
+      };
+
+      const val = validateRecordForFinalExport(processedRec);
+      expect(val.valid).toBe(false);
+      expect(val.diagnostics.some((d) => d.code === 'MISSING_PROCESSED_FIELD')).toBe(true);
+
+      const batch = {
+        records: [processedRec],
+        summary: { total: 1, ready: 1, reviewRequired: 0, invalid: 0 },
+        diagnostics: []
+      };
+      expect(exportFinalCsv(batch, 'STRICT_ALL').success).toBe(false);
+      expect(exportToRis(batch, 'STRICT_ALL').success).toBe(false);
+      expect(exportToBibTeX(batch, 'STRICT_ALL').success).toBe(false);
+    });
+
+    it('rejects export when Persian field falsely declares requiresTransliteration=false (9B)', () => {
+      const processedRec: ProcessedBibliographyRecord = {
+        record: {
+          id: 'r_false_pt',
+          type: 'BOOK',
+          title: 'دولت',
+          authors: [],
+          editors: [],
+          translators: [],
+          sourceRowIndex: 2,
+          sourceColumns: [],
+          passthrough: {}
+        },
+        fields: {
+          title: {
+            fieldPath: 'title',
+            sourceText: 'دولت',
+            profile: 'ijmes_title',
+            requiresTransliteration: false, // Falsely bypasses transliteration
+            finalText: 'دولت',
+            status: 'PASSTHROUGH',
+            reviewIssues: []
+          }
+        },
+        readiness: 'READY',
+        reviewIssueCount: 0,
+        invalidReasons: []
+      };
+
+      const val = validateRecordForFinalExport(processedRec);
+      expect(val.valid).toBe(false);
+      expect(val.diagnostics.some((d) => d.code === 'UNAUTHORITATIVE_FINAL_FIELD')).toBe(true);
+    });
+
+    it('rejects export when field sourceText does not match canonical source text (9C)', () => {
+      const processedRec: ProcessedBibliographyRecord = {
+        record: {
+          id: 'r_mismatch',
+          type: 'BOOK',
+          title: 'دولت',
+          authors: [],
+          editors: [],
+          translators: [],
+          sourceRowIndex: 2,
+          sourceColumns: [],
+          passthrough: {}
+        },
+        fields: {
+          title: {
+            fieldPath: 'title',
+            sourceText: 'کتاب', // Mismatch from canonical record.title ("دولت")
+            profile: 'ijmes_title',
+            requiresTransliteration: true,
+            finalText: 'Kitab',
+            status: 'DETERMINISTIC',
+            reviewIssues: []
+          }
+        },
+        readiness: 'READY',
+        reviewIssueCount: 0,
+        invalidReasons: []
+      };
+
+      const val = validateRecordForFinalExport(processedRec);
+      expect(val.valid).toBe(false);
+      expect(val.diagnostics.some((d) => d.code === 'PROCESSED_FIELD_SOURCE_MISMATCH')).toBe(true);
+    });
+
+    it('rejects STRICT_ALL exports when any record is unresolved; diagnostic placeholders never leak', () => {
       const csv = `id,type,title\nr1,BOOK,کرم`;
       const imported = importBibliographyFromCsv(csv);
       const batch = processBibliographyBatch(imported.records);
@@ -456,7 +596,7 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
       expect(csvFinal.content).toBe('');
     });
 
-    it('46. READY_ONLY exports only READY records and explicitly reports skipped records', () => {
+    it('READY_ONLY exports only READY records and explicitly reports skipped records', () => {
       const csv = `id,type,title\nr1,BOOK,کتاب\nr2,BOOK,کرم\nr3,BOOK,ایران`;
       const imported = importBibliographyFromCsv(csv);
       const batch = processBibliographyBatch(imported.records);
@@ -471,49 +611,9 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
       expect(ris.content).not.toContain('کرم');
       expect(ris.content).not.toContain('⟦');
     });
-
-    it('transformable final field with finalText=null fails final export even if record is marked READY', () => {
-      const processedRec: ProcessedBibliographyRecord = {
-        record: {
-          id: 'r_fake',
-          type: 'BOOK',
-          title: 'دولت',
-          authors: [],
-          editors: [],
-          translators: [],
-          sourceRowIndex: 2,
-          sourceColumns: [],
-          passthrough: {}
-        },
-        fields: {
-          title: {
-            fieldPath: 'title',
-            sourceText: 'دولت',
-            profile: 'ijmes_title',
-            requiresTransliteration: true,
-            finalText: null,
-            status: 'UNRESOLVED',
-            reviewIssues: []
-          }
-        },
-        readiness: 'READY',
-        reviewIssueCount: 0,
-        invalidReasons: []
-      };
-
-      const inconsistentBatch = {
-        records: [processedRec],
-        summary: { total: 1, ready: 1, reviewRequired: 0, invalid: 0 },
-        diagnostics: []
-      };
-
-      expect(exportToRis(inconsistentBatch, 'STRICT_ALL').success).toBe(false);
-      expect(exportToBibTeX(inconsistentBatch, 'STRICT_ALL').success).toBe(false);
-      expect(exportFinalCsv(inconsistentBatch, 'STRICT_ALL').success).toBe(false);
-    });
   });
 
-  describe('Field-Scoped Assistance Isolation (Sections 12-16)', () => {
+  describe('Bibliography Assistance Outer Scope Boundary & Spoof Protection (Sections 1, 2, 3, 4)', () => {
     it('makeBibliographyIssueScopeKey creates unique composite key for record + field + issue', () => {
       const key1 = makeBibliographyIssueScopeKey('r1', 'title', 'issue:123');
       const key2 = makeBibliographyIssueScopeKey('r2', 'title', 'issue:123');
@@ -522,7 +622,7 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
       expect(key1).not.toBe(key3);
     });
 
-    it('assisted suggestion for r1/title cannot apply to r2/title due to request fingerprint validation', () => {
+    it('cross-record application attempt fails closed with BIBLIOGRAPHY_SCOPE_MISMATCH', () => {
       const csv = `id,type,title\nr1,BOOK,کرم\nr2,BOOK,کرم`;
       const imported = importBibliographyFromCsv(csv);
       const batch = processBibliographyBatch(imported.records);
@@ -530,55 +630,87 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
       const pr1 = batch.records[0];
       const pr2 = batch.records[1];
       const issue1 = pr1.fields['title'].reviewIssues[0];
+      const issue2 = pr2.fields['title'].reviewIssues[0];
 
       const req1 = buildResolverRequest(pr1.fields['title'].transliterationResult!, issue1.id)!;
+      const req2 = buildResolverRequest(pr2.fields['title'].transliterationResult!, issue2.id)!;
       const fp1 = computeRequestFingerprint(req1, 'openai', 'gpt-4o-mini');
 
-      const resolutionForR1: AssistedResolution = {
+      const r1AssistanceState: BibliographyAssistanceState = {
+        recordId: 'r1',
+        fieldPath: 'title',
         issueId: issue1.id,
-        provider: 'openai',
-        model: 'gpt-4o-mini',
-        promptVersion: '1.0.0',
-        requestFingerprint: fp1,
-        warnings: [],
-        candidates: [
-          {
-            id: 'sugg_1',
-            kind: 'EXISTING_LEXICAL_READING',
-            rank: 1,
-            alternativeId: issue1.alternatives[0]?.id,
-            canonical: 'kirm',
-            basis: 'EXISTING_EVIDENCE',
-            evidenceRefs: [],
-            rationale: 'Scholarly reading'
-          }
-        ]
+        resolution: {
+          issueId: issue1.id,
+          provider: 'openai',
+          model: 'gpt-4o-mini',
+          promptVersion: '1.0.0',
+          requestFingerprint: fp1,
+          warnings: [],
+          candidates: [
+            {
+              id: 'sugg_1',
+              kind: 'EXISTING_LEXICAL_READING',
+              rank: 1,
+              alternativeId: issue1.alternatives[0]?.id,
+              canonical: 'kirm',
+              basis: 'EXISTING_EVIDENCE',
+              evidenceRefs: [],
+              rationale: 'Scholarly reading'
+            }
+          ]
+        }
       };
 
-      const applicabilityR1 = validateAssistedApplicability(
-        resolutionForR1.candidates[0],
-        resolutionForR1,
-        issue1,
-        req1
+      // Attempting to apply r1 assistance to r2/title fails with BIBLIOGRAPHY_SCOPE_MISMATCH
+      const crossRecordApplicability = validateBibliographyAssistanceApplicability(
+        r1AssistanceState,
+        'r2', // currentRecordId is r2
+        'title',
+        issue2,
+        req2,
+        r1AssistanceState.resolution.candidates[0]
       );
-      expect(applicabilityR1.applicable).toBe(true);
+      expect(crossRecordApplicability.applicable).toBe(false);
+      expect(crossRecordApplicability.reason).toBe('BIBLIOGRAPHY_SCOPE_MISMATCH');
 
-      const decision = candidateToReviewDecision(
+      expect(() => {
+        candidateToBibliographyReviewDecision(
+          'sugg_1',
+          r1AssistanceState,
+          'r2',
+          'title',
+          issue2,
+          req2
+        );
+      }).toThrow(/BIBLIOGRAPHY_SCOPE_MISMATCH/);
+
+      // Attempting to apply r1 assistance to r1/publisher fails with BIBLIOGRAPHY_SCOPE_MISMATCH
+      const crossFieldApplicability = validateBibliographyAssistanceApplicability(
+        r1AssistanceState,
+        'r1',
+        'publisher', // different field
+        issue1,
+        req1,
+        r1AssistanceState.resolution.candidates[0]
+      );
+      expect(crossFieldApplicability.applicable).toBe(false);
+      expect(crossFieldApplicability.reason).toBe('BIBLIOGRAPHY_SCOPE_MISMATCH');
+
+      // Applying to matching r1/title succeeds cleanly
+      const validDecision = candidateToBibliographyReviewDecision(
         'sugg_1',
-        resolutionForR1,
+        r1AssistanceState,
+        'r1',
+        'title',
         issue1,
         req1
       );
-      expect(decision.action).toBe('SELECT_LEXICAL_READING');
+      expect(validDecision.recordId).toBe('r1');
+      expect(validDecision.fieldPath).toBe('title');
+      expect(validDecision.decision.action).toBe('SELECT_LEXICAL_READING');
 
-      const batchDecisions: BibliographyReviewDecision[] = [
-        {
-          recordId: 'r1',
-          fieldPath: 'title',
-          decision
-        }
-      ];
-
+      const batchDecisions: BibliographyReviewDecision[] = [validDecision];
       const processed = processBibliographyBatch(imported.records, batchDecisions);
       expect(processed.records[0].readiness).toBe('READY');
       expect(processed.records[1].readiness).toBe('REVIEW_REQUIRED');
