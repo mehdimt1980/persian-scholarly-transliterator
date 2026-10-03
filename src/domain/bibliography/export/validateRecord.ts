@@ -119,6 +119,30 @@ export function validateRecordForFinalExport(
         continue;
       }
 
+      if (field.transliterationResult.originalInput !== sourceText) {
+        diagnostics.push({
+          recordId: r.id,
+          row: r.sourceRowIndex,
+          field: path,
+          severity: 'ERROR',
+          code: 'TRANSLITERATION_RESULT_SOURCE_MISMATCH',
+          message: `Field "${path}" transliteration result originalInput ("${field.transliterationResult.originalInput}") does not match canonical source text ("${sourceText}").`
+        });
+        continue;
+      }
+
+      if (field.transliterationResult.profile !== expectedPolicy.profile) {
+        diagnostics.push({
+          recordId: r.id,
+          row: r.sourceRowIndex,
+          field: path,
+          severity: 'ERROR',
+          code: 'TRANSLITERATION_RESULT_PROFILE_MISMATCH',
+          message: `Field "${path}" transliteration result profile ("${field.transliterationResult.profile}") does not match expected policy profile ("${expectedPolicy.profile}").`
+        });
+        continue;
+      }
+
       if (!field.transliterationResult.copyable || field.transliterationResult.status === 'UNRESOLVED') {
         diagnostics.push({
           recordId: r.id,

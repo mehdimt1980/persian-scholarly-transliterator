@@ -27,6 +27,7 @@ import {
   buildResolverRequest,
   computeRequestFingerprint
 } from '../assistance';
+import { transliterate } from '../engine';
 
 describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
   describe('Script Detection (Section 20)', () => {
@@ -1081,6 +1082,80 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
       const bibtexReport = exportToBibTeX(batch, 'STRICT_ALL');
       expect(bibtexReport.success).toBe(true);
       expect(bibtexReport.exportedRecordIds).toEqual(['r_persian', 'r_latin']);
+    });
+
+    it('48K. rejects record in final export when transliteration result originalInput does not match sourceText', () => {
+      const pr = processBibliographyRecord({
+        id: 'r_src_mismatch',
+        type: 'BOOK',
+        title: 'دولت',
+        authors: [],
+        editors: [],
+        translators: [],
+        sourceRowIndex: 1,
+        sourceColumns: [],
+        passthrough: {}
+      });
+      // Attach a valid copyable transliteration result generated for 'کتاب' instead of 'دولت'
+      const otherResult = transliterate('کتاب', 'ijmes_title');
+      pr.fields.title.transliterationResult = otherResult;
+      pr.fields.title.finalText = otherResult.output;
+
+      const batch: ProcessedBibliographyBatch = {
+        records: [pr],
+        summary: { total: 1, ready: 1, reviewRequired: 0, invalid: 0 },
+        diagnostics: []
+      };
+
+      const csvReport = exportFinalCsv(batch, 'STRICT_ALL');
+      expect(csvReport.success).toBe(false);
+      expect(csvReport.diagnostics.some((d) => d.code === 'TRANSLITERATION_RESULT_SOURCE_MISMATCH')).toBe(true);
+
+      const risReport = exportToRis(batch, 'STRICT_ALL');
+      expect(risReport.success).toBe(false);
+      expect(risReport.diagnostics.some((d) => d.code === 'TRANSLITERATION_RESULT_SOURCE_MISMATCH')).toBe(true);
+
+      const bibtexReport = exportToBibTeX(batch, 'STRICT_ALL');
+      expect(bibtexReport.success).toBe(false);
+      expect(bibtexReport.diagnostics.some((d) => d.code === 'TRANSLITERATION_RESULT_SOURCE_MISMATCH')).toBe(true);
+    });
+
+    it('48L. rejects record in final export when transliteration result profile does not match expected policy', () => {
+      const pr = processBibliographyRecord({
+        id: 'r_res_prof',
+        type: 'BOOK',
+        title: 'دولت',
+        authors: [],
+        editors: [],
+        translators: [],
+        sourceRowIndex: 1,
+        sourceColumns: [],
+        passthrough: {}
+      });
+      // Generate valid result with ijmes_full and attach to title (which requires ijmes_title)
+      // while keeping field.profile as ijmes_title
+      const fullResult = transliterate('دولت', 'ijmes_full');
+      pr.fields.title.transliterationResult = fullResult;
+      pr.fields.title.profile = 'ijmes_title';
+      pr.fields.title.finalText = fullResult.output;
+
+      const batch: ProcessedBibliographyBatch = {
+        records: [pr],
+        summary: { total: 1, ready: 1, reviewRequired: 0, invalid: 0 },
+        diagnostics: []
+      };
+
+      const csvReport = exportFinalCsv(batch, 'STRICT_ALL');
+      expect(csvReport.success).toBe(false);
+      expect(csvReport.diagnostics.some((d) => d.code === 'TRANSLITERATION_RESULT_PROFILE_MISMATCH')).toBe(true);
+
+      const risReport = exportToRis(batch, 'STRICT_ALL');
+      expect(risReport.success).toBe(false);
+      expect(risReport.diagnostics.some((d) => d.code === 'TRANSLITERATION_RESULT_PROFILE_MISMATCH')).toBe(true);
+
+      const bibtexReport = exportToBibTeX(batch, 'STRICT_ALL');
+      expect(bibtexReport.success).toBe(false);
+      expect(bibtexReport.diagnostics.some((d) => d.code === 'TRANSLITERATION_RESULT_PROFILE_MISMATCH')).toBe(true);
     });
   });
 });
