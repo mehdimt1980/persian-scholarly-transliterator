@@ -1,5 +1,7 @@
 # Morphology and context model
 
+Phase 2B inserts explicit morpheme analysis after orthographic analysis and before lexical and relation resolution. `TransliterationResult.morphology` exposes the proposed stem, typed segments, normalized spans, evidence, status, warnings, and provenance. Segmentation is never hidden inside `lookupForm`.
+
 ## Five distinct representations
 
 - **Original input** is retained globally before NFC, character canonicalization, joiner conversion, or whitespace collapse.
@@ -37,6 +39,8 @@ A grammatical candidate currently requires a resolved noun followed directly (ap
 
 Confirmed standard izāfat invokes the authoritative `IJMES-P-IZAFAT-RENDER` rule and remains copyable. Candidates and confirmed-but-unsupported heh allomorphs make the aggregate result review-required and non-copyable.
 
+The orthographic form `های` is analyzed as plural `ها` plus explicit izāfat evidence, not as an opaque lexical suffix. The relation source is the inflected token, so `کتاب‌های ایران` relates `[کتاب + PLURAL_HA]` to `ایران`. In contrast, `کتاب‌ها ایران` supplies no explicit izāfat yā and remains only the existing unmarked relation candidate.
+
 ## Limits
 
-Phase 2A does not perform full parsing, infer omitted short vowels, classify ZWNJ suffixes, split compounds, or settle the editorial joining of `تجددخواهی`.
+Phase 2B does not perform full parsing, infer omitted short vowels, classify arbitrary ZWNJ segments, split compounds, analyze verbs or prefixes, or settle the editorial joining of `تجددخواهی`.

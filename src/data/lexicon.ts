@@ -29,5 +29,6 @@ export const LEXICON: LexicalEntry[] = [
   { surface: 'همکاری', normalized: 'همکاری', readings: [{ canonical: 'ham-kārī', confidence: 0.9, source: 'Hyphenated Persian compound behavior test entry' }] },
   { surface: 'کتاب', normalized: 'کتاب', category: 'noun', readings: [{ canonical: 'kitāb', confidence: 0.98, source: 'Reviewed Phase 2A noun seed entry' }] },
   { surface: 'تاریخ', normalized: 'تاریخ', category: 'noun', readings: [{ canonical: 'tārīkh', confidence: 0.98, source: 'Reviewed Phase 2A noun seed entry' }] },
-  { surface: 'خانه', normalized: 'خانه', category: 'noun', readings: [{ canonical: 'khāna', confidence: 0.95, source: 'Reviewed Phase 2A heh-final noun seed entry' }] }
+  { surface: 'خانه', normalized: 'خانه', category: 'noun', readings: [{ canonical: 'khāna', confidence: 0.95, source: 'Reviewed Phase 2A heh-final noun seed entry' }] },
+  { surface: 'بزرگ', normalized: 'بزرگ', category: 'adjective', readings: [{ canonical: 'buzurg', confidence: 0.95, source: 'Reviewed adjective reading; UT Austin Persian Online degree-of-adjective examples, with IJMES Persian i/u convention' }] }
 ];
