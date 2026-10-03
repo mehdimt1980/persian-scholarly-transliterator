@@ -82,3 +82,15 @@ Transliteration output is copyable (`copyable = true`) **only** when all blockin
 - If all issues are resolved: `copyable = true`.
 - Undoing or clearing a decision returns the output to non-copyable status.
 - Fetching assisted suggestions never alters copyability until a human makes a decision.
+
+## 7. Batch Field-Scoped Review (Phase 4)
+
+In batch bibliography processing (`docs/BIBLIOGRAPHY_BATCH.md`), human review decisions are held in outer batch scope:
+```ts
+export interface BibliographyReviewDecision {
+  recordId: string;
+  fieldPath: BibliographyFieldPath;
+  decision: ReviewDecision;
+}
+```
+The inner transliteration engine evaluates only decisions matching the current record and field, ensuring strict separation across bibliography entries.

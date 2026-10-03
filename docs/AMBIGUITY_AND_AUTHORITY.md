@@ -37,3 +37,13 @@ Human decisions are explicit authority:
 - Selecting morphology records `USER-MORPHOLOGY-SELECTION`.
 
 A manual override is structural session evidence, not reusable scholarly validation. Overrides do not modify the static lexicon repository.
+
+## Batch Bibliography Scoping (Phase 4)
+
+In batch bibliography processing, multiple records or fields may contain identical Persian strings and produce identical underlying issue IDs.
+To maintain absolute authority integrity, all batch review decisions and assisted suggestions are scoped by:
+```text
+recordId + ":" + fieldPath + ":" + issueId
+```
+A review decision applied to one record's title will never resolve another record's title or author field.
+
