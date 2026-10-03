@@ -54,10 +54,14 @@ export class FakeAssistedResolverProvider implements AssistedResolverProvider {
       return validation.resolution;
     }
 
-    // Default mock behavior based on issue type
+    // Default mock behavior based on issue type and allowed actions
     const candidates: AssistedCandidateProposal[] = [];
+    const warnings: string[] = [];
 
-    if (request.issueType === 'LEXICAL_AMBIGUITY') {
+    if (
+      (request.issueType === 'LEXICAL_AMBIGUITY' || request.issueType === 'INSUFFICIENT_VOCALIZATION') &&
+      request.allowedActions.includes('SELECT_LEXICAL_READING')
+    ) {
       request.availableAlternatives.forEach((alt, idx) => {
         candidates.push({
           kind: 'EXISTING_LEXICAL_READING',
@@ -67,45 +71,41 @@ export class FakeAssistedResolverProvider implements AssistedResolverProvider {
           modelConfidence: 0.9 - idx * 0.1,
           rationale: `Context favors ${alt.canonical ?? alt.label}.`,
           basis: 'CONTEXTUAL_INFERENCE',
-          evidenceRefs: ['CONTEXTUAL_EVALUATION', alt.id]
+          evidenceRefs: request.allowedEvidenceRefs.includes(alt.id) ? [alt.id] : []
         });
       });
-    } else if (request.issueType === 'UNKNOWN_TOKEN') {
-      candidates.push({
-        kind: 'MANUAL_CANONICAL',
-        canonical: request.normalizedSurface,
-        rank: 1,
-        modelConfidence: 0.8,
-        rationale: 'Suggested canonical transliteration based on Persian morphology.',
-        basis: 'MODEL_INFERENCE',
-        evidenceRefs: ['PERSIAN_GRAMMAR']
-      });
-    } else if (request.issueType === 'IZAFAT_CANDIDATE') {
+    } else if (request.issueType === 'IZAFAT_CANDIDATE' && request.allowedActions.includes('ACCEPT_IZAFAT')) {
       candidates.push({
         kind: 'IZAFAT_DECISION',
         relationDecision: 'ACCEPT_IZAFAT',
         rank: 1,
         modelConfidence: 0.85,
-        rationale: 'Nominal construct requires standard izāfat.',
-        basis: 'CONTEXTUAL_INFERENCE',
-        evidenceRefs: ['PERSIAN_GRAMMAR']
+        rationale: 'Nominal construct favors standard izāfat.',
+        basis: 'MODEL_INFERENCE',
+        evidenceRefs: []
       });
-    } else if (request.issueType === 'MORPHOLOGY_AMBIGUITY') {
-      candidates.push({
-        kind: 'MORPHOLOGY_BRANCH',
-        morphologyBranch: 'PRODUCTIVE_SEGMENTATION',
-        rank: 1,
-        modelConfidence: 0.8,
-        rationale: 'Context indicates productive suffix attachment.',
-        basis: 'CONTEXTUAL_INFERENCE',
-        evidenceRefs: ['PERSIAN_GRAMMAR']
-      });
+    } else if (request.issueType === 'MORPHOLOGY_AMBIGUITY' && request.allowedActions.includes('SELECT_MORPHOLOGY')) {
+      const hasBranch = request.availableAlternatives.some((a) => a.id === 'PRODUCTIVE_SEGMENTATION');
+      if (hasBranch) {
+        candidates.push({
+          kind: 'MORPHOLOGY_BRANCH',
+          morphologyBranch: 'PRODUCTIVE_SEGMENTATION',
+          rank: 1,
+          modelConfidence: 0.8,
+          rationale: 'Context indicates productive suffix attachment.',
+          basis: 'MODEL_INFERENCE',
+          evidenceRefs: []
+        });
+      }
+    } else {
+      // Do not fabricate invalid candidates for unknown tokens by default
+      warnings.push('No automated suggestion available for this issue.');
     }
 
     const raw = {
       issueId: request.issueId,
       candidates,
-      warnings: []
+      warnings
     };
 
     const validation = validateProviderResolution(raw, request, this.providerName, this.modelName);

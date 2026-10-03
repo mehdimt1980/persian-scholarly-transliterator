@@ -24,7 +24,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const parseResult = requestSchema.safeParse(body);
     if (!parseResult.success) {
       return NextResponse.json(
-        { error: 'Invalid request body', details: parseResult.error.errors },
+        {
+          error: 'INVALID_REQUEST',
+          message: 'The request body is malformed or invalid.'
+        },
         { status: 400 }
       );
     }
@@ -38,7 +41,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const resolverRequest = buildResolverRequest(transliteration, issueId);
     if (!resolverRequest) {
       return NextResponse.json(
-        { error: `Target review issue "${issueId}" is stale or does not exist in the current authoritative transliteration state.` },
+        {
+          error: 'STALE_ISSUE',
+          message: 'The requested review issue does not exist in the current authoritative transliteration state.'
+        },
         { status: 400 }
       );
     }
@@ -46,7 +52,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // 3. Provider availability check
     if (!isOpenAiConfigured()) {
       return NextResponse.json(
-        { error: 'Assisted resolver is currently unavailable on this server (OPENAI_API_KEY is not configured).' },
+        {
+          error: 'ASSISTANCE_UNAVAILABLE',
+          message: 'Assisted resolver is currently unavailable (OPENAI_API_KEY and ASSISTED_RESOLVER_MODEL are required).'
+        },
         { status: 503 }
       );
     }
@@ -58,7 +67,25 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json({ resolution });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'An unexpected error occurred during assisted resolution.';
-    return NextResponse.json({ error: message }, { status: 502 });
+    const errName = err instanceof Error ? err.name : '';
+    const errMessage = err instanceof Error ? err.message : '';
+
+    if (errName === 'AbortError' || errMessage.toLowerCase().includes('timeout') || errMessage.toLowerCase().includes('abort')) {
+      return NextResponse.json(
+        {
+          error: 'ASSISTANCE_TIMEOUT',
+          message: 'The assisted resolution provider timed out.'
+        },
+        { status: 504 }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        error: 'ASSISTANCE_PROVIDER_ERROR',
+        message: 'An error occurred during assisted candidate resolution.'
+      },
+      { status: 502 }
+    );
   }
 }

@@ -162,16 +162,38 @@ export function detectReviewIssues(
 
     // D. Insufficient vocalization metadata
     if (result.blockingReason === 'INSUFFICIENT_VOCALIZATION') {
-      const payloadKey = `insufficient:${token.normalizedSurface}:${result.alternatives.slice().sort().join(',')}`;
+      const activeEntry = lexicon.findByNormalized(lookupForm) ?? morph?.stemEntry ?? entry;
+      const compatibleReadings = activeEntry?.readings.filter((reading) =>
+        result.alternatives.length === 0 || result.alternatives.includes(reading.canonical)
+      ) ?? [];
+
+      const alternatives: ReviewAlternative[] = compatibleReadings.length > 0
+        ? compatibleReadings.map((reading) => ({
+            id: stableReadingIdentity(reading),
+            label: reading.canonical,
+            canonical: reading.canonical,
+            description: reading.notes ?? (reading.vocalization ? `Vocalized reading (${reading.canonical})` : undefined),
+            source: reading.source
+          }))
+        : result.alternatives.map((alt) => ({
+            id: `alt:${alt}`,
+            label: alt,
+            canonical: alt,
+            description: `Alternative reading: ${alt}`
+          }));
+
+      const payloadKey = `insufficient:${token.normalizedSurface}:${alternatives.map((a) => `${a.id}=${a.canonical ?? ''}`).sort().join(';')}`;
       issues.push({
         id: generateTokenIssueId(inputFingerprint, token, tokenIndex, 'INSUFFICIENT_VOCALIZATION', payloadKey),
         type: 'INSUFFICIENT_VOCALIZATION',
         tokenIndexes: [tokenIndex],
         surface: token.normalizedSurface,
         description: result.warnings[0] || 'Explicit source vowel cannot be validated because reviewed lexical vocalization metadata is incomplete.',
-        alternatives: [],
-        allowedActions: ['MANUAL_CANONICAL_OVERRIDE'],
-        evidenceSummary: result.alternatives.length > 0 ? `Alternatives: ${result.alternatives.join(', ')}` : undefined
+        alternatives,
+        allowedActions: alternatives.length > 0
+          ? ['SELECT_LEXICAL_READING', 'MANUAL_CANONICAL_OVERRIDE']
+          : ['MANUAL_CANONICAL_OVERRIDE'],
+        evidenceSummary: alternatives.length > 0 ? `Still-viable alternatives: ${alternatives.map((a) => a.canonical).join(', ')}` : undefined
       });
       return;
     }

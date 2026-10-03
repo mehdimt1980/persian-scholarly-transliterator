@@ -1,26 +1,69 @@
 import { z } from 'zod';
 import { validateManualTransliteration } from '../review/validation';
 import { generateSuggestionId, computeRequestFingerprint } from './suggestionIdentity';
-import { AssistedCandidate, AssistedResolution, AssistedResolverRequest } from './types';
+import {
+  AssistedCandidate,
+  AssistedResolution,
+  AssistedResolverRequest,
+  ExistingLexicalReadingProposal,
+  ManualCanonicalProposal,
+  IzafatDecisionProposal,
+  MorphologyBranchProposal
+} from './types';
 
-export const rawCandidateSchema = z.object({
-  kind: z.enum(['EXISTING_LEXICAL_READING', 'MANUAL_CANONICAL', 'IZAFAT_DECISION', 'MORPHOLOGY_BRANCH']),
-  canonical: z.string().optional(),
-  alternativeId: z.string().optional(),
-  relationDecision: z.enum(['ACCEPT_IZAFAT', 'REJECT_IZAFAT']).optional(),
-  morphologyBranch: z.enum(['WHOLE_WORD', 'PRODUCTIVE_SEGMENTATION']).optional(),
+export const existingLexicalReadingProposalSchema = z.object({
+  kind: z.literal('EXISTING_LEXICAL_READING'),
+  alternativeId: z.string().min(1),
+  canonical: z.string().nullable().optional(),
   rank: z.number().int().min(1).max(5),
-  modelConfidence: z.number().min(0.0).max(1.0).optional(),
+  modelConfidence: z.number().min(0.0).max(1.0).nullable().optional(),
   rationale: z.string().min(1).max(1000),
   basis: z.enum(['EXISTING_EVIDENCE', 'CONTEXTUAL_INFERENCE', 'MODEL_INFERENCE']),
-  evidenceRefs: z.array(z.string()).default([])
-});
+  evidenceRefs: z.array(z.string())
+}).strict();
+
+export const manualCanonicalProposalSchema = z.object({
+  kind: z.literal('MANUAL_CANONICAL'),
+  canonical: z.string().min(1),
+  rank: z.number().int().min(1).max(5),
+  modelConfidence: z.number().min(0.0).max(1.0).nullable().optional(),
+  rationale: z.string().min(1).max(1000),
+  basis: z.enum(['EXISTING_EVIDENCE', 'CONTEXTUAL_INFERENCE', 'MODEL_INFERENCE']),
+  evidenceRefs: z.array(z.string())
+}).strict();
+
+export const izafatDecisionProposalSchema = z.object({
+  kind: z.literal('IZAFAT_DECISION'),
+  relationDecision: z.enum(['ACCEPT_IZAFAT', 'REJECT_IZAFAT']),
+  rank: z.number().int().min(1).max(5),
+  modelConfidence: z.number().min(0.0).max(1.0).nullable().optional(),
+  rationale: z.string().min(1).max(1000),
+  basis: z.enum(['EXISTING_EVIDENCE', 'CONTEXTUAL_INFERENCE', 'MODEL_INFERENCE']),
+  evidenceRefs: z.array(z.string())
+}).strict();
+
+export const morphologyBranchProposalSchema = z.object({
+  kind: z.literal('MORPHOLOGY_BRANCH'),
+  morphologyBranch: z.enum(['WHOLE_WORD', 'PRODUCTIVE_SEGMENTATION']),
+  rank: z.number().int().min(1).max(5),
+  modelConfidence: z.number().min(0.0).max(1.0).nullable().optional(),
+  rationale: z.string().min(1).max(1000),
+  basis: z.enum(['EXISTING_EVIDENCE', 'CONTEXTUAL_INFERENCE', 'MODEL_INFERENCE']),
+  evidenceRefs: z.array(z.string())
+}).strict();
+
+export const rawCandidateSchema = z.discriminatedUnion('kind', [
+  existingLexicalReadingProposalSchema,
+  manualCanonicalProposalSchema,
+  izafatDecisionProposalSchema,
+  morphologyBranchProposalSchema
+]);
 
 export const rawProviderResponseSchema = z.object({
   issueId: z.string().min(1),
   candidates: z.array(rawCandidateSchema).max(5),
-  warnings: z.array(z.string()).optional()
-});
+  warnings: z.array(z.string()).nullable().optional()
+}).strict();
 
 export interface ValidationResult {
   valid: boolean;
@@ -36,7 +79,7 @@ export function validateProviderResolution(
 ): ValidationResult {
   const errors: string[] = [];
 
-  // 1. Zod structural parsing
+  // 1. Zod structural schema parsing (Discriminated union & strict objects)
   const parseResult = rawProviderResponseSchema.safeParse(raw);
   if (!parseResult.success) {
     return {
@@ -61,83 +104,159 @@ export function validateProviderResolution(
     seenRanks.add(c.rank);
   }
 
-  // 4. Issue-type-specific candidate constraints and safety
+  // 4. Candidate authority, semantic consistency, and safety validation
   const validatedCandidates: AssistedCandidate[] = [];
-  const allowedAltIds = new Set(request.availableAlternatives.map((a) => a.id));
-  const allowedAltCanonicals = new Set(request.availableAlternatives.map((a) => a.canonical).filter(Boolean));
+  const allowedAltMap = new Map(request.availableAlternatives.map((a) => [a.id, a]));
   const allowedEvidenceSet = new Set(request.allowedEvidenceRefs);
+  const allowedActionsSet = new Set(request.allowedActions);
+
+  const seenSemanticPayloads = new Set<string>();
+  const seenSuggestionIds = new Set<string>();
 
   for (const c of payload.candidates) {
-    // Evidence refs authorization check
+    // A. Evidence refs authorization check
     for (const ref of c.evidenceRefs) {
       if (!allowedEvidenceSet.has(ref)) {
         errors.push(`Candidate with rank ${c.rank} references unauthorized evidenceRef "${ref}".`);
       }
     }
 
-    if (request.issueType === 'LEXICAL_AMBIGUITY') {
-      if (c.kind === 'EXISTING_LEXICAL_READING') {
-        const matchingAltId = c.alternativeId ?? c.canonical;
-        if (!matchingAltId || (!allowedAltIds.has(matchingAltId) && !allowedAltCanonicals.has(matchingAltId))) {
-          errors.push(`LEXICAL_AMBIGUITY candidate must choose from existing alternatives. "${matchingAltId}" is not allowed.`);
-        }
-      } else if (c.kind === 'MANUAL_CANONICAL') {
-        // Only permitted if manual canonical is allowed for this issue
-        const validation = validateManualTransliteration(c.canonical);
-        if (!validation.valid) {
-          errors.push(`Manual canonical transliteration "${c.canonical}" failed safety validation: ${validation.error}`);
-        }
-      } else {
-        errors.push(`Candidate kind "${c.kind}" is not permitted for issue type LEXICAL_AMBIGUITY.`);
+    // B. Action authorization and kind-specific constraints
+    if (c.kind === 'EXISTING_LEXICAL_READING') {
+      if (!allowedActionsSet.has('SELECT_LEXICAL_READING')) {
+        errors.push(`Action "SELECT_LEXICAL_READING" is not permitted for issue "${request.issueId}".`);
       }
-    } else if (request.issueType === 'UNKNOWN_TOKEN' || request.issueType === 'UNSUPPORTED_ORTHOGRAPHIC_EVIDENCE' || request.issueType === 'UNSUPPORTED_ALLOMORPH') {
-      if (c.kind !== 'MANUAL_CANONICAL') {
-        errors.push(`Issue type "${request.issueType}" only accepts MANUAL_CANONICAL suggestions, got "${c.kind}".`);
-      } else {
-        const validation = validateManualTransliteration(c.canonical);
-        if (!validation.valid) {
-          errors.push(`Manual canonical transliteration "${c.canonical}" failed safety validation: ${validation.error}`);
-        }
-      }
-    } else if (request.issueType === 'INSUFFICIENT_VOCALIZATION') {
-      if (c.kind === 'EXISTING_LEXICAL_READING') {
-        const matchingAltId = c.alternativeId ?? c.canonical;
-        if (!matchingAltId || (!allowedAltIds.has(matchingAltId) && !allowedAltCanonicals.has(matchingAltId))) {
-          errors.push(`INSUFFICIENT_VOCALIZATION existing reading candidate "${matchingAltId}" is not in available alternatives.`);
-        }
-      } else if (c.kind === 'MANUAL_CANONICAL') {
-        const validation = validateManualTransliteration(c.canonical);
-        if (!validation.valid) {
-          errors.push(`Manual canonical transliteration "${c.canonical}" failed safety validation: ${validation.error}`);
-        }
-      } else {
-        errors.push(`Candidate kind "${c.kind}" is not permitted for INSUFFICIENT_VOCALIZATION.`);
-      }
-    } else if (request.issueType === 'IZAFAT_CANDIDATE') {
-      if (c.kind !== 'IZAFAT_DECISION' || (c.relationDecision !== 'ACCEPT_IZAFAT' && c.relationDecision !== 'REJECT_IZAFAT')) {
-        errors.push(`IZAFAT_CANDIDATE issue requires IZAFAT_DECISION with ACCEPT_IZAFAT or REJECT_IZAFAT.`);
-      }
-    } else if (request.issueType === 'MORPHOLOGY_AMBIGUITY') {
-      if (c.kind !== 'MORPHOLOGY_BRANCH' || (c.morphologyBranch !== 'WHOLE_WORD' && c.morphologyBranch !== 'PRODUCTIVE_SEGMENTATION')) {
-        errors.push(`MORPHOLOGY_AMBIGUITY issue requires MORPHOLOGY_BRANCH with WHOLE_WORD or PRODUCTIVE_SEGMENTATION.`);
-      }
-    }
 
-    if (errors.length === 0) {
+      const matchingAlt = allowedAltMap.get(c.alternativeId);
+      if (!matchingAlt) {
+        errors.push(`Candidate with rank ${c.rank} references non-existent alternativeId "${c.alternativeId}".`);
+      } else {
+        // Enforce strict consistency: if canonical is provided, it must equal the alternative's canonical
+        if (c.canonical && matchingAlt.canonical && c.canonical !== matchingAlt.canonical) {
+          errors.push(
+            `Candidate with rank ${c.rank} has contradictory canonical "${c.canonical}" for alternative "${c.alternativeId}" (expected "${matchingAlt.canonical}").`
+          );
+        }
+
+        const canonical = matchingAlt.canonical ?? (c.canonical || undefined) ?? matchingAlt.label;
+        const semanticKey = `EXISTING_LEXICAL_READING:${c.alternativeId}`;
+        if (seenSemanticPayloads.has(semanticKey)) {
+          errors.push(`Duplicate semantic candidate detected for alternative "${c.alternativeId}".`);
+        }
+        seenSemanticPayloads.add(semanticKey);
+
+        const id = generateSuggestionId(request.issueId, provider, model, request.promptVersion, c);
+        if (seenSuggestionIds.has(id)) {
+          errors.push(`Duplicate suggestion ID "${id}" detected.`);
+        }
+        seenSuggestionIds.add(id);
+
+        validatedCandidates.push({
+          id,
+          kind: 'EXISTING_LEXICAL_READING',
+          alternativeId: c.alternativeId,
+          canonical,
+          rank: c.rank,
+          modelConfidence: c.modelConfidence ?? undefined,
+          rationale: c.rationale,
+          basis: c.basis,
+          evidenceRefs: c.evidenceRefs
+        });
+      }
+    } else if (c.kind === 'MANUAL_CANONICAL') {
+      if (!allowedActionsSet.has('MANUAL_CANONICAL_OVERRIDE')) {
+        errors.push(`Action "MANUAL_CANONICAL_OVERRIDE" is not permitted for issue "${request.issueId}".`);
+      }
+
+      const validation = validateManualTransliteration(c.canonical);
+      if (!validation.valid || !validation.normalized) {
+        errors.push(`Manual canonical transliteration "${c.canonical}" failed safety validation: ${validation.error}`);
+      } else {
+        const semanticKey = `MANUAL_CANONICAL:${validation.normalized}`;
+        if (seenSemanticPayloads.has(semanticKey)) {
+          errors.push(`Duplicate semantic candidate detected for canonical "${validation.normalized}".`);
+        }
+        seenSemanticPayloads.add(semanticKey);
+
+        const id = generateSuggestionId(request.issueId, provider, model, request.promptVersion, c);
+        if (seenSuggestionIds.has(id)) {
+          errors.push(`Duplicate suggestion ID "${id}" detected.`);
+        }
+        seenSuggestionIds.add(id);
+
+        validatedCandidates.push({
+          id,
+          kind: 'MANUAL_CANONICAL',
+          canonical: validation.normalized,
+          rank: c.rank,
+          modelConfidence: c.modelConfidence ?? undefined,
+          rationale: c.rationale,
+          basis: c.basis,
+          evidenceRefs: c.evidenceRefs
+        });
+      }
+    } else if (c.kind === 'IZAFAT_DECISION') {
+      if (!allowedActionsSet.has(c.relationDecision)) {
+        errors.push(`Action "${c.relationDecision}" is not permitted for issue "${request.issueId}".`);
+      }
+
+      const semanticKey = `IZAFAT_DECISION:${c.relationDecision}`;
+      if (seenSemanticPayloads.has(semanticKey)) {
+        errors.push(`Duplicate semantic candidate detected for izāfat decision "${c.relationDecision}".`);
+      }
+      seenSemanticPayloads.add(semanticKey);
+
       const id = generateSuggestionId(request.issueId, provider, model, request.promptVersion, c);
+      if (seenSuggestionIds.has(id)) {
+        errors.push(`Duplicate suggestion ID "${id}" detected.`);
+      }
+      seenSuggestionIds.add(id);
+
       validatedCandidates.push({
         id,
-        kind: c.kind,
-        canonical: c.canonical,
-        alternativeId: c.alternativeId,
+        kind: 'IZAFAT_DECISION',
         relationDecision: c.relationDecision,
-        morphologyBranch: c.morphologyBranch,
         rank: c.rank,
-        modelConfidence: c.modelConfidence,
+        modelConfidence: c.modelConfidence ?? undefined,
         rationale: c.rationale,
         basis: c.basis,
         evidenceRefs: c.evidenceRefs
       });
+    } else if (c.kind === 'MORPHOLOGY_BRANCH') {
+      if (!allowedActionsSet.has('SELECT_MORPHOLOGY')) {
+        errors.push(`Action "SELECT_MORPHOLOGY" is not permitted for issue "${request.issueId}".`);
+      }
+
+      const matchingAlt = allowedAltMap.get(c.morphologyBranch);
+      if (!matchingAlt) {
+        errors.push(
+          `Morphology branch "${c.morphologyBranch}" is not among available alternatives for issue "${request.issueId}".`
+        );
+      } else {
+        const semanticKey = `MORPHOLOGY_BRANCH:${c.morphologyBranch}`;
+        if (seenSemanticPayloads.has(semanticKey)) {
+          errors.push(`Duplicate semantic candidate detected for morphology branch "${c.morphologyBranch}".`);
+        }
+        seenSemanticPayloads.add(semanticKey);
+
+        const id = generateSuggestionId(request.issueId, provider, model, request.promptVersion, c);
+        if (seenSuggestionIds.has(id)) {
+          errors.push(`Duplicate suggestion ID "${id}" detected.`);
+        }
+        seenSuggestionIds.add(id);
+
+        validatedCandidates.push({
+          id,
+          kind: 'MORPHOLOGY_BRANCH',
+          morphologyBranch: c.morphologyBranch,
+          canonical: matchingAlt.canonical,
+          rank: c.rank,
+          modelConfidence: c.modelConfidence ?? undefined,
+          rationale: c.rationale,
+          basis: c.basis,
+          evidenceRefs: c.evidenceRefs
+        });
+      }
     }
   }
 
@@ -148,7 +267,7 @@ export function validateProviderResolution(
     };
   }
 
-  // Sort candidates deterministically by rank
+  // Deterministically sort candidates by rank
   validatedCandidates.sort((a, b) => a.rank - b.rank);
 
   const requestFingerprint = computeRequestFingerprint(request, provider, model);
@@ -162,7 +281,7 @@ export function validateProviderResolution(
       model,
       promptVersion: request.promptVersion,
       requestFingerprint,
-      warnings: payload.warnings ?? []
+      warnings: (payload.warnings || undefined) ?? []
     },
     errors: []
   };

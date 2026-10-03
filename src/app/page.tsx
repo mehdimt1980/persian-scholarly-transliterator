@@ -1,9 +1,16 @@
 'use client';
 import { useMemo, useState } from 'react';
 import { transliterate } from '../domain/engine';
-import { ProfileId, ReviewDecision } from '../domain/types';
+import { ProfileId, ReviewDecision, ReviewIssue } from '../domain/types';
+import {
+  AssistedCandidate,
+  AssistedResolution,
+  candidateToReviewDecision
+} from '../domain/assistance';
 
 const fixture = 'تأملی درباره ایران: مکتب تبریز و مبانی تجددخواهی';
+
+type AssistStatusType = 'idle' | 'loading' | 'available' | 'error' | 'stale' | 'unavailable';
 
 export default function Home() {
   const [input, setInput] = useState(fixture);
@@ -32,8 +39,8 @@ export default function Home() {
     setManualErrors({});
   }
 
-  const [assistStatus, setAssistStatus] = useState<Record<string, 'idle' | 'loading' | 'available' | 'error' | 'unavailable'>>({});
-  const [assistResolutions, setAssistResolutions] = useState<Record<string, any>>({});
+  const [assistStatus, setAssistStatus] = useState<Record<string, AssistStatusType>>({});
+  const [assistResolutions, setAssistResolutions] = useState<Record<string, AssistedResolution>>({});
   const [assistErrors, setAssistErrors] = useState<Record<string, string>>({});
 
   async function requestAssistance(issueId: string) {
@@ -59,7 +66,7 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok) {
         setAssistStatus((prev) => ({ ...prev, [issueId]: res.status === 503 ? 'unavailable' : 'error' }));
-        setAssistErrors((prev) => ({ ...prev, [issueId]: data.error || 'Assisted resolver request failed.' }));
+        setAssistErrors((prev) => ({ ...prev, [issueId]: data.message || data.error || 'Assisted resolver request failed.' }));
         return;
       }
 
@@ -71,36 +78,16 @@ export default function Home() {
     }
   }
 
-  function applyAssistedCandidate(issueId: string, candidate: any, resolution: any) {
-    let action = 'MANUAL_CANONICAL_OVERRIDE';
-    let selectedAlternativeId: string | undefined = undefined;
-    let manualCanonicalTransliteration: string | undefined = undefined;
-
-    if (candidate.kind === 'EXISTING_LEXICAL_READING') {
-      action = 'SELECT_LEXICAL_READING';
-      selectedAlternativeId = candidate.alternativeId ?? candidate.canonical;
-    } else if (candidate.kind === 'MANUAL_CANONICAL') {
-      action = 'MANUAL_CANONICAL_OVERRIDE';
-      manualCanonicalTransliteration = candidate.canonical;
-    } else if (candidate.kind === 'IZAFAT_DECISION') {
-      action = candidate.relationDecision ?? 'ACCEPT_IZAFAT';
-    } else if (candidate.kind === 'MORPHOLOGY_BRANCH') {
-      action = 'SELECT_MORPHOLOGY';
-      selectedAlternativeId = candidate.morphologyBranch;
+  function applyAssistedCandidate(issue: ReviewIssue, candidate: AssistedCandidate, resolution: AssistedResolution) {
+    try {
+      const decision = candidateToReviewDecision(candidate, resolution, issue);
+      applyDecision(decision);
+    } catch (err) {
+      setAssistErrors((prev) => ({
+        ...prev,
+        [issue.id]: err instanceof Error ? err.message : 'Failed to apply suggestion.'
+      }));
     }
-
-    applyDecision({
-      issueId,
-      action: action as any,
-      selectedAlternativeId,
-      manualCanonicalTransliteration,
-      assistance: {
-        suggestionId: candidate.id,
-        provider: resolution.provider,
-        model: resolution.model,
-        promptVersion: resolution.promptVersion
-      }
-    });
   }
 
   function handleManualSubmit(issueId: string) {
@@ -153,12 +140,34 @@ export default function Home() {
             id="source"
             dir="rtl"
             value={input}
-            onChange={(event) => setInput(event.target.value)}
+            onChange={(event) => {
+              setInput(event.target.value);
+              // Mark any existing resolutions as stale when input text changes
+              setAssistStatus((prev) => {
+                const next = { ...prev };
+                for (const k of Object.keys(next)) {
+                  if (next[k] === 'available') next[k] = 'stale';
+                }
+                return next;
+              });
+            }}
           />
           <div className="controls">
             <label>
               Context
-              <select value={profile} onChange={(event) => setProfile(event.target.value as ProfileId)}>
+              <select
+                value={profile}
+                onChange={(event) => {
+                  setProfile(event.target.value as ProfileId);
+                  setAssistStatus((prev) => {
+                    const next = { ...prev };
+                    for (const k of Object.keys(next)) {
+                      if (next[k] === 'available') next[k] = 'stale';
+                    }
+                    return next;
+                  });
+                }}
+              >
                 <option value="ijmes_title">Book / article title</option>
                 <option value="ijmes_full">Full scholarly / technical term</option>
               </select>
@@ -199,156 +208,160 @@ export default function Home() {
               <h3>{hasIssues ? `Review required (${result.reviewIssues.length} pending)` : 'All review blockers resolved'}</h3>
             </div>
             {hasDecisions && (
-              <button className="btn-clear" onClick={clearAllDecisions}>
+              <button className="btn-clear-all" onClick={clearAllDecisions}>
                 Reset all decisions ({result.appliedDecisions.length})
               </button>
             )}
           </div>
 
-          {/* Pending Review Issues */}
-          {result.reviewIssues.map((issue) => (
-            <div className="review-card" key={issue.id}>
-              <div className="review-card-top">
-                <span className="surface" dir="rtl">{issue.surface}</span>
-                <span className="badge ambiguous">{issue.type}</span>
-              </div>
-              <div className="review-card-body">
-                <p>{issue.description}</p>
-                {issue.evidenceSummary && <p className="evidence-summary">{issue.evidenceSummary}</p>}
-              </div>
+          {/* Review Issues List */}
+          {result.reviewIssues.map((issue) => {
+            const currentResolution = assistResolutions[issue.id];
+            const currentStatus = assistStatus[issue.id] || 'idle';
+            const isStale = currentStatus === 'stale';
 
-              <div className="review-actions">
-                {issue.type === 'LEXICAL_AMBIGUITY' && (
-                  <>
-                    {issue.alternatives.map((alt) => (
-                      <button
-                        key={alt.id}
-                        className="secondary"
-                        onClick={() => applyDecision({
-                          issueId: issue.id,
-                          action: 'SELECT_LEXICAL_READING',
-                          selectedAlternativeId: alt.canonical ?? alt.id
-                        })}
-                      >
-                        Select: <strong>{alt.canonical ?? alt.label}</strong>
-                      </button>
-                    ))}
-                  </>
-                )}
-
-                {issue.type === 'IZAFAT_CANDIDATE' && (
-                  <>
-                    <button
-                      className="secondary"
-                      onClick={() => applyDecision({ issueId: issue.id, action: 'ACCEPT_IZAFAT' })}
-                    >
-                      Accept izāfat (-i)
-                    </button>
-                    <button
-                      className="secondary"
-                      onClick={() => applyDecision({ issueId: issue.id, action: 'REJECT_IZAFAT' })}
-                    >
-                      Reject izāfat (no -i)
-                    </button>
-                  </>
-                )}
-
-                {issue.type === 'MORPHOLOGY_AMBIGUITY' && (
-                  <>
-                    {issue.alternatives.map((alt) => (
-                      <button
-                        key={alt.id}
-                        className="secondary"
-                        onClick={() => applyDecision({
-                          issueId: issue.id,
-                          action: 'SELECT_MORPHOLOGY',
-                          selectedAlternativeId: alt.id
-                        })}
-                      >
-                        {alt.label}: <strong>{alt.canonical ?? alt.id}</strong>
-                      </button>
-                    ))}
-                  </>
-                )}
-
-                {issue.allowedActions.includes('MANUAL_CANONICAL_OVERRIDE') && (
-                  <div className="manual-input-row">
-                    <input
-                      type="text"
-                      placeholder="Enter canonical transliteration (e.g. mashrūṭa-khvāhī)"
-                      value={manualInputs[issue.id] ?? ''}
-                      onChange={(e) => setManualInputs((prev) => ({ ...prev, [issue.id]: e.target.value }))}
-                      onKeyDown={(e) => { if (e.key === 'Enter') handleManualSubmit(issue.id); }}
-                    />
-                    <button onClick={() => handleManualSubmit(issue.id)}>Apply manual override</button>
-                  </div>
-                )}
-              </div>
-
-              {manualErrors[issue.id] && (
-                <p className="warning" style={{ marginTop: '8px', fontSize: '11px' }}>
-                  {manualErrors[issue.id]}
-                </p>
-              )}
-
-              {/* Assisted Resolver Section */}
-              <div className="assisted-section">
-                <div className="assisted-header">
-                  <span>Assisted Resolver</span>
-                  <button
-                    className="secondary"
-                    disabled={assistStatus[issue.id] === 'loading'}
-                    onClick={() => requestAssistance(issue.id)}
-                  >
-                    {assistStatus[issue.id] === 'loading' ? 'Resolving...' : 'Ask resolver'}
-                  </button>
+            return (
+              <div className="review-card" key={issue.id}>
+                <div className="review-card-header">
+                  <span className="review-surface" dir="rtl">{issue.surface}</span>
+                  <span className="review-type">{issue.type}</span>
                 </div>
-
-                {assistStatus[issue.id] === 'unavailable' && (
-                  <p className="assisted-msg">Assisted resolver is currently unavailable (API key not configured).</p>
+                <p className="review-desc">{issue.description}</p>
+                {issue.evidenceSummary && (
+                  <p className="review-evidence">Evidence: {issue.evidenceSummary}</p>
                 )}
 
-                {assistStatus[issue.id] === 'error' && (
-                  <p className="assisted-msg error">{assistErrors[issue.id] || 'Assisted resolver failed.'}</p>
-                )}
-
-                {assistResolutions[issue.id] && assistResolutions[issue.id].issueId === issue.id && (
-                  <div className="assisted-candidates-grid">
-                    {assistResolutions[issue.id].candidates.map((c: any) => (
-                      <div className="assisted-candidate-card" key={c.id}>
-                        <div className="assisted-candidate-info">
-                          <div className="assisted-candidate-top">
-                            <span className="badge-basis">#{c.rank}</span>
-                            <strong>
-                              {c.kind === 'EXISTING_LEXICAL_READING' && (c.canonical || c.alternativeId)}
-                              {c.kind === 'MANUAL_CANONICAL' && c.canonical}
-                              {c.kind === 'IZAFAT_DECISION' && (c.relationDecision === 'ACCEPT_IZAFAT' ? 'Accept izāfat (-i)' : 'Reject izāfat')}
-                              {c.kind === 'MORPHOLOGY_BRANCH' && (c.morphologyBranch === 'WHOLE_WORD' ? 'Whole word branch' : 'Productive segmentation')}
-                            </strong>
-                            <span className="badge-basis">{c.basis}</span>
-                            {c.modelConfidence !== undefined && (
-                              <span className="badge-basis">{Math.round(c.modelConfidence * 100)}% conf</span>
-                            )}
-                            <span className="ai-badge">AI suggestion — not authoritative</span>
-                          </div>
-                          <p className="assisted-rationale">{c.rationale}</p>
-                          {c.evidenceRefs && c.evidenceRefs.length > 0 && (
-                            <p className="assisted-meta">Refs: {c.evidenceRefs.join(', ')}</p>
-                          )}
-                        </div>
+                {/* Alternatives Choices */}
+                {issue.alternatives.length > 0 && (
+                  <div className="alternatives-group">
+                    <span className="group-label">Reviewed options:</span>
+                    <div className="alt-buttons">
+                      {issue.alternatives.map((alt) => (
                         <button
-                          className="secondary"
-                          onClick={() => applyAssistedCandidate(issue.id, c, assistResolutions[issue.id])}
+                          key={alt.id}
+                          className="alt-btn"
+                          onClick={() => {
+                            if (issue.type === 'MORPHOLOGY_AMBIGUITY') {
+                              applyDecision({
+                                issueId: issue.id,
+                                action: 'SELECT_MORPHOLOGY',
+                                selectedAlternativeId: alt.id,
+                                manualCanonicalTransliteration: alt.canonical
+                              });
+                            } else if (issue.type === 'IZAFAT_CANDIDATE') {
+                              applyDecision({
+                                issueId: issue.id,
+                                action: alt.id === 'ACCEPT_IZAFAT' ? 'ACCEPT_IZAFAT' : 'REJECT_IZAFAT'
+                              });
+                            } else {
+                              applyDecision({
+                                issueId: issue.id,
+                                action: 'SELECT_LEXICAL_READING',
+                                selectedAlternativeId: alt.id,
+                                manualCanonicalTransliteration: alt.canonical
+                              });
+                            }
+                          }}
                         >
-                          Use this suggestion
+                          <strong>{alt.label}</strong>
+                          {alt.canonical && <span className="alt-translit"> → {alt.canonical}</span>}
+                          {alt.description && <span className="alt-desc">{alt.description}</span>}
                         </button>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 )}
+
+                {/* Manual Override Input */}
+                {issue.allowedActions.includes('MANUAL_CANONICAL_OVERRIDE') && (
+                  <div className="manual-override-box">
+                    <label htmlFor={`manual-${issue.id}`}>Or enter custom scholarly transliteration:</label>
+                    <div className="manual-input-row">
+                      <input
+                        id={`manual-${issue.id}`}
+                        type="text"
+                        placeholder="e.g. kitāb"
+                        value={manualInputs[issue.id] || ''}
+                        onChange={(e) =>
+                          setManualInputs((prev) => ({ ...prev, [issue.id]: e.target.value }))
+                        }
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleManualSubmit(issue.id);
+                        }}
+                      />
+                      <button onClick={() => handleManualSubmit(issue.id)}>Apply</button>
+                    </div>
+                    {manualErrors[issue.id] && (
+                      <p className="input-error">{manualErrors[issue.id]}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Assisted Resolver Box */}
+                <div className="assisted-resolver-box">
+                  <div className="assisted-resolver-header">
+                    <span className="assisted-title">Assisted resolver (AI suggestion)</span>
+                    <button
+                      className="btn-assist"
+                      disabled={currentStatus === 'loading'}
+                      onClick={() => requestAssistance(issue.id)}
+                    >
+                      {currentStatus === 'loading' ? 'Resolving...' : isStale ? 'Re-request suggestion' : 'Ask resolver'}
+                    </button>
+                  </div>
+
+                  {currentStatus === 'unavailable' && (
+                    <p className="assisted-msg">Assisted resolver is currently unavailable (API key and model not configured).</p>
+                  )}
+
+                  {currentStatus === 'error' && (
+                    <p className="assisted-msg error">{assistErrors[issue.id] || 'Assisted resolver failed.'}</p>
+                  )}
+
+                  {currentResolution && (
+                    <div className={`assisted-candidates-grid ${isStale ? 'is-stale' : ''}`}>
+                      {isStale && (
+                        <div className="stale-banner">
+                          <span>Stale suggestion: underlying transliteration state has changed. Re-request assistance to update suggestions.</span>
+                        </div>
+                      )}
+                      {currentResolution.candidates.map((c) => (
+                        <div className="assisted-candidate-card" key={c.id}>
+                          <div className="assisted-candidate-info">
+                            <div className="assisted-candidate-top">
+                              <span className="badge-basis">#{c.rank}</span>
+                              <strong>
+                                {c.kind === 'EXISTING_LEXICAL_READING' && (c.canonical || c.alternativeId)}
+                                {c.kind === 'MANUAL_CANONICAL' && c.canonical}
+                                {c.kind === 'IZAFAT_DECISION' && (c.relationDecision === 'ACCEPT_IZAFAT' ? 'Accept izāfat (-i)' : 'Reject izāfat')}
+                                {c.kind === 'MORPHOLOGY_BRANCH' && (c.morphologyBranch === 'WHOLE_WORD' ? 'Whole word branch' : 'Productive segmentation')}
+                              </strong>
+                              <span className="badge-basis">{c.basis}</span>
+                              {c.modelConfidence !== undefined && (
+                                <span className="badge-basis">{Math.round(c.modelConfidence * 100)}% conf</span>
+                              )}
+                              <span className="ai-badge">AI suggestion — not authoritative</span>
+                            </div>
+                            <p className="assisted-rationale">{c.rationale}</p>
+                            {c.evidenceRefs && c.evidenceRefs.length > 0 && (
+                              <p className="assisted-meta">Refs: {c.evidenceRefs.join(', ')}</p>
+                            )}
+                          </div>
+                          <button
+                            className="secondary"
+                            disabled={isStale}
+                            onClick={() => applyAssistedCandidate(issue, c, currentResolution)}
+                          >
+                            {isStale ? 'Stale' : 'Use this suggestion'}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           {/* Active Decisions */}
           {result.appliedDecisions.map((decision) => (

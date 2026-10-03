@@ -81,6 +81,8 @@ button.btn-clear:hover { color:var(--accent); border-color:var(--accent); backgr
 .assisted-meta { font:10px 'DM Mono',monospace; color:var(--muted); margin-top:4px; }
 .assisted-msg { font:12px/1.4 'DM Sans',sans-serif; color:var(--muted); margin:6px 0; }
 .assisted-msg.error { color:var(--accent); }
+.assisted-candidates-grid.is-stale { opacity: 0.65; }
+.stale-banner { padding: 6px 10px; background: #fff8e1; border: 1px solid #ffe082; font: 11px/1.4 'DM Sans', sans-serif; color: #8d6e63; border-radius: 2px; }
 .assisted-msg.stale { color:var(--gold); font-style:italic; }
 
 footer { display:flex; justify-content:space-between; margin-top:58px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); font:10px 'DM Mono',monospace; }

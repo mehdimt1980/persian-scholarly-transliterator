@@ -1,6 +1,5 @@
 import { ProfileId } from '../types';
-import { ReviewIssue, ReviewAlternative, ReviewIssueType } from '../review/types';
-import { RuleDefinition } from '../types';
+import { ReviewIssue, ReviewAlternative, ReviewIssueType, ReviewActionType } from '../review/types';
 
 export type AssistedSuggestionKind =
   | 'EXISTING_LEXICAL_READING'
@@ -13,24 +12,118 @@ export type AssistedCandidateBasis =
   | 'CONTEXTUAL_INFERENCE'
   | 'MODEL_INFERENCE';
 
-export interface AssistedCandidate {
+export type EvidenceRefKind =
+  | 'LOCAL_CONTEXT'
+  | 'RULE'
+  | 'LEXICAL_SOURCE'
+  | 'ORTHOGRAPHIC_EVIDENCE'
+  | 'MORPHOLOGY_EVIDENCE'
+  | 'RELATION_EVIDENCE';
+
+export interface AssistanceEvidenceRef {
   id: string;
-  kind: AssistedSuggestionKind;
+  kind: EvidenceRefKind;
+  label: string;
+}
 
-  canonical?: string;
-  alternativeId?: string;
-
-  relationDecision?: 'ACCEPT_IZAFAT' | 'REJECT_IZAFAT';
-  morphologyBranch?: 'WHOLE_WORD' | 'PRODUCTIVE_SEGMENTATION';
-
+export interface ExistingLexicalReadingProposal {
+  kind: 'EXISTING_LEXICAL_READING';
+  alternativeId: string;
+  canonical?: string | null;
   rank: number;
-  modelConfidence?: number;
-
+  modelConfidence?: number | null;
   rationale: string;
   basis: AssistedCandidateBasis;
-
   evidenceRefs: string[];
 }
+
+export interface ManualCanonicalProposal {
+  kind: 'MANUAL_CANONICAL';
+  canonical: string;
+  rank: number;
+  modelConfidence?: number | null;
+  rationale: string;
+  basis: AssistedCandidateBasis;
+  evidenceRefs: string[];
+}
+
+export interface IzafatDecisionProposal {
+  kind: 'IZAFAT_DECISION';
+  relationDecision: 'ACCEPT_IZAFAT' | 'REJECT_IZAFAT';
+  rank: number;
+  modelConfidence?: number | null;
+  rationale: string;
+  basis: AssistedCandidateBasis;
+  evidenceRefs: string[];
+}
+
+export interface MorphologyBranchProposal {
+  kind: 'MORPHOLOGY_BRANCH';
+  morphologyBranch: 'WHOLE_WORD' | 'PRODUCTIVE_SEGMENTATION';
+  rank: number;
+  modelConfidence?: number | null;
+  rationale: string;
+  basis: AssistedCandidateBasis;
+  evidenceRefs: string[];
+}
+
+export type AssistedCandidateProposal =
+  | ExistingLexicalReadingProposal
+  | ManualCanonicalProposal
+  | IzafatDecisionProposal
+  | MorphologyBranchProposal;
+
+export interface ExistingLexicalReadingCandidate {
+  id: string;
+  kind: 'EXISTING_LEXICAL_READING';
+  alternativeId: string;
+  canonical: string;
+  rank: number;
+  modelConfidence?: number;
+  rationale: string;
+  basis: AssistedCandidateBasis;
+  evidenceRefs: string[];
+}
+
+export interface ManualCanonicalCandidate {
+  id: string;
+  kind: 'MANUAL_CANONICAL';
+  canonical: string;
+  rank: number;
+  modelConfidence?: number;
+  rationale: string;
+  basis: AssistedCandidateBasis;
+  evidenceRefs: string[];
+}
+
+export interface IzafatDecisionCandidate {
+  id: string;
+  kind: 'IZAFAT_DECISION';
+  relationDecision: 'ACCEPT_IZAFAT' | 'REJECT_IZAFAT';
+  rank: number;
+  modelConfidence?: number;
+  rationale: string;
+  basis: AssistedCandidateBasis;
+  evidenceRefs: string[];
+}
+
+export interface MorphologyBranchCandidate {
+  id: string;
+  kind: 'MORPHOLOGY_BRANCH';
+  morphologyBranch: 'WHOLE_WORD' | 'PRODUCTIVE_SEGMENTATION';
+  canonical?: string;
+  rank: number;
+  modelConfidence?: number;
+  rationale: string;
+  basis: AssistedCandidateBasis;
+  evidenceRefs: string[];
+}
+
+export type AssistedCandidate =
+  | ExistingLexicalReadingCandidate
+  | ManualCanonicalCandidate
+  | IzafatDecisionCandidate
+  | MorphologyBranchCandidate;
 
 export interface AssistedResolution {
   issueId: string;
@@ -51,16 +144,33 @@ export interface BoundedLocalContext {
   fullWindow: string;
 }
 
+export interface OrthographicEvidencePayload {
+  explicitVowels: Array<{
+    mark: 'FATHA' | 'KASRA' | 'DAMMA';
+    vowel: string;
+    afterBaseIndex: number;
+    normalizedTokenOffset: number;
+    relationOnly: boolean;
+    ruleId: string;
+  }>;
+  unsupportedMarks: Array<{
+    mark: string;
+    afterBaseIndex: number;
+    normalizedTokenOffset: number;
+    ruleId: string;
+  }>;
+  explicitIzafat: 'FINAL_KASRA' | 'HEH_ORTHOGRAPHY' | null;
+  zwnjBoundaries: number[];
+}
+
 export interface AssistedResolverRequest {
   issueId: string;
   issueType: ReviewIssueType;
   normalizedSurface: string;
   localContext: BoundedLocalContext;
   availableAlternatives: ReviewAlternative[];
-  orthographicEvidence: {
-    combiningMarks: string[];
-    unsupportedMarks: string[];
-  };
+  allowedActions: ReviewActionType[];
+  orthographicEvidence: OrthographicEvidencePayload;
   morphologyEvidence?: {
     isSegmented: boolean;
     stem?: string;
@@ -73,9 +183,10 @@ export interface AssistedResolverRequest {
     relationType: string;
     evidenceKinds: string[];
   };
+  evidenceCatalog: AssistanceEvidenceRef[];
+  allowedEvidenceRefs: string[];
   lexicalSourceMetadata: string[];
   profile: ProfileId;
-  allowedEvidenceRefs: string[];
   promptVersion: string;
 }
 
@@ -87,19 +198,6 @@ export interface AssistedResolverResponse {
   promptVersion: string;
   requestFingerprint: string;
   warnings: string[];
-}
-
-export interface AssistedCandidateProposal {
-  kind: AssistedSuggestionKind;
-  canonical?: string;
-  alternativeId?: string;
-  relationDecision?: 'ACCEPT_IZAFAT' | 'REJECT_IZAFAT';
-  morphologyBranch?: 'WHOLE_WORD' | 'PRODUCTIVE_SEGMENTATION';
-  rank: number;
-  modelConfidence?: number;
-  rationale: string;
-  basis: AssistedCandidateBasis;
-  evidenceRefs: string[];
 }
 
 export interface RawProviderResolutionPayload {
