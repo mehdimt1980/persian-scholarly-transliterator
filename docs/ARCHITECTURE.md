@@ -14,6 +14,14 @@ The public `transliterate(input, profile, reviewDecisions?, lexicon?)` pipeline 
 10. **Canonical IJMES rendering** applies deterministic rules to confirmed morphology, relations, and lexical readings (including human-confirmed izāfat).
 11. **Output profiles and copyability** format canonical output. Copying is allowed only when all blocking issues have been resolved.
 
+12. **Batch bibliography processing (Phase 4)** extends single-record transliteration to structured CSV batches (`docs/BIBLIOGRAPHY_BATCH.md`):
+    - Parses canonical records while preserving custom passthrough columns.
+    - Applies field-level policies (`ijmes_title` for titles, `ijmes_full` for creators/places/publishers).
+    - Detects Arabic/Persian script to pass Latin metadata through untouched.
+    - Scopes review decisions and AI assistance strictly to `(recordId, fieldPath, issueId)`.
+    - Computes deterministic record and batch readiness (`READY`, `REVIEW_REQUIRED`, `INVALID`).
+    - Serializes authoritative metadata into source-preserving CSV, final scholarly CSV, RIS, and BibTeX (`docs/EXPORT_FORMATS.md`).
+
 Diagnostic consonantal scaffolds are separate from `canonicalTransliteration`. Ambiguous and unresolved tokens use explicit review placeholders, make the aggregate result non-copyable, and never become authoritative by array order.
 
 The domain engine remains 100% independent of React, Next.js, and external AI providers.
