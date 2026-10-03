@@ -8,6 +8,16 @@ export type ProfileId = 'ijmes_full' | 'ijmes_title';
 export type AuthorityCategory = 'chart' | 'current-guide' | 'linguistic-convention' | 'lexical-data' | 'editorial' | 'user-decision';
 export type RelationStatus = 'CONFIRMED' | 'CANDIDATE';
 export type EvidenceCompatibility = 'MATCH' | 'CONFLICT' | 'UNKNOWN';
+export type RelationDisposition = 'ACCEPTED' | 'REJECTED';
+
+export type AutomaticBlockingReason =
+  | 'NO_LEXICAL_ENTRY'
+  | 'INSUFFICIENT_VOCALIZATION'
+  | 'VOCALIZATION_CONFLICT'
+  | 'UNSUPPORTED_ORTHOGRAPHIC_EVIDENCE'
+  | 'UNSUPPORTED_ALLOMORPH'
+  | 'LEXICAL_AMBIGUITY'
+  | 'MORPHOLOGY_AMBIGUITY';
 
 export interface RuleDefinition {
   id: string;
@@ -85,6 +95,21 @@ export interface ContextRelation {
   rendering: 'STANDARD_I' | 'REVIEW_REQUIRED_ALLOMORPH';
   warnings: string[];
   userDecision?: ReviewDecision;
+  disposition?: RelationDisposition;
+}
+
+export interface AutomaticTokenSnapshot {
+  status: ResultStatus;
+  canonicalTransliteration: string | null;
+  rendered: string;
+  diagnosticScaffold?: string;
+  confidence?: number;
+  lexicalCategory?: LexicalCategory;
+  appliedRules: RuleDefinition[];
+  lexicalSources: string[];
+  warnings: string[];
+  alternatives: string[];
+  blockingReason?: AutomaticBlockingReason;
 }
 
 export interface TokenResult {
@@ -94,8 +119,6 @@ export interface TokenResult {
   rendered: string;
   diagnosticScaffold?: string;
   status: ResultStatus;
-  automaticStatus?: ResultStatus;
-  automaticCanonical?: string | null;
   confidence?: number;
   lexicalCategory?: LexicalCategory;
   appliedRules: RuleDefinition[];
@@ -105,6 +128,10 @@ export interface TokenResult {
   normalizedStart: number;
   normalizedEnd: number;
   userDecision?: ReviewDecision;
+  automatic: AutomaticTokenSnapshot;
+  blockingReason?: AutomaticBlockingReason;
+  automaticStatus?: ResultStatus;
+  automaticCanonical?: string | null;
 }
 
 export interface TransliterationResult {

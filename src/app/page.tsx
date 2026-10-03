@@ -363,8 +363,8 @@ export default function Home() {
                   <span className="source" dir="rtl">{result.tokens[relation.sourceTokenIndex].normalizedSurface}</span>
                   <span className="arrow">IZĀFAT</span>
                   <span dir="rtl">{result.tokens[relation.targetTokenIndex].normalizedSurface}</span>
-                  <span className={`badge ${relation.status === 'CANDIDATE' ? 'ambiguous' : (relation as unknown as { rejected?: boolean }).rejected ? 'user_override' : ''}`}>
-                    {(relation as unknown as { rejected?: boolean }).rejected ? 'REJECTED' : relation.status}
+                  <span className={`badge ${relation.status === 'CANDIDATE' ? 'ambiguous' : relation.disposition === 'REJECTED' ? 'user_override' : ''}`}>
+                    {relation.disposition === 'REJECTED' ? 'REJECTED' : relation.status}
                   </span>
                 </div>
                 <div className="token-meta">

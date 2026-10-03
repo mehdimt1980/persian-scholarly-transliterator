@@ -43,6 +43,28 @@ describe('Lexicon Repository and Data Integrity', () => {
     expect(report.errors.some((err) => err.includes('Duplicate lexical entry id "lex:duplicate"'))).toBe(true);
   });
 
+  it('detects duplicate normalized forms across entries and rejects collision authority', () => {
+    const duplicateNormalized: LexicalEntry[] = [
+      {
+        id: 'lex:kitab_1',
+        surface: 'کتاب',
+        normalized: 'کتاب',
+        readings: [{ canonical: 'kitāb_a', confidence: 0.9, source: 'Test source 1' }]
+      },
+      {
+        id: 'lex:kitab_2',
+        surface: 'کتاب',
+        normalized: 'کتاب',
+        readings: [{ canonical: 'kitāb_b', confidence: 0.9, source: 'Test source 2' }]
+      }
+    ];
+
+    const repo = new LexiconRepository(duplicateNormalized);
+    const report = repo.validateIntegrity();
+    expect(report.valid).toBe(false);
+    expect(report.errors.some((err) => err.includes('Duplicate lexical entry normalized form "کتاب"'))).toBe(true);
+  });
+
   it('detects duplicate identical canonical readings within the same entry', () => {
     const duplicateReadings: LexicalEntry[] = [
       {

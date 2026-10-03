@@ -19,7 +19,7 @@ export interface AppliedReviewResult {
   morphology: MorphologicalAnalysis[];
   appliedDecisions: ReviewDecision[];
   staleDecisions: ReviewDecision[];
-  remainingIssues: ReviewIssue[];
+  resolvedIssueIds: Set<string>;
 }
 
 export function applyReviewDecisions(
@@ -33,9 +33,40 @@ export function applyReviewDecisions(
   decisions: ReviewDecision[] = [],
   lexicon: LexiconRepository = DEFAULT_LEXICON_REPOSITORY
 ): AppliedReviewResult {
-  const updatedTokens = tokenResults.map((t) => ({ ...t, appliedRules: [...t.appliedRules], lexicalSources: [...t.lexicalSources], warnings: [...t.warnings], alternatives: [...t.alternatives] }));
-  const updatedRelations = relations.map((r) => ({ ...r, evidence: [...r.evidence], warnings: [...r.warnings] }));
-  const updatedMorphology = morphologies.map((m) => ({ ...m, evidence: [...m.evidence], warnings: [...m.warnings], alternatives: [...m.alternatives] }));
+  const analysisByToken = new Map(analyses.map((item) => [item.tokenIndex, item]));
+  const updatedTokens: TokenResult[] = tokenResults.map((t) => ({
+    ...t,
+    appliedRules: [...t.appliedRules],
+    lexicalSources: [...t.lexicalSources],
+    warnings: [...t.warnings],
+    alternatives: [...t.alternatives],
+    automatic: {
+      status: t.automatic.status,
+      canonicalTransliteration: t.automatic.canonicalTransliteration,
+      rendered: t.automatic.rendered,
+      diagnosticScaffold: t.automatic.diagnosticScaffold,
+      confidence: t.automatic.confidence,
+      lexicalCategory: t.automatic.lexicalCategory,
+      appliedRules: [...t.automatic.appliedRules],
+      lexicalSources: [...t.automatic.lexicalSources],
+      warnings: [...t.automatic.warnings],
+      alternatives: [...t.automatic.alternatives],
+      blockingReason: t.automatic.blockingReason
+    }
+  }));
+
+  const updatedRelations: ContextRelation[] = relations.map((r) => ({
+    ...r,
+    evidence: [...r.evidence],
+    warnings: [...r.warnings]
+  }));
+
+  const updatedMorphology: MorphologicalAnalysis[] = morphologies.map((m) => ({
+    ...m,
+    evidence: [...m.evidence],
+    warnings: [...m.warnings],
+    alternatives: [...m.alternatives]
+  }));
 
   const issueMap = new Map(issues.map((i) => [i.id, i]));
   const appliedDecisions: ReviewDecision[] = [];
@@ -49,9 +80,15 @@ export function applyReviewDecisions(
       continue;
     }
 
+    // 1. Authorization check: action must be explicitly permitted by the issue
+    if (!issue.allowedActions.includes(decision.action)) {
+      staleDecisions.push(decision);
+      continue;
+    }
+
     let appliedSuccessfully = false;
 
-    // 1. Manual canonical override
+    // 2. Action: Manual canonical override
     if (decision.action === 'MANUAL_CANONICAL_OVERRIDE') {
       const validation = validateManualTransliteration(decision.manualCanonicalTransliteration);
       if (validation.valid && validation.normalized) {
@@ -59,8 +96,6 @@ export function applyReviewDecisions(
         if (tokenIndex !== undefined && updatedTokens[tokenIndex]) {
           const current = updatedTokens[tokenIndex];
           const manualValue = validation.normalized;
-          current.automaticStatus = current.automaticStatus ?? current.status;
-          current.automaticCanonical = current.automaticCanonical ?? current.canonicalTransliteration;
           current.status = 'USER_OVERRIDE';
           current.canonicalTransliteration = manualValue;
           current.rendered = manualValue;
@@ -69,40 +104,54 @@ export function applyReviewDecisions(
           current.warnings = decision.note ? [`Note: ${decision.note}`] : [];
           current.alternatives = [];
           current.userDecision = decision;
+          current.automaticStatus = current.automatic.status;
+          current.automaticCanonical = current.automatic.canonicalTransliteration;
           appliedSuccessfully = true;
         }
       }
     }
 
-    // 2. Select lexical reading
+    // 3. Action: Select lexical reading (must belong to issue alternatives)
     else if (decision.action === 'SELECT_LEXICAL_READING') {
       const tokenIndex = issue.tokenIndexes[0];
-      const entry = entries[tokenIndex];
-      if (tokenIndex !== undefined && updatedTokens[tokenIndex] && entry) {
-        const selectedId = decision.selectedAlternativeId;
-        const selectedCanonical = decision.manualCanonicalTransliteration;
-        const reading = entry.readings.find((r) => r.id === selectedId || r.canonical === selectedId || r.canonical === selectedCanonical);
-        if (reading) {
+      const selectedId = decision.selectedAlternativeId;
+      const selectedCanonical = decision.manualCanonicalTransliteration;
+
+      // Alternative membership check: must be in issue.alternatives
+      const matchingAlt = issue.alternatives.find((alt) =>
+        alt.id === selectedId || alt.canonical === selectedId || alt.canonical === selectedCanonical
+      );
+
+      if (tokenIndex !== undefined && updatedTokens[tokenIndex] && matchingAlt) {
+        const analysis = analysisByToken.get(tokenIndex);
+        const lookupForm = analysis?.lookupForm ?? tokens[tokenIndex]?.normalizedSurface;
+        const entry = lexicon.findByNormalized(lookupForm) ?? entries[tokenIndex];
+        const reading = entry?.readings.find((r) =>
+          r.id === matchingAlt.id || r.canonical === matchingAlt.canonical
+        );
+        const canonicalValue = reading?.canonical ?? matchingAlt.canonical;
+
+        if (canonicalValue) {
           const current = updatedTokens[tokenIndex];
           const appliedRules: RuleDefinition[] = [RULES.lexicalResolution, RULES.userLexicalReadingSelection];
-          const canonical = applyCanonicalIjmes(reading.canonical, appliedRules);
+          const canonical = applyCanonicalIjmes(canonicalValue, appliedRules);
 
-          current.automaticStatus = current.automaticStatus ?? current.status;
-          current.automaticCanonical = current.automaticCanonical ?? current.canonicalTransliteration;
           current.status = 'USER_OVERRIDE';
           current.canonicalTransliteration = canonical;
           current.rendered = canonical;
           current.appliedRules = appliedRules;
-          current.lexicalSources = reading.sources?.map((s) => s.citation) ?? [reading.source];
-          current.warnings = reading.notes ? [reading.notes] : [];
+          current.lexicalSources = reading?.sources?.map((s) => s.citation) ?? (reading ? [reading.source] : [matchingAlt.source ?? 'Reviewed alternative reading']);
+          current.warnings = reading?.notes ? [reading.notes] : [];
           current.alternatives = [];
           current.userDecision = decision;
+          current.automaticStatus = current.automatic.status;
+          current.automaticCanonical = current.automatic.canonicalTransliteration;
           appliedSuccessfully = true;
         }
       }
     }
 
-    // 3. Accept izafat
+    // 4. Action: Accept izāfat
     else if (decision.action === 'ACCEPT_IZAFAT') {
       const sourceIndex = issue.tokenIndexes[0];
       const targetIndex = issue.tokenIndexes[1];
@@ -110,6 +159,7 @@ export function applyReviewDecisions(
       if (relation) {
         relation.status = 'CONFIRMED';
         relation.rendering = 'STANDARD_I';
+        relation.disposition = 'ACCEPTED';
         relation.evidence.push({
           kind: 'USER_DECISION',
           rule: RULES.userIzafatAccept,
@@ -121,13 +171,14 @@ export function applyReviewDecisions(
       }
     }
 
-    // 4. Reject izafat
+    // 5. Action: Reject izāfat
     else if (decision.action === 'REJECT_IZAFAT') {
       const sourceIndex = issue.tokenIndexes[0];
       const targetIndex = issue.tokenIndexes[1];
-      const relationIndex = updatedRelations.findIndex((r) => r.sourceTokenIndex === sourceIndex && r.targetTokenIndex === targetIndex);
-      if (relationIndex !== -1) {
-        const relation = updatedRelations[relationIndex];
+      const relation = updatedRelations.find((r) => r.sourceTokenIndex === sourceIndex && r.targetTokenIndex === targetIndex);
+      if (relation) {
+        relation.status = 'CONFIRMED';
+        relation.disposition = 'REJECTED';
         relation.evidence.push({
           kind: 'USER_DECISION',
           rule: RULES.userIzafatReject,
@@ -135,60 +186,88 @@ export function applyReviewDecisions(
         });
         relation.warnings = [];
         relation.userDecision = decision;
-        // Mark as rejected so it won't be rendered as -i
-        (relation as unknown as { rejected: boolean }).rejected = true;
         appliedSuccessfully = true;
       }
     }
 
-    // 5. Select morphology
+    // 6. Action: Select morphology (WHOLE_WORD vs PRODUCTIVE_SEGMENTATION)
     else if (decision.action === 'SELECT_MORPHOLOGY') {
       const tokenIndex = issue.tokenIndexes[0];
       const morph = updatedMorphology.find((m) => m.tokenIndex === tokenIndex);
       const current = updatedTokens[tokenIndex];
-      const lookupForm = analyses[tokenIndex]?.lookupForm ?? tokens[tokenIndex]?.normalizedSurface;
+      const analysis = analysisByToken.get(tokenIndex);
+      const lookupForm = analysis?.lookupForm ?? tokens[tokenIndex]?.normalizedSurface;
       const wholeEntry = lexicon.findByNormalized(lookupForm);
 
-      if (tokenIndex !== undefined && current && morph) {
+      const matchingAlt = issue.alternatives.find((alt) => alt.id === decision.selectedAlternativeId);
+
+      if (tokenIndex !== undefined && current && morph && matchingAlt) {
         if (decision.selectedAlternativeId === 'WHOLE_WORD' && wholeEntry && wholeEntry.readings.length > 0) {
-          const appliedRules: RuleDefinition[] = [RULES.lexicalResolution, RULES.userMorphologySelection];
-          const canonical = applyCanonicalIjmes(wholeEntry.readings[0].canonical, appliedRules);
-
-          current.automaticStatus = current.automaticStatus ?? current.status;
-          current.automaticCanonical = current.automaticCanonical ?? current.canonicalTransliteration;
-          current.status = 'USER_OVERRIDE';
-          current.canonicalTransliteration = canonical;
-          current.rendered = canonical;
-          current.appliedRules = appliedRules;
-          current.lexicalSources = wholeEntry.readings[0].sources?.map((s) => s.citation) ?? [wholeEntry.readings[0].source];
-          current.warnings = [];
-          current.alternatives = [];
-          current.userDecision = decision;
-
           morph.status = 'CONFIRMED';
           morph.warnings = [];
-          appliedSuccessfully = true;
-        } else if (decision.selectedAlternativeId === 'PRODUCTIVE_SEGMENTATION' && morph.stemEntry) {
-          const suffix = morph.morphemes.find((item) => item.type !== 'STEM');
-          const stemReading = morph.stemEntry.readings[0];
-          if (stemReading && suffix && suffix.canonicalRendering) {
-            const appliedRules: RuleDefinition[] = [RULES.lexicalResolution, RULES.userMorphologySelection, ...new Map(morph.evidence.map((item) => [item.rule.id, item.rule])).values()];
-            const stemCanonical = applyCanonicalIjmes(stemReading.canonical, appliedRules);
-            const canonical = `${stemCanonical}-${suffix.canonicalRendering}`;
 
-            current.automaticStatus = current.automaticStatus ?? current.status;
-            current.automaticCanonical = current.automaticCanonical ?? current.canonicalTransliteration;
+          if (wholeEntry.readings.length === 1) {
+            const reading = wholeEntry.readings[0];
+            const appliedRules: RuleDefinition[] = [RULES.lexicalResolution, RULES.userMorphologySelection];
+            const canonical = applyCanonicalIjmes(reading.canonical, appliedRules);
+
             current.status = 'USER_OVERRIDE';
             current.canonicalTransliteration = canonical;
             current.rendered = canonical;
             current.appliedRules = appliedRules;
-            current.lexicalSources = stemReading.sources?.map((s) => s.citation) ?? [stemReading.source];
+            current.lexicalSources = reading.sources?.map((s) => s.citation) ?? [reading.source];
             current.warnings = [];
             current.alternatives = [];
             current.userDecision = decision;
-
+            current.automaticStatus = current.automatic.status;
+            current.automaticCanonical = current.automatic.canonicalTransliteration;
+          } else {
+            // Whole word branch has lexical ambiguity; resolve morphology competition but keep lexical ambiguity
+            current.status = 'AMBIGUOUS';
+            current.canonicalTransliteration = null;
+            current.alternatives = wholeEntry.readings.map((r) => r.canonical);
+            current.appliedRules = [RULES.lexicalResolution, RULES.userMorphologySelection];
+            current.lexicalSources = wholeEntry.readings.flatMap((r) => r.sources?.map((s) => s.citation) ?? [r.source]);
+            current.warnings = ['Morphology competition resolved to whole-word reading; select lexical reading to proceed.'];
+            current.userDecision = decision;
+          }
+          appliedSuccessfully = true;
+        } else if (decision.selectedAlternativeId === 'PRODUCTIVE_SEGMENTATION' && morph.stemEntry) {
+          const suffix = morph.morphemes.find((item) => item.type !== 'STEM');
+          if (suffix && suffix.canonicalRendering) {
             morph.status = 'CONFIRMED';
             morph.warnings = [];
+
+            if (morph.stemEntry.readings.length === 1) {
+              const stemReading = morph.stemEntry.readings[0];
+              const appliedRules: RuleDefinition[] = [
+                RULES.lexicalResolution,
+                RULES.userMorphologySelection,
+                ...new Map(morph.evidence.map((item) => [item.rule.id, item.rule])).values()
+              ];
+              const stemCanonical = applyCanonicalIjmes(stemReading.canonical, appliedRules);
+              const canonical = `${stemCanonical}-${suffix.canonicalRendering}`;
+
+              current.status = 'USER_OVERRIDE';
+              current.canonicalTransliteration = canonical;
+              current.rendered = canonical;
+              current.appliedRules = appliedRules;
+              current.lexicalSources = stemReading.sources?.map((s) => s.citation) ?? [stemReading.source];
+              current.warnings = [];
+              current.alternatives = [];
+              current.userDecision = decision;
+              current.automaticStatus = current.automatic.status;
+              current.automaticCanonical = current.automatic.canonicalTransliteration;
+            } else {
+              // Productive stem has lexical ambiguity
+              current.status = 'AMBIGUOUS';
+              current.canonicalTransliteration = null;
+              current.alternatives = morph.stemEntry.readings.map((r) => r.canonical);
+              current.appliedRules = [RULES.lexicalResolution, RULES.userMorphologySelection];
+              current.lexicalSources = morph.stemEntry.readings.flatMap((r) => r.sources?.map((s) => s.citation) ?? [r.source]);
+              current.warnings = ['Morphology competition resolved to productive segmentation; select stem reading to proceed.'];
+              current.userDecision = decision;
+            }
             appliedSuccessfully = true;
           }
         }
@@ -203,14 +282,12 @@ export function applyReviewDecisions(
     }
   }
 
-  const remainingIssues = issues.filter((i) => !resolvedIssueIds.has(i.id));
-
   return {
     tokens: updatedTokens,
     relations: updatedRelations,
     morphology: updatedMorphology,
     appliedDecisions,
     staleDecisions,
-    remainingIssues
+    resolvedIssueIds
   };
 }

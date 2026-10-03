@@ -7,7 +7,7 @@ export interface LexiconIntegrityReport {
 
 export class LexiconRepository {
   private readonly entriesById: Map<string, LexicalEntry> = new Map();
-  private readonly entriesByNormalized: Map<string, LexicalEntry[]> = new Map();
+  private readonly entriesByNormalized: Map<string, LexicalEntry> = new Map();
   private readonly allEntries: LexicalEntry[];
 
   constructor(entries: LexicalEntry[]) {
@@ -18,9 +18,10 @@ export class LexiconRepository {
       }
       this.entriesById.set(entry.id, entry);
 
-      const existingList = this.entriesByNormalized.get(entry.normalized) ?? [];
-      existingList.push(entry);
-      this.entriesByNormalized.set(entry.normalized, existingList);
+      if (this.entriesByNormalized.has(entry.normalized)) {
+        console.warn(`Duplicate lexical entry normalized form detected during index construction: ${entry.normalized}`);
+      }
+      this.entriesByNormalized.set(entry.normalized, entry);
     }
   }
 
@@ -29,12 +30,7 @@ export class LexiconRepository {
   }
 
   public findByNormalized(normalized: string): LexicalEntry | undefined {
-    const list = this.entriesByNormalized.get(normalized);
-    return list && list.length > 0 ? list[0] : undefined;
-  }
-
-  public findAllByNormalized(normalized: string): LexicalEntry[] {
-    return this.entriesByNormalized.get(normalized) ?? [];
+    return this.entriesByNormalized.get(normalized);
   }
 
   public getAllEntries(): LexicalEntry[] {
@@ -44,6 +40,7 @@ export class LexiconRepository {
   public validateIntegrity(): LexiconIntegrityReport {
     const errors: string[] = [];
     const seenIds = new Set<string>();
+    const seenNormalized = new Set<string>();
 
     for (const entry of this.allEntries) {
       if (!entry.id || entry.id.trim() === '') {
@@ -60,6 +57,10 @@ export class LexiconRepository {
 
       if (!entry.normalized || entry.normalized.trim() === '') {
         errors.push(`Entry "${entry.id}" has empty normalized form.`);
+      } else if (seenNormalized.has(entry.normalized)) {
+        errors.push(`Duplicate lexical entry normalized form "${entry.normalized}" detected; all readings for the same normalized form must reside inside a single LexicalEntry.`);
+      } else {
+        seenNormalized.add(entry.normalized);
       }
 
       if (!entry.readings || entry.readings.length === 0) {
