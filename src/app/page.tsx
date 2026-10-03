@@ -5,7 +5,9 @@ import { ProfileId, ReviewDecision, ReviewIssue } from '../domain/types';
 import {
   AssistedCandidate,
   AssistedResolution,
-  candidateToReviewDecision
+  buildResolverRequest,
+  candidateToReviewDecision,
+  computeRequestFingerprint
 } from '../domain/assistance';
 
 const fixture = 'تأملی درباره ایران: مکتب تبریز و مبانی تجددخواهی';
@@ -80,7 +82,8 @@ export default function Home() {
 
   function applyAssistedCandidate(issue: ReviewIssue, candidate: AssistedCandidate, resolution: AssistedResolution) {
     try {
-      const decision = candidateToReviewDecision(candidate, resolution, issue);
+      const currentRequest = buildResolverRequest(result, issue.id);
+      const decision = candidateToReviewDecision(candidate, resolution, issue, currentRequest);
       applyDecision(decision);
     } catch (err) {
       setAssistErrors((prev) => ({
@@ -140,33 +143,14 @@ export default function Home() {
             id="source"
             dir="rtl"
             value={input}
-            onChange={(event) => {
-              setInput(event.target.value);
-              // Mark any existing resolutions as stale when input text changes
-              setAssistStatus((prev) => {
-                const next = { ...prev };
-                for (const k of Object.keys(next)) {
-                  if (next[k] === 'available') next[k] = 'stale';
-                }
-                return next;
-              });
-            }}
+            onChange={(event) => setInput(event.target.value)}
           />
           <div className="controls">
             <label>
               Context
               <select
                 value={profile}
-                onChange={(event) => {
-                  setProfile(event.target.value as ProfileId);
-                  setAssistStatus((prev) => {
-                    const next = { ...prev };
-                    for (const k of Object.keys(next)) {
-                      if (next[k] === 'available') next[k] = 'stale';
-                    }
-                    return next;
-                  });
-                }}
+                onChange={(event) => setProfile(event.target.value as ProfileId)}
               >
                 <option value="ijmes_title">Book / article title</option>
                 <option value="ijmes_full">Full scholarly / technical term</option>
@@ -217,8 +201,23 @@ export default function Home() {
           {/* Review Issues List */}
           {result.reviewIssues.map((issue) => {
             const currentResolution = assistResolutions[issue.id];
-            const currentStatus = assistStatus[issue.id] || 'idle';
-            const isStale = currentStatus === 'stale';
+            const currentRequest = buildResolverRequest(result, issue.id);
+            const currentFp = currentRequest && currentResolution
+              ? computeRequestFingerprint(currentRequest, currentResolution.provider, currentResolution.model)
+              : null;
+            const isStale = Boolean(currentResolution && (!currentRequest || currentFp !== currentResolution.requestFingerprint));
+
+            const currentStatus = assistStatus[issue.id] === 'loading'
+              ? 'loading'
+              : assistStatus[issue.id] === 'error'
+                ? 'error'
+                : assistStatus[issue.id] === 'unavailable'
+                  ? 'unavailable'
+                  : isStale
+                    ? 'stale'
+                    : currentResolution
+                      ? 'available'
+                      : 'idle';
 
             return (
               <div className="review-card" key={issue.id}>
@@ -352,7 +351,7 @@ export default function Home() {
                             disabled={isStale}
                             onClick={() => applyAssistedCandidate(issue, c, currentResolution)}
                           >
-                            {isStale ? 'Stale' : 'Use this suggestion'}
+                            {isStale ? 'Stale (re-request)' : 'Use this suggestion'}
                           </button>
                         </div>
                       ))}

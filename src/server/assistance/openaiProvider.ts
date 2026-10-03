@@ -42,10 +42,11 @@ CRITICAL SAFETY & AUTHORITY RULES:
 2. You have NO external tools, NO web search, and NO code execution authority.
 3. For LEXICAL_AMBIGUITY: Rank only existing available alternatives using kind="EXISTING_LEXICAL_READING" with exact alternativeId.
 4. For UNKNOWN_TOKEN, UNSUPPORTED_ORTHOGRAPHIC_EVIDENCE, UNSUPPORTED_ALLOMORPH: Propose manual transliterations using kind="MANUAL_CANONICAL" with valid Latin canonical string.
-5. For IZAFAT_CANDIDATE: Propose kind="IZAFAT_DECISION" with relationDecision="ACCEPT_IZAFAT" or "REJECT_IZAFAT".
-6. For MORPHOLOGY_AMBIGUITY: Rank branches using kind="MORPHOLOGY_BRANCH" with morphologyBranch="WHOLE_WORD" or "PRODUCTIVE_SEGMENTATION".
-7. DO NOT invent citations. Use evidenceRefs only from allowedEvidenceRefs. If relying on general model knowledge, use basis="MODEL_INFERENCE" and empty evidenceRefs.
-8. Do not include chain-of-thought.`;
+5. For INSUFFICIENT_VOCALIZATION: Rank only the still-viable available lexical alternatives (or propose MANUAL_CANONICAL if allowed); never select a reading excluded by deterministic vowel evidence.
+6. For IZAFAT_CANDIDATE: Propose kind="IZAFAT_DECISION" with relationDecision="ACCEPT_IZAFAT" or "REJECT_IZAFAT".
+7. For MORPHOLOGY_AMBIGUITY: Rank branches using kind="MORPHOLOGY_BRANCH" with morphologyBranch="WHOLE_WORD" or "PRODUCTIVE_SEGMENTATION".
+8. DO NOT invent citations. Use evidenceRefs only from allowedEvidenceRefs. If relying on general model knowledge, use basis="MODEL_INFERENCE" and empty evidenceRefs. If using contextual reasoning, use basis="CONTEXTUAL_INFERENCE" and include "context:local-window".
+9. Do not include chain-of-thought.`;
 
     const userPayload = {
       issueId: request.issueId,

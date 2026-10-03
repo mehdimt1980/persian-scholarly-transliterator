@@ -87,7 +87,7 @@ export function buildResolverRequest(
 
   // Register alternatives and lexical sources
   issue.alternatives.forEach((alt) => {
-    registerEvidence(alt.id, 'LEXICAL_SOURCE', `Alternative reading: ${alt.label} (${alt.canonical ?? ''})`);
+    registerEvidence(alt.id, 'REVIEW_ALTERNATIVE', `Alternative reading: ${alt.label} (${alt.canonical ?? ''})`);
     if (alt.source) {
       const srcId = `source:${alt.source}`;
       registerEvidence(srcId, 'LEXICAL_SOURCE', `Lexical source citation: ${alt.source}`);

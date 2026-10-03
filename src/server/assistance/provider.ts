@@ -71,7 +71,7 @@ export class FakeAssistedResolverProvider implements AssistedResolverProvider {
           modelConfidence: 0.9 - idx * 0.1,
           rationale: `Context favors ${alt.canonical ?? alt.label}.`,
           basis: 'CONTEXTUAL_INFERENCE',
-          evidenceRefs: request.allowedEvidenceRefs.includes(alt.id) ? [alt.id] : []
+          evidenceRefs: ['context:local-window']
         });
       });
     } else if (request.issueType === 'IZAFAT_CANDIDATE' && request.allowedActions.includes('ACCEPT_IZAFAT')) {

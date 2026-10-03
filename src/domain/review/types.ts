@@ -43,6 +43,7 @@ export interface AssistanceDecisionMetadata {
   provider: string;
   model: string;
   promptVersion: string;
+  requestFingerprint: string;
 }
 
 export interface ReviewDecision {

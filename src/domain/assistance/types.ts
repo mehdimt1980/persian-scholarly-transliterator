@@ -18,12 +18,20 @@ export type EvidenceRefKind =
   | 'LEXICAL_SOURCE'
   | 'ORTHOGRAPHIC_EVIDENCE'
   | 'MORPHOLOGY_EVIDENCE'
-  | 'RELATION_EVIDENCE';
+  | 'RELATION_EVIDENCE'
+  | 'REVIEW_ALTERNATIVE';
 
 export interface AssistanceEvidenceRef {
   id: string;
   kind: EvidenceRefKind;
   label: string;
+}
+
+export interface AssistedApplicabilityResult {
+  applicable: boolean;
+  reason?: 'STALE_ISSUE' | 'REQUEST_CHANGED' | 'CANDIDATE_NOT_IN_RESOLUTION' | 'ACTION_NOT_ALLOWED' | 'ISSUE_MISMATCH';
+  fingerprint?: string;
+  expectedFingerprint?: string;
 }
 
 export interface ExistingLexicalReadingProposal {

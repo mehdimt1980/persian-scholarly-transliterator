@@ -114,7 +114,22 @@ export function validateProviderResolution(
   const seenSuggestionIds = new Set<string>();
 
   for (const c of payload.candidates) {
-    // A. Evidence refs authorization check
+    // A. Basis and evidenceRefs consistency check
+    if (c.basis === 'MODEL_INFERENCE' && c.evidenceRefs.length > 0) {
+      errors.push(
+        `Candidate with rank ${c.rank} has basis "MODEL_INFERENCE" but specified evidenceRefs [${c.evidenceRefs.join(', ')}]. MODEL_INFERENCE must have empty evidenceRefs.`
+      );
+    } else if (c.basis === 'EXISTING_EVIDENCE' && c.evidenceRefs.length === 0) {
+      errors.push(
+        `Candidate with rank ${c.rank} has basis "EXISTING_EVIDENCE" but specified no evidenceRefs.`
+      );
+    } else if (c.basis === 'CONTEXTUAL_INFERENCE' && !c.evidenceRefs.includes('context:local-window')) {
+      errors.push(
+        `Candidate with rank ${c.rank} has basis "CONTEXTUAL_INFERENCE" but does not reference "context:local-window".`
+      );
+    }
+
+    // B. Evidence refs authorization check
     for (const ref of c.evidenceRefs) {
       if (!allowedEvidenceSet.has(ref)) {
         errors.push(`Candidate with rank ${c.rank} references unauthorized evidenceRef "${ref}".`);

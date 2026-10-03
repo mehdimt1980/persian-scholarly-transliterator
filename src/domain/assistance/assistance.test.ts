@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { NextRequest } from 'next/server';
 import { transliterate } from '../engine';
 import { LexicalEntry } from '../lexicon/types';
 import { LexiconRepository } from '../lexicon/repository';
@@ -11,11 +12,13 @@ import {
   candidateToReviewDecision,
   computeRequestFingerprint,
   generateSuggestionId,
+  validateAssistedApplicability,
   validateProviderResolution
 } from './index';
 import { FakeAssistedResolverProvider } from '../../server/assistance/provider';
 import { getAssistedResolverConfig, isOpenAiConfigured } from '../../server/assistance/configuration';
 import { OpenAiAssistedResolverProvider } from '../../server/assistance/openaiProvider';
+import { handleAssistRequest } from '../../server/assistance/handleAssistRequest';
 
 describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
   describe('Zero-Authority Invariant', () => {
@@ -61,10 +64,11 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
       )!;
       expect(kirmCandidate).toBeDefined();
 
-      // Pure typed conversion
-      const humanDecision = candidateToReviewDecision(kirmCandidate, resolution, issue);
+      // Pure typed conversion with request fingerprint verification
+      const humanDecision = candidateToReviewDecision(kirmCandidate, resolution, issue, request);
       expect(humanDecision.action).toBe('SELECT_LEXICAL_READING');
       expect(humanDecision.assistance?.suggestionId).toBe(kirmCandidate.id);
+      expect(humanDecision.assistance?.requestFingerprint).toBe(resolution.requestFingerprint);
 
       const resolved = transliterate(input, 'ijmes_full', [humanDecision]);
       expect(resolved.copyable).toBe(true);
@@ -74,6 +78,7 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
       expect(resolved.tokens[0].canonicalTransliteration).toBe('kirm');
       expect(resolved.tokens[0].userDecision?.assistance?.suggestionId).toBe(kirmCandidate.id);
       expect(resolved.tokens[0].userDecision?.assistance?.provider).toBe('fake-provider');
+      expect(resolved.tokens[0].userDecision?.assistance?.requestFingerprint).toBe(resolution.requestFingerprint);
 
       // Automatic evidence remains preserved
       expect(resolved.tokens[0].automatic.status).toBe('AMBIGUOUS');
@@ -113,8 +118,9 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
         expect(manualCandidate.canonical).toBe('mashrūṭa-khvāhī');
       }
 
-      const decision = candidateToReviewDecision(manualCandidate, resolution, issue);
+      const decision = candidateToReviewDecision(manualCandidate, resolution, issue, request);
       expect(decision.action).toBe('MANUAL_CANONICAL_OVERRIDE');
+      expect(decision.assistance?.requestFingerprint).toBe(resolution.requestFingerprint);
 
       const resolved = transliterate(input, 'ijmes_full', [decision]);
       expect(resolved.copyable).toBe(true);
@@ -140,7 +146,7 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
       );
       expect(izafatCandidate).toBeDefined();
 
-      const decision = candidateToReviewDecision(izafatCandidate!, resolution, issue);
+      const decision = candidateToReviewDecision(izafatCandidate!, resolution, issue, request);
       expect(decision.action).toBe('ACCEPT_IZAFAT');
 
       const resolved = transliterate(input, 'ijmes_full', [decision]);
@@ -189,7 +195,7 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
             rank: 1,
             modelConfidence: 0.88,
             rationale: 'Context strongly favors productive plural suffix -hā.',
-            basis: 'CONTEXTUAL_INFERENCE',
+            basis: 'MODEL_INFERENCE',
             evidenceRefs: []
           }
         ]
@@ -202,7 +208,7 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
         expect(morphCandidate.morphologyBranch).toBe('PRODUCTIVE_SEGMENTATION');
       }
 
-      const morphDecision = candidateToReviewDecision(morphCandidate, resolution, morphIssue);
+      const morphDecision = candidateToReviewDecision(morphCandidate, resolution, morphIssue, request);
       expect(morphDecision.action).toBe('SELECT_MORPHOLOGY');
 
       // Applying morphology decision resolves branch competition, but stem lexical ambiguity is recomputed!
@@ -214,8 +220,427 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
     });
   });
 
+  describe('Strict Authority Boundary & Request Fingerprint Verification (Sections 1, 2, 3, 11)', () => {
+    it('11A. invalidates resolution when profile changes (ijmes_full to ijmes_title)', () => {
+      const input = 'کرم';
+      const initialFull = transliterate(input, 'ijmes_full');
+      const issue = initialFull.reviewIssues[0];
+      const requestFull = buildResolverRequest(initialFull, issue.id)!;
+
+      const provider = new FakeAssistedResolverProvider();
+      const resolution = {
+        issueId: issue.id,
+        candidates: [
+          {
+            id: 'sugg:1',
+            kind: 'EXISTING_LEXICAL_READING' as const,
+            alternativeId: requestFull.availableAlternatives[0].id,
+            canonical: requestFull.availableAlternatives[0].canonical!,
+            rank: 1,
+            rationale: 'Good reading',
+            basis: 'CONTEXTUAL_INFERENCE' as const,
+            evidenceRefs: ['context:local-window']
+          }
+        ],
+        provider: 'fake-provider',
+        model: 'fake-model',
+        promptVersion: requestFull.promptVersion,
+        requestFingerprint: computeRequestFingerprint(requestFull, 'fake-provider', 'fake-model'),
+        warnings: []
+      };
+
+      // Switch to ijmes_title -> produces different request fingerprint
+      const initialTitle = transliterate(input, 'ijmes_title');
+      const requestTitle = buildResolverRequest(initialTitle, issue.id)!;
+
+      const applicability = validateAssistedApplicability(
+        resolution.candidates[0],
+        resolution,
+        issue,
+        requestTitle
+      );
+      expect(applicability.applicable).toBe(false);
+      expect(applicability.reason).toBe('REQUEST_CHANGED');
+
+      expect(() =>
+        candidateToReviewDecision(resolution.candidates[0], resolution, issue, requestTitle)
+      ).toThrow(/REQUEST_CHANGED/);
+    });
+
+    it('11B. invalidates resolution when review context changes on adjacent token', () => {
+      const input = 'کرم کتاب';
+      const initialA = transliterate(input, 'ijmes_full');
+      const issueA = initialA.reviewIssues[0];
+      const requestA = buildResolverRequest(initialA, issueA.id)!;
+
+      const resolutionA: AssistedResolution = {
+        issueId: issueA.id,
+        candidates: [
+          {
+            id: 'sugg:kirm',
+            kind: 'EXISTING_LEXICAL_READING',
+            alternativeId: requestA.availableAlternatives[0].id,
+            canonical: requestA.availableAlternatives[0].canonical!,
+            rank: 1,
+            rationale: 'Contextual reading',
+            basis: 'CONTEXTUAL_INFERENCE',
+            evidenceRefs: ['context:local-window']
+          }
+        ],
+        provider: 'fake-provider',
+        model: 'fake-model',
+        promptVersion: requestA.promptVersion,
+        requestFingerprint: computeRequestFingerprint(requestA, 'fake-provider', 'fake-model'),
+        warnings: []
+      };
+
+      // State changes on input: "کرم دولت"
+      const initialB = transliterate('کرم دولت', 'ijmes_full');
+      const issueB = initialB.reviewIssues[0];
+      const requestB = buildResolverRequest(initialB, issueB.id)!;
+
+      const applicability = validateAssistedApplicability(
+        resolutionA.candidates[0],
+        resolutionA,
+        issueB,
+        requestB
+      );
+      expect(applicability.applicable).toBe(false);
+    });
+
+    it('11C. accepts suggestion when deterministic request fingerprint matches exactly', () => {
+      const input = 'کرم';
+      const initial = transliterate(input, 'ijmes_full');
+      const issue = initial.reviewIssues[0];
+      const request = buildResolverRequest(initial, issue.id)!;
+
+      const resolution: AssistedResolution = {
+        issueId: issue.id,
+        candidates: [
+          {
+            id: 'sugg:match',
+            kind: 'EXISTING_LEXICAL_READING',
+            alternativeId: request.availableAlternatives[0].id,
+            canonical: request.availableAlternatives[0].canonical!,
+            rank: 1,
+            rationale: 'Matching suggestion',
+            basis: 'CONTEXTUAL_INFERENCE',
+            evidenceRefs: ['context:local-window']
+          }
+        ],
+        provider: 'fake-p',
+        model: 'fake-m',
+        promptVersion: request.promptVersion,
+        requestFingerprint: computeRequestFingerprint(request, 'fake-p', 'fake-m'),
+        warnings: []
+      };
+
+      const applicability = validateAssistedApplicability(
+        resolution.candidates[0],
+        resolution,
+        issue,
+        request
+      );
+      expect(applicability.applicable).toBe(true);
+
+      const decision = candidateToReviewDecision(resolution.candidates[0], resolution, issue, request);
+      expect(decision.action).toBe('SELECT_LEXICAL_READING');
+      expect(decision.assistance?.requestFingerprint).toBe(resolution.requestFingerprint);
+    });
+
+    it('11D. rejects candidate not in resolution payload', () => {
+      const input = 'کرم';
+      const initial = transliterate(input, 'ijmes_full');
+      const issue = initial.reviewIssues[0];
+      const request = buildResolverRequest(initial, issue.id)!;
+
+      const resolution: AssistedResolution = {
+        issueId: issue.id,
+        candidates: [
+          {
+            id: 'sugg:real',
+            kind: 'EXISTING_LEXICAL_READING',
+            alternativeId: request.availableAlternatives[0].id,
+            canonical: request.availableAlternatives[0].canonical!,
+            rank: 1,
+            rationale: 'Real candidate',
+            basis: 'CONTEXTUAL_INFERENCE',
+            evidenceRefs: ['context:local-window']
+          }
+        ],
+        provider: 'fake-p',
+        model: 'fake-m',
+        promptVersion: request.promptVersion,
+        requestFingerprint: computeRequestFingerprint(request, 'fake-p', 'fake-m'),
+        warnings: []
+      };
+
+      const fabricatedCandidate = {
+        id: 'sugg:fake',
+        kind: 'EXISTING_LEXICAL_READING' as const,
+        alternativeId: 'other-id',
+        canonical: 'other-canonical',
+        rank: 2,
+        rationale: 'Fabricated',
+        basis: 'MODEL_INFERENCE' as const,
+        evidenceRefs: []
+      };
+
+      const applicability = validateAssistedApplicability(
+        fabricatedCandidate,
+        resolution,
+        issue,
+        request
+      );
+      expect(applicability.applicable).toBe(false);
+      expect(applicability.reason).toBe('CANDIDATE_NOT_IN_RESOLUTION');
+
+      expect(() =>
+        candidateToReviewDecision(fabricatedCandidate, resolution, issue, request)
+      ).toThrow(/CANDIDATE_NOT_IN_RESOLUTION/);
+    });
+  });
+
+  describe('Evidence Taxonomy & Semantic IDs (Sections 5, 6, 12)', () => {
+    it('12A. ensures relation choices (ACCEPT_IZAFAT / REJECT_IZAFAT) are not classified as LEXICAL_SOURCE', () => {
+      const input = 'تاریخ ایران';
+      const result = transliterate(input);
+      const issue = result.reviewIssues.find((i) => i.type === 'IZAFAT_CANDIDATE')!;
+      expect(issue).toBeDefined();
+
+      const request = buildResolverRequest(result, issue.id)!;
+      expect(request).toBeDefined();
+
+      // Check evidence catalog does not contain ACCEPT_IZAFAT or REJECT_IZAFAT as LEXICAL_SOURCE
+      const lexicalSourceRefs = request.evidenceCatalog.filter((e) => e.kind === 'LEXICAL_SOURCE');
+      expect(lexicalSourceRefs.some((e) => e.id === 'ACCEPT_IZAFAT')).toBe(false);
+      expect(lexicalSourceRefs.some((e) => e.id === 'REJECT_IZAFAT')).toBe(false);
+    });
+
+    it('12B. ensures morphology branches (WHOLE_WORD / PRODUCTIVE_SEGMENTATION) are not classified as LEXICAL_SOURCE', () => {
+      const customLexicon: LexicalEntry[] = [
+        {
+          id: 'lex:stem',
+          surface: 'کتاب',
+          normalized: 'کتاب',
+          category: 'noun',
+          readings: [{ canonical: 'kitāb', confidence: 0.9, source: 'Source' }]
+        },
+        {
+          id: 'lex:whole',
+          surface: 'کتابها',
+          normalized: 'کتابها',
+          category: 'noun',
+          readings: [{ canonical: 'kitābhā', confidence: 0.8, source: 'Whole' }]
+        }
+      ];
+      const repo = new LexiconRepository(customLexicon);
+      const result = transliterate('کتابها', 'ijmes_full', [], repo);
+      const issue = result.reviewIssues[0];
+
+      const request = buildResolverRequest(result, issue.id)!;
+      const lexicalSourceRefs = request.evidenceCatalog.filter((e) => e.kind === 'LEXICAL_SOURCE');
+      expect(lexicalSourceRefs.some((e) => e.id === 'WHOLE_WORD')).toBe(false);
+      expect(lexicalSourceRefs.some((e) => e.id === 'PRODUCTIVE_SEGMENTATION')).toBe(false);
+    });
+  });
+
+  describe('Basis & EvidenceRefs Consistency (Sections 7, 13)', () => {
+    it('13A. rejects MODEL_INFERENCE candidate carrying evidence references', () => {
+      const initial = transliterate('کرم');
+      const issue = initial.reviewIssues[0];
+      const request = buildResolverRequest(initial, issue.id)!;
+
+      const invalid = {
+        issueId: request.issueId,
+        candidates: [
+          {
+            kind: 'MANUAL_CANONICAL',
+            canonical: 'kirm',
+            rank: 1,
+            rationale: 'General knowledge',
+            basis: 'MODEL_INFERENCE',
+            evidenceRefs: ['context:local-window'] // Invalid with MODEL_INFERENCE
+          }
+        ]
+      };
+
+      const val = validateProviderResolution(invalid, request, 'p', 'm');
+      expect(val.valid).toBe(false);
+      expect(val.errors.some((e) => e.includes('MODEL_INFERENCE must have empty evidenceRefs'))).toBe(true);
+    });
+
+    it('13B. rejects EXISTING_EVIDENCE candidate with empty evidence references', () => {
+      const initial = transliterate('کرم');
+      const issue = initial.reviewIssues[0];
+      const request = buildResolverRequest(initial, issue.id)!;
+
+      const invalid = {
+        issueId: request.issueId,
+        candidates: [
+          {
+            kind: 'EXISTING_LEXICAL_READING',
+            alternativeId: request.availableAlternatives[0].id,
+            canonical: request.availableAlternatives[0].canonical,
+            rank: 1,
+            rationale: 'Claiming evidence with none',
+            basis: 'EXISTING_EVIDENCE',
+            evidenceRefs: [] // Invalid with EXISTING_EVIDENCE
+          }
+        ]
+      };
+
+      const val = validateProviderResolution(invalid, request, 'p', 'm');
+      expect(val.valid).toBe(false);
+      expect(val.errors.some((e) => e.includes('EXISTING_EVIDENCE" but specified no evidenceRefs'))).toBe(true);
+    });
+
+    it('13C. rejects CONTEXTUAL_INFERENCE candidate missing context:local-window', () => {
+      const initial = transliterate('کرم');
+      const issue = initial.reviewIssues[0];
+      const request = buildResolverRequest(initial, issue.id)!;
+
+      const invalid = {
+        issueId: request.issueId,
+        candidates: [
+          {
+            kind: 'EXISTING_LEXICAL_READING',
+            alternativeId: request.availableAlternatives[0].id,
+            canonical: request.availableAlternatives[0].canonical,
+            rank: 1,
+            rationale: 'Contextual reasoning without window ref',
+            basis: 'CONTEXTUAL_INFERENCE',
+            evidenceRefs: [] // Missing context:local-window
+          }
+        ]
+      };
+
+      const val = validateProviderResolution(invalid, request, 'p', 'm');
+      expect(val.valid).toBe(false);
+      expect(val.errors.some((e) => e.includes('does not reference "context:local-window"'))).toBe(true);
+    });
+  });
+
+  describe('Route-Level Sanitization Tests (Sections 9, 10)', () => {
+    it('10A. returns 400 INVALID_REQUEST on malformed JSON body', async () => {
+      const req = new NextRequest('http://localhost:3000/api/assist', {
+        method: 'POST',
+        body: 'invalid-json-{'
+      });
+
+      const res = await handleAssistRequest(req);
+      expect(res.status).toBe(400);
+      const json = await res.json();
+      expect(json.error).toBe('INVALID_REQUEST');
+      expect(json.message).toContain('not valid JSON');
+    });
+
+    it('10B. returns 400 STALE_ISSUE when requested issueId is not in transliteration state', async () => {
+      const req = new NextRequest('http://localhost:3000/api/assist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          input: 'کرم',
+          profile: 'ijmes_full',
+          issueId: 'non-existent-issue-id'
+        })
+      });
+
+      const res = await handleAssistRequest(req);
+      expect(res.status).toBe(400);
+      const json = await res.json();
+      expect(json.error).toBe('STALE_ISSUE');
+    });
+
+    it('10C. returns 503 ASSISTANCE_UNAVAILABLE when OpenAI is not configured', async () => {
+      const origKey = process.env.OPENAI_API_KEY;
+      delete process.env.OPENAI_API_KEY;
+
+      try {
+        const initial = transliterate('کرم');
+        const issueId = initial.reviewIssues[0].id;
+
+        const req = new NextRequest('http://localhost:3000/api/assist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            input: 'کرم',
+            profile: 'ijmes_full',
+            issueId
+          })
+        });
+
+        const res = await handleAssistRequest(req);
+        expect(res.status).toBe(503);
+        const json = await res.json();
+        expect(json.error).toBe('ASSISTANCE_UNAVAILABLE');
+      } finally {
+        if (origKey) process.env.OPENAI_API_KEY = origKey;
+      }
+    });
+
+    it('10D. returns 502 ASSISTANCE_PROVIDER_ERROR without leaking upstream secrets or stack traces', async () => {
+      const initial = transliterate('کرم');
+      const issueId = initial.reviewIssues[0].id;
+
+      // Mock provider that throws internal error containing sensitive information
+      const mockProvider = new OpenAiAssistedResolverProvider('test-key', 'gpt-4o');
+      (mockProvider as unknown as { client: { responses: { create: unknown } } }).client = {
+        responses: {
+          create: vi.fn().mockRejectedValue(new Error('Internal exception: sensitive key sk-proj-12345 leaked'))
+        }
+      };
+
+      const req = new NextRequest('http://localhost:3000/api/assist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          input: 'کرم',
+          profile: 'ijmes_full',
+          issueId
+        })
+      });
+
+      const res = await handleAssistRequest(req, mockProvider);
+      expect(res.status).toBe(502);
+      const json = await res.json();
+      expect(json.error).toBe('ASSISTANCE_PROVIDER_ERROR');
+      expect(json.message).toBe('An error occurred during assisted candidate resolution.');
+      // Secrets must never be present
+      expect(JSON.stringify(json)).not.toContain('sk-proj-12345');
+    });
+
+    it('10E. returns 504 ASSISTANCE_TIMEOUT on request timeout', async () => {
+      const initial = transliterate('کرم');
+      const issueId = initial.reviewIssues[0].id;
+
+      const mockProvider = new OpenAiAssistedResolverProvider('test-key', 'gpt-4o');
+      const abortErr = new Error('The operation was aborted');
+      abortErr.name = 'AbortError';
+      (mockProvider as unknown as { client: { responses: { create: unknown } } }).client = {
+        responses: {
+          create: vi.fn().mockRejectedValue(abortErr)
+        }
+      };
+
+      const req = new NextRequest('http://localhost:3000/api/assist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          input: 'کرم',
+          profile: 'ijmes_full',
+          issueId
+        })
+      });
+
+      const res = await handleAssistRequest(req, mockProvider);
+      expect(res.status).toBe(504);
+      const json = await res.json();
+      expect(json.error).toBe('ASSISTANCE_TIMEOUT');
+    });
+  });
+
   describe('Focused Regression Suite (Section 21)', () => {
-    // 1. Responses API adapter structured parsing with mocked client
     it('1. parses structured Responses API output with mocked OpenAI client', async () => {
       const initial = transliterate('کرم');
       const issue = initial.reviewIssues[0];
@@ -239,7 +664,7 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
                       rank: 1,
                       rationale: 'Contextual reading',
                       basis: 'CONTEXTUAL_INFERENCE',
-                      evidenceRefs: [request.availableAlternatives[0].id]
+                      evidenceRefs: ['context:local-window']
                     }
                   ]
                 })
@@ -249,7 +674,6 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
         ]
       };
 
-      // Mock responses.create
       (provider as unknown as { client: { responses: { create: unknown } } }).client = {
         responses: {
           create: vi.fn().mockResolvedValue(mockResponse)
@@ -267,7 +691,6 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
       }
     });
 
-    // 2. Assistance unavailable when model env is missing
     it('2. requires explicit model and marks assistance unavailable when missing', () => {
       const origKey = process.env.OPENAI_API_KEY;
       const origModel = process.env.ASSISTED_RESOLVER_MODEL;
@@ -291,7 +714,6 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
       }
     });
 
-    // 3. Morphology evidence after punctuation/whitespace maps by tokenIndex
     it('3. correctly looks up morphology evidence occurring after leading punctuation and whitespace', () => {
       const customLexicon: LexicalEntry[] = [
         {
@@ -315,7 +737,6 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
       const morphIssue = result.reviewIssues.find((i) => i.type === 'MORPHOLOGY_AMBIGUITY')!;
       expect(morphIssue).toBeDefined();
 
-      // Leading punctuation « and space means tokenIndex is 2
       expect(morphIssue.tokenIndexes[0]).toBe(2);
 
       const request = buildResolverRequest(result, morphIssue.id)!;
@@ -325,16 +746,13 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
       expect(request.morphologyEvidence?.stem).toBe('کتاب');
     });
 
-    // 4. Explicit kasra appears in resolver orthographic evidence
     it('4. includes explicit kasra and rule evidence in resolver orthographicEvidence payload', () => {
       const input = 'کِتاب';
       const result = transliterate(input);
-      // In default lexicon کتاب is single reading, but let's check analysis
       const analysis = result.analyses[0];
       expect(analysis.explicitVowels.length).toBeGreaterThan(0);
       expect(analysis.explicitVowels[0].mark).toBe('KASRA');
 
-      // Create a simulated issue for this token to inspect resolver request
       const issue = result.reviewIssues[0] || {
         id: 'issue:test:kasra',
         type: 'INSUFFICIENT_VOCALIZATION',
@@ -357,7 +775,6 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
       expect(request.orthographicEvidence.explicitVowels[0].ruleId).toBe('PERSIAN-ORTH-KASRA');
     });
 
-    // 5. Conflicting alternativeId / canonical is rejected
     it('5. rejects candidate with contradictory alternativeId and canonical', () => {
       const initial = transliterate('کرم');
       const issue = initial.reviewIssues[0];
@@ -372,11 +789,11 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
           {
             kind: 'EXISTING_LEXICAL_READING',
             alternativeId: alt.id,
-            canonical: 'karam', // Contradicts alt's canonical 'kirm'
+            canonical: 'karam',
             rank: 1,
             rationale: 'Conflicting candidate',
-            basis: 'CONTEXTUAL_INFERENCE',
-            evidenceRefs: [alt.id]
+            basis: 'MODEL_INFERENCE',
+            evidenceRefs: []
           }
         ]
       };
@@ -386,7 +803,6 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
       expect(validation.errors.some((e) => e.includes('contradictory canonical'))).toBe(true);
     });
 
-    // 6. Morphology branch not in ReviewIssue alternatives is rejected
     it('6. rejects morphology branch candidate not in ReviewIssue alternatives', () => {
       const initial = transliterate('کرم');
       const issue = initial.reviewIssues[0];
@@ -411,7 +827,6 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
       expect(validation.errors.some((e) => e.includes('Action "SELECT_MORPHOLOGY" is not permitted'))).toBe(true);
     });
 
-    // 7. Duplicate semantic candidate is rejected
     it('7. rejects candidates with duplicate semantic payload even if ranks differ', () => {
       const initial = transliterate('کرم');
       const issue = initial.reviewIssues[0];
@@ -427,8 +842,8 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
             canonical: alt.canonical,
             rank: 1,
             rationale: 'First pick',
-            basis: 'CONTEXTUAL_INFERENCE',
-            evidenceRefs: [alt.id]
+            basis: 'MODEL_INFERENCE',
+            evidenceRefs: []
           },
           {
             kind: 'EXISTING_LEXICAL_READING',
@@ -436,8 +851,8 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
             canonical: alt.canonical,
             rank: 2,
             rationale: 'Duplicate semantic pick at rank 2',
-            basis: 'CONTEXTUAL_INFERENCE',
-            evidenceRefs: [alt.id]
+            basis: 'MODEL_INFERENCE',
+            evidenceRefs: []
           }
         ]
       };
@@ -447,7 +862,6 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
       expect(validation.errors.some((e) => e.includes('Duplicate semantic candidate detected'))).toBe(true);
     });
 
-    // 8. Excluded lexical reading is rejected under vowel evidence
     it('8. rejects excluded lexical reading when vocalization conflict filtered it out', () => {
       const customLexicon: LexicalEntry[] = [
         {
@@ -480,7 +894,6 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
         }
       ];
       const repo = new LexiconRepository(customLexicon);
-      // Input has kasra: 'کِرم' -> AMBIGUOUS between kirm and kerm, but karam is excluded by conflict
       const res = transliterate('کِرم', 'ijmes_full', [], repo);
       expect(res.status).toBe('AMBIGUOUS');
       const issue = res.reviewIssues[0];
@@ -490,7 +903,6 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
       const request = buildResolverRequest(res, issue.id)!;
       expect(request).toBeDefined();
 
-      // Provider tries to propose the excluded reading 'karam'
       const invalidPayload = {
         issueId: request.issueId,
         candidates: [
@@ -500,7 +912,7 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
             canonical: 'karam',
             rank: 1,
             rationale: 'Invalid excluded reading',
-            basis: 'CONTEXTUAL_INFERENCE',
+            basis: 'MODEL_INFERENCE',
             evidenceRefs: []
           }
         ]
@@ -511,24 +923,6 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
       expect(validation.errors.some((e) => e.includes('non-existent alternativeId'))).toBe(true);
     });
 
-    // 9. Raw upstream error is not returned by the API route
-    it('9. returns sanitized API error structures without leaking upstream stack traces or keys', async () => {
-      // Direct validation of error sanitization behavior
-      const initial = transliterate('کرم');
-      const issue = initial.reviewIssues[0];
-      const request = buildResolverRequest(initial, issue.id)!;
-
-      const provider = new OpenAiAssistedResolverProvider('test-key', 'gpt-4o');
-      (provider as unknown as { client: { responses: { create: unknown } } }).client = {
-        responses: {
-          create: vi.fn().mockRejectedValue(new Error('Sensitive upstream API key sk-12345 leaked in stack trace'))
-        }
-      };
-
-      await expect(provider.resolve(request)).rejects.toThrow();
-    });
-
-    // 10. Timeout fails safely
     it('10. aborts cleanly on timeout without mutating transliteration engine state', async () => {
       const initial = transliterate('کرم');
       const issue = initial.reviewIssues[0];
@@ -540,13 +934,11 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
 
       await expect(provider.resolve(request, controller.signal)).rejects.toThrow(/aborted/);
 
-      // Core engine remains untouched
       const post = transliterate('کرم');
       expect(post.status).toBe('AMBIGUOUS');
       expect(post.copyable).toBe(false);
     });
 
-    // 11. Malformed / refusal output fails safely
     it('11. fails safely when model returns a refusal response', async () => {
       const initial = transliterate('کرم');
       const issue = initial.reviewIssues[0];
@@ -577,7 +969,6 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
       await expect(provider.resolve(request)).rejects.toThrow(/refused request/);
     });
 
-    // 12. Request fingerprint changes when orthographic evidence changes
     it('12. generates distinct fingerprints when orthographic evidence changes', () => {
       const baseResult = transliterate('کتاب');
       const issue = {
@@ -619,7 +1010,6 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
       expect(fp1).not.toBe(fp2);
     });
 
-    // 13. Request fingerprint changes when morphology/relation evidence changes
     it('13. generates distinct fingerprints when morphology or relation evidence changes', () => {
       const initial = transliterate('کتابها');
       const issue = initial.reviewIssues[0];
@@ -636,36 +1026,38 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
       expect(fp1).not.toBe(fp2);
     });
 
-    // 14. Typed candidate-to-review-decision mapping
     it('14. correctly maps each candidate kind to typed ReviewDecision and throws on invalid action', () => {
       const initial = transliterate('کرم');
       const issue = initial.reviewIssues[0];
+      const currentRequest = buildResolverRequest(initial, issue.id)!;
 
       const resolution: AssistedResolution = {
         issueId: issue.id,
-        candidates: [],
+        candidates: [
+          {
+            id: 'sugg:1',
+            kind: 'EXISTING_LEXICAL_READING',
+            alternativeId: currentRequest.availableAlternatives[0].id,
+            canonical: currentRequest.availableAlternatives[0].canonical!,
+            rank: 1,
+            rationale: 'context',
+            basis: 'CONTEXTUAL_INFERENCE',
+            evidenceRefs: ['context:local-window']
+          }
+        ],
         provider: 'mock-p',
         model: 'mock-m',
-        promptVersion: 'v1',
-        requestFingerprint: 'fp123',
+        promptVersion: currentRequest.promptVersion,
+        requestFingerprint: computeRequestFingerprint(currentRequest, 'mock-p', 'mock-m'),
         warnings: []
       };
 
-      const lexicalCandidate = {
-        id: 'sugg:1',
-        kind: 'EXISTING_LEXICAL_READING' as const,
-        alternativeId: 'reading:kirm',
-        canonical: 'kirm',
-        rank: 1,
-        rationale: 'context',
-        basis: 'CONTEXTUAL_INFERENCE' as const,
-        evidenceRefs: []
-      };
-
-      const decision = candidateToReviewDecision(lexicalCandidate, resolution, issue);
+      const lexicalCandidate = resolution.candidates[0];
+      const decision = candidateToReviewDecision(lexicalCandidate, resolution, issue, currentRequest);
       expect(decision.action).toBe('SELECT_LEXICAL_READING');
-      expect(decision.selectedAlternativeId).toBe('reading:kirm');
+      expect(decision.selectedAlternativeId).toBe(currentRequest.availableAlternatives[0].id);
       expect(decision.assistance?.suggestionId).toBe('sugg:1');
+      expect(decision.assistance?.requestFingerprint).toBe(resolution.requestFingerprint);
 
       // Unauthorized candidate throws
       const izafatCandidate = {
@@ -678,10 +1070,16 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
         evidenceRefs: []
       };
 
-      expect(() => candidateToReviewDecision(izafatCandidate, resolution, issue)).toThrow(/does not permit action/);
+      const resolutionIzafat = {
+        ...resolution,
+        candidates: [izafatCandidate]
+      };
+
+      expect(() => candidateToReviewDecision(izafatCandidate, resolutionIzafat, issue, currentRequest)).toThrow(
+        /ACTION_NOT_ALLOWED/
+      );
     });
 
-    // 15. Stale suggestions are explicitly non-applicable
     it('15. rejects stale suggestion when applied to a different or modified input state', () => {
       const initialA = transliterate('کرم کتاب');
       const issueA = initialA.reviewIssues[0];
