@@ -15,6 +15,11 @@ export interface BibliographyCreator {
   family?: string;
 }
 
+export interface BibliographySourceCell {
+  header: string;
+  value: string;
+}
+
 export interface BibliographyRecord {
   id: string;
   type: BibliographyRecordType;
@@ -44,6 +49,7 @@ export interface BibliographyRecord {
   notes?: string;
 
   sourceRowIndex: number;
+  sourceColumns: BibliographySourceCell[];
 
   passthrough: Record<string, string>;
 }
@@ -108,6 +114,14 @@ export interface BibliographyAssistanceState {
   recordId: string;
   fieldPath: BibliographyFieldPath;
   resolution: AssistedResolution;
+}
+
+export function makeBibliographyIssueScopeKey(
+  recordId: string,
+  fieldPath: BibliographyFieldPath,
+  issueId: string
+): string {
+  return `${recordId}:::${fieldPath}:::${issueId}`;
 }
 
 export interface ProcessedBibliographyBatch {

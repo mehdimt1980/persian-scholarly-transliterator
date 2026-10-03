@@ -1,9 +1,9 @@
 /**
- * Tests whether a string contains any Arabic or Persian script characters.
- * Covers standard Arabic, Arabic Supplement, Arabic Extended-A/B, and Presentation Forms.
+ * Tests whether a string contains any actual Arabic or Persian script letters or vocalization marks.
+ * Punctuation alone (e.g. Arabic comma '،' or semicolon '؛') will not trigger transliteration on Latin metadata.
  */
-const ARABIC_SCRIPT_REGEX = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/u;
+const ARABIC_LETTER_OR_MARK_REGEX = /(?=[\p{sc=Arabic}])[\p{L}\p{M}]/u;
 
 export function containsArabicScript(text: string): boolean {
-  return ARABIC_SCRIPT_REGEX.test(text);
+  return ARABIC_LETTER_OR_MARK_REGEX.test(text);
 }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   importBibliographyFromCsv,
+  validateFileSize,
   processBibliographyBatch,
   exportReviewCsv,
   exportFinalCsv,
@@ -9,26 +10,37 @@ import {
   containsArabicScript,
   generateFallbackRecordId,
   computeRecordContentFingerprint,
+  makeBibliographyIssueScopeKey,
+  sanitizeBibTeXKey,
   BibliographyRecord,
-  BibliographyReviewDecision
+  BibliographyReviewDecision,
+  ProcessedBibliographyRecord
 } from './index';
-import { LexicalEntry } from '../lexicon/types';
-import { LexiconRepository } from '../lexicon/repository';
+import {
+  AssistedResolution,
+  buildResolverRequest,
+  candidateToReviewDecision,
+  computeRequestFingerprint,
+  validateAssistedApplicability
+} from '../assistance';
 
 describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
-  describe('Script Detection', () => {
-    it('accurately identifies Arabic/Persian script material and non-Arabic text', () => {
+  describe('Script Detection (Section 20)', () => {
+    it('accurately identifies Arabic/Persian letter/mark material and ignores punctuation alone', () => {
       expect(containsArabicScript('تاریخ ایران')).toBe(true);
       expect(containsArabicScript('Homa Katouzian')).toBe(false);
       expect(containsArabicScript('Iran and دولت')).toBe(true);
       expect(containsArabicScript('1921-1979')).toBe(false);
       expect(containsArabicScript('10.1017/S002074380000000X')).toBe(false);
+      // Arabic comma '،' alone must NOT trigger transliteration on Latin metadata
+      expect(containsArabicScript('Iran، 1906')).toBe(false);
+      expect(containsArabicScript('Tehran؛ 1399')).toBe(false);
     });
   });
 
-  describe('Record Identity & Fingerprinting', () => {
-    it('computes deterministic content fingerprints independent of row index', () => {
-      const recA: Omit<BibliographyRecord, 'id' | 'sourceRowIndex'> = {
+  describe('Record Identity & Fingerprinting (Section 9, 22)', () => {
+    it('computes deterministic 64-bit content fingerprints independent of row index', () => {
+      const recA: Omit<BibliographyRecord, 'id' | 'sourceRowIndex' | 'sourceColumns'> = {
         type: 'BOOK',
         title: 'تاریخ ایران',
         authors: [{ literal: 'پیرنیا' }],
@@ -36,7 +48,7 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
         translators: [],
         passthrough: {}
       };
-      const recB: Omit<BibliographyRecord, 'id' | 'sourceRowIndex'> = {
+      const recB: Omit<BibliographyRecord, 'id' | 'sourceRowIndex' | 'sourceColumns'> = {
         type: 'BOOK',
         title: 'تاریخ ایران',
         authors: [{ literal: 'پیرنیا' }],
@@ -48,12 +60,19 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
       const fpA = computeRecordContentFingerprint(recA);
       const fpB = computeRecordContentFingerprint(recB);
       expect(fpA).toBe(fpB);
+      expect(fpA.length).toBe(16); // 64-bit hex is 16 chars
       expect(generateFallbackRecordId(recA, 1)).toBe(`record:${fpA}:1`);
       expect(generateFallbackRecordId(recB, 2)).toBe(`record:${fpB}:2`);
     });
+
+    it('sanitizes BibTeX citation keys to pst_<safeId>', () => {
+      expect(sanitizeBibTeXKey('record:abcdef0123456789:1')).toBe('pst_record_abcdef0123456789_1');
+      expect(sanitizeBibTeXKey('my-article-2020')).toBe('pst_my_article_2020');
+      expect(sanitizeBibTeXKey('pst_already_prefixed')).toBe('pst_already_prefixed');
+    });
   });
 
-  describe('CSV Import & Robustness (Sections 5, 6, 7, 30, 44)', () => {
+  describe('CSV Parser & Importer Robustness (Sections 1, 3, 5, 6, 7, 8, 25)', () => {
     it('parses standard CSV with UTF-8 BOM, Persian script, and literal creators', () => {
       const csv = `\uFEFFid,type,title,authors,year,publisher\nr1,BOOK,تاریخ ایران,حسن پیرنیا | عباس اقبال,1380,نشر علم`;
       const result = importBibliographyFromCsv(csv);
@@ -77,30 +96,76 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
       expect(result.records[0].notes).toBe('Line 1\nLine 2 with, comma');
     });
 
-    it('preserves unknown CSV columns in passthrough', () => {
-      const csv = `id,type,title,custom_tag,scholar_rating\nr1,BOOK,کتاب,MyTag,5-star`;
-      const result = importBibliographyFromCsv(csv);
-      expect(result.success).toBe(true);
-      expect(result.records[0].passthrough).toEqual({
-        custom_tag: 'MyTag',
-        scholar_rating: '5-star'
-      });
-    });
-
-    it('generates fallback deterministic IDs when id column is missing or empty', () => {
-      const csv = `title,authors\nکتاب اول,نویسنده\nکتاب اول,نویسنده`;
-      const result = importBibliographyFromCsv(csv);
-      expect(result.success).toBe(true);
-      expect(result.records.length).toBe(2);
-      expect(result.records[0].id).toMatch(/^record:[a-f0-9]{8}:1$/);
-      expect(result.records[1].id).toMatch(/^record:[a-f0-9]{8}:2$/);
-    });
-
-    it('emits error diagnostic on duplicate supplied IDs', () => {
-      const csv = `id,type,title\nr1,BOOK,کتاب الف\nr1,BOOK,کتاب ب`;
+    it('rejects unexpected quote inside unquoted field with CSV_PARSE_ERROR', () => {
+      const csv = `id,title\nr1,abc"def"\n`;
       const result = importBibliographyFromCsv(csv);
       expect(result.success).toBe(false);
-      expect(result.diagnostics.some((d) => d.code === 'DUPLICATE_ID')).toBe(true);
+      expect(result.diagnostics.some((d) => d.code === 'CSV_PARSE_ERROR')).toBe(true);
+    });
+
+    it('rejects unexpected characters after closing quote with CSV_PARSE_ERROR', () => {
+      const csv = `id,title\nr1,"abc"x,y\n`;
+      const result = importBibliographyFromCsv(csv);
+      expect(result.success).toBe(false);
+      expect(result.diagnostics.some((d) => d.code === 'CSV_PARSE_ERROR')).toBe(true);
+    });
+
+    it('rejects unclosed quote with CSV_PARSE_ERROR and fails import', () => {
+      const csv = `id,title\nr1,"unclosed title\n`;
+      const result = importBibliographyFromCsv(csv);
+      expect(result.success).toBe(false);
+      expect(result.diagnostics.some((d) => d.code === 'CSV_PARSE_ERROR')).toBe(true);
+    });
+
+    it('emits ROW_WIDTH_MISMATCH diagnostic on column count discrepancy', () => {
+      const csv = `id,type,title\nr1,BOOK,کتاب,extra_col`;
+      const result = importBibliographyFromCsv(csv);
+      expect(result.diagnostics.some((d) => d.code === 'ROW_WIDTH_MISMATCH')).toBe(true);
+    });
+
+    it('maps booktitle strictly to containerTitle and not to item title', () => {
+      const csv = `id,type,title,booktitle\nr1,BOOK_CHAPTER,فصل اول,تاریخ ایران`;
+      const result = importBibliographyFromCsv(csv);
+      expect(result.success).toBe(true);
+      expect(result.records[0].title).toBe('فصل اول');
+      expect(result.records[0].containerTitle).toBe('تاریخ ایران');
+    });
+
+    it('detects ambiguous duplicate canonical headers and fails import', () => {
+      const csv = `id,title,article_title\nr1,عنوان یک,عنوان دو`;
+      const result = importBibliographyFromCsv(csv);
+      expect(result.success).toBe(false);
+      expect(result.diagnostics.some((d) => d.code === 'AMBIGUOUS_HEADER_MAPPING')).toBe(true);
+    });
+
+    it('preserves exact raw source cells and column order in record.sourceColumns', () => {
+      const csv = `CustomID,OriginalTitle,Author\n   r_1  ,  عنوان کتاب   ,  نویسنده  `;
+      const result = importBibliographyFromCsv(csv);
+      expect(result.success).toBe(true);
+      expect(result.records[0].sourceColumns).toEqual([
+        { header: 'CustomID', value: '   r_1  ' },
+        { header: 'OriginalTitle', value: '  عنوان کتاب   ' },
+        { header: 'Author', value: '  نویسنده  ' }
+      ]);
+    });
+
+    it('pre-read file size validation helper rejects oversized files', () => {
+      const valid = validateFileSize(1000, 5000);
+      expect(valid.valid).toBe(true);
+      const invalid = validateFileSize(6000, 5000);
+      expect(invalid.valid).toBe(false);
+      expect(invalid.diagnostic?.code).toBe('FILE_SIZE_EXCEEDED');
+    });
+
+    it('field length limit is fatal and fails import', () => {
+      const hugeCsv = `title\n` + 'A'.repeat(60000);
+      const result = importBibliographyFromCsv(hugeCsv, {
+        maxFileSize: 100000,
+        maxRowCount: 10,
+        maxFieldLength: 1000
+      });
+      expect(result.success).toBe(false);
+      expect(result.diagnostics.some((d) => d.code === 'FIELD_LENGTH_EXCEEDED')).toBe(true);
     });
 
     it('emits error diagnostic on missing required title', () => {
@@ -115,19 +180,64 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
       expect(result.records[0].type).toBe('OTHER');
       expect(result.diagnostics.some((d) => d.code === 'UNKNOWN_RECORD_TYPE')).toBe(true);
     });
+  });
 
-    it('enforces import limits', () => {
-      const hugeCsv = `title\n` + 'A'.repeat(60000);
-      const result = importBibliographyFromCsv(hugeCsv, {
-        maxFileSize: 100000,
-        maxRowCount: 10,
-        maxFieldLength: 1000
-      });
-      expect(result.diagnostics.some((d) => d.code === 'FIELD_LENGTH_EXCEEDED')).toBe(true);
+  describe('Duplicate Record ID Fail-Closed Strategy (Section 1)', () => {
+    it('duplicate supplied IDs fail closed in importBibliographyFromCsv', () => {
+      const csv = `id,type,title\nr1,BOOK,کتاب الف\nr1,BOOK,کتاب ب`;
+      const result = importBibliographyFromCsv(csv);
+      expect(result.success).toBe(false);
+      expect(result.diagnostics.some((d) => d.code === 'DUPLICATE_ID')).toBe(true);
+    });
+
+    it('duplicate record IDs fail closed independently in processBibliographyBatch', () => {
+      const recA: BibliographyRecord = {
+        id: 'r1',
+        type: 'BOOK',
+        title: 'کرم',
+        authors: [],
+        editors: [],
+        translators: [],
+        sourceRowIndex: 2,
+        sourceColumns: [],
+        passthrough: {}
+      };
+      const recB: BibliographyRecord = {
+        id: 'r1',
+        type: 'BOOK',
+        title: 'کرم',
+        authors: [],
+        editors: [],
+        translators: [],
+        sourceRowIndex: 3,
+        sourceColumns: [],
+        passthrough: {}
+      };
+
+      const batch = processBibliographyBatch([recA, recB]);
+      expect(batch.records[0].readiness).toBe('INVALID');
+      expect(batch.records[1].readiness).toBe('INVALID');
+      expect(batch.diagnostics.some((d) => d.code === 'DUPLICATE_RECORD_ID')).toBe(true);
+
+      // Even if a review decision is passed for r1, it must NOT be applied to duplicate records
+      const decisions: BibliographyReviewDecision[] = [
+        {
+          recordId: 'r1',
+          fieldPath: 'title',
+          decision: {
+            issueId: 'any_issue',
+            action: 'MANUAL_CANONICAL_OVERRIDE',
+            manualCanonicalTransliteration: 'kirm'
+          }
+        }
+      ];
+      const batchWithDecisions = processBibliographyBatch([recA, recB], decisions);
+      expect(batchWithDecisions.records[0].readiness).toBe('INVALID');
+      expect(batchWithDecisions.records[1].readiness).toBe('INVALID');
     });
   });
 
-  describe('Pure Batch Processor & Field Policies (Sections 10, 11, 15, 16, 39)', () => {
+  describe('Pure Batch Processor & Multi-Record Scoping (Sections 10, 11, 13, 14, 15, 16, 39, 40, 41)', () => {
     it('39. processes multi-record batch independently and computes deterministic readiness', () => {
       const csv = `id,type,title,authors\nr1,BOOK,ایران,شاه\nr2,BOOK,کتاب,دانشجو\nr3,JOURNAL_ARTICLE,کرم,نویسنده`;
       const imported = importBibliographyFromCsv(csv);
@@ -148,7 +258,7 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
       expect(r3.readiness).toBe('REVIEW_REQUIRED');
 
       expect(batch.summary.ready).toBe(1);
-      expect(batch.summary.reviewRequired).toBe(2); // r2 has unknown "دانشجو", r3 has ambiguous "کرم"
+      expect(batch.summary.reviewRequired).toBe(2);
 
       // STRICT_ALL export should fail
       const exportStrict = exportToRis(batch, 'STRICT_ALL');
@@ -198,9 +308,7 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
       expect(resolvedExport.success).toBe(true);
       expect(resolvedExport.exportedRecordIds).toEqual(['r1', 'r2', 'r3']);
     });
-  });
 
-  describe('Field-Level & Creator Scoping (Sections 13, 14, 40, 41)', () => {
     it('40. decision for r1/title does not resolve r2/title even if Persian text and issue IDs match', () => {
       const csv = `id,type,title\nr1,BOOK,کرم\nr2,BOOK,کرم`;
       const imported = importBibliographyFromCsv(csv);
@@ -211,7 +319,6 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
       expect(r1Issue).toBeDefined();
       expect(r2Issue).toBeDefined();
 
-      // Apply decision strictly scoped to r1
       const decisions: BibliographyReviewDecision[] = [
         {
           recordId: 'r1',
@@ -294,9 +401,38 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
       const pr = batch.records[0];
 
       expect(pr.fields['title'].sourceText).toBe('Iran and دولت');
-      // The engine processes the Persian word while preserving surrounding Latin words
       expect(pr.fields['title'].finalText).toContain('Daulat');
       expect(pr.fields['title'].finalText).toMatch(/Iran/i);
+    });
+  });
+
+  describe('Source-Preserving & Creator Completeness in Review CSV (Sections 4, 11)', () => {
+    it('review CSV preserves original source column names and order', () => {
+      const csv = `Record_ID,Article_Title,Author,My_Custom_Column\nr1,کتاب,نویسنده,Val1`;
+      const imported = importBibliographyFromCsv(csv);
+      const batch = processBibliographyBatch(imported.records);
+      const review = exportReviewCsv(batch);
+
+      expect(review.success).toBe(true);
+      const firstLine = review.content.split('\r\n')[0];
+      expect(firstLine).toMatch(/^Record_ID,Article_Title,Author,My_Custom_Column,translit_title/);
+      expect(review.content).toContain('Val1');
+    });
+
+    it('partially unresolved creator list leaves derived review cell empty and never partially complete', () => {
+      const csv = `id,type,title,authors\nr1,BOOK,کتاب,شاه | کرم`;
+      const imported = importBibliographyFromCsv(csv);
+      const batch = processBibliographyBatch(imported.records);
+
+      const review = exportReviewCsv(batch);
+      expect(review.success).toBe(true);
+
+      const lines = review.content.split('\r\n');
+      const headerCols = lines[0].split(',');
+      const rowCols = lines[1].split(',');
+      const translitAuthorsIdx = headerCols.indexOf('translit_authors');
+      expect(translitAuthorsIdx).toBeGreaterThan(-1);
+      expect(rowCols[translitAuthorsIdx]).toBe('');
     });
   });
 
@@ -336,24 +472,120 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
       expect(ris.content).not.toContain('⟦');
     });
 
-    it('20. source-preserving CSV export includes translit_* columns and original passthrough data', () => {
-      const csv = `id,type,title,custom_col\nr1,BOOK,کتاب,Val1\nr2,BOOK,کرم,Val2`;
-      const imported = importBibliographyFromCsv(csv);
-      const batch = processBibliographyBatch(imported.records);
+    it('transformable final field with finalText=null fails final export even if record is marked READY', () => {
+      const processedRec: ProcessedBibliographyRecord = {
+        record: {
+          id: 'r_fake',
+          type: 'BOOK',
+          title: 'دولت',
+          authors: [],
+          editors: [],
+          translators: [],
+          sourceRowIndex: 2,
+          sourceColumns: [],
+          passthrough: {}
+        },
+        fields: {
+          title: {
+            fieldPath: 'title',
+            sourceText: 'دولت',
+            profile: 'ijmes_title',
+            requiresTransliteration: true,
+            finalText: null,
+            status: 'UNRESOLVED',
+            reviewIssues: []
+          }
+        },
+        readiness: 'READY',
+        reviewIssueCount: 0,
+        invalidReasons: []
+      };
 
-      const report = exportReviewCsv(batch);
-      expect(report.success).toBe(true);
-      expect(report.content).toContain('translit_title');
-      expect(report.content).toContain('custom_col');
-      expect(report.content).toContain('Kitab');
-      expect(report.content).toContain('Val1');
-      expect(report.content).toContain('Val2');
-      // For unresolved r2, translit_title is empty
-      expect(report.content).not.toContain('⟦');
+      const inconsistentBatch = {
+        records: [processedRec],
+        summary: { total: 1, ready: 1, reviewRequired: 0, invalid: 0 },
+        diagnostics: []
+      };
+
+      expect(exportToRis(inconsistentBatch, 'STRICT_ALL').success).toBe(false);
+      expect(exportToBibTeX(inconsistentBatch, 'STRICT_ALL').success).toBe(false);
+      expect(exportFinalCsv(inconsistentBatch, 'STRICT_ALL').success).toBe(false);
     });
   });
 
-  describe('RIS Golden Tests (Sections 22, 23, 47)', () => {
+  describe('Field-Scoped Assistance Isolation (Sections 12-16)', () => {
+    it('makeBibliographyIssueScopeKey creates unique composite key for record + field + issue', () => {
+      const key1 = makeBibliographyIssueScopeKey('r1', 'title', 'issue:123');
+      const key2 = makeBibliographyIssueScopeKey('r2', 'title', 'issue:123');
+      const key3 = makeBibliographyIssueScopeKey('r1', 'containerTitle', 'issue:123');
+      expect(key1).not.toBe(key2);
+      expect(key1).not.toBe(key3);
+    });
+
+    it('assisted suggestion for r1/title cannot apply to r2/title due to request fingerprint validation', () => {
+      const csv = `id,type,title\nr1,BOOK,کرم\nr2,BOOK,کرم`;
+      const imported = importBibliographyFromCsv(csv);
+      const batch = processBibliographyBatch(imported.records);
+
+      const pr1 = batch.records[0];
+      const pr2 = batch.records[1];
+      const issue1 = pr1.fields['title'].reviewIssues[0];
+
+      const req1 = buildResolverRequest(pr1.fields['title'].transliterationResult!, issue1.id)!;
+      const fp1 = computeRequestFingerprint(req1, 'openai', 'gpt-4o-mini');
+
+      const resolutionForR1: AssistedResolution = {
+        issueId: issue1.id,
+        provider: 'openai',
+        model: 'gpt-4o-mini',
+        promptVersion: '1.0.0',
+        requestFingerprint: fp1,
+        warnings: [],
+        candidates: [
+          {
+            id: 'sugg_1',
+            kind: 'EXISTING_LEXICAL_READING',
+            rank: 1,
+            alternativeId: issue1.alternatives[0]?.id,
+            canonical: 'kirm',
+            basis: 'EXISTING_EVIDENCE',
+            evidenceRefs: [],
+            rationale: 'Scholarly reading'
+          }
+        ]
+      };
+
+      const applicabilityR1 = validateAssistedApplicability(
+        resolutionForR1.candidates[0],
+        resolutionForR1,
+        issue1,
+        req1
+      );
+      expect(applicabilityR1.applicable).toBe(true);
+
+      const decision = candidateToReviewDecision(
+        'sugg_1',
+        resolutionForR1,
+        issue1,
+        req1
+      );
+      expect(decision.action).toBe('SELECT_LEXICAL_READING');
+
+      const batchDecisions: BibliographyReviewDecision[] = [
+        {
+          recordId: 'r1',
+          fieldPath: 'title',
+          decision
+        }
+      ];
+
+      const processed = processBibliographyBatch(imported.records, batchDecisions);
+      expect(processed.records[0].readiness).toBe('READY');
+      expect(processed.records[1].readiness).toBe('REVIEW_REQUIRED');
+    });
+  });
+
+  describe('RIS Golden Tests (Sections 21, 22, 23, 47)', () => {
     it('47A. serializes book with multiple authors, editors, scholarly diacritics, and CRLF', () => {
       const csv = `id,type,title,authors,editors,year,publisher,place,isbn\nr_book,BOOK,مشروطه,شاه | صفوی,قاجار,1380,دولت,تهران,978-964-405-000-0`;
       const imported = importBibliographyFromCsv(csv);
@@ -384,7 +616,6 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
       const imported = importBibliographyFromCsv(csv);
       const initial = processBibliographyBatch(imported.records);
 
-      // "دولت و جامعه" has unambiguous conjunction "va" -> READY
       const report = exportToRis(initial, 'STRICT_ALL');
       expect(report.success).toBe(true);
       expect(report.content).toContain('TY  - JOUR');
@@ -408,9 +639,19 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
       expect(report.content).toContain('N1  - First line Second line');
       expect(report.diagnostics.some((d) => d.code === 'RIS_LINEBREAK_NORMALIZED')).toBe(true);
     });
+
+    it('47D. preserves both ISBN and ISSN when present', () => {
+      const csv = `id,type,title,isbn,issn\nr1,BOOK,کتاب,978-1-234-56789-0,1234-567X`;
+      const imported = importBibliographyFromCsv(csv);
+      const batch = processBibliographyBatch(imported.records);
+
+      const report = exportToRis(batch, 'STRICT_ALL');
+      expect(report.success).toBe(true);
+      expect(report.content).toContain('SN  - 978-1-234-56789-0\r\nSN  - 1234-567X');
+    });
   });
 
-  describe('BibTeX Golden Tests (Sections 24, 25, 26, 27, 28, 48)', () => {
+  describe('BibTeX Golden Tests (Sections 22, 24, 25, 26, 27, 28, 48)', () => {
     it('48A. serializes book with authors joined by "and", UTF-8 Unicode, and deterministic key', () => {
       const csv = `id,type,title,authors,year,publisher,place\nr_book_1,BOOK,مشروطه,شاه | صفوی,1380,دولت,تهران`;
       const imported = importBibliographyFromCsv(csv);
@@ -462,12 +703,50 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
     });
 
     it('48D. duplicate citation key fails closed with DUPLICATE_CITATION_KEY diagnostic', () => {
-      const csv = `id,type,title\npst_same_key,BOOK,کتاب\npst_same_key,BOOK,ایران`;
-      const imported = importBibliographyFromCsv(csv);
-      // Force same ID on records
-      imported.records[1].id = 'pst_same_key';
+      const recA: BibliographyRecord = {
+        id: 'pst_dup',
+        type: 'BOOK',
+        title: 'کتاب',
+        authors: [],
+        editors: [],
+        translators: [],
+        sourceRowIndex: 2,
+        sourceColumns: [],
+        passthrough: {}
+      };
+      const recB: BibliographyRecord = {
+        id: 'pst_dup',
+        type: 'BOOK',
+        title: 'ایران',
+        authors: [],
+        editors: [],
+        translators: [],
+        sourceRowIndex: 3,
+        sourceColumns: [],
+        passthrough: {}
+      };
 
-      const batch = processBibliographyBatch(imported.records);
+      const batch = {
+        records: [
+          {
+            record: recA,
+            fields: { title: { fieldPath: 'title' as const, sourceText: 'کتاب', profile: 'ijmes_title' as const, requiresTransliteration: true, finalText: 'Kitab', status: 'DETERMINISTIC' as const, reviewIssues: [] } },
+            readiness: 'READY' as const,
+            reviewIssueCount: 0,
+            invalidReasons: []
+          },
+          {
+            record: recB,
+            fields: { title: { fieldPath: 'title' as const, sourceText: 'ایران', profile: 'ijmes_title' as const, requiresTransliteration: true, finalText: 'Iran', status: 'DETERMINISTIC' as const, reviewIssues: [] } },
+            readiness: 'READY' as const,
+            reviewIssueCount: 0,
+            invalidReasons: []
+          }
+        ],
+        summary: { total: 2, ready: 2, reviewRequired: 0, invalid: 0 },
+        diagnostics: []
+      };
+
       const report = exportToBibTeX(batch, 'STRICT_ALL');
       expect(report.success).toBe(false);
       expect(report.diagnostics.some((d) => d.code === 'DUPLICATE_CITATION_KEY')).toBe(true);

@@ -17,12 +17,41 @@ export function processBibliographyBatch(
   const processedRecords: ProcessedBibliographyRecord[] = [];
   const diagnostics: BibliographyDiagnostic[] = [];
 
+  // 1. Detect duplicate record IDs across batch
+  const idCounts = new Map<string, number>();
+  for (const r of records) {
+    idCounts.set(r.id, (idCounts.get(r.id) ?? 0) + 1);
+  }
+
+  const duplicateIds = new Set<string>();
+  for (const [id, count] of idCounts.entries()) {
+    if (count > 1) {
+      duplicateIds.add(id);
+      diagnostics.push({
+        recordId: id,
+        severity: 'ERROR',
+        code: 'DUPLICATE_RECORD_ID',
+        message: `Duplicate record ID "${id}" detected across batch. Duplicate records are marked INVALID.`
+      });
+    }
+  }
+
   let readyCount = 0;
   let reviewRequiredCount = 0;
   let invalidCount = 0;
 
   for (const record of records) {
-    const processed = processBibliographyRecord(record, reviewDecisions, lexicon);
+    const isDuplicate = duplicateIds.has(record.id);
+
+    // If duplicate ID, do not apply any review decisions to prevent authority leakage
+    const decisionsToApply = isDuplicate ? [] : reviewDecisions;
+    const processed = processBibliographyRecord(record, decisionsToApply, lexicon);
+
+    if (isDuplicate) {
+      processed.readiness = 'INVALID';
+      processed.invalidReasons.push(`Duplicate record ID "${record.id}" detected across batch.`);
+    }
+
     processedRecords.push(processed);
 
     if (processed.readiness === 'READY') {

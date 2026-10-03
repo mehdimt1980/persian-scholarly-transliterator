@@ -5,6 +5,7 @@ import {
   BibliographyImportLimits,
   BibliographyRecord,
   BibliographyRecordType,
+  BibliographySourceCell,
   DEFAULT_IMPORT_LIMITS
 } from '../types';
 import { parseCsvString } from './parser';
@@ -13,6 +14,23 @@ export interface CsvImportResult {
   records: BibliographyRecord[];
   diagnostics: BibliographyDiagnostic[];
   success: boolean;
+}
+
+export function validateFileSize(
+  sizeInBytes: number,
+  maxSizeBytes: number = DEFAULT_IMPORT_LIMITS.maxFileSize
+): { valid: boolean; diagnostic?: BibliographyDiagnostic } {
+  if (sizeInBytes > maxSizeBytes) {
+    return {
+      valid: false,
+      diagnostic: {
+        severity: 'ERROR',
+        code: 'FILE_SIZE_EXCEEDED',
+        message: `File size (${sizeInBytes} bytes) exceeds the maximum limit of ${maxSizeBytes} bytes.`
+      }
+    };
+  }
+  return { valid: true };
 }
 
 function normalizeHeaderKey(key: string): string {
@@ -35,7 +53,7 @@ function parseRecordType(raw: string | undefined, rowIdx: number, diagnostics: B
   if (!raw || raw.trim().length === 0) {
     return 'OTHER';
   }
-  const normalized = raw.trim().toLowerCase().replace(/[\s\-_]+/g, '');
+  const normalized = normalizeHeaderKey(raw);
   switch (normalized) {
     case 'book':
     case 'monograph':
@@ -66,8 +84,32 @@ function parseRecordType(raw: string | undefined, rowIdx: number, diagnostics: B
         message: `Unrecognized record type "${raw}". Defaulting to "OTHER".`
       });
       return 'OTHER';
-  }
+    }
 }
+
+// Canonical field mappings
+const CANONICAL_FIELD_ALIASES: Record<string, string[]> = {
+  id: ['id', 'recordid'],
+  type: ['type', 'recordtype', 'entrytype'],
+  title: ['title', 'articletitle', 'chaptertitle', 'article_title', 'chapter_title'],
+  containerTitle: ['containertitle', 'container_title', 'booktitle', 'book_title', 'journaltitle', 'journal_title', 'journal', 'publication', 'container'],
+  authors: ['authors', 'author', 'creators', 'creator'],
+  editors: ['editors', 'editor'],
+  translators: ['translators', 'translator'],
+  year: ['year', 'date', 'publicationyear', 'publication_year', 'pubyear', 'pub_year'],
+  publisher: ['publisher'],
+  place: ['place', 'city', 'address', 'location'],
+  volume: ['volume', 'vol'],
+  issue: ['issue', 'number', 'no'],
+  pageStart: ['pagestart', 'page_start', 'startpage', 'start_page', 'firstpage', 'first_page', 'sp'],
+  pageEnd: ['pageend', 'page_end', 'endpage', 'end_page', 'lastpage', 'last_page', 'ep'],
+  doi: ['doi'],
+  url: ['url', 'link'],
+  isbn: ['isbn'],
+  issn: ['issn'],
+  language: ['language', 'lang'],
+  notes: ['notes', 'note', 'abstract']
+};
 
 export function importBibliographyFromCsv(
   csvContent: string,
@@ -75,12 +117,13 @@ export function importBibliographyFromCsv(
 ): CsvImportResult {
   const diagnostics: BibliographyDiagnostic[] = [];
 
-  if (new Blob([csvContent]).size > limits.maxFileSize) {
-    diagnostics.push({
-      severity: 'ERROR',
-      code: 'FILE_SIZE_EXCEEDED',
-      message: `File size exceeds the maximum limit of ${limits.maxFileSize} bytes.`
-    });
+  const byteLength = typeof Buffer !== 'undefined'
+    ? Buffer.byteLength(csvContent, 'utf8')
+    : new Blob([csvContent]).size;
+
+  const sizeCheck = validateFileSize(byteLength, limits.maxFileSize);
+  if (!sizeCheck.valid && sizeCheck.diagnostic) {
+    diagnostics.push(sizeCheck.diagnostic);
     return { records: [], diagnostics, success: false };
   }
 
@@ -90,6 +133,13 @@ export function importBibliographyFromCsv(
       severity: 'ERROR',
       code: 'CSV_PARSE_ERROR',
       message: err
+    });
+  }
+  for (const warn of parseResult.warnings) {
+    diagnostics.push({
+      severity: 'WARNING',
+      code: 'ROW_WIDTH_MISMATCH',
+      message: warn
     });
   }
 
@@ -111,47 +161,64 @@ export function importBibliographyFromCsv(
     return { records: [], diagnostics, success: false };
   }
 
-  // Map header indexes
-  const headerMap = new Map<string, { original: string; index: number }>();
-  parseResult.headers.forEach((h, index) => {
-    headerMap.set(normalizeHeaderKey(h), { original: h, index });
+  // Check for ambiguous duplicate headers mapping to the same canonical field
+  const canonicalFieldMatches = new Map<string, string[]>(); // canonicalField -> original headers
+  const headerIndexMap = new Map<string, number>(); // normalizedHeader -> column index
+
+  parseResult.headers.forEach((header, index) => {
+    const norm = normalizeHeaderKey(header);
+    headerIndexMap.set(norm, index);
+
+    // Find which canonical field(s) this header matches
+    for (const [canonicalKey, aliases] of Object.entries(CANONICAL_FIELD_ALIASES)) {
+      const normAliases = aliases.map(normalizeHeaderKey);
+      if (normAliases.includes(norm)) {
+        const matches = canonicalFieldMatches.get(canonicalKey) ?? [];
+        matches.push(header);
+        canonicalFieldMatches.set(canonicalKey, matches);
+      }
+    }
   });
 
-  const getField = (row: string[], ...aliases: string[]): string | undefined => {
+  let hasAmbiguousHeader = false;
+  for (const [canonicalKey, matchingHeaders] of canonicalFieldMatches.entries()) {
+    if (matchingHeaders.length > 1) {
+      diagnostics.push({
+        severity: 'ERROR',
+        code: 'AMBIGUOUS_HEADER_MAPPING',
+        message: `Multiple CSV columns map to the canonical field "${canonicalKey}": ${matchingHeaders.map((h) => `"${h}"`).join(', ')}.`
+      });
+      hasAmbiguousHeader = true;
+    }
+  }
+
+  if (hasAmbiguousHeader || parseResult.errors.length > 0) {
+    return { records: [], diagnostics, success: false };
+  }
+
+  const getFieldValue = (row: string[], canonicalKey: string): string | undefined => {
+    const aliases = CANONICAL_FIELD_ALIASES[canonicalKey] ?? [];
     for (const alias of aliases) {
-      const match = headerMap.get(normalizeHeaderKey(alias));
-      if (match && row[match.index] !== undefined) {
-        const val = row[match.index].trim();
+      const idx = headerIndexMap.get(normalizeHeaderKey(alias));
+      if (idx !== undefined && row[idx] !== undefined) {
+        const val = row[idx].trim();
         return val.length > 0 ? val : undefined;
       }
     }
     return undefined;
   };
 
-  const knownNormalizedHeaders = new Set([
-    'id', 'recordid',
-    'type', 'recordtype', 'entrytype',
-    'title', 'booktitle', 'articletitle',
-    'containertitle', 'container', 'journal', 'publication',
-    'authors', 'author', 'creator', 'creators',
-    'editors', 'editor',
-    'translators', 'translator',
-    'year', 'date', 'publicationyear', 'pubyear',
-    'publisher',
-    'place', 'city', 'address', 'location',
-    'volume', 'vol',
-    'issue', 'number', 'no',
-    'pagestart', 'startpage', 'firstpage', 'sp',
-    'pageend', 'endpage', 'lastpage', 'ep',
-    'doi',
-    'url', 'link',
-    'isbn',
-    'issn',
-    'language', 'lang',
-    'notes', 'note', 'abstract'
-  ]);
+  // Known canonical normalized alias set
+  const allKnownAliases = new Set<string>();
+  for (const aliases of Object.values(CANONICAL_FIELD_ALIASES)) {
+    for (const a of aliases) {
+      allKnownAliases.add(normalizeHeaderKey(a));
+    }
+  }
 
   const seenSuppliedIds = new Set<string>();
+  let hasDuplicateSuppliedId = false;
+  let hasFieldLengthExceeded = false;
   const occurrenceCounts = new Map<string, number>();
   const records: BibliographyRecord[] = [];
 
@@ -161,17 +228,18 @@ export function importBibliographyFromCsv(
 
     // Field length check
     for (let c = 0; c < row.length; c++) {
-      if (row[c].length > limits.maxFieldLength) {
+      if (row[c] && row[c].length > limits.maxFieldLength) {
         diagnostics.push({
           row: sourceRowNumber,
           severity: 'ERROR',
           code: 'FIELD_LENGTH_EXCEEDED',
           message: `Field at column ${c + 1} exceeds maximum length limit of ${limits.maxFieldLength} characters.`
         });
+        hasFieldLengthExceeded = true;
       }
     }
 
-    const title = getField(row, 'title', 'book_title', 'article_title') ?? '';
+    const title = getFieldValue(row, 'title') ?? '';
     if (!title) {
       diagnostics.push({
         row: sourceRowNumber,
@@ -182,7 +250,7 @@ export function importBibliographyFromCsv(
       });
     }
 
-    const suppliedId = getField(row, 'id', 'record_id');
+    const suppliedId = getFieldValue(row, 'id');
     if (suppliedId) {
       if (seenSuppliedIds.has(suppliedId)) {
         diagnostics.push({
@@ -192,35 +260,42 @@ export function importBibliographyFromCsv(
           code: 'DUPLICATE_ID',
           message: `Duplicate record ID "${suppliedId}" detected.`
         });
+        hasDuplicateSuppliedId = true;
       } else {
         seenSuppliedIds.add(suppliedId);
       }
     }
 
-    const type = parseRecordType(getField(row, 'type', 'record_type', 'entry_type'), sourceRowNumber, diagnostics);
-    const containerTitle = getField(row, 'container_title', 'containerTitle', 'container', 'journal', 'booktitle', 'publication');
-    const authors = parseCreators(getField(row, 'authors', 'author', 'creators', 'creator') ?? '');
-    const editors = parseCreators(getField(row, 'editors', 'editor') ?? '');
-    const translators = parseCreators(getField(row, 'translators', 'translator') ?? '');
-    const year = getField(row, 'year', 'date', 'publication_year', 'pub_year');
-    const publisher = getField(row, 'publisher');
-    const place = getField(row, 'place', 'city', 'address', 'location');
-    const volume = getField(row, 'volume', 'vol');
-    const issue = getField(row, 'issue', 'number', 'no');
-    const pageStart = getField(row, 'page_start', 'pageStart', 'start_page', 'first_page', 'sp');
-    const pageEnd = getField(row, 'page_end', 'pageEnd', 'end_page', 'last_page', 'ep');
-    const doi = getField(row, 'doi');
-    const url = getField(row, 'url', 'link');
-    const isbn = getField(row, 'isbn');
-    const issn = getField(row, 'issn');
-    const language = getField(row, 'language', 'lang');
-    const notes = getField(row, 'notes', 'note', 'abstract');
+    const type = parseRecordType(getFieldValue(row, 'type'), sourceRowNumber, diagnostics);
+    const containerTitle = getFieldValue(row, 'containerTitle');
+    const authors = parseCreators(getFieldValue(row, 'authors') ?? '');
+    const editors = parseCreators(getFieldValue(row, 'editors') ?? '');
+    const translators = parseCreators(getFieldValue(row, 'translators') ?? '');
+    const year = getFieldValue(row, 'year');
+    const publisher = getFieldValue(row, 'publisher');
+    const place = getFieldValue(row, 'place');
+    const volume = getFieldValue(row, 'volume');
+    const issue = getFieldValue(row, 'issue');
+    const pageStart = getFieldValue(row, 'pageStart');
+    const pageEnd = getFieldValue(row, 'pageEnd');
+    const doi = getFieldValue(row, 'doi');
+    const url = getFieldValue(row, 'url');
+    const isbn = getFieldValue(row, 'isbn');
+    const issn = getFieldValue(row, 'issn');
+    const language = getFieldValue(row, 'language');
+    const notes = getFieldValue(row, 'notes');
+
+    // Extract exact source columns (verbatim values and header names)
+    const sourceColumns: BibliographySourceCell[] = parseResult.headers.map((header, colIdx) => ({
+      header,
+      value: row[colIdx] ?? ''
+    }));
 
     // Extract passthrough unknown columns
     const passthrough: Record<string, string> = {};
     parseResult.headers.forEach((headerName, colIdx) => {
       const normalized = normalizeHeaderKey(headerName);
-      if (!knownNormalizedHeaders.has(normalized)) {
+      if (!allKnownAliases.has(normalized)) {
         const val = row[colIdx];
         if (val !== undefined) {
           passthrough[headerName] = val;
@@ -264,14 +339,19 @@ export function importBibliographyFromCsv(
     records.push({
       ...recordBase,
       id,
-      sourceRowIndex: sourceRowNumber
+      sourceRowIndex: sourceRowNumber,
+      sourceColumns
     });
   }
 
-  const hasFatalErrors = diagnostics.some((d) => d.severity === 'ERROR' && d.code === 'DUPLICATE_ID');
+  const hasFatalErrors =
+    hasDuplicateSuppliedId ||
+    hasFieldLengthExceeded ||
+    hasAmbiguousHeader ||
+    parseResult.errors.length > 0;
 
   return {
-    records,
+    records: hasFatalErrors ? [] : records,
     diagnostics,
     success: !hasFatalErrors
   };

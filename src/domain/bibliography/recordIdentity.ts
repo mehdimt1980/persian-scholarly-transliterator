@@ -1,15 +1,22 @@
 import { BibliographyRecord } from './types';
 
-function fnv1a32Hex(input: string): string {
-  let hash = 0x811c9dc5;
+const FNV_OFFSET_BASIS_64 = 0xcbf29ce484222325n;
+const FNV_PRIME_64 = 0x100000001b3n;
+const MASK_64 = 0xffffffffffffffffn;
+
+/**
+ * Deterministic 64-bit FNV-1a hash formatted as a 16-character hexadecimal string.
+ */
+export function fnv1a64Hex(input: string): string {
+  let hash = FNV_OFFSET_BASIS_64;
   for (let i = 0; i < input.length; i++) {
-    hash ^= input.charCodeAt(i);
-    hash = Math.imul(hash, 0x01000193);
+    hash ^= BigInt(input.charCodeAt(i));
+    hash = (hash * FNV_PRIME_64) & MASK_64;
   }
-  return (hash >>> 0).toString(16).padStart(8, '0');
+  return hash.toString(16).padStart(16, '0');
 }
 
-export function computeRecordContentFingerprint(record: Omit<BibliographyRecord, 'id' | 'sourceRowIndex'>): string {
+export function computeRecordContentFingerprint(record: Omit<BibliographyRecord, 'id' | 'sourceRowIndex' | 'sourceColumns'>): string {
   const components = [
     record.type,
     record.title,
@@ -38,11 +45,11 @@ export function computeRecordContentFingerprint(record: Omit<BibliographyRecord,
     components.push(`${k}=${record.passthrough[k]}`);
   }
 
-  return fnv1a32Hex(components.join(':::'));
+  return fnv1a64Hex(components.join(':::'));
 }
 
 export function generateFallbackRecordId(
-  record: Omit<BibliographyRecord, 'id' | 'sourceRowIndex'>,
+  record: Omit<BibliographyRecord, 'id' | 'sourceRowIndex' | 'sourceColumns'>,
   occurrence: number
 ): string {
   const fingerprint = computeRecordContentFingerprint(record);

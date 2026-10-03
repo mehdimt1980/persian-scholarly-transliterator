@@ -1,4 +1,5 @@
 import { BibliographyDiagnostic, ProcessedBibliographyBatch, ProcessedBibliographyRecord } from '../types';
+import { getAuthoritativeFinalFieldValue } from '../csv/export';
 import { BibliographyExportReport, ScholarlyExportMode } from './types';
 
 function sanitizeRisValue(
@@ -35,14 +36,6 @@ function mapRecordTypeToRis(type: string): string {
   }
 }
 
-function getFinalOrSource(record: ProcessedBibliographyRecord, fieldPath: string, fallback: string | undefined): string {
-  const field = record.fields[fieldPath];
-  if (field && field.finalText !== null) {
-    return field.finalText;
-  }
-  return fallback ?? '';
-}
-
 export function exportToRis(
   batch: ProcessedBibliographyBatch,
   mode: ScholarlyExportMode = 'STRICT_ALL'
@@ -55,21 +48,31 @@ export function exportToRis(
   const eligibleRecords: ProcessedBibliographyRecord[] = [];
 
   for (const pr of batch.records) {
+    const reasons: string[] = [];
+
     if (pr.readiness !== 'READY') {
-      const reasons: string[] = [];
       if (pr.readiness === 'INVALID') {
         reasons.push(...pr.invalidReasons);
       } else {
         reasons.push(`Record has ${pr.reviewIssueCount} unresolved review issues.`);
       }
+    }
 
+    // Verify authoritative final values for all transformable fields
+    for (const [fieldPath, field] of Object.entries(pr.fields)) {
+      if (field.requiresTransliteration && field.finalText === null) {
+        reasons.push(`Field "${fieldPath}" is unauthoritative or unresolved for final export.`);
+      }
+    }
+
+    if (reasons.length > 0) {
       if (mode === 'STRICT_ALL') {
         diagnostics.push({
           recordId: pr.record.id,
           row: pr.record.sourceRowIndex,
           severity: 'ERROR',
           code: 'UNREADY_RECORD_BLOCKS_STRICT_EXPORT',
-          message: `Record "${pr.record.id}" is ${pr.readiness}: ${reasons.join('; ')}`
+          message: `Record "${pr.record.id}" cannot be exported: ${reasons.join('; ')}`
         });
       } else {
         skippedRecordIds.push(pr.record.id);
@@ -104,31 +107,31 @@ export function exportToRis(
     const lines: string[] = [];
     lines.push(`TY  - ${mapRecordTypeToRis(r.type)}`);
 
-    const title = getFinalOrSource(pr, 'title', r.title);
-    if (title) {
-      lines.push(`TI  - ${sanitizeRisValue(title, r.id, 'title', diagnostics)}`);
+    const titleAuth = getAuthoritativeFinalFieldValue(pr.fields['title'], r.title);
+    if (titleAuth.value) {
+      lines.push(`TI  - ${sanitizeRisValue(titleAuth.value, r.id, 'title', diagnostics)}`);
     }
 
     if (r.containerTitle) {
-      const containerTitle = getFinalOrSource(pr, 'containerTitle', r.containerTitle);
-      if (containerTitle) {
-        lines.push(`T2  - ${sanitizeRisValue(containerTitle, r.id, 'containerTitle', diagnostics)}`);
+      const containerAuth = getAuthoritativeFinalFieldValue(pr.fields['containerTitle'], r.containerTitle);
+      if (containerAuth.value) {
+        lines.push(`T2  - ${sanitizeRisValue(containerAuth.value, r.id, 'containerTitle', diagnostics)}`);
       }
     }
 
     // Authors
-    r.authors.forEach((_, idx) => {
-      const authorText = getFinalOrSource(pr, `authors.${idx}.literal`, r.authors[idx].literal);
-      if (authorText) {
-        lines.push(`AU  - ${sanitizeRisValue(authorText, r.id, `authors.${idx}`, diagnostics)}`);
+    r.authors.forEach((creator, idx) => {
+      const authorAuth = getAuthoritativeFinalFieldValue(pr.fields[`authors.${idx}.literal`], creator.literal);
+      if (authorAuth.value) {
+        lines.push(`AU  - ${sanitizeRisValue(authorAuth.value, r.id, `authors.${idx}`, diagnostics)}`);
       }
     });
 
     // Editors
-    r.editors.forEach((_, idx) => {
-      const editorText = getFinalOrSource(pr, `editors.${idx}.literal`, r.editors[idx].literal);
-      if (editorText) {
-        lines.push(`ED  - ${sanitizeRisValue(editorText, r.id, `editors.${idx}`, diagnostics)}`);
+    r.editors.forEach((creator, idx) => {
+      const editorAuth = getAuthoritativeFinalFieldValue(pr.fields[`editors.${idx}.literal`], creator.literal);
+      if (editorAuth.value) {
+        lines.push(`ED  - ${sanitizeRisValue(editorAuth.value, r.id, `editors.${idx}`, diagnostics)}`);
       }
     });
 
@@ -137,16 +140,16 @@ export function exportToRis(
     }
 
     if (r.publisher) {
-      const pub = getFinalOrSource(pr, 'publisher', r.publisher);
-      if (pub) {
-        lines.push(`PB  - ${sanitizeRisValue(pub, r.id, 'publisher', diagnostics)}`);
+      const pubAuth = getAuthoritativeFinalFieldValue(pr.fields['publisher'], r.publisher);
+      if (pubAuth.value) {
+        lines.push(`PB  - ${sanitizeRisValue(pubAuth.value, r.id, 'publisher', diagnostics)}`);
       }
     }
 
     if (r.place) {
-      const place = getFinalOrSource(pr, 'place', r.place);
-      if (place) {
-        lines.push(`CY  - ${sanitizeRisValue(place, r.id, 'place', diagnostics)}`);
+      const placeAuth = getAuthoritativeFinalFieldValue(pr.fields['place'], r.place);
+      if (placeAuth.value) {
+        lines.push(`CY  - ${sanitizeRisValue(placeAuth.value, r.id, 'place', diagnostics)}`);
       }
     }
 
@@ -174,9 +177,12 @@ export function exportToRis(
       lines.push(`UR  - ${sanitizeRisValue(r.url, r.id, 'url', diagnostics)}`);
     }
 
-    const standardNumber = r.isbn || r.issn;
-    if (standardNumber) {
-      lines.push(`SN  - ${sanitizeRisValue(standardNumber, r.id, 'isbn/issn', diagnostics)}`);
+    // Standard numbers: preserve BOTH isbn and issn if present
+    if (r.isbn) {
+      lines.push(`SN  - ${sanitizeRisValue(r.isbn, r.id, 'isbn', diagnostics)}`);
+    }
+    if (r.issn) {
+      lines.push(`SN  - ${sanitizeRisValue(r.issn, r.id, 'issn', diagnostics)}`);
     }
 
     if (r.notes) {

@@ -11,18 +11,21 @@ import {
 } from '../domain/assistance';
 import {
   importBibliographyFromCsv,
+  validateFileSize,
   processBibliographyBatch,
   exportReviewCsv,
   exportFinalCsv,
   exportToRis,
   exportToBibTeX,
+  makeBibliographyIssueScopeKey,
   BibliographyFieldPath,
   BibliographyRecord,
   BibliographyReviewDecision,
   BibliographyDiagnostic,
   BibliographyExportReport,
   ScholarlyExportMode,
-  ProcessedBibliographyRecord
+  ProcessedBibliographyRecord,
+  DEFAULT_IMPORT_LIMITS
 } from '../domain/bibliography';
 
 const fixture = 'تأملی درباره ایران: مکتب تبریز و مبانی تجددخواهی';
@@ -166,6 +169,11 @@ export default function Home() {
   const [exportMode, setExportMode] = useState<ScholarlyExportMode>('STRICT_ALL');
   const [exportReport, setExportReport] = useState<BibliographyExportReport | null>(null);
 
+  // Batch Field-Scoped Assistance State
+  const [batchAssistStatus, setBatchAssistStatus] = useState<Record<string, AssistStatusType>>({});
+  const [batchAssistResolutions, setBatchAssistResolutions] = useState<Record<string, AssistedResolution>>({});
+  const [batchAssistErrors, setBatchAssistErrors] = useState<Record<string, string>>({});
+
   const processedBatch = useMemo(
     () => processBibliographyBatch(batchRecords, batchReviewDecisions),
     [batchRecords, batchReviewDecisions]
@@ -178,6 +186,14 @@ export default function Home() {
 
   function handleImportCsv() {
     const result = importBibliographyFromCsv(csvText);
+    if (!result.success) {
+      setBatchRecords([]);
+      setImportDiagnostics(result.diagnostics);
+      setSelectedRecordId(null);
+      setBatchReviewDecisions([]);
+      setExportReport(null);
+      return;
+    }
     setBatchRecords(result.records);
     setImportDiagnostics(result.diagnostics);
     setBatchReviewDecisions([]);
@@ -192,11 +208,31 @@ export default function Home() {
   function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    // Item 8 & 25: Check file size BEFORE reading into memory
+    const sizeCheck = validateFileSize(file.size, DEFAULT_IMPORT_LIMITS.maxFileSize);
+    if (!sizeCheck.valid && sizeCheck.diagnostic) {
+      setBatchRecords([]);
+      setImportDiagnostics([sizeCheck.diagnostic]);
+      setSelectedRecordId(null);
+      setBatchReviewDecisions([]);
+      setExportReport(null);
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const content = e.target?.result as string;
       setCsvText(content);
       const result = importBibliographyFromCsv(content);
+      if (!result.success) {
+        setBatchRecords([]);
+        setImportDiagnostics(result.diagnostics);
+        setSelectedRecordId(null);
+        setBatchReviewDecisions([]);
+        setExportReport(null);
+        return;
+      }
       setBatchRecords(result.records);
       setImportDiagnostics(result.diagnostics);
       setBatchReviewDecisions([]);
@@ -223,6 +259,80 @@ export default function Home() {
         (d) => !(d.recordId === recordId && d.fieldPath === fieldPath && d.decision.issueId === issueId)
       )
     );
+  }
+
+  function resetFieldDecisions(recordId: string, fieldPath: BibliographyFieldPath) {
+    setBatchReviewDecisions((prev) =>
+      prev.filter((d) => !(d.recordId === recordId && d.fieldPath === fieldPath))
+    );
+  }
+
+  async function requestBatchAssistance(recordId: string, fieldPath: BibliographyFieldPath, issue: ReviewIssue) {
+    const scopeKey = makeBibliographyIssueScopeKey(recordId, fieldPath, issue.id);
+    const pr = processedBatch.records.find((r) => r.record.id === recordId);
+    const field = pr?.fields[fieldPath];
+    if (!field || !field.profile) return;
+
+    setBatchAssistStatus((prev) => ({ ...prev, [scopeKey]: 'loading' }));
+    setBatchAssistErrors((prev) => {
+      const next = { ...prev };
+      delete next[scopeKey];
+      return next;
+    });
+
+    const relevantDecisions = batchReviewDecisions
+      .filter((d) => d.recordId === recordId && d.fieldPath === fieldPath)
+      .map((d) => d.decision);
+
+    try {
+      const res = await fetch('/api/assist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          input: field.sourceText,
+          profile: field.profile,
+          reviewDecisions: relevantDecisions,
+          issueId: issue.id
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setBatchAssistStatus((prev) => ({ ...prev, [scopeKey]: res.status === 503 ? 'unavailable' : 'error' }));
+        setBatchAssistErrors((prev) => ({ ...prev, [scopeKey]: data.message || data.error || 'Assisted resolver request failed.' }));
+        return;
+      }
+
+      setBatchAssistResolutions((prev) => ({ ...prev, [scopeKey]: data.resolution }));
+      setBatchAssistStatus((prev) => ({ ...prev, [scopeKey]: 'available' }));
+    } catch (err: unknown) {
+      setBatchAssistStatus((prev) => ({ ...prev, [scopeKey]: 'error' }));
+      setBatchAssistErrors((prev) => ({ ...prev, [scopeKey]: err instanceof Error ? err.message : 'Network error.' }));
+    }
+  }
+
+  function applyBatchAssistedCandidate(
+    recordId: string,
+    fieldPath: BibliographyFieldPath,
+    issue: ReviewIssue,
+    candidate: AssistedCandidate,
+    resolution: AssistedResolution
+  ) {
+    const scopeKey = makeBibliographyIssueScopeKey(recordId, fieldPath, issue.id);
+    const pr = processedBatch.records.find((r) => r.record.id === recordId);
+    const field = pr?.fields[fieldPath];
+    if (!field || !field.transliterationResult) return;
+
+    try {
+      const currentRequest = buildResolverRequest(field.transliterationResult, issue.id);
+      const decision = candidateToReviewDecision(candidate.id, resolution, issue, currentRequest);
+      applyBatchFieldDecision(recordId, fieldPath, decision);
+    } catch (err) {
+      setBatchAssistErrors((prev) => ({
+        ...prev,
+        [scopeKey]: err instanceof Error ? err.message : 'Failed to apply suggestion.'
+      }));
+    }
   }
 
   function triggerDownload(report: BibliographyExportReport) {
@@ -323,8 +433,8 @@ export default function Home() {
             </div>
           </section>
 
-          {/* Single Review Workspace */}
-          {hasIssues && (
+          {/* Single Review Workspace: Visible when issues exist OR active decisions can be reviewed/undone */}
+          {(hasIssues || hasDecisions) && (
             <section className={`review-workspace ${result.copyable ? 'resolved-all' : ''}`}>
               <div className="review-workspace-header">
                 <div>
@@ -339,6 +449,24 @@ export default function Home() {
                   </button>
                 )}
               </div>
+
+              {/* Active Decisions Banner when issues are resolved */}
+              {hasDecisions && (
+                <div style={{ marginBottom: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {result.appliedDecisions.map((decision) => (
+                    <div key={decision.issueId} className="review-active-status" style={{ justifyContent: 'space-between' }}>
+                      <span>
+                        Active decision [{decision.issueId}]: {decision.action}
+                        {decision.manualCanonicalTransliteration ? ` (${decision.manualCanonicalTransliteration})` : ''}
+                        {decision.assistance ? ` · Assisted [${decision.assistance.suggestionId}]` : ''}
+                      </span>
+                      <button className="btn-clear" onClick={() => clearDecision(decision.issueId)}>
+                        Undo decision
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <div className="review-list">
                 {result.reviewIssues.map((issue) => {
@@ -501,6 +629,156 @@ export default function Home() {
               </div>
             </section>
           )}
+
+          {/* Token Inspection Section */}
+          <section className="inspection">
+            <div className="section-heading">
+              <div>
+                <p className="eyebrow">INSPECTION</p>
+                <h2>Token-level evidence</h2>
+              </div>
+              <p>Normalized surface, lookup form, orthographic evidence, lexical status, and rule provenance remain distinct.</p>
+            </div>
+            <div className="token-list">
+              {result.tokens.map((token, index) => {
+                if (!token.normalizedSurface.trim()) return null;
+                const analysis = result.analyses.find((item) => item.tokenIndex === index);
+                return (
+                  <article className="token" key={`${token.normalizedStart}-${index}`}>
+                    <div className="token-line">
+                      <span className="source" dir="rtl">{token.normalizedSurface}</span>
+                      <span className="arrow">→</span>
+                      <span>{token.rendered}</span>
+                      <span className={`badge ${token.status.toLowerCase()}`}>{token.status}</span>
+                    </div>
+                    <div className="token-meta">
+                      {token.automaticStatus && token.automaticStatus !== token.status && (
+                        <span className="auto-badge">automatic: {token.automaticStatus}</span>
+                      )}
+                      {analysis && <span>normalized span: {analysis.normalizedStart}–{analysis.normalizedEnd}</span>}
+                      {analysis && analysis.lookupForm !== analysis.normalizedSurface && (
+                        <span>lookup: <bdi dir="rtl">{analysis.lookupForm}</bdi></span>
+                      )}
+                      {analysis?.explicitVowels.map((vowel) => (
+                        <span key={`${vowel.normalizedTokenOffset}-${vowel.mark}`}>
+                          {vowel.mark.toLowerCase()} → {vowel.vowel} · normalized token offset {vowel.normalizedTokenOffset}
+                          {vowel.relationOnly ? ' · relation evidence' : ''}
+                        </span>
+                      ))}
+                      {analysis?.unsupportedCombiningMarks.map((mark) => (
+                        <span className="warning" key={`${mark.normalizedTokenOffset}-${mark.mark}`}>
+                          unsupported combining mark U+{mark.mark.codePointAt(0)?.toString(16).toUpperCase()} · normalized token offset {mark.normalizedTokenOffset}
+                        </span>
+                      ))}
+                      {analysis && analysis.zwnjBoundaries.length > 0 && (
+                        <span>ZWNJ boundaries: {analysis.zwnjBoundaries.join(', ')} · segments: {analysis.evidencedSegments.join(' | ')}</span>
+                      )}
+                      {token.confidence !== undefined && (
+                        <span>confidence {Math.round(token.confidence * 100)}%</span>
+                      )}
+                      {token.diagnosticScaffold && <span>diagnostic only: {token.diagnosticScaffold}</span>}
+                      {token.alternatives.length > 0 && (
+                        <span>alternatives: {token.alternatives.join(' · ')}</span>
+                      )}
+                      {token.appliedRules.length > 0 && (
+                        <span>{token.appliedRules.map((rule) => rule.id).join(' · ')}</span>
+                      )}
+                      {token.warnings.map((warning) => (
+                        <span className="warning" key={warning}>{warning}</span>
+                      ))}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* Morphology Section */}
+          <section className="inspection morphology">
+            <div className="section-heading">
+              <div>
+                <p className="eyebrow">MORPHOLOGY</p>
+                <h2>Productive suffix evidence</h2>
+              </div>
+              <p>Segmentation is shown separately from lexical resolution and IJMES rendering.</p>
+            </div>
+            {result.morphology.length === 0 ? (
+              <p className="empty-evidence">No supported productive suffix analysis.</p>
+            ) : (
+              <div className="token-list">
+                {result.morphology.map((analysis) => (
+                  <article className="token" key={`morph-${analysis.tokenIndex}`}>
+                    <div className="token-line">
+                      <span className="source" dir="rtl">{analysis.normalizedSurface}</span>
+                      <span className="arrow">→</span>
+                      <span dir="rtl">{analysis.morphemes.map((item) => item.normalizedSurface).join(' + ')}</span>
+                      <span className={`badge ${analysis.status === 'CONFIRMED' ? 'lexicon_resolved' : 'ambiguous'}`}>
+                        {analysis.status}
+                      </span>
+                    </div>
+                    <div className="token-meta">
+                      <span>
+                        stem: <bdi dir="rtl">{analysis.lexicalLookupStem}</bdi>
+                        {analysis.stemEntry?.readings[0] && ` → ${analysis.stemEntry.readings[0].canonical}`}
+                      </span>
+                      <span>host ending: {analysis.hostEnding}</span>
+                      {analysis.morphemes.filter((item) => item.type !== 'STEM').map((item) => (
+                        <span key={`${item.type}-${item.normalizedStart}`}>
+                          {item.normalizedSurface} · {item.type}
+                          {item.canonicalRendering && ` → -${item.canonicalRendering}`}
+                        </span>
+                      ))}
+                      {analysis.evidence.map((item) => (
+                        <span key={`${item.kind}-${item.rule.id}`}>{item.kind} · {item.rule.id}</span>
+                      ))}
+                      {analysis.alternatives.length > 0 && <span>alternatives: {analysis.alternatives.join(' · ')}</span>}
+                      {analysis.warnings.map((warning) => (
+                        <span className="warning" key={warning}>{warning}</span>
+                      ))}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Relations Section */}
+          <section className="inspection relations">
+            <div className="section-heading">
+              <div>
+                <p className="eyebrow">RELATIONS</p>
+                <h2>Context evidence</h2>
+              </div>
+              <p>Known words can still have an uncertain grammatical relation.</p>
+            </div>
+            {result.relations.length === 0 ? (
+              <p className="empty-evidence">No contextual relation detected.</p>
+            ) : (
+              <div className="token-list">
+                {result.relations.map((relation, index) => (
+                  <article className="token" key={`${relation.sourceTokenIndex}-${relation.targetTokenIndex}-${index}`}>
+                    <div className="token-line">
+                      <span className="source" dir="rtl">{result.tokens[relation.sourceTokenIndex].normalizedSurface}</span>
+                      <span className="arrow">IZĀFAT</span>
+                      <span dir="rtl">{result.tokens[relation.targetTokenIndex].normalizedSurface}</span>
+                      <span className={`badge ${relation.status === 'CANDIDATE' ? 'ambiguous' : relation.disposition === 'REJECTED' ? 'user_override' : ''}`}>
+                        {relation.disposition === 'REJECTED' ? 'REJECTED' : relation.status}
+                      </span>
+                    </div>
+                    <div className="token-meta">
+                      <span>rendering: {relation.rendering}</span>
+                      {relation.evidence.map((evidence) => (
+                        <span key={evidence.rule.id}>{evidence.rule.id} · {evidence.source}</span>
+                      ))}
+                      {relation.warnings.map((warning) => (
+                        <span className="warning" key={warning}>{warning}</span>
+                      ))}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
         </>
       ) : (
         /* Batch Workspace Mode */
@@ -553,7 +831,7 @@ export default function Home() {
               <div style={{ marginTop: '14px' }}>
                 {importDiagnostics.map((d, i) => (
                   <div key={i} className={`assisted-msg ${d.severity === 'ERROR' ? 'error' : ''}`}>
-                    [{d.code}] Row {d.row ?? 'batch'}: {d.message}
+                    [{d.code}] {d.row ? `Row ${d.row}: ` : ''}{d.message}
                   </div>
                 ))}
               </div>
@@ -628,7 +906,7 @@ export default function Home() {
                       const isSelected = pr.record.id === selectedRecordId;
                       return (
                         <tr
-                          key={pr.record.id}
+                           key={pr.record.id}
                           className={`batch-row-clickable ${isSelected ? 'selected' : ''}`}
                           onClick={() => setSelectedRecordId(pr.record.id)}
                         >
@@ -683,6 +961,10 @@ export default function Home() {
                   <div className="field-cards-grid">
                     {Object.values(selectedRecord.fields).map((field) => {
                       const needsReview = field.status === 'REVIEW_REQUIRED' || field.status === 'UNRESOLVED';
+                      const activeDecisionsForField = batchReviewDecisions.filter(
+                        (d) => d.recordId === selectedRecord.record.id && d.fieldPath === field.fieldPath
+                      );
+
                       return (
                         <div
                           key={field.fieldPath}
@@ -698,53 +980,178 @@ export default function Home() {
                             Final: {field.finalText ? <strong>{field.finalText}</strong> : <span className="muted">Pending review</span>}
                           </div>
 
-                          {/* Field Review Actions */}
-                          {field.reviewIssues.length > 0 && (
-                            <div style={{ marginTop: '12px' }}>
-                              {field.reviewIssues.map((issue) => (
-                                <div key={issue.id} style={{ marginTop: '8px', padding: '10px', background: '#fff', border: '1px solid var(--line)' }}>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                                    <strong style={{ fontSize: '13px' }}>{issue.description}</strong>
-                                    <span className="badge ambiguous">{issue.type}</span>
-                                  </div>
-                                  <div className="review-actions">
-                                    {issue.alternatives.map((alt) => (
-                                      <button
-                                        key={alt.id}
-                                        className="secondary"
-                                        style={{ padding: '4px 8px', fontSize: '11px' }}
-                                        onClick={() =>
-                                          applyBatchFieldDecision(selectedRecord.record.id, field.fieldPath, {
-                                            issueId: issue.id,
-                                            action: actionForAlternative(issue, alt.id),
-                                            selectedAlternativeId: alt.id
-                                          })
-                                        }
-                                      >
-                                        {alt.label} {alt.canonical ? `(${alt.canonical})` : ''}
-                                      </button>
-                                    ))}
-                                    {issue.allowedActions.includes('MANUAL_CANONICAL_OVERRIDE') && (
-                                      <button
-                                        className="secondary"
-                                        style={{ padding: '4px 8px', fontSize: '11px' }}
-                                        onClick={() => {
-                                          const val = prompt('Enter manual Latin canonical transliteration:');
-                                          if (val && val.trim().length > 0) {
-                                            applyBatchFieldDecision(selectedRecord.record.id, field.fieldPath, {
-                                              issueId: issue.id,
-                                              action: 'MANUAL_CANONICAL_OVERRIDE',
-                                              manualCanonicalTransliteration: val.trim()
-                                            });
-                                          }
-                                        }}
-                                      >
-                                        Manual override...
-                                      </button>
-                                    )}
-                                  </div>
+                          {/* Active Field Decisions Display with Undo/Reset (Item 17) */}
+                          {activeDecisionsForField.length > 0 && (
+                            <div style={{ marginTop: '8px', borderTop: '1px solid var(--line)', paddingTop: '6px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--ink)' }}>Active Field Decisions:</span>
+                                <button
+                                  className="btn-clear"
+                                  style={{ fontSize: '10px' }}
+                                  onClick={() => resetFieldDecisions(selectedRecord.record.id, field.fieldPath)}
+                                >
+                                  Reset field
+                                </button>
+                              </div>
+                              {activeDecisionsForField.map((bd) => (
+                                <div key={bd.decision.issueId} className="review-active-status" style={{ justifyContent: 'space-between', padding: '4px 8px', margin: '4px 0' }}>
+                                  <span style={{ fontSize: '11px' }}>
+                                    {bd.decision.action}
+                                    {bd.decision.manualCanonicalTransliteration ? ` (${bd.decision.manualCanonicalTransliteration})` : ''}
+                                    {bd.decision.selectedAlternativeId ? ` [${bd.decision.selectedAlternativeId}]` : ''}
+                                  </span>
+                                  <button
+                                    className="btn-clear"
+                                    style={{ fontSize: '10px' }}
+                                    onClick={() => clearBatchFieldDecision(selectedRecord.record.id, field.fieldPath, bd.decision.issueId)}
+                                  >
+                                    Undo
+                                  </button>
                                 </div>
                               ))}
+                            </div>
+                          )}
+
+                          {/* Field Review Actions & Field-Scoped Assistance (Items 12-16) */}
+                          {field.reviewIssues.length > 0 && (
+                            <div style={{ marginTop: '12px' }}>
+                              {field.reviewIssues.map((issue) => {
+                                const scopeKey = makeBibliographyIssueScopeKey(selectedRecord.record.id, field.fieldPath, issue.id);
+                                const assistStat = batchAssistStatus[scopeKey] || 'idle';
+                                const assistRes = batchAssistResolutions[scopeKey];
+                                const assistErr = batchAssistErrors[scopeKey];
+
+                                let isStale = false;
+                                if (assistRes && field.transliterationResult) {
+                                  const currentReq = buildResolverRequest(field.transliterationResult, issue.id);
+                                  if (!currentReq) {
+                                    isStale = true;
+                                  } else {
+                                    const currentFp = computeRequestFingerprint(currentReq, assistRes.provider, assistRes.model);
+                                    isStale = assistRes.requestFingerprint !== currentFp;
+                                  }
+                                }
+
+                                return (
+                                  <div key={issue.id} style={{ marginTop: '8px', padding: '10px', background: '#fff', border: '1px solid var(--line)' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                      <strong style={{ fontSize: '13px' }}>{issue.description}</strong>
+                                      <span className="badge ambiguous">{issue.type}</span>
+                                    </div>
+                                    <div className="review-actions">
+                                      {issue.alternatives.map((alt) => (
+                                        <button
+                                          key={alt.id}
+                                          className="secondary"
+                                          style={{ padding: '4px 8px', fontSize: '11px' }}
+                                          onClick={() =>
+                                            applyBatchFieldDecision(selectedRecord.record.id, field.fieldPath, {
+                                              issueId: issue.id,
+                                              action: actionForAlternative(issue, alt.id),
+                                              selectedAlternativeId: alt.id
+                                            })
+                                          }
+                                        >
+                                          {alt.label} {alt.canonical ? `(${alt.canonical})` : ''}
+                                        </button>
+                                      ))}
+                                      {issue.allowedActions.includes('MANUAL_CANONICAL_OVERRIDE') && (
+                                        <button
+                                          className="secondary"
+                                          style={{ padding: '4px 8px', fontSize: '11px' }}
+                                          onClick={() => {
+                                            const val = prompt('Enter manual Latin canonical transliteration:');
+                                            if (val && val.trim().length > 0) {
+                                              applyBatchFieldDecision(selectedRecord.record.id, field.fieldPath, {
+                                                issueId: issue.id,
+                                                action: 'MANUAL_CANONICAL_OVERRIDE',
+                                                manualCanonicalTransliteration: val.trim()
+                                              });
+                                            }
+                                          }}
+                                        >
+                                          Manual override...
+                                        </button>
+                                      )}
+                                    </div>
+
+                                    {/* Field-Scoped Assisted Candidate Section */}
+                                    <div className="assisted-section" style={{ marginTop: '8px' }}>
+                                      <div className="assisted-header">
+                                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                          <span className="ai-badge">AI Advisory</span>
+                                          Assisted Suggestions
+                                        </span>
+                                        <button
+                                          className="secondary"
+                                          style={{ padding: '3px 6px', fontSize: '10px' }}
+                                          onClick={() => requestBatchAssistance(selectedRecord.record.id, field.fieldPath, issue)}
+                                          disabled={assistStat === 'loading'}
+                                        >
+                                          {assistStat === 'loading' ? 'Analyzing...' : assistRes ? 'Re-query' : 'Ask Assisted Resolver'}
+                                        </button>
+                                      </div>
+
+                                      {assistStat === 'unavailable' && (
+                                        <div className="assisted-msg" style={{ fontSize: '11px' }}>
+                                          Assisted resolver unavailable (OpenAI credentials not configured).
+                                        </div>
+                                      )}
+
+                                      {assistErr && <div className="assisted-msg error" style={{ fontSize: '11px' }}>{assistErr}</div>}
+
+                                      {assistRes && (
+                                        <>
+                                          {isStale && (
+                                            <div className="stale-banner" style={{ fontSize: '11px' }}>
+                                              Field state has changed. Suggestions are stale.
+                                            </div>
+                                          )}
+
+                                          <div className={`assisted-candidates-grid ${isStale ? 'is-stale' : ''}`}>
+                                            {assistRes.candidates.length === 0 ? (
+                                              <div className="assisted-msg" style={{ fontSize: '11px' }}>No suggestions proposed.</div>
+                                            ) : (
+                                              assistRes.candidates.map((cand) => (
+                                                <div key={cand.id} className="assisted-candidate-card" style={{ padding: '6px' }}>
+                                                  <div className="assisted-candidate-info">
+                                                    <div className="assisted-candidate-top">
+                                                      <strong style={{ fontSize: '12px' }}>
+                                                        {cand.kind === 'EXISTING_LEXICAL_READING' && cand.canonical}
+                                                        {cand.kind === 'MANUAL_CANONICAL' && cand.canonical}
+                                                        {cand.kind === 'IZAFAT_DECISION' && cand.relationDecision}
+                                                        {cand.kind === 'MORPHOLOGY_BRANCH' && cand.morphologyBranch}
+                                                      </strong>
+                                                      <span className="badge-basis">{cand.basis}</span>
+                                                    </div>
+                                                    <p className="assisted-rationale" style={{ fontSize: '10px' }}>{cand.rationale}</p>
+                                                  </div>
+                                                  <button
+                                                    className="secondary"
+                                                    style={{ padding: '4px 6px', fontSize: '10px' }}
+                                                    onClick={() =>
+                                                      applyBatchAssistedCandidate(
+                                                        selectedRecord.record.id,
+                                                        field.fieldPath,
+                                                        issue,
+                                                        cand,
+                                                        assistRes
+                                                      )
+                                                    }
+                                                    disabled={isStale}
+                                                  >
+                                                    Use suggestion
+                                                  </button>
+                                                </div>
+                                              ))
+                                            )}
+                                          </div>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
                             </div>
                           )}
                         </div>
