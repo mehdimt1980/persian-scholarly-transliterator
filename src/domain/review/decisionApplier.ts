@@ -1,5 +1,6 @@
 import { DEFAULT_LEXICON_REPOSITORY } from '../../data/lexicon';
 import { LexiconRepository } from '../lexicon/repository';
+import { stableReadingIdentity } from '../lexicon/types';
 import { RULES } from '../provenance';
 import { ContextRelation, LexicalEntry, MorphologicalAnalysis, RuleDefinition, Token, TokenAnalysis, TokenResult } from '../types';
 import { ReviewDecision, ReviewIssue } from './types';
@@ -127,7 +128,7 @@ export function applyReviewDecisions(
         const lookupForm = analysis?.lookupForm ?? tokens[tokenIndex]?.normalizedSurface;
         const entry = lexicon.findByNormalized(lookupForm) ?? entries[tokenIndex];
         const reading = entry?.readings.find((r) =>
-          r.id === matchingAlt.id || r.canonical === matchingAlt.canonical
+          r.id === matchingAlt.id || r.canonical === matchingAlt.canonical || stableReadingIdentity(r) === matchingAlt.id
         );
         const canonicalValue = reading?.canonical ?? matchingAlt.canonical;
 

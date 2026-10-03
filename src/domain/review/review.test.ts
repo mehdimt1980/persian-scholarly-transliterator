@@ -486,7 +486,137 @@ describe('Human Review and Override Workflow', () => {
       expect(result3.copyable).toBe(false);
     });
 
-    it('generates identical issue IDs when identical candidate sets are provided in different ordering', () => {
+    it('generates identical issue IDs for readings without IDs independent of array ordering (Test A)', () => {
+      const repoA = new LexiconRepository([
+        {
+          id: 'lex:no_id_test',
+          surface: 'کرم',
+          normalized: 'کرم',
+          category: 'noun',
+          readings: [
+            { canonical: 'karam', confidence: 0.5, source: 'Source 1' },
+            { canonical: 'kirm', confidence: 0.5, source: 'Source 2' }
+          ]
+        }
+      ]);
+
+      const repoB = new LexiconRepository([
+        {
+          id: 'lex:no_id_test',
+          surface: 'کرم',
+          normalized: 'کرم',
+          category: 'noun',
+          readings: [
+            { canonical: 'kirm', confidence: 0.5, source: 'Source 2' },
+            { canonical: 'karam', confidence: 0.5, source: 'Source 1' }
+          ]
+        }
+      ]);
+
+      const initialA = transliterate('کرم', 'ijmes_full', [], repoA);
+      const initialB = transliterate('کرم', 'ijmes_full', [], repoB);
+
+      expect(initialA.reviewIssues.length).toBe(1);
+      expect(initialB.reviewIssues.length).toBe(1);
+      expect(initialA.reviewIssues[0].id).toBe(initialB.reviewIssues[0].id);
+    });
+
+    it('invalidates morphology decision when whole-word branch reading set changes (Test B)', () => {
+      const repoInitial = new LexiconRepository([
+        { id: 'lex:stem', surface: 'کتاب', normalized: 'کتاب', category: 'noun', readings: [{ canonical: 'kitāb', confidence: 0.98, source: 'Stem' }] },
+        {
+          id: 'lex:whole',
+          surface: 'کتابها',
+          normalized: 'کتابها',
+          category: 'noun',
+          readings: [
+            { canonical: 'reading_a', confidence: 0.5, source: 'Source A' },
+            { canonical: 'reading_b', confidence: 0.5, source: 'Source B' }
+          ]
+        }
+      ]);
+
+      const repoChanged = new LexiconRepository([
+        { id: 'lex:stem', surface: 'کتاب', normalized: 'کتاب', category: 'noun', readings: [{ canonical: 'kitāb', confidence: 0.98, source: 'Stem' }] },
+        {
+          id: 'lex:whole',
+          surface: 'کتابها',
+          normalized: 'کتابها',
+          category: 'noun',
+          readings: [
+            { canonical: 'reading_a', confidence: 0.5, source: 'Source A' },
+            { canonical: 'reading_c', confidence: 0.5, source: 'Source C' }
+          ]
+        }
+      ]);
+
+      const input = 'کتابها';
+      const initial = transliterate(input, 'ijmes_full', [], repoInitial);
+      const initialChanged = transliterate(input, 'ijmes_full', [], repoChanged);
+
+      // Morphology issue IDs must differ because whole-word reading set changed
+      expect(initial.reviewIssues[0].id).not.toBe(initialChanged.reviewIssues[0].id);
+
+      const decision: ReviewDecision = {
+        issueId: initial.reviewIssues[0].id,
+        action: 'SELECT_MORPHOLOGY',
+        selectedAlternativeId: 'WHOLE_WORD'
+      };
+
+      const resultChanged = transliterate(input, 'ijmes_full', [decision], repoChanged);
+      expect(resultChanged.appliedDecisions.length).toBe(0);
+      expect(resultChanged.staleDecisions.length).toBe(1);
+      expect(resultChanged.copyable).toBe(false);
+    });
+
+    it('invalidates morphology decision when productive stem branch reading set changes (Test C)', () => {
+      const repoInitial = new LexiconRepository([
+        {
+          id: 'lex:stem',
+          surface: 'کتاب',
+          normalized: 'کتاب',
+          category: 'noun',
+          readings: [
+            { canonical: 'stem_a', confidence: 0.5, source: 'Stem A' },
+            { canonical: 'stem_b', confidence: 0.5, source: 'Stem B' }
+          ]
+        },
+        { id: 'lex:whole', surface: 'کتابها', normalized: 'کتابها', category: 'noun', readings: [{ canonical: 'whole_word', confidence: 0.8, source: 'Whole' }] }
+      ]);
+
+      const repoChanged = new LexiconRepository([
+        {
+          id: 'lex:stem',
+          surface: 'کتاب',
+          normalized: 'کتاب',
+          category: 'noun',
+          readings: [
+            { canonical: 'stem_a', confidence: 0.5, source: 'Stem A' },
+            { canonical: 'stem_c', confidence: 0.5, source: 'Stem C' }
+          ]
+        },
+        { id: 'lex:whole', surface: 'کتابها', normalized: 'کتابها', category: 'noun', readings: [{ canonical: 'whole_word', confidence: 0.8, source: 'Whole' }] }
+      ]);
+
+      const input = 'کتابها';
+      const initial = transliterate(input, 'ijmes_full', [], repoInitial);
+      const initialChanged = transliterate(input, 'ijmes_full', [], repoChanged);
+
+      expect(initial.reviewIssues[0].id).not.toBe(initialChanged.reviewIssues[0].id);
+
+      const decision: ReviewDecision = {
+        issueId: initial.reviewIssues[0].id,
+        action: 'SELECT_MORPHOLOGY',
+        selectedAlternativeId: 'PRODUCTIVE_SEGMENTATION'
+      };
+
+      const resultChanged = transliterate(input, 'ijmes_full', [decision], repoChanged);
+      expect(resultChanged.appliedDecisions.length).toBe(0);
+      expect(resultChanged.staleDecisions.length).toBe(1);
+      expect(resultChanged.copyable).toBe(false);
+    });
+
+    it('generates identical issue IDs when explicit reading IDs exist regardless of ordering (Test D)', () => {
       const repoOrderA = new LexiconRepository([
         {
           id: 'lex:order_test',

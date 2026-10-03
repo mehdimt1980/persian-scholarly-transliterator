@@ -1,5 +1,6 @@
 import { DEFAULT_LEXICON_REPOSITORY } from '../../data/lexicon';
 import { LexiconRepository } from '../lexicon/repository';
+import { stableReadingIdentity } from '../lexicon/types';
 import { ContextRelation, LexicalEntry, MorphologicalAnalysis, Token, TokenAnalysis, TokenResult } from '../types';
 import { ReviewAlternative, ReviewIssue, ReviewIssueType } from './types';
 
@@ -101,10 +102,15 @@ export function detectReviewIssues(
         }
       ];
 
-      const payloadKey = alternatives
-        .map((a) => `${a.id}=${a.canonical ?? ''}`)
-        .sort()
-        .join(';');
+      const wholeWordReadingsList = wholeEntry ? wholeEntry.readings.map(stableReadingIdentity).sort().join(',') : '';
+      const stemReadingsList = morph.stemEntry ? morph.stemEntry.readings.map(stableReadingIdentity).sort().join(',') : '';
+      const suffixType = suffix?.type ?? '';
+      const suffixRender = suffix?.canonicalRendering ?? '';
+
+      const payloadKey = [
+        `WHOLE_WORD=[${wholeWordReadingsList}]|canonical=${wholeWordReading ?? ''}`,
+        `PRODUCTIVE_SEGMENTATION=[${stemReadingsList}]|suffix=${suffixType}|render=${suffixRender}|canonical=${morphReading ?? ''}`
+      ].sort().join(';');
 
       issues.push({
         id: generateTokenIssueId(inputFingerprint, token, tokenIndex, 'MORPHOLOGY_AMBIGUITY', payloadKey),
@@ -178,15 +184,15 @@ export function detectReviewIssues(
       ) ?? [];
 
       const alternatives: ReviewAlternative[] = compatibleReadings.length > 0
-        ? compatibleReadings.map((reading, idx) => ({
-            id: reading.id ?? `reading:${reading.canonical}:${idx}`,
+        ? compatibleReadings.map((reading) => ({
+            id: stableReadingIdentity(reading),
             label: reading.canonical,
             canonical: reading.canonical,
             description: reading.notes ?? (reading.vocalization ? `Vocalized reading (${reading.canonical})` : undefined),
             source: reading.source
           }))
-        : result.alternatives.map((alt, idx) => ({
-            id: `alt:${alt}:${idx}`,
+        : result.alternatives.map((alt) => ({
+            id: `alt:${alt}`,
             label: alt,
             canonical: alt,
             description: `Alternative reading: ${alt}`

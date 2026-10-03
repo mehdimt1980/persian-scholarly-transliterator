@@ -39,6 +39,10 @@ export interface LexicalReading {
   category?: LexicalCategory;
 }
 
+export function stableReadingIdentity(reading: LexicalReading): string {
+  return reading.id ?? `canonical:${reading.canonical}`;
+}
+
 export interface LexicalContextEvidence {
   explicitIzafatAfter?: string[];
   source: string;
