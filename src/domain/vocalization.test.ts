@@ -3,7 +3,7 @@ import { RULES } from './provenance';
 import { LexicalReading, OrthographicVowelEvidence } from './types';
 import { evaluateEvidenceCompatibility, resolveVocalizedReadings } from './vocalization';
 
-const kasra: OrthographicVowelEvidence[] = [{ mark: 'KASRA', vowel: 'i', sourceOffset: 1, afterBaseIndex: 0, rule: RULES.orthKasra, relationOnly: false }];
+const kasra: OrthographicVowelEvidence[] = [{ mark: 'KASRA', vowel: 'i', normalizedTokenOffset: 1, afterBaseIndex: 0, rule: RULES.orthKasra, relationOnly: false }];
 const reading = (canonical: string, vowel?: 'a' | 'i' | 'u'): LexicalReading => ({ canonical, confidence: 0.5, source: 'test', vocalization: vowel ? [{ afterBaseIndex: 0, vowel }] : undefined });
 
 describe('tri-state explicit-vowel compatibility', () => {

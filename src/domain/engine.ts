@@ -26,14 +26,15 @@ function unresolvedToken(token: Token, analysis: TokenAnalysis, warning: string,
   const appliedRules: TokenResult['appliedRules'] = [RULES.consonantalScaffold, ...analysis.provenance];
   const warnings = [warning, ...analysis.warnings];
   if (token.normalizedSurface.includes('ة')) { appliedRules.push(RULES.persianTaMarbuta); warnings.push('The guide requires Persian tāʾ marbūṭa to render as ih; the diagnostic scaffold records [TM] rather than guessing a final reading.'); }
-  return { source: token.normalizedSurface, tokenType: token.type, canonicalTransliteration: null, rendered: reviewPlaceholder(token.normalizedSurface, 'unresolved', alternatives), diagnosticScaffold: consonantalScaffold(token.normalizedSurface), status: 'UNRESOLVED', confidence: 0, appliedRules, lexicalSources: [], warnings, alternatives, start: token.normalizedStart, end: token.normalizedEnd };
+  return { normalizedSurface: token.normalizedSurface, tokenType: token.type, canonicalTransliteration: null, rendered: reviewPlaceholder(token.normalizedSurface, 'unresolved', alternatives), diagnosticScaffold: consonantalScaffold(token.normalizedSurface), status: 'UNRESOLVED', confidence: 0, appliedRules, lexicalSources: [], warnings, alternatives, normalizedStart: token.normalizedStart, normalizedEnd: token.normalizedEnd };
 }
 
 function resolveToken(token: Token, analysis?: TokenAnalysis): { result: TokenResult; entry?: LexicalEntry } {
-  if (['whitespace', 'punctuation', 'number', 'latin'].includes(token.type)) return { result: { source: token.normalizedSurface, tokenType: token.type, canonicalTransliteration: token.normalizedSurface, rendered: token.normalizedSurface, status: 'DETERMINISTIC', appliedRules: [], lexicalSources: [], warnings: [], alternatives: [], start: token.normalizedStart, end: token.normalizedEnd } };
-  if (!analysis) return { result: unresolvedToken(token, { tokenIndex: -1, normalizedSurface: token.normalizedSurface, lookupForm: token.normalizedSurface, normalizedStart: token.normalizedStart, normalizedEnd: token.normalizedEnd, explicitVowels: [], explicitIzafat: null, zwnjBoundaries: [], evidencedSegments: [token.normalizedSurface], warnings: [], provenance: [] }, 'Token type is not supported.') };
+  if (['whitespace', 'punctuation', 'number', 'latin'].includes(token.type)) return { result: { normalizedSurface: token.normalizedSurface, tokenType: token.type, canonicalTransliteration: token.normalizedSurface, rendered: token.normalizedSurface, status: 'DETERMINISTIC', appliedRules: [], lexicalSources: [], warnings: [], alternatives: [], normalizedStart: token.normalizedStart, normalizedEnd: token.normalizedEnd } };
+  if (!analysis) return { result: unresolvedToken(token, { tokenIndex: -1, normalizedSurface: token.normalizedSurface, lookupForm: token.normalizedSurface, normalizedStart: token.normalizedStart, normalizedEnd: token.normalizedEnd, explicitVowels: [], explicitIzafat: null, unsupportedCombiningMarks: [], zwnjBoundaries: [], evidencedSegments: [token.normalizedSurface], warnings: [], provenance: [] }, 'Token type is not supported.') };
   const entry = LEXICON.find((candidate) => candidate.normalized === analysis.lookupForm);
   if (!entry) return { result: unresolvedToken(token, analysis, 'No reviewed lexical reading exists; the diagnostic scaffold is not final transliteration.') };
+  if (analysis.unsupportedCombiningMarks.length) return { result: unresolvedToken(token, analysis, 'Unsupported combining-mark evidence prevents authoritative lexical resolution in Phase 2A.', entry.readings.map((reading) => reading.canonical)), entry };
   const lexicalEvidence = analysis.explicitVowels.filter((evidence) => !evidence.relationOnly);
   let compatible = entry.readings;
   let evidenceWarning: string | undefined;
@@ -46,11 +47,11 @@ function resolveToken(token: Token, analysis?: TokenAnalysis): { result: TokenRe
   }
   if (compatible.length !== 1) {
     const alternatives = compatible.map((reading) => reading.canonical);
-    return { result: { source: token.normalizedSurface, tokenType: token.type, canonicalTransliteration: null, rendered: reviewPlaceholder(token.normalizedSurface, 'ambiguous', alternatives), status: 'AMBIGUOUS', confidence: Math.max(...compatible.map((reading) => reading.confidence)), lexicalCategory: entry.category, appliedRules: [RULES.lexicalResolution, ...analysis.provenance], lexicalSources: compatible.map((reading) => reading.source), warnings: [evidenceWarning ?? entry.notes ?? 'Multiple supported readings require human review.', ...analysis.warnings], alternatives, start: token.normalizedStart, end: token.normalizedEnd }, entry };
+    return { result: { normalizedSurface: token.normalizedSurface, tokenType: token.type, canonicalTransliteration: null, rendered: reviewPlaceholder(token.normalizedSurface, 'ambiguous', alternatives), status: 'AMBIGUOUS', confidence: Math.max(...compatible.map((reading) => reading.confidence)), lexicalCategory: entry.category, appliedRules: [RULES.lexicalResolution, ...analysis.provenance], lexicalSources: compatible.map((reading) => reading.source), warnings: [evidenceWarning ?? entry.notes ?? 'Multiple supported readings require human review.', ...analysis.warnings], alternatives, normalizedStart: token.normalizedStart, normalizedEnd: token.normalizedEnd }, entry };
   }
   const reading = compatible[0]; const appliedRules: TokenResult['appliedRules'] = [RULES.lexicalResolution, ...analysis.provenance];
   const canonical = applyCanonicalIjmes(reading.canonical, appliedRules);
-  return { result: { source: token.normalizedSurface, tokenType: token.type, canonicalTransliteration: canonical, rendered: canonical, status: 'LEXICON_RESOLVED', confidence: reading.confidence, lexicalCategory: entry.category, appliedRules, lexicalSources: [reading.source], warnings: [...(entry.notes ? [entry.notes] : []), ...analysis.warnings], alternatives: [], start: token.normalizedStart, end: token.normalizedEnd }, entry };
+  return { result: { normalizedSurface: token.normalizedSurface, tokenType: token.type, canonicalTransliteration: canonical, rendered: canonical, status: 'LEXICON_RESOLVED', confidence: reading.confidence, lexicalCategory: entry.category, appliedRules, lexicalSources: [reading.source], warnings: [...(entry.notes ? [entry.notes] : []), ...analysis.warnings], alternatives: [], normalizedStart: token.normalizedStart, normalizedEnd: token.normalizedEnd }, entry };
 }
 
 function overallStatus(results: TokenResult[], relations: ContextRelation[]): ResultStatus {

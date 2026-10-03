@@ -23,6 +23,19 @@ describe('explicit-vowel lexical resolution', () => {
     expect(result.tokens[0].warnings.join(' ')).toMatch(/metadata is incomplete/i);
     expect(result.tokens[0].warnings.join(' ')).not.toMatch(/conflicts with every/i);
   });
+
+  it('preserves unsupported combining evidence but blocks authoritative resolution', () => {
+    const result = transliterate('کِّرم');
+    expect(result.status).toBe('UNRESOLVED');
+    expect(result.copyable).toBe(false);
+    expect(result.tokens[0].canonicalTransliteration).toBeNull();
+    expect(result.analyses[0].unsupportedCombiningMarks[0]).toMatchObject({
+      mark: 'ّ',
+      normalizedTokenOffset: 2,
+      afterBaseIndex: 0
+    });
+    expect(result.tokens[0].warnings.join(' ')).toMatch(/unsupported combining-mark evidence/i);
+  });
 });
 
 describe('productive izāfat relation analysis', () => {
@@ -66,7 +79,7 @@ describe('productive izāfat relation analysis', () => {
 
   it('uses punctuation as the structural boundary without corrupting adjacent lexical tokens', () => {
     const result = transliterate('کتاب، ایران');
-    expect(result.tokens.map((token) => [token.source, token.tokenType, token.status])).toEqual([
+    expect(result.tokens.map((token) => [token.normalizedSurface, token.tokenType, token.status])).toEqual([
       ['کتاب', 'persian-word', 'LEXICON_RESOLVED'],
       ['،', 'punctuation', 'DETERMINISTIC'],
       [' ', 'whitespace', 'DETERMINISTIC'],
@@ -79,7 +92,7 @@ describe('productive izāfat relation analysis', () => {
     const result = transliterate('ایران و تبریز');
     const lexical = result.tokens.filter((token) => token.tokenType === 'persian-word');
     expect(lexical.map((token) => token.status)).toEqual(['LEXICON_RESOLVED', 'LEXICON_RESOLVED', 'LEXICON_RESOLVED']);
-    expect(lexical[1]).toMatchObject({ source: 'و', lexicalCategory: 'conjunction' });
+    expect(lexical[1]).toMatchObject({ normalizedSurface: 'و', lexicalCategory: 'conjunction' });
     expect(result.relations).toEqual([]);
   });
 
@@ -87,7 +100,7 @@ describe('productive izāfat relation analysis', () => {
     const result = transliterate('در ایران');
     const lexical = result.tokens.filter((token) => token.tokenType === 'persian-word');
     expect(lexical.map((token) => token.status)).toEqual(['LEXICON_RESOLVED', 'LEXICON_RESOLVED']);
-    expect(lexical[0]).toMatchObject({ source: 'در', lexicalCategory: 'preposition' });
+    expect(lexical[0]).toMatchObject({ normalizedSurface: 'در', lexicalCategory: 'preposition' });
     expect(result.relations).toEqual([]);
   });
 

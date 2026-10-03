@@ -15,11 +15,12 @@ export interface LexicalReading { canonical: string; confidence: number; notes?:
 export interface LexicalContextEvidence { explicitIzafatAfter?: string[]; source: string; notes?: string; }
 export interface LexicalEntry { surface: string; normalized: string; readings: LexicalReading[]; category?: LexicalCategory; context?: LexicalContextEvidence; notes?: string; }
 export interface Token { normalizedSurface: string; type: TokenType; normalizedStart: number; normalizedEnd: number; }
-export interface OrthographicVowelEvidence { mark: 'FATHA' | 'KASRA' | 'DAMMA'; vowel: ExplicitVowel; sourceOffset: number; afterBaseIndex: number; rule: RuleDefinition; relationOnly: boolean; }
+export interface OrthographicVowelEvidence { mark: 'FATHA' | 'KASRA' | 'DAMMA'; vowel: ExplicitVowel; normalizedTokenOffset: number; afterBaseIndex: number; rule: RuleDefinition; relationOnly: boolean; }
+export interface UnsupportedCombiningEvidence { mark: string; normalizedTokenOffset: number; afterBaseIndex: number; rule: RuleDefinition; }
 export interface TokenAnalysis {
   tokenIndex: number; normalizedSurface: string; lookupForm: string; normalizedStart: number; normalizedEnd: number;
   explicitVowels: OrthographicVowelEvidence[]; explicitIzafat: 'FINAL_KASRA' | 'HEH_ORTHOGRAPHY' | null;
-  zwnjBoundaries: number[]; evidencedSegments: string[]; warnings: string[]; provenance: RuleDefinition[];
+  unsupportedCombiningMarks: UnsupportedCombiningEvidence[]; zwnjBoundaries: number[]; evidencedSegments: string[]; warnings: string[]; provenance: RuleDefinition[];
 }
 export interface RelationEvidence { kind: 'EXPLICIT_FINAL_KASRA' | 'EXPLICIT_HEH_ORTHOGRAPHY' | 'CURATED_LEXICAL_CONTEXT' | 'GRAMMATICAL_CANDIDATE'; rule: RuleDefinition; source: string; }
 export interface ContextRelation {
@@ -27,9 +28,9 @@ export interface ContextRelation {
   evidence: RelationEvidence[]; confidence?: number; rendering: 'STANDARD_I' | 'REVIEW_REQUIRED_ALLOMORPH'; warnings: string[];
 }
 export interface TokenResult {
-  source: string; tokenType: TokenType; canonicalTransliteration: string | null; rendered: string; diagnosticScaffold?: string;
+  normalizedSurface: string; tokenType: TokenType; canonicalTransliteration: string | null; rendered: string; diagnosticScaffold?: string;
   status: ResultStatus; confidence?: number; lexicalCategory?: LexicalCategory; appliedRules: RuleDefinition[]; lexicalSources: string[];
-  warnings: string[]; alternatives: string[]; start: number; end: number;
+  warnings: string[]; alternatives: string[]; normalizedStart: number; normalizedEnd: number;
 }
 export interface TransliterationResult {
   originalInput: string; normalizedInput: string; normalizationChanges: NormalizationChange[]; profile: ProfileId;

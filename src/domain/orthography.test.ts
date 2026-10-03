@@ -21,6 +21,22 @@ describe('Persian orthographic evidence', () => {
   it('preserves the vocalized normalized surface and normalized offsets while deriving lookup form', () => {
     const result = analyze('کِرم');
     expect(result).toMatchObject({ normalizedSurface: 'کِرم', lookupForm: 'کرم', normalizedStart: 0, normalizedEnd: 4 });
+    expect(result.explicitVowels[0]).toMatchObject({ normalizedTokenOffset: 1, afterBaseIndex: 0 });
+    expect(result.explicitVowels[0]).not.toHaveProperty('sourceOffset');
+  });
+
+  it('does not count an unsupported combining mark as a base letter', () => {
+    const result = analyze('کِّرم');
+    expect(result.normalizedSurface).toBe('کِّرم');
+    expect(result.lookupForm).toBe('کرم');
+    expect(result.unsupportedCombiningMarks[0]).toMatchObject({ mark: 'ّ', normalizedTokenOffset: 2, afterBaseIndex: 0 });
+    expect(result.explicitVowels[0]).toMatchObject({ mark: 'KASRA', normalizedTokenOffset: 1, afterBaseIndex: 0 });
+  });
+
+  it('does not count ZWNJ as a base letter when locating vowel evidence', () => {
+    const result = analyze('ک‌ِرم');
+    expect(result.zwnjBoundaries).toEqual([1]);
+    expect(result.explicitVowels[0]).toMatchObject({ normalizedTokenOffset: 2, afterBaseIndex: 0 });
   });
 
   it('classifies final kasra separately as explicit relation evidence', () => {

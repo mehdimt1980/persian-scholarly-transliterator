@@ -1,5 +1,6 @@
 import { RULES } from './provenance';
 import { ExplicitVowel, OrthographicVowelEvidence, Token, TokenAnalysis } from './types';
+import { isArabicScriptLetter, isCombiningMark } from './tokenizer';
 
 const VOWEL_MARKS: Record<string, { mark: OrthographicVowelEvidence['mark']; vowel: ExplicitVowel; rule: typeof RULES.orthFatha }> = {
   '\u064e': { mark: 'FATHA', vowel: 'a', rule: RULES.orthFatha },
@@ -12,19 +13,22 @@ export function analyzeOrthography(tokens: Token[]): TokenAnalysis[] {
 }
 
 function analyzePersianToken(token: Token, tokenIndex: number): TokenAnalysis {
-  const characters = [...token.normalizedSurface]; const explicitVowels: OrthographicVowelEvidence[] = []; const zwnjBoundaries: number[] = [];
+  const characters = [...token.normalizedSurface]; const explicitVowels: OrthographicVowelEvidence[] = []; const unsupportedCombiningMarks: TokenAnalysis['unsupportedCombiningMarks'] = []; const zwnjBoundaries: number[] = [];
   const provenance: TokenAnalysis['provenance'] = []; const warnings: string[] = []; let baseIndex = -1;
-  const lastBaseIndex = characters.reduce((count, character) => VOWEL_MARKS[character] || character === '\u0654' || character === '\u200c' ? count : count + 1, -1);
-  for (let sourceOffset = 0; sourceOffset < characters.length; sourceOffset += 1) {
-    const character = characters[sourceOffset]; const vowel = VOWEL_MARKS[character];
-    if (vowel) { const relationOnly = vowel.mark === 'KASRA' && baseIndex === lastBaseIndex && sourceOffset === characters.length - 1; explicitVowels.push({ ...vowel, sourceOffset, afterBaseIndex: baseIndex, relationOnly }); provenance.push(vowel.rule); continue; }
-    if (character === '\u200c') { zwnjBoundaries.push(sourceOffset); provenance.push(RULES.orthZwnj); continue; }
-    if (character !== '\u0654') baseIndex += 1;
+  const lastBaseIndex = characters.reduce((count, character) => isArabicScriptLetter(character) ? count + 1 : count, -1);
+  for (let normalizedTokenOffset = 0; normalizedTokenOffset < characters.length; normalizedTokenOffset += 1) {
+    const character = characters[normalizedTokenOffset]; const vowel = VOWEL_MARKS[character];
+    if (vowel) { const relationOnly = vowel.mark === 'KASRA' && baseIndex === lastBaseIndex && normalizedTokenOffset === characters.length - 1; explicitVowels.push({ ...vowel, normalizedTokenOffset, afterBaseIndex: baseIndex, relationOnly }); provenance.push(vowel.rule); continue; }
+    if (character === '\u200c') { zwnjBoundaries.push(normalizedTokenOffset); provenance.push(RULES.orthZwnj); continue; }
+    if (character === '\u0654') continue;
+    if (isCombiningMark(character)) { unsupportedCombiningMarks.push({ mark: character, normalizedTokenOffset, afterBaseIndex: baseIndex, rule: RULES.orthUnsupportedCombining }); provenance.push(RULES.orthUnsupportedCombining); continue; }
+    if (isArabicScriptLetter(character)) baseIndex += 1;
   }
   const hehIzafat = token.normalizedSurface.endsWith('ۀ') || /ه\u0654$/u.test(token.normalizedSurface);
   if (hehIzafat) provenance.push(RULES.orthHehIzafat);
-  const lookupForm = token.normalizedSurface.replace(/[َُِ]/gu, '').replace(/ۀ$/u, 'ه').replace(/ه\u0654$/u, 'ه');
+  const lookupForm = token.normalizedSurface.replace(/\p{M}/gu, '').replace(/ۀ$/u, 'ه');
   const evidencedSegments = zwnjBoundaries.length ? lookupForm.split('\u200c') : [lookupForm];
   if (zwnjBoundaries.length) warnings.push('ZWNJ boundary retained without assigning suffix or compound semantics.');
-  return { tokenIndex, normalizedSurface: token.normalizedSurface, lookupForm, normalizedStart: token.normalizedStart, normalizedEnd: token.normalizedEnd, explicitVowels, explicitIzafat: explicitVowels.some((item) => item.relationOnly) ? 'FINAL_KASRA' : hehIzafat ? 'HEH_ORTHOGRAPHY' : null, zwnjBoundaries, evidencedSegments, warnings, provenance };
+  if (unsupportedCombiningMarks.length) warnings.push('Unsupported combining-mark evidence is preserved but not interpreted; authoritative lexical resolution requires review.');
+  return { tokenIndex, normalizedSurface: token.normalizedSurface, lookupForm, normalizedStart: token.normalizedStart, normalizedEnd: token.normalizedEnd, explicitVowels, explicitIzafat: explicitVowels.some((item) => item.relationOnly) ? 'FINAL_KASRA' : hehIzafat ? 'HEH_ORTHOGRAPHY' : null, unsupportedCombiningMarks, zwnjBoundaries, evidencedSegments, warnings, provenance };
 }
