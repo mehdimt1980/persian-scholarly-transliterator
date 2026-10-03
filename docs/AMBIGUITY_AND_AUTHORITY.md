@@ -24,6 +24,6 @@ A future assisted resolver may propose candidates and evidence, but deterministi
 
 ## Morphology authority
 
-A suffix-shaped ending is not a resolution. Productive morphology becomes authoritative only when a supported rule, a reviewed category-compatible stem, adequate lexical/vowel evidence, supported rendering, and the required boundary evidence agree. For plural and degree suffixes, Phase 2B requires ZWNJ for confirmation; an unspaced shape remains a candidate. The six scoped possessive enclitics may be confirmed without ZWNJ because the reviewed nominal stem and person-specific rule jointly supply the documented evidence.
+A suffix-shaped ending is not a resolution. Productive morphology becomes authoritative only when a supported rule, a reviewed category-compatible stem, adequate lexical/vowel evidence, a host-applicable rendering, and the required boundary evidence agree. For plural and degree suffixes, Phase 2B requires ZWNJ for confirmation; an unspaced shape remains a candidate. The six scoped possessive enclitics may be confirmed without ZWNJ only on a reviewed consonant-final nominal host. Vowel-final and heh-final hosts retain candidate evidence but have no authoritative Phase 2B realization.
 
 If a reviewed whole-word reading and a valid productive segmentation coexist, the morphology status is `CANDIDATE`, both alternatives are exposed, and output is non-copyable. Unsupported combining marks produce `CONFLICT`; unknown stems remain unresolved. No candidate wins by rule-array order.

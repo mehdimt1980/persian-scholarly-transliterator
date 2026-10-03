@@ -3,7 +3,7 @@ import { RULES } from '../provenance';
 import { isArabicScriptLetter } from '../tokenizer';
 import { LexicalEntry, Token, TokenAnalysis } from '../types';
 import { PRODUCTIVE_SUFFIX_RULES } from './rules';
-import { MorphemeEvidence, MorphemeSegment, MorphologicalAnalysis, ProductiveSuffixRule } from './types';
+import { MorphemeEvidence, MorphemeSegment, MorphologicalAnalysis, MorphologicalHostEnding, ProductiveSuffixRule } from './types';
 
 const ZWNJ = '\u200c';
 
@@ -35,10 +35,23 @@ function reviewedEntry(stem: string, lexicon: LexicalEntry[]): LexicalEntry | un
   return lexicon.find((entry) => entry.normalized === stem);
 }
 
-function evidenceFor(proposal: ProposedSegmentation, entry?: LexicalEntry): MorphemeEvidence[] {
+export function classifyHostEnding(entry?: LexicalEntry): MorphologicalHostEnding {
+  if (!entry?.readings.length) return 'UNKNOWN';
+  if (entry.normalized.endsWith('ه')) return 'HEH_FINAL';
+  const classes = new Set(entry.readings.map((reading) => {
+    const final = [...reading.canonical.normalize('NFC')].at(-1)?.toLocaleLowerCase('en-US');
+    if (!final) return 'UNKNOWN';
+    if (/[aāiīuū]/u.test(final)) return 'VOWEL_FINAL';
+    return /[a-zšžčġḍḥṣṭẓʿʾ]/u.test(final) ? 'CONSONANT_FINAL' : 'UNKNOWN';
+  }));
+  return classes.size === 1 ? [...classes][0] : 'UNKNOWN';
+}
+
+function evidenceFor(proposal: ProposedSegmentation, hostEnding: MorphologicalHostEnding, entry?: LexicalEntry): MorphemeEvidence[] {
   const evidence: MorphemeEvidence[] = [{ kind: 'PRODUCTIVE_RULE', rule: proposal.rule.rule, description: `Matched supported suffix ${proposal.suffixSurface}.` }];
   if (proposal.hasZwnj) evidence.unshift({ kind: 'ZWNJ_BOUNDARY', rule: RULES.morphZwnjEvidence, description: 'Source orthography provides a ZWNJ immediately before the supported suffix.' });
   if (entry) evidence.push({ kind: 'REVIEWED_STEM', rule: RULES.morphStem, description: `Reviewed ${entry.category ?? 'uncategorized'} stem ${entry.normalized}.` });
+  if (entry) evidence.push({ kind: 'HOST_ENDING', rule: RULES.morphHostEnding, description: `Reviewed stem evidence classifies the host as ${hostEnding}.` });
   if (proposal.explicitIzafat) evidence.push({ kind: 'EXPLICIT_IZAFAT_YE', rule: RULES.morphPluralIzafatYe, description: 'Final ی in های explicitly marks izāfat on the plural host.' });
   return evidence;
 }
@@ -51,14 +64,18 @@ function surfaceSuffixStart(surface: string, proposal: ProposedSegmentation): nu
 function analyzeProposal(token: Token, tokenIndex: number, orthography: TokenAnalysis, proposal: ProposedSegmentation, lexicon: LexicalEntry[]): MorphologicalAnalysis {
   const entry = reviewedEntry(proposal.stem, lexicon);
   const wholeEntry = reviewedEntry(orthography.lookupForm, lexicon);
+  const hostEnding = classifyHostEnding(entry);
+  const realization = proposal.rule.realizations?.find((item) => item.hostEnding === hostEnding);
+  const canonicalRendering = realization?.canonicalRendering ?? proposal.rule.canonicalRendering;
   const categoryCompatible = Boolean(entry?.category && proposal.rule.hostCategories.includes(entry.category));
+  const hostCompatible = Boolean(canonicalRendering);
   const boundarySupportsConfirmation = proposal.hasZwnj || proposal.rule.allowWithoutZwnj;
   const unsupported = orthography.unsupportedCombiningMarks.length > 0;
   const competingWholeWord = Boolean(wholeEntry);
-  const confirmed = categoryCompatible && boundarySupportsConfirmation && !unsupported && !competingWholeWord;
+  const confirmed = categoryCompatible && hostCompatible && boundarySupportsConfirmation && !unsupported && !competingWholeWord;
   const conflict = Boolean(entry && !categoryCompatible) || unsupported;
   const status = conflict ? 'CONFLICT' : confirmed ? 'CONFIRMED' : 'CANDIDATE';
-  const evidence = evidenceFor(proposal, entry);
+  const evidence = evidenceFor(proposal, hostEnding, entry);
   if (competingWholeWord) evidence.push({ kind: 'WHOLE_WORD_READING', rule: RULES.morphWholeWordCompetition, description: `Reviewed whole-token reading competes with segmentation of ${proposal.stem}.` });
   const suffixStart = surfaceSuffixStart(token.normalizedSurface, proposal);
   const stemEnd = suffixStart > 0 && token.normalizedSurface[suffixStart - 1] === ZWNJ ? suffixStart - 1 : suffixStart;
@@ -70,18 +87,19 @@ function analyzeProposal(token: Token, tokenIndex: number, orthography: TokenAna
   };
   const suffixSegment: MorphemeSegment = {
     type: proposal.rule.morphemeType, normalizedSurface: proposal.suffixSurface, normalizedStart: token.normalizedStart + suffixStart,
-    normalizedEnd: token.normalizedStart + suffixStart + proposal.suffixSurface.length, canonicalRendering: proposal.rule.canonicalRendering,
+    normalizedEnd: token.normalizedStart + suffixStart + proposal.suffixSurface.length, canonicalRendering,
     evidence: evidence.filter((item) => item.kind !== 'REVIEWED_STEM' && item.kind !== 'WHOLE_WORD_READING'), status
   };
   const warnings: string[] = [];
   if (!entry) warnings.push('Supported suffix shape found, but the proposed stem has no reviewed lexical entry.');
   else if (!categoryCompatible) warnings.push(`Reviewed stem category ${entry.category ?? 'unknown'} is incompatible with ${proposal.rule.morphemeType}.`);
+  if (entry && categoryCompatible && !hostCompatible) warnings.push(`${proposal.rule.morphemeType} has no authoritative Phase 2B realization for ${hostEnding}; vowel-final and heh-final possessive allomorphs require review.`);
   if (!boundarySupportsConfirmation) warnings.push('Suffix shape lacks an explicit ZWNJ; this Phase 2B rule remains a candidate.');
   if (competingWholeWord) warnings.push('A reviewed whole-word reading competes with productive segmentation; human review is required.');
   if (unsupported) warnings.push('Unsupported combining-mark evidence prevents authoritative morphology.');
   return {
     tokenIndex, normalizedSurface: token.normalizedSurface, normalizedStart: token.normalizedStart, normalizedEnd: token.normalizedEnd,
-    lexicalLookupStem: proposal.stem, stemEntry: entry, stemCategory: entry?.category, stemVowelEvidence,
+    lexicalLookupStem: proposal.stem, stemEntry: entry, stemCategory: entry?.category, hostEnding, stemVowelEvidence,
     morphemes: [stemSegment, suffixSegment], status, explicitIzafat: proposal.explicitIzafat, evidence, warnings,
     alternatives: competingWholeWord ? ['WHOLE_WORD', 'PRODUCTIVE_SEGMENTATION'] : status === 'CANDIDATE' ? ['UNSEGMENTED', 'PRODUCTIVE_SEGMENTATION'] : []
   };

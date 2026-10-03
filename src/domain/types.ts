@@ -39,4 +39,4 @@ export interface TransliterationResult {
   relations: ContextRelation[]; reviewReasons: string[]; warnings: string[];
 }
 
-export type { MorphemeEvidence, MorphemeSegment, MorphemeType, MorphologicalAnalysis, MorphologyStatus, ProductiveSuffixRule } from './morphology/types';
+export type { MorphemeEvidence, MorphemeRealization, MorphemeSegment, MorphemeType, MorphologicalAnalysis, MorphologicalHostEnding, MorphologyStatus, ProductiveSuffixRule } from './morphology/types';

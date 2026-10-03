@@ -6,7 +6,7 @@ This is not an official IJMES or Cambridge product. It is not a general pronunci
 
 ## Current scope
 
-Implemented: loss-aware Unicode normalization, Unicode-category tokenization, orthographic evidence, stem-first morphology for plural `ها`, comparative `تر`, superlative `ترین`, six possessive enclitics, plural-host `های` izāfat evidence, lexical resolution, relation analysis, canonical IJMES rendering, token/morpheme/relation inspection, and guarded copying.
+Implemented: loss-aware Unicode normalization, Unicode-category tokenization, orthographic evidence, stem-first morphology for plural `ها`, comparative `تر`, superlative `ترین`, six post-consonantal possessive-enclitic realizations, plural-host `های` izāfat evidence, lexical resolution, relation analysis, canonical IJMES rendering, token/morpheme/relation inspection, and guarded copying.
 
 Arabic/Persian punctuation is structural punctuation, not word material merely because its code point lies inside the Arabic Unicode block. The result retains the original input globally; public token fields are deliberately named `normalizedSurface`, `normalizedStart`, and `normalizedEnd`. They describe normalized input and do not claim original-input spans. Exact original-token span alignment is a documented future refinement.
 

@@ -12,13 +12,24 @@ Evidence is ordered conservatively:
 4. candidate segmentation;
 5. no segmentation.
 
-ZWNJ identifies a boundary, not its meaning. A right segment receives morphology only if it matches one of the scoped rules and the proposed stem validates. Plural and degree morphology require ZWNJ for confirmation. The six possessive enclitics may be confirmed without it when a reviewed nominal stem and a person-specific rule agree.
+ZWNJ identifies a boundary, not its meaning. A right segment receives morphology only if it matches one of the scoped rules and the proposed stem validates. Plural and degree morphology require ZWNJ for confirmation. The six possessive enclitics may be confirmed without it only when a reviewed nominal stem, a person-specific rule, and a supported host-ending realization agree.
 
 ## Model
 
 Each `MorphologicalAnalysis` records normalized token coordinates, `lexicalLookupStem`, stem vowel evidence, typed `MorphemeSegment` values, `CONFIRMED`, `CANDIDATE`, or `CONFLICT` status, evidence, alternatives, warnings, and rule provenance. Explicit vowels remain indexed by base letter; suffix vowels are not passed to stem resolution. Unsupported combining marks prevent confirmation.
 
-Confirmed rendering composes a resolved canonical stem with the rule rendering: `کتاب‌ها → kitāb-hā`, `بزرگ‌تر → buzurg-tar`, and `کتابم → kitāb-am`. These hyphens make the productive structure inspectable; they are not obtained from whole-word lexical entries.
+Confirmed rendering composes a resolved canonical stem with an applicable rule realization: `کتاب‌ها → kitāb-hā`, `بزرگ‌تر → buzurg-tar`, and `کتابم → kitāb-am`. These hyphens make the productive structure inspectable; they are not obtained from whole-word lexical entries.
+
+## Possessive identity and realization
+
+Morpheme identity remains person/number-specific (`POSSESSIVE_1SG` through `POSSESSIVE_3PL`) and is distinct from phonological realization. Phase 2B classifies reviewed hosts as `CONSONANT_FINAL`, `VOWEL_FINAL`, `HEH_FINAL`, or `UNKNOWN`. Possessive rule data provides authoritative realizations only for `CONSONANT_FINAL`:
+
+- 1SG `-am`, 2SG `-at`, 3SG `-ash`;
+- 1PL `-imān`, 2PL `-itān`, 3PL `-ishān`.
+
+The underlying formal Persian plural-person linking vowel is conventionally described as `e` in the grammar sources (`-emān`, `-etān`, `-ešān`). The project converts that vowel to scholarly `i` under the IJMES Persian vowel convention. IJMES does not supply the Persian morpheme analysis itself.
+
+Vowel-final hosts require additional glide/allomorph rules, and final-heh hosts require distinct orthographic/allomorphic handling. Neither environment is implemented here. The analyzer preserves the reviewed stem and suffix-shape evidence but returns `CANDIDATE`, no canonical suffix rendering, a review warning, and non-copyable output. It never invents `y` or chooses a simplified consonant-final form.
 
 ## Plural and izāfat
 
@@ -28,7 +39,7 @@ Confirmed rendering composes a resolved canonical stem with the rule rendering: 
 
 Unknown stems never become authoritative because a suffix matches. If a reviewed whole-token reading competes with a valid segmentation, both are exposed and copying is disabled. Superlative `ترین` is one scoped morpheme, never recursively `تر + ین`.
 
-There is no general parser, POS tagger, compound splitter, verb morphology, `می-` analysis, negation, unrestricted suffix stacking, or exhaustive Persian plural handling. Vowel-final allomorphs beyond the directly composed forms remain outside this phase.
+There is no general parser, POS tagger, compound splitter, verb morphology, `می-` analysis, negation, unrestricted suffix stacking, exhaustive Persian plural handling, or vowel-final/heh-final possessive realization.
 
 ## Linguistic sources
 
