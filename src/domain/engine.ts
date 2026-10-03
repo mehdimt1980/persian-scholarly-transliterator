@@ -2,6 +2,8 @@ import { LEXICON } from '../data/lexicon';
 import { consonantalScaffold } from '../data/ijmes-mappings';
 import { normalizePersian } from './normalization';
 import { analyzeOrthography } from './orthography';
+import { analyzeMorphology } from './morphology/analyzeMorphology';
+import { resolveMorphologicalToken } from './morphology/resolveMorphology';
 import { applyTitleProfile } from './profiles';
 import { RULES } from './provenance';
 import { analyzeRelations } from './relations';
@@ -73,14 +75,15 @@ function renderOutput(results: TokenResult[], relations: ContextRelation[]): str
 export function transliterate(input: string, profile: ProfileId = 'ijmes_full'): TransliterationResult {
   const normalization = normalizePersian(input); const tokens = tokenize(normalization.normalizedInput); const analyses = analyzeOrthography(tokens);
   const analysisByToken = new Map(analyses.map((analysis) => [analysis.tokenIndex, analysis]));
-  const resolved = tokens.map((token, index) => resolveToken(token, analysisByToken.get(index))); const results = resolved.map((item) => item.result); const entries = resolved.map((item) => item.entry);
-  const relations = analyzeRelations(tokens, analyses, entries, results);
+  const morphology = analyzeMorphology(tokens, analyses); const morphologyByToken = new Map(morphology.map((analysis) => [analysis.tokenIndex, analysis]));
+  const resolved = tokens.map((token, index) => morphologyByToken.has(index) ? resolveMorphologicalToken(token, morphologyByToken.get(index)!) : resolveToken(token, analysisByToken.get(index))); const results = resolved.map((item) => item.result); const entries = resolved.map((item) => item.entry);
+  const relations = analyzeRelations(tokens, analyses, entries, results, morphology);
   for (const relation of relations.filter((item) => item.status === 'CONFIRMED' && item.rendering === 'STANDARD_I')) {
     const result = results[relation.sourceTokenIndex];
     if (result.canonicalTransliteration !== null) { result.canonicalTransliteration += '-i'; result.rendered = result.canonicalTransliteration; result.appliedRules.push(...relation.evidence.map((evidence) => evidence.rule), RULES.izafatRender); }
   }
   if (profile === 'ijmes_title') applyTitleProfile(results);
-  const status = overallStatus(results, relations); const reviewReasons = relations.filter((relation) => relation.status === 'CANDIDATE' || relation.rendering === 'REVIEW_REQUIRED_ALLOMORPH').flatMap((relation) => relation.warnings);
+  const status = overallStatus(results, relations); const reviewReasons = [...relations.filter((relation) => relation.status === 'CANDIDATE' || relation.rendering === 'REVIEW_REQUIRED_ALLOMORPH').flatMap((relation) => relation.warnings), ...morphology.filter((analysis) => analysis.status !== 'CONFIRMED').flatMap((analysis) => analysis.warnings)];
   const copyable = !results.some((result) => ['UNRESOLVED', 'AMBIGUOUS'].includes(result.status)) && reviewReasons.length === 0;
-  return { originalInput: input, normalizedInput: normalization.normalizedInput, normalizationChanges: normalization.changes, profile, output: renderOutput(results, relations), copyable, status, tokens: results, analyses, relations, reviewReasons, warnings: [...results.flatMap((result) => result.warnings), ...relations.flatMap((relation) => relation.warnings)] };
+  return { originalInput: input, normalizedInput: normalization.normalizedInput, normalizationChanges: normalization.changes, profile, output: renderOutput(results, relations), copyable, status, tokens: results, analyses, morphology, relations, reviewReasons, warnings: [...results.flatMap((result) => result.warnings), ...relations.flatMap((relation) => relation.warnings), ...morphology.flatMap((analysis) => analysis.warnings)] };
 }

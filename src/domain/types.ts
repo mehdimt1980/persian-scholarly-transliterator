@@ -22,7 +22,7 @@ export interface TokenAnalysis {
   explicitVowels: OrthographicVowelEvidence[]; explicitIzafat: 'FINAL_KASRA' | 'HEH_ORTHOGRAPHY' | null;
   unsupportedCombiningMarks: UnsupportedCombiningEvidence[]; zwnjBoundaries: number[]; evidencedSegments: string[]; warnings: string[]; provenance: RuleDefinition[];
 }
-export interface RelationEvidence { kind: 'EXPLICIT_FINAL_KASRA' | 'EXPLICIT_HEH_ORTHOGRAPHY' | 'CURATED_LEXICAL_CONTEXT' | 'GRAMMATICAL_CANDIDATE'; rule: RuleDefinition; source: string; }
+export interface RelationEvidence { kind: 'EXPLICIT_FINAL_KASRA' | 'EXPLICIT_HEH_ORTHOGRAPHY' | 'EXPLICIT_PLURAL_IZAFAT_YE' | 'CURATED_LEXICAL_CONTEXT' | 'GRAMMATICAL_CANDIDATE'; rule: RuleDefinition; source: string; }
 export interface ContextRelation {
   type: 'IZAFAT'; sourceTokenIndex: number; targetTokenIndex: number; status: RelationStatus;
   evidence: RelationEvidence[]; confidence?: number; rendering: 'STANDARD_I' | 'REVIEW_REQUIRED_ALLOMORPH'; warnings: string[];
@@ -35,5 +35,8 @@ export interface TokenResult {
 export interface TransliterationResult {
   originalInput: string; normalizedInput: string; normalizationChanges: NormalizationChange[]; profile: ProfileId;
   output: string; copyable: boolean; status: ResultStatus; tokens: TokenResult[]; analyses: TokenAnalysis[];
+  morphology: import('./morphology/types').MorphologicalAnalysis[];
   relations: ContextRelation[]; reviewReasons: string[]; warnings: string[];
 }
+
+export type { MorphemeEvidence, MorphemeSegment, MorphemeType, MorphologicalAnalysis, MorphologyStatus, ProductiveSuffixRule } from './morphology/types';

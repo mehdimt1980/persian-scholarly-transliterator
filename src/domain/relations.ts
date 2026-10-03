@@ -1,5 +1,5 @@
 import { RULES } from './provenance';
-import { ContextRelation, LexicalEntry, Token, TokenAnalysis, TokenResult } from './types';
+import { ContextRelation, LexicalEntry, MorphologicalAnalysis, Token, TokenAnalysis, TokenResult } from './types';
 
 const DEPENDENT_CATEGORIES = new Set(['noun', 'adjective', 'proper-noun']);
 
@@ -9,14 +9,20 @@ function nextAdjacentPersianToken(tokens: Token[], sourceIndex: number): number 
   return tokens[index]?.type === 'persian-word' ? index : null;
 }
 
-export function analyzeRelations(tokens: Token[], analyses: TokenAnalysis[], entries: Array<LexicalEntry | undefined>, results: TokenResult[]): ContextRelation[] {
+export function analyzeRelations(tokens: Token[], analyses: TokenAnalysis[], entries: Array<LexicalEntry | undefined>, results: TokenResult[], morphology: MorphologicalAnalysis[] = []): ContextRelation[] {
   const analysisByToken = new Map(analyses.map((analysis) => [analysis.tokenIndex, analysis]));
+  const morphologyByToken = new Map(morphology.map((analysis) => [analysis.tokenIndex, analysis]));
   const relations: ContextRelation[] = [];
   for (let sourceTokenIndex = 0; sourceTokenIndex < tokens.length; sourceTokenIndex += 1) {
     if (tokens[sourceTokenIndex].type !== 'persian-word') continue;
     const targetTokenIndex = nextAdjacentPersianToken(tokens, sourceTokenIndex);
     if (targetTokenIndex === null) continue;
     const analysis = analysisByToken.get(sourceTokenIndex); const sourceEntry = entries[sourceTokenIndex]; const targetEntry = entries[targetTokenIndex];
+    const morphologicalHost = morphologyByToken.get(sourceTokenIndex);
+    if (morphologicalHost?.status === 'CONFIRMED' && morphologicalHost.explicitIzafat) {
+      relations.push({ type: 'IZAFAT', sourceTokenIndex, targetTokenIndex, status: 'CONFIRMED', rendering: 'STANDARD_I', evidence: [{ kind: 'EXPLICIT_PLURAL_IZAFAT_YE', rule: RULES.izafatExplicitInterpretation, source: 'Plural-host های supplies explicit izāfat evidence on the inflected token.' }], warnings: [] });
+      continue;
+    }
     if (analysis?.explicitIzafat) {
       const heh = analysis.explicitIzafat === 'HEH_ORTHOGRAPHY';
       relations.push({ type: 'IZAFAT', sourceTokenIndex, targetTokenIndex, status: 'CONFIRMED', rendering: heh ? 'REVIEW_REQUIRED_ALLOMORPH' : 'STANDARD_I', evidence: [{ kind: heh ? 'EXPLICIT_HEH_ORTHOGRAPHY' : 'EXPLICIT_FINAL_KASRA', rule: RULES.izafatExplicitInterpretation, source: heh ? 'Preserved final-heh izāfat orthography' : 'Explicit final kasra in source' }], warnings: heh ? ['Izāfat is explicit, but this vowel-final allomorph is not rendered automatically in Phase 2A.'] : [] });
