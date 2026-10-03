@@ -32,6 +32,77 @@ export default function Home() {
     setManualErrors({});
   }
 
+  const [assistStatus, setAssistStatus] = useState<Record<string, 'idle' | 'loading' | 'available' | 'error' | 'unavailable'>>({});
+  const [assistResolutions, setAssistResolutions] = useState<Record<string, any>>({});
+  const [assistErrors, setAssistErrors] = useState<Record<string, string>>({});
+
+  async function requestAssistance(issueId: string) {
+    setAssistStatus((prev) => ({ ...prev, [issueId]: 'loading' }));
+    setAssistErrors((prev) => {
+      const next = { ...prev };
+      delete next[issueId];
+      return next;
+    });
+
+    try {
+      const res = await fetch('/api/assist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          input,
+          profile,
+          reviewDecisions: decisions,
+          issueId
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setAssistStatus((prev) => ({ ...prev, [issueId]: res.status === 503 ? 'unavailable' : 'error' }));
+        setAssistErrors((prev) => ({ ...prev, [issueId]: data.error || 'Assisted resolver request failed.' }));
+        return;
+      }
+
+      setAssistResolutions((prev) => ({ ...prev, [issueId]: data.resolution }));
+      setAssistStatus((prev) => ({ ...prev, [issueId]: 'available' }));
+    } catch (err: unknown) {
+      setAssistStatus((prev) => ({ ...prev, [issueId]: 'error' }));
+      setAssistErrors((prev) => ({ ...prev, [issueId]: err instanceof Error ? err.message : 'Network error.' }));
+    }
+  }
+
+  function applyAssistedCandidate(issueId: string, candidate: any, resolution: any) {
+    let action = 'MANUAL_CANONICAL_OVERRIDE';
+    let selectedAlternativeId: string | undefined = undefined;
+    let manualCanonicalTransliteration: string | undefined = undefined;
+
+    if (candidate.kind === 'EXISTING_LEXICAL_READING') {
+      action = 'SELECT_LEXICAL_READING';
+      selectedAlternativeId = candidate.alternativeId ?? candidate.canonical;
+    } else if (candidate.kind === 'MANUAL_CANONICAL') {
+      action = 'MANUAL_CANONICAL_OVERRIDE';
+      manualCanonicalTransliteration = candidate.canonical;
+    } else if (candidate.kind === 'IZAFAT_DECISION') {
+      action = candidate.relationDecision ?? 'ACCEPT_IZAFAT';
+    } else if (candidate.kind === 'MORPHOLOGY_BRANCH') {
+      action = 'SELECT_MORPHOLOGY';
+      selectedAlternativeId = candidate.morphologyBranch;
+    }
+
+    applyDecision({
+      issueId,
+      action: action as any,
+      selectedAlternativeId,
+      manualCanonicalTransliteration,
+      assistance: {
+        suggestionId: candidate.id,
+        provider: resolution.provider,
+        model: resolution.model,
+        promptVersion: resolution.promptVersion
+      }
+    });
+  }
+
   function handleManualSubmit(issueId: string) {
     const value = manualInputs[issueId];
     if (!value || value.trim().length === 0) {
@@ -219,6 +290,63 @@ export default function Home() {
                   {manualErrors[issue.id]}
                 </p>
               )}
+
+              {/* Assisted Resolver Section */}
+              <div className="assisted-section">
+                <div className="assisted-header">
+                  <span>Assisted Resolver</span>
+                  <button
+                    className="secondary"
+                    disabled={assistStatus[issue.id] === 'loading'}
+                    onClick={() => requestAssistance(issue.id)}
+                  >
+                    {assistStatus[issue.id] === 'loading' ? 'Resolving...' : 'Ask resolver'}
+                  </button>
+                </div>
+
+                {assistStatus[issue.id] === 'unavailable' && (
+                  <p className="assisted-msg">Assisted resolver is currently unavailable (API key not configured).</p>
+                )}
+
+                {assistStatus[issue.id] === 'error' && (
+                  <p className="assisted-msg error">{assistErrors[issue.id] || 'Assisted resolver failed.'}</p>
+                )}
+
+                {assistResolutions[issue.id] && assistResolutions[issue.id].issueId === issue.id && (
+                  <div className="assisted-candidates-grid">
+                    {assistResolutions[issue.id].candidates.map((c: any) => (
+                      <div className="assisted-candidate-card" key={c.id}>
+                        <div className="assisted-candidate-info">
+                          <div className="assisted-candidate-top">
+                            <span className="badge-basis">#{c.rank}</span>
+                            <strong>
+                              {c.kind === 'EXISTING_LEXICAL_READING' && (c.canonical || c.alternativeId)}
+                              {c.kind === 'MANUAL_CANONICAL' && c.canonical}
+                              {c.kind === 'IZAFAT_DECISION' && (c.relationDecision === 'ACCEPT_IZAFAT' ? 'Accept izāfat (-i)' : 'Reject izāfat')}
+                              {c.kind === 'MORPHOLOGY_BRANCH' && (c.morphologyBranch === 'WHOLE_WORD' ? 'Whole word branch' : 'Productive segmentation')}
+                            </strong>
+                            <span className="badge-basis">{c.basis}</span>
+                            {c.modelConfidence !== undefined && (
+                              <span className="badge-basis">{Math.round(c.modelConfidence * 100)}% conf</span>
+                            )}
+                            <span className="ai-badge">AI suggestion — not authoritative</span>
+                          </div>
+                          <p className="assisted-rationale">{c.rationale}</p>
+                          {c.evidenceRefs && c.evidenceRefs.length > 0 && (
+                            <p className="assisted-meta">Refs: {c.evidenceRefs.join(', ')}</p>
+                          )}
+                        </div>
+                        <button
+                          className="secondary"
+                          onClick={() => applyAssistedCandidate(issue.id, c, assistResolutions[issue.id])}
+                        >
+                          Use this suggestion
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           ))}
 

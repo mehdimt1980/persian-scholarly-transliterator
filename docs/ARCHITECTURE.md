@@ -9,10 +9,11 @@ The public `transliterate(input, profile, reviewDecisions?, lexicon?)` pipeline 
 5. **Lexical resolution** resolves either the whole token or the validated stem using indexed lookup and evidence compatibility (`MATCH`, `CONFLICT`, or `UNKNOWN`).
 6. **Relation analysis** independently creates confirmed or candidate izāfat relations on bare or inflected hosts. Explicit source evidence outranks curated phrase evidence, which outranks conservative grammatical candidates.
 7. **Review issue detection** identifies all blocking uncertainties (`LEXICAL_AMBIGUITY`, `UNKNOWN_TOKEN`, `IZAFAT_CANDIDATE`, `MORPHOLOGY_AMBIGUITY`, `UNSUPPORTED_ALLOMORPH`) and creates deterministic, input-scoped `ReviewIssue`s.
-8. **Human review application** layers explicit `ReviewDecision`s over automatic analysis. Successful overrides assign `USER_OVERRIDE` status and attach distinct user-decision provenance rules (`USER-LEXICAL-READING-SELECTION`, `USER-MANUAL-CANONICAL-OVERRIDE`, `USER-IZAFAT-ACCEPT`, `USER-IZAFAT-REJECT`, `USER-MORPHOLOGY-SELECTION`).
-9. **Canonical IJMES rendering** applies deterministic rules to confirmed morphology, relations, and lexical readings (including human-confirmed izāfat).
-10. **Output profiles and copyability** format canonical output. Copying is allowed only when all blocking issues have been resolved.
+8. **Assisted candidate resolution (Phase 3)** optionally generates advisory suggestions via external language models behind zero-authority boundaries (`docs/ASSISTED_RESOLVER.md`). Suggestions are strictly validated, issue-type constrained, and require explicit human selection.
+9. **Human review application** layers explicit `ReviewDecision`s over automatic analysis. Successful overrides assign `USER_OVERRIDE` status and attach distinct user-decision provenance rules (`USER-LEXICAL-READING-SELECTION`, `USER-MANUAL-CANONICAL-OVERRIDE`, `USER-IZAFAT-ACCEPT`, `USER-IZAFAT-REJECT`, `USER-MORPHOLOGY-SELECTION`).
+10. **Canonical IJMES rendering** applies deterministic rules to confirmed morphology, relations, and lexical readings (including human-confirmed izāfat).
+11. **Output profiles and copyability** format canonical output. Copying is allowed only when all blocking issues have been resolved.
 
 Diagnostic consonantal scaffolds are separate from `canonicalTransliteration`. Ambiguous and unresolved tokens use explicit review placeholders, make the aggregate result non-copyable, and never become authoritative by array order.
 
-The domain engine remains 100% independent of React and Next.js.
+The domain engine remains 100% independent of React, Next.js, and external AI providers.

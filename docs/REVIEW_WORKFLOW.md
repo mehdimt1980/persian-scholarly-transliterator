@@ -68,9 +68,17 @@ Manual canonical inputs are validated for structural safety without altering sch
 - **Preserved:** Full Unicode scholarly transliteration characters (`ā`, `ī`, `ū`, `ḥ`, `ṣ`, `ṭ`, `ẓ`, `ż`, `ʿ`, `ʾ`, `š`, `ž`, `č`, `ġ`, `ḍ`, etc.).
 - **No silent rewriting:** Does not force ASCII or silently rewrite `e/o` to `i/u`.
 
-## 5. Copyability Contract
+## 5. Assisted Suggestions (Phase 3)
+
+The Human Review Workspace integrates the **Assisted Candidate Resolver** (`docs/ASSISTED_RESOLVER.md`).
+- Scholars can explicitly request AI candidate suggestions for any active `ReviewIssue`.
+- Suggestions are advisory and strictly non-authoritative.
+- When a scholar clicks "Use this suggestion", the candidate is mapped into one of the standard `ReviewDecision` actions above, attaching `assistance` provenance metadata while preserving `user-decision` authority.
+
+## 6. Copyability Contract
 
 Transliteration output is copyable (`copyable = true`) **only** when all blocking uncertainty has been resolved:
 - If 2 review issues exist and 1 is resolved: `copyable = false`.
 - If all issues are resolved: `copyable = true`.
 - Undoing or clearing a decision returns the output to non-copyable status.
+- Fetching assisted suggestions never alters copyability until a human makes a decision.

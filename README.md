@@ -19,8 +19,9 @@ Implemented:
   - Izāfat candidate acceptance (`ACCEPT_IZAFAT`) and rejection (`REJECT_IZAFAT`).
   - Morphology competition resolution (`WHOLE_WORD` vs `PRODUCTIVE_SEGMENTATION`).
   - Distinct `USER_OVERRIDE` status with separate provenance rules (`USER-LEXICAL-READING-SELECTION`, `USER-MANUAL-CANONICAL-OVERRIDE`, `USER-IZAFAT-ACCEPT`, `USER-IZAFAT-REJECT`, `USER-MORPHOLOGY-SELECTION`).
+- **Human-gated assisted candidate resolver** (`docs/ASSISTED_RESOLVER.md`) providing advisory language model suggestions for unresolved issues behind strict zero-authority boundaries and human selection.
 - Guarded copying: output becomes copyable only when all review blockers are resolved.
-- Interactive Next.js Review Workspace with real-time decision application and undo.
+- Interactive Next.js Review Workspace with real-time decision application, assisted suggestion queries, and undo.
 
 Arabic/Persian punctuation is structural punctuation, not word material merely because its code point lies inside the Arabic Unicode block. The result retains the original input globally; public token fields are deliberately named `normalizedSurface`, `normalizedStart`, and `normalizedEnd`. They describe normalized input and do not claim original-input spans.
 
