@@ -17,3 +17,7 @@ The character chart and detailed guide have different jobs. `PERSIAN_CONSONANT_M
 The title policy implemented here removes `ā ī ū ḥ ṣ ṭ ẓ ż`, preserves `ʿ` and non-initial `ʾ`, capitalizes major words, and keeps the supported minor-word set (`va`, `dar`, `az`, `ba`, `bar`, `bi`, `ta`, `u`, `wa`, `al`) lowercase except at title boundaries. Hyphenated `al-` remains lowercase even at a title boundary. Phase 1 also structurally supports `wa-`, `bi-`, `li-`, `la-` and the elided forms `wa-l-`, `bi-l-`, `li-l-`, `la-l-`; the lexical base after those prefixes is title-cased. Other hyphenated compounds title-case their major components and are not treated as articles. This is a small deterministic IJMES-compatible subset, not a complete Arabic morphology or Chicago title-case engine.
 
 The repository stores concise summaries and references rather than reproducing source material. Any future chart/guide discrepancy must be documented explicitly.
+
+## Phase 2A source evidence
+
+The IJMES chart grounds explicit fatḥa → `a`, kasra → `i`, and ḍamma → `u`. These rules interpret marks that actually occur in the source; they never authorize reconstruction of omitted vowels. The current guide remains authoritative for rendering a confirmed Persian izāfat as `-i`. Identifying a relation from final kasra, heh orthography, curated data, or lexical categories is Persian linguistic analysis and is recorded separately from the IJMES rendering rule.
