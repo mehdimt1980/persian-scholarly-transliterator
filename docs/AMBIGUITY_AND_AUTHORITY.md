@@ -1,29 +1,33 @@
 # Ambiguity and authority
 
-The deterministic engine is authoritative only for documented IJMES transformations. Lexical knowledge and context evidence retain their own provenance; neither confidence nor array order promotes a candidate to authority.
+The deterministic engine is authoritative only for documented IJMES transformations. Lexical knowledge, context evidence, and human review decisions retain their own distinct provenance; neither confidence nor array order promotes a candidate to authority.
 
-`LEXICON_RESOLVED` means exactly one reviewed lexical reading supplied canonical input. `AMBIGUOUS` means two or more supported readings remain in `alternatives`; `canonicalTransliteration` is null and review is required. `UNRESOLVED` likewise has no canonical transliteration. It may expose a Persian-column consonantal scaffold as diagnostic evidence, but that scaffold is never inserted as final IJMES output.
+## Evidence Layers
 
-Aggregate output uses unmistakable `⟦…: ambiguous⟧` or `⟦…: unresolved⟧` placeholders and sets `copyable` to false. The UI disables final-output copying and shows alternatives, diagnostics, warnings, and applied rule IDs.
+The system maintains strict boundaries between three distinct categories of evidence:
+```text
+reviewed lexical knowledge
+≠
+automatic analysis
+≠
+human decision for this input
+```
 
-An unsupported combining mark is evidence, not disposable lookup noise. It is preserved with a normalized-token offset and does not count as a base letter, but Phase 2A does not interpret it. A token containing such evidence remains unresolved and non-copyable even when its mark-stripped lookup form matches a reviewed lexical entry.
+1. **`LEXICON_RESOLVED`**: Exactly one reviewed lexical reading supplied canonical input based on authoritative sources.
+2. **`USER_OVERRIDE`**: A human reviewer explicitly resolved uncertainty (e.g. selected an ambiguous reading, confirmed/rejected an izāfat candidate, or entered a validated manual transliteration). Token metadata preserves both the automatic analysis and user provenance.
+3. **`AMBIGUOUS`**: Two or more supported readings or analyses remain in competition; `canonicalTransliteration` is null and review is required.
+4. **`UNRESOLVED`**: No reviewed reading or confirmed rule exists. Consonantal scaffolds provide diagnostic evidence only and are never inserted as final output.
 
-Token certainty and relation certainty are independent. Two `LEXICON_RESOLVED` tokens may be connected by an `IZAFAT` relation with status `CANDIDATE`; the aggregate status then becomes `AMBIGUOUS`, output receives a relation-review marker, and copying is disabled. A confirmed final-kasra relation remains copyable. A confirmed heh-orthography relation is still non-copyable when its allomorphic rendering is outside current authoritative coverage.
+Aggregate output uses unmistakable `⟦…: ambiguous⟧` or `⟦…: unresolved⟧` placeholders and sets `copyable` to false until all review blockers are resolved.
 
-Explicit lexical vowel evidence evaluates reviewed readings by structured source position. It never searches Latin output strings. Compatibility is tri-state:
+## Review Decision Authority
 
-- `MATCH`: metadata at the same base position supports the explicit vowel.
-- `CONFLICT`: metadata at that position explicitly supports a different vowel.
-- `UNKNOWN`: metadata at that position is absent or insufficient.
+Human decisions are explicit authority:
+- A user decision is recorded under the `user-decision` authority category.
+- Selecting a reading records `USER-LEXICAL-READING-SELECTION`.
+- Manual entry records `USER-MANUAL-CANONICAL-OVERRIDE`.
+- Confirming an izāfat records `USER-IZAFAT-ACCEPT`.
+- Rejecting an izāfat records `USER-IZAFAT-REJECT`.
+- Selecting morphology records `USER-MORPHOLOGY-SELECTION`.
 
-Exactly one `MATCH` may resolve only when every competitor is `CONFLICT`. Multiple matches, or a match plus any unknown competitor, remain ambiguous. No match with all conflicts is a true evidence conflict. No match with at least one unknown is unresolved because metadata is insufficient, but it is not labelled a conflict. Missing lexical vocalization metadata is absence of evidence, not evidence of conflict.
-
-The current motivating title treats the `i/u` correction as IJMES-authoritative while retaining the joining/hyphenation of `درباره` and `تجددخواهی` as unresolved editorial choices.
-
-A future assisted resolver may propose candidates and evidence, but deterministic validation and human review remain mandatory. No LLM dependency is present in Phase 1.
-
-## Morphology authority
-
-A suffix-shaped ending is not a resolution. Productive morphology becomes authoritative only when a supported rule, a reviewed category-compatible stem, adequate lexical/vowel evidence, a host-applicable rendering, and the required boundary evidence agree. For plural and degree suffixes, Phase 2B requires ZWNJ for confirmation; an unspaced shape remains a candidate. The six scoped possessive enclitics may be confirmed without ZWNJ only on a reviewed consonant-final nominal host. Vowel-final and heh-final hosts retain candidate evidence but have no authoritative Phase 2B realization.
-
-If a reviewed whole-word reading and a valid productive segmentation coexist, the morphology status is `CANDIDATE`, both alternatives are exposed, and output is non-copyable. Unsupported combining marks produce `CONFLICT`; unknown stems remain unresolved. No candidate wins by rule-array order.
+A manual override is structural session evidence, not reusable scholarly validation. Overrides do not modify the static lexicon repository.

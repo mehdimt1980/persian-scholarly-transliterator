@@ -29,17 +29,19 @@ Morpheme identity remains person/number-specific (`POSSESSIVE_1SG` through `POSS
 
 The underlying formal Persian plural-person linking vowel is conventionally described as `e` in the grammar sources (`-emān`, `-etān`, `-ešān`). The project converts that vowel to scholarly `i` under the IJMES Persian vowel convention. IJMES does not supply the Persian morpheme analysis itself.
 
-Vowel-final hosts require additional glide/allomorph rules, and final-heh hosts require distinct orthographic/allomorphic handling. Neither environment is implemented here. The analyzer preserves the reviewed stem and suffix-shape evidence but returns `CANDIDATE`, no canonical suffix rendering, a review warning, and non-copyable output. It never invents `y` or chooses a simplified consonant-final form.
+Vowel-final hosts require additional glide/allomorph rules, and final-heh hosts require distinct orthographic/allomorphic handling. In Phase 2C, unsupported allomorphs produce a dedicated `UNSUPPORTED_ALLOMORPH` review issue, allowing a scholar to supply an explicit validated manual canonical transliteration with `USER_OVERRIDE` provenance.
 
 ## Plural and izāfat
 
 `کتاب‌های ایران` is modeled as `[کتاب + ها] --IZAFAT--> ایران`. The final `ی` is retained as explicit plural-host izāfat evidence. Morphological provenance (`PERSIAN-MORPH-PLURAL-HA`, `PERSIAN-MORPH-PLURAL-IZAFAT-YE`) remains separate from relation interpretation and IJMES rendering (`PERSIAN-CONTEXT-IZAFAT-EXPLICIT`, `IJMES-P-IZAFAT-RENDER`). Bare `کتاب‌ها ایران` does not receive the same confirmed relation.
 
-## Ambiguity and limitations
+## Ambiguity and morphology review in Phase 2C
 
-Unknown stems never become authoritative because a suffix matches. If a reviewed whole-token reading competes with a valid segmentation, both are exposed and copying is disabled. Superlative `ترین` is one scoped morpheme, never recursively `تر + ین`.
+Unknown stems never become authoritative because a suffix matches. If a reviewed whole-token reading competes with a valid segmentation, both are exposed under `MORPHOLOGY_AMBIGUITY`. In Phase 2C:
+- Reviewers can explicitly select `WHOLE_WORD` (applying reviewed lexical canonical reading) or `PRODUCTIVE_SEGMENTATION` (applying stem + suffix rule rendering).
+- The decision attaches `USER-MORPHOLOGY-SELECTION` provenance and assigns `USER_OVERRIDE` status.
 
-There is no general parser, POS tagger, compound splitter, verb morphology, `می-` analysis, negation, unrestricted suffix stacking, exhaustive Persian plural handling, or vowel-final/heh-final possessive realization.
+There is no general parser, POS tagger, compound splitter, verb morphology, `می-` analysis, negation, unrestricted suffix stacking, exhaustive Persian plural handling, or automatic vowel-final/heh-final possessive realization.
 
 ## Linguistic sources
 

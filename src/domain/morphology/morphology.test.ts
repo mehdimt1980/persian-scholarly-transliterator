@@ -119,7 +119,7 @@ describe('possessive enclitics', () => {
     const normalized = normalizePersian('پام').normalizedInput;
     const tokens = tokenize(normalized);
     const orthography = analyzeOrthography(tokens);
-    const vowelFinal: LexicalEntry = { surface: 'پا', normalized: 'پا', category: 'noun', readings: [{ canonical: 'pā', confidence: 0.99, source: 'test-only reviewed vowel-final stem' }] };
+    const vowelFinal: LexicalEntry = { id: 'lex:pa', surface: 'پا', normalized: 'پا', category: 'noun', readings: [{ canonical: 'pā', confidence: 0.99, source: 'test-only reviewed vowel-final stem' }] };
     const morphology = analyzeMorphology(tokens, orthography, [...LEXICON, vowelFinal])[0];
     expect(morphology).toMatchObject({ lexicalLookupStem: 'پا', hostEnding: 'VOWEL_FINAL', status: 'CANDIDATE' });
     expect(morphology.morphemes[1]).toMatchObject({ type: 'POSSESSIVE_1SG', canonicalRendering: undefined });
@@ -150,7 +150,7 @@ describe('morphological evidence and ambiguity', () => {
     const normalized = normalizePersian('کتابم').normalizedInput;
     const tokens = tokenize(normalized);
     const orthography = analyzeOrthography(tokens);
-    const competing: LexicalEntry[] = [...LEXICON, { surface: 'کتابم', normalized: 'کتابم', category: 'noun', readings: [{ canonical: 'kitābam-as-word', confidence: 0.5, source: 'test fixture' }] }];
+    const competing: LexicalEntry[] = [...LEXICON, { id: 'lex:kitabam-whole', surface: 'کتابم', normalized: 'کتابم', category: 'noun', readings: [{ canonical: 'kitābam-as-word', confidence: 0.5, source: 'test fixture' }] }];
     const morphology = analyzeMorphology(tokens, orthography, competing)[0];
     expect(morphology.status).toBe('CANDIDATE');
     expect(morphology.alternatives).toEqual(['WHOLE_WORD', 'PRODUCTIVE_SEGMENTATION']);

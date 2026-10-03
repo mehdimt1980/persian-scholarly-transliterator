@@ -1,4 +1,5 @@
-import { LEXICON } from '../../data/lexicon';
+import { DEFAULT_LEXICON_REPOSITORY } from '../../data/lexicon';
+import { LexiconRepository } from '../lexicon/repository';
 import { RULES } from '../provenance';
 import { isArabicScriptLetter } from '../tokenizer';
 import { LexicalEntry, Token, TokenAnalysis } from '../types';
@@ -31,7 +32,10 @@ function propose(lookupForm: string): ProposedSegmentation[] {
   return proposals;
 }
 
-function reviewedEntry(stem: string, lexicon: LexicalEntry[]): LexicalEntry | undefined {
+function reviewedEntry(stem: string, lexicon: LexiconRepository | LexicalEntry[]): LexicalEntry | undefined {
+  if (lexicon instanceof LexiconRepository) {
+    return lexicon.findByNormalized(stem);
+  }
   return lexicon.find((entry) => entry.normalized === stem);
 }
 
@@ -61,7 +65,7 @@ function surfaceSuffixStart(surface: string, proposal: ProposedSegmentation): nu
   return surface.lastIndexOf(suffixWithIzafat);
 }
 
-function analyzeProposal(token: Token, tokenIndex: number, orthography: TokenAnalysis, proposal: ProposedSegmentation, lexicon: LexicalEntry[]): MorphologicalAnalysis {
+function analyzeProposal(token: Token, tokenIndex: number, orthography: TokenAnalysis, proposal: ProposedSegmentation, lexicon: LexiconRepository | LexicalEntry[]): MorphologicalAnalysis {
   const entry = reviewedEntry(proposal.stem, lexicon);
   const wholeEntry = reviewedEntry(orthography.lookupForm, lexicon);
   const hostEnding = classifyHostEnding(entry);
@@ -105,7 +109,7 @@ function analyzeProposal(token: Token, tokenIndex: number, orthography: TokenAna
   };
 }
 
-export function analyzeMorphology(tokens: Token[], analyses: TokenAnalysis[], lexicon: LexicalEntry[] = LEXICON): MorphologicalAnalysis[] {
+export function analyzeMorphology(tokens: Token[], analyses: TokenAnalysis[], lexicon: LexiconRepository | LexicalEntry[] = DEFAULT_LEXICON_REPOSITORY): MorphologicalAnalysis[] {
   const byToken = new Map(analyses.map((analysis) => [analysis.tokenIndex, analysis]));
   const results: MorphologicalAnalysis[] = [];
   tokens.forEach((token, tokenIndex) => {
