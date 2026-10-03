@@ -1,9 +1,25 @@
 import { Token, TokenType } from './types';
-const persian = /[\u0600-\u06ff\u0750-\u077f]/;
+
+const ARABIC_LETTER = /^(?=\p{Script=Arabic}$)\p{L}$/u;
+const LATIN_LETTER = /^(?=\p{Script=Latin}$)\p{L}$/u;
+const COMBINING_MARK = /^\p{M}$/u;
+const DECIMAL_DIGIT = /^\p{Nd}$/u;
+const PUNCTUATION = /^\p{P}$/u;
+const WHITESPACE = /^\s$/u;
+const ZWNJ = '\u200c';
+
+function codePointAt(text: string, index: number): string { return String.fromCodePoint(text.codePointAt(index)!); }
+
 export function tokenize(text: string): Token[] {
-  const tokens: Token[] = []; const re = /\s+|[\u0600-\u06ff\u0750-\u077f\u200c]+|[A-Za-zÀ-ÿ]+|[0-9۰-۹]+|[^\s]/gu; let match: RegExpExecArray | null;
-  while ((match = re.exec(text))) { const value = match[0]; let type: TokenType = 'unknown';
-    if (/^\s+$/.test(value)) type = 'whitespace'; else if (/^[0-9۰-۹]+$/.test(value)) type = 'number'; else if (/^[A-Za-zÀ-ÿ]+$/.test(value)) type = 'latin'; else if (persian.test(value)) type = 'persian-word'; else if (/^[،؛؟,.!?():؛«»\-–—]+$/.test(value)) type = 'punctuation';
-    tokens.push({ text: value, normalizedText: value, type, start: match.index, end: match.index + value.length });
-  } return tokens;
+  const tokens: Token[] = []; let index = 0;
+  const push = (normalizedStart: number, normalizedEnd: number, type: TokenType) => tokens.push({ normalizedSurface: text.slice(normalizedStart, normalizedEnd), type, normalizedStart, normalizedEnd });
+  while (index < text.length) {
+    const start = index; const first = codePointAt(text, index); index += first.length;
+    if (WHITESPACE.test(first)) { while (index < text.length && WHITESPACE.test(codePointAt(text, index))) index += codePointAt(text, index).length; push(start, index, 'whitespace'); continue; }
+    if (ARABIC_LETTER.test(first)) { while (index < text.length) { const next = codePointAt(text, index); if (!ARABIC_LETTER.test(next) && !COMBINING_MARK.test(next) && next !== ZWNJ) break; index += next.length; } push(start, index, 'persian-word'); continue; }
+    if (DECIMAL_DIGIT.test(first)) { while (index < text.length && DECIMAL_DIGIT.test(codePointAt(text, index))) index += codePointAt(text, index).length; push(start, index, 'number'); continue; }
+    if (LATIN_LETTER.test(first)) { while (index < text.length) { const next = codePointAt(text, index); if (!LATIN_LETTER.test(next) && !COMBINING_MARK.test(next)) break; index += next.length; } push(start, index, 'latin'); continue; }
+    push(start, index, PUNCTUATION.test(first) ? 'punctuation' : 'unknown');
+  }
+  return tokens;
 }

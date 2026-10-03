@@ -8,7 +8,13 @@ Aggregate output uses unmistakable `⟦…: ambiguous⟧` or `⟦…: unresolved
 
 Token certainty and relation certainty are independent. Two `LEXICON_RESOLVED` tokens may be connected by an `IZAFAT` relation with status `CANDIDATE`; the aggregate status then becomes `AMBIGUOUS`, output receives a relation-review marker, and copying is disabled. A confirmed final-kasra relation remains copyable. A confirmed heh-orthography relation is still non-copyable when its allomorphic rendering is outside current authoritative coverage.
 
-Explicit lexical vowel evidence filters reviewed readings by structured source position. It never searches Latin output strings. No compatible candidate produces an evidence conflict and `UNRESOLVED`; multiple compatible candidates remain `AMBIGUOUS`.
+Explicit lexical vowel evidence evaluates reviewed readings by structured source position. It never searches Latin output strings. Compatibility is tri-state:
+
+- `MATCH`: metadata at the same base position supports the explicit vowel.
+- `CONFLICT`: metadata at that position explicitly supports a different vowel.
+- `UNKNOWN`: metadata at that position is absent or insufficient.
+
+Exactly one `MATCH` may resolve only when every competitor is `CONFLICT`. Multiple matches, or a match plus any unknown competitor, remain ambiguous. No match with all conflicts is a true evidence conflict. No match with at least one unknown is unresolved because metadata is insufficient, but it is not labelled a conflict. Missing lexical vocalization metadata is absence of evidence, not evidence of conflict.
 
 The current motivating title treats the `i/u` correction as IJMES-authoritative while retaining the joining/hyphenation of `درباره` and `تجددخواهی` as unresolved editorial choices.
 

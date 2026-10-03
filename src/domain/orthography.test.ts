@@ -18,9 +18,9 @@ describe('Persian orthographic evidence', () => {
     expect(result.explicitVowels[0]).toMatchObject({ mark, vowel, afterBaseIndex: 0, relationOnly: false });
   });
 
-  it('preserves the vocalized surface and source offsets while deriving lookup form', () => {
+  it('preserves the vocalized normalized surface and normalized offsets while deriving lookup form', () => {
     const result = analyze('کِرم');
-    expect(result).toMatchObject({ surface: 'کِرم', lookupForm: 'کرم', start: 0, end: 4 });
+    expect(result).toMatchObject({ normalizedSurface: 'کِرم', lookupForm: 'کرم', normalizedStart: 0, normalizedEnd: 4 });
   });
 
   it('classifies final kasra separately as explicit relation evidence', () => {
@@ -39,7 +39,7 @@ describe('Persian orthographic evidence', () => {
 
   it('recognizes precomposed heh-with-ye-above without losing the source form', () => {
     const result = analyze('خانۀ');
-    expect(result).toMatchObject({ surface: 'خانۀ', lookupForm: 'خانه', explicitIzafat: 'HEH_ORTHOGRAPHY' });
+    expect(result).toMatchObject({ normalizedSurface: 'خانۀ', lookupForm: 'خانه', explicitIzafat: 'HEH_ORTHOGRAPHY' });
   });
 
   it('recognizes canonically equivalent decomposed heh izāfat orthography', () => {

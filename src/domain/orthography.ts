@@ -12,7 +12,7 @@ export function analyzeOrthography(tokens: Token[]): TokenAnalysis[] {
 }
 
 function analyzePersianToken(token: Token, tokenIndex: number): TokenAnalysis {
-  const characters = [...token.text]; const explicitVowels: OrthographicVowelEvidence[] = []; const zwnjBoundaries: number[] = [];
+  const characters = [...token.normalizedSurface]; const explicitVowels: OrthographicVowelEvidence[] = []; const zwnjBoundaries: number[] = [];
   const provenance: TokenAnalysis['provenance'] = []; const warnings: string[] = []; let baseIndex = -1;
   const lastBaseIndex = characters.reduce((count, character) => VOWEL_MARKS[character] || character === '\u0654' || character === '\u200c' ? count : count + 1, -1);
   for (let sourceOffset = 0; sourceOffset < characters.length; sourceOffset += 1) {
@@ -21,10 +21,10 @@ function analyzePersianToken(token: Token, tokenIndex: number): TokenAnalysis {
     if (character === '\u200c') { zwnjBoundaries.push(sourceOffset); provenance.push(RULES.orthZwnj); continue; }
     if (character !== '\u0654') baseIndex += 1;
   }
-  const hehIzafat = token.text.endsWith('ۀ') || /ه\u0654$/u.test(token.text);
+  const hehIzafat = token.normalizedSurface.endsWith('ۀ') || /ه\u0654$/u.test(token.normalizedSurface);
   if (hehIzafat) provenance.push(RULES.orthHehIzafat);
-  const lookupForm = token.text.replace(/[َُِ]/gu, '').replace(/ۀ$/u, 'ه').replace(/ه\u0654$/u, 'ه');
+  const lookupForm = token.normalizedSurface.replace(/[َُِ]/gu, '').replace(/ۀ$/u, 'ه').replace(/ه\u0654$/u, 'ه');
   const evidencedSegments = zwnjBoundaries.length ? lookupForm.split('\u200c') : [lookupForm];
   if (zwnjBoundaries.length) warnings.push('ZWNJ boundary retained without assigning suffix or compound semantics.');
-  return { tokenIndex, surface: token.text, lookupForm, start: token.start, end: token.end, explicitVowels, explicitIzafat: explicitVowels.some((item) => item.relationOnly) ? 'FINAL_KASRA' : hehIzafat ? 'HEH_ORTHOGRAPHY' : null, zwnjBoundaries, evidencedSegments, warnings, provenance };
+  return { tokenIndex, normalizedSurface: token.normalizedSurface, lookupForm, normalizedStart: token.normalizedStart, normalizedEnd: token.normalizedEnd, explicitVowels, explicitIzafat: explicitVowels.some((item) => item.relationOnly) ? 'FINAL_KASRA' : hehIzafat ? 'HEH_ORTHOGRAPHY' : null, zwnjBoundaries, evidencedSegments, warnings, provenance };
 }

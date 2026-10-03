@@ -2,15 +2,20 @@
 
 ## Three distinct forms
 
-- **Surface form** is the preserved normalized token, including vowel marks and ZWNJ.
+- **Original input** is retained globally before NFC, character canonicalization, joiner conversion, or whitespace collapse.
+- **Normalized surface** is the token text after normalization, including retained vowel marks and ZWNJ.
 - **Lookup form** removes only explicitly recorded lookup noise such as supported vowel marks and converts preserved heh izāfat spelling to the reviewed lexical base.
 - **Canonical transliteration** exists only after lexical resolution and deterministic IJMES transformations.
 
-The original input remains available separately. Lookup normalization never erases evidence from `TokenAnalysis`.
+`normalizedStart` and `normalizedEnd` index normalized input only. They are never presented as original-input offsets. Exact original-token span alignment is not implemented because NFC composition, variant conversion, ZWJ→ZWNJ, and whitespace collapse can change alignment. Lookup normalization never erases evidence from `TokenAnalysis`.
 
 ## Explicit evidence
 
-Fatḥa, kasra, and ḍamma are recorded with source offset, base-letter position, chart provenance, and `a/i/u` value. Reviewed lexical readings may carry matching structured vocalization metadata. Filtering has three outcomes: one candidate resolves, several remain ambiguous, and zero creates a visible evidence conflict. Missing vowels are never reconstructed.
+Fatḥa, kasra, and ḍamma are recorded with normalized-source offset, base-letter position, chart provenance, and `a/i/u` value. Reviewed readings may carry structured vocalization metadata. Compatibility is `MATCH`, `CONFLICT`, or `UNKNOWN`; missing metadata is absence of evidence, not conflict. One match resolves only if every competitor conflicts. A match plus an unknown remains review-required. All conflicts produce a true conflict; any unknown without a match produces an insufficient-metadata state. Missing vowels are never reconstructed.
+
+## Token boundaries
+
+Tokenization uses Unicode categories rather than the broad Arabic block. Arabic-script letters may be followed by combining marks and internal ZWNJ in a Persian word token. Arabic/Persian punctuation—including `،`, `؛`, and `؟`—is emitted as structural punctuation, Persian digits as numbers, and whitespace separately. Consequently punctuation closes relation adjacency while both surrounding words can still resolve normally.
 
 Final kasra confirms an izāfat relation. Final `ۀ` or canonically equivalent heh-plus-mark orthography also confirms the relation, but Phase 2A does not guess a vowel-final `-yi` allomorph; rendering remains review-required. ZWNJ positions create evidenced segments without assigning suffix or compound semantics.
 

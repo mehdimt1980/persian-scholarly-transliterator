@@ -16,6 +16,13 @@ describe('explicit-vowel lexical resolution', () => {
     expect(result.tokens[0].canonicalTransliteration).toBeNull();
     expect(result.tokens[0].warnings.join(' ')).toMatch(/conflicts/i);
   });
+  it('treats missing lexical vocalization metadata as insufficient, not conflicting', () => {
+    const result = transliterate('کِتاب');
+    expect(result.status).toBe('UNRESOLVED');
+    expect(result.copyable).toBe(false);
+    expect(result.tokens[0].warnings.join(' ')).toMatch(/metadata is incomplete/i);
+    expect(result.tokens[0].warnings.join(' ')).not.toMatch(/conflicts with every/i);
+  });
 });
 
 describe('productive izāfat relation analysis', () => {
@@ -57,12 +64,31 @@ describe('productive izāfat relation analysis', () => {
     expect(result.output).toContain('izāfat rendering: review');
   });
 
-  it.each([
-    ['در ایران', 'preposition structure'],
-    ['ایران و تبریز', 'conjunction boundary'],
-    ['کتاب، ایران', 'punctuation boundary']
-  ])('does not propose izāfat across %s', (input) => {
-    expect(transliterate(input).relations).toEqual([]);
+  it('uses punctuation as the structural boundary without corrupting adjacent lexical tokens', () => {
+    const result = transliterate('کتاب، ایران');
+    expect(result.tokens.map((token) => [token.source, token.tokenType, token.status])).toEqual([
+      ['کتاب', 'persian-word', 'LEXICON_RESOLVED'],
+      ['،', 'punctuation', 'DETERMINISTIC'],
+      [' ', 'whitespace', 'DETERMINISTIC'],
+      ['ایران', 'persian-word', 'LEXICON_RESOLVED']
+    ]);
+    expect(result.relations).toEqual([]);
+  });
+
+  it('uses the resolved conjunction as a grammatical blocker', () => {
+    const result = transliterate('ایران و تبریز');
+    const lexical = result.tokens.filter((token) => token.tokenType === 'persian-word');
+    expect(lexical.map((token) => token.status)).toEqual(['LEXICON_RESOLVED', 'LEXICON_RESOLVED', 'LEXICON_RESOLVED']);
+    expect(lexical[1]).toMatchObject({ source: 'و', lexicalCategory: 'conjunction' });
+    expect(result.relations).toEqual([]);
+  });
+
+  it('uses the resolved preposition as a grammatical blocker', () => {
+    const result = transliterate('در ایران');
+    const lexical = result.tokens.filter((token) => token.tokenType === 'persian-word');
+    expect(lexical.map((token) => token.status)).toEqual(['LEXICON_RESOLVED', 'LEXICON_RESOLVED']);
+    expect(lexical[0]).toMatchObject({ source: 'در', lexicalCategory: 'preposition' });
+    expect(result.relations).toEqual([]);
   });
 
   it('does not infer grammar from an unresolved lexical item', () => {

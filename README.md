@@ -6,7 +6,9 @@ This is not an official IJMES or Cambridge product. It is not a general pronunci
 
 ## Current scope
 
-Implemented: loss-aware Unicode normalization, stable token offsets, explicit fatḥa/kasra/ḍamma evidence, vocalized-surface lookup against unvocalized lexical forms, ZWNJ boundary evidence, structured lexical ambiguity filtering, confirmed explicit izāfat, curated relation evidence, conservative unmarked izāfat candidates, canonical IJMES rendering, two output profiles, token/relation inspection, and guarded copying.
+Implemented: loss-aware Unicode normalization, Unicode-category tokenization, stable normalized-source offsets, explicit fatḥa/kasra/ḍamma evidence, vocalized-surface lookup against unvocalized lexical forms, tri-state lexical evidence compatibility, ZWNJ boundary evidence, confirmed explicit izāfat, curated relation evidence, conservative unmarked izāfat candidates, canonical IJMES rendering, two output profiles, token/relation inspection, and guarded copying.
+
+Arabic/Persian punctuation is structural punctuation, not word material merely because its code point lies inside the Arabic Unicode block. The result retains the original input globally; token spans currently refer explicitly to the normalized source. Exact original-token span alignment is a documented future refinement.
 
 The motivating title deliberately exposes unresolved editorial joining choices for `درباره` and `تجددخواهی`; IJMES supplies vowel and display policy but does not by itself settle those lexical segmentation decisions.
 
