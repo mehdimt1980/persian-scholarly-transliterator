@@ -7,6 +7,7 @@ import { tokenize } from '../tokenizer';
 import { LexicalEntry } from '../types';
 import { analyzeMorphology } from './analyzeMorphology';
 import { resolveMorphologicalToken } from './resolveMorphology';
+import { PRODUCTIVE_SUFFIX_RULES } from './rules';
 
 describe('productive plural morphology', () => {
   it('derives کتاب‌ها from a reviewed stem and plural rule', () => {
@@ -87,14 +88,15 @@ describe('possessive enclitics', () => {
     ['کتابم', 'POSSESSIVE_1SG', 'kitāb-am'],
     ['کتابت', 'POSSESSIVE_2SG', 'kitāb-at'],
     ['کتابش', 'POSSESSIVE_3SG', 'kitāb-ash'],
-    ['کتابمان', 'POSSESSIVE_1PL', 'kitāb-mān'],
-    ['کتابتان', 'POSSESSIVE_2PL', 'kitāb-tān'],
-    ['کتابشان', 'POSSESSIVE_3PL', 'kitāb-shān']
+    ['کتابمان', 'POSSESSIVE_1PL', 'kitāb-imān'],
+    ['کتابتان', 'POSSESSIVE_2PL', 'kitāb-itān'],
+    ['کتابشان', 'POSSESSIVE_3PL', 'kitāb-ishān']
   ])('derives %s productively', (surface, type, output) => {
     const result = transliterate(surface);
     expect(result.output).toBe(output);
     expect(result.copyable).toBe(true);
     expect(result.morphology[0]).toMatchObject({ lexicalLookupStem: 'کتاب', status: 'CONFIRMED' });
+    expect(result.morphology[0].hostEnding).toBe('CONSONANT_FINAL');
     expect(result.morphology[0].morphemes[1].type).toBe(type);
     expect(LEXICON.some((entry) => entry.normalized === surface)).toBe(false);
   });
@@ -104,6 +106,35 @@ describe('possessive enclitics', () => {
     expect(result.morphology).toEqual([]);
     expect(result.status).toBe('AMBIGUOUS');
     expect(result.tokens[0].alternatives).toEqual(['karam', 'kirm']);
+  });
+
+  it('keeps host-ending applicability in possessive rule data', () => {
+    const possessives = PRODUCTIVE_SUFFIX_RULES.filter((rule) => rule.morphemeType.startsWith('POSSESSIVE_'));
+    expect(possessives).toHaveLength(6);
+    expect(possessives.every((rule) => rule.canonicalRendering === undefined)).toBe(true);
+    expect(possessives.every((rule) => rule.realizations?.length === 1 && rule.realizations[0].hostEnding === 'CONSONANT_FINAL')).toBe(true);
+  });
+
+  it('recognizes but does not render a reviewed vowel-final possessive host', () => {
+    const normalized = normalizePersian('پام').normalizedInput;
+    const tokens = tokenize(normalized);
+    const orthography = analyzeOrthography(tokens);
+    const vowelFinal: LexicalEntry = { id: 'lex:pa', surface: 'پا', normalized: 'پا', category: 'noun', readings: [{ canonical: 'pā', confidence: 0.99, source: 'test-only reviewed vowel-final stem' }] };
+    const morphology = analyzeMorphology(tokens, orthography, [...LEXICON, vowelFinal])[0];
+    expect(morphology).toMatchObject({ lexicalLookupStem: 'پا', hostEnding: 'VOWEL_FINAL', status: 'CANDIDATE' });
+    expect(morphology.morphemes[1]).toMatchObject({ type: 'POSSESSIVE_1SG', canonicalRendering: undefined });
+    const resolved = resolveMorphologicalToken(tokens[0], morphology).result;
+    expect(resolved.status).toBe('UNRESOLVED');
+    expect(resolved.canonicalTransliteration).toBeNull();
+    expect(resolved.rendered).not.toMatch(/pā-(?:am|m|y-am)/u);
+  });
+
+  it('recognizes but does not render a heh-final possessive host', () => {
+    const result = transliterate('خانه‌م');
+    expect(result.morphology[0]).toMatchObject({ lexicalLookupStem: 'خانه', hostEnding: 'HEH_FINAL', status: 'CANDIDATE' });
+    expect(result.tokens[0].canonicalTransliteration).toBeNull();
+    expect(result.copyable).toBe(false);
+    expect(result.output).not.toMatch(/khāna-(?:am|m|y-am)/u);
   });
 });
 
@@ -119,7 +150,7 @@ describe('morphological evidence and ambiguity', () => {
     const normalized = normalizePersian('کتابم').normalizedInput;
     const tokens = tokenize(normalized);
     const orthography = analyzeOrthography(tokens);
-    const competing: LexicalEntry[] = [...LEXICON, { surface: 'کتابم', normalized: 'کتابم', category: 'noun', readings: [{ canonical: 'kitābam-as-word', confidence: 0.5, source: 'test fixture' }] }];
+    const competing: LexicalEntry[] = [...LEXICON, { id: 'lex:kitabam-whole', surface: 'کتابم', normalized: 'کتابم', category: 'noun', readings: [{ canonical: 'kitābam-as-word', confidence: 0.5, source: 'test fixture' }] }];
     const morphology = analyzeMorphology(tokens, orthography, competing)[0];
     expect(morphology.status).toBe('CANDIDATE');
     expect(morphology.alternatives).toEqual(['WHOLE_WORD', 'PRODUCTIVE_SEGMENTATION']);

@@ -1,10 +1,9 @@
 # Roadmap
 
 1. **Phase 2A — complete:** source-aware vowel evidence, vocalized lookup, ZWNJ structure, confirmed izāfat, and conservative relation candidates.
-2. **Phase 2B — current:** cited, reviewed semantics for plural `ها`, comparative `تر`, superlative `ترین`, six possessive enclitics, and plural-host izāfat.
-3. **Recommended Phase 2C:** expand the reviewed lexicon and add a human review/override workflow while retaining deterministic provenance and copy guards.
-4. Add place/person-name metadata and more source-reviewed lexical alternatives.
-5. Add an assisted resolver only behind the deterministic validator.
-6. Add batch bibliography, CSV, Zotero, and EndNote-safe exports.
+2. **Phase 2B — complete:** cited, reviewed semantics for plural `ها`, comparative `تر`, superlative `ترین`, six possessive enclitics, and plural-host izāfat.
+3. **Phase 2C — current:** indexed reviewed scholarly lexicon repository, expanded vocabulary with scholarly source metadata, proper-name models, deterministic review issues, and human review/override workflow (`USER_OVERRIDE`, manual canonical input, izāfat and morphology review).
+4. **Phase 3 (Future):** assisted candidate resolver behind deterministic validator and human review queue.
+5. **Phase 4 (Future):** batch bibliography processing, CSV import/export, Zotero and EndNote-safe scholarly exports.
 
-Phase 2B deliberately stops before general morphology, compound analysis, verb morphology, and prefix semantics.
+Phase 2C stops strictly before LLM integration, database persistence, authentication, or automatic unreviewed lexicon promotion.

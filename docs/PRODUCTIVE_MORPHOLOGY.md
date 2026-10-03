@@ -12,23 +12,36 @@ Evidence is ordered conservatively:
 4. candidate segmentation;
 5. no segmentation.
 
-ZWNJ identifies a boundary, not its meaning. A right segment receives morphology only if it matches one of the scoped rules and the proposed stem validates. Plural and degree morphology require ZWNJ for confirmation. The six possessive enclitics may be confirmed without it when a reviewed nominal stem and a person-specific rule agree.
+ZWNJ identifies a boundary, not its meaning. A right segment receives morphology only if it matches one of the scoped rules and the proposed stem validates. Plural and degree morphology require ZWNJ for confirmation. The six possessive enclitics may be confirmed without it only when a reviewed nominal stem, a person-specific rule, and a supported host-ending realization agree.
 
 ## Model
 
 Each `MorphologicalAnalysis` records normalized token coordinates, `lexicalLookupStem`, stem vowel evidence, typed `MorphemeSegment` values, `CONFIRMED`, `CANDIDATE`, or `CONFLICT` status, evidence, alternatives, warnings, and rule provenance. Explicit vowels remain indexed by base letter; suffix vowels are not passed to stem resolution. Unsupported combining marks prevent confirmation.
 
-Confirmed rendering composes a resolved canonical stem with the rule rendering: `کتاب‌ها → kitāb-hā`, `بزرگ‌تر → buzurg-tar`, and `کتابم → kitāb-am`. These hyphens make the productive structure inspectable; they are not obtained from whole-word lexical entries.
+Confirmed rendering composes a resolved canonical stem with an applicable rule realization: `کتاب‌ها → kitāb-hā`, `بزرگ‌تر → buzurg-tar`, and `کتابم → kitāb-am`. These hyphens make the productive structure inspectable; they are not obtained from whole-word lexical entries.
+
+## Possessive identity and realization
+
+Morpheme identity remains person/number-specific (`POSSESSIVE_1SG` through `POSSESSIVE_3PL`) and is distinct from phonological realization. Phase 2B classifies reviewed hosts as `CONSONANT_FINAL`, `VOWEL_FINAL`, `HEH_FINAL`, or `UNKNOWN`. Possessive rule data provides authoritative realizations only for `CONSONANT_FINAL`:
+
+- 1SG `-am`, 2SG `-at`, 3SG `-ash`;
+- 1PL `-imān`, 2PL `-itān`, 3PL `-ishān`.
+
+The underlying formal Persian plural-person linking vowel is conventionally described as `e` in the grammar sources (`-emān`, `-etān`, `-ešān`). The project converts that vowel to scholarly `i` under the IJMES Persian vowel convention. IJMES does not supply the Persian morpheme analysis itself.
+
+Vowel-final hosts require additional glide/allomorph rules, and final-heh hosts require distinct orthographic/allomorphic handling. In Phase 2C, unsupported allomorphs produce a dedicated `UNSUPPORTED_ALLOMORPH` review issue, allowing a scholar to supply an explicit validated manual canonical transliteration with `USER_OVERRIDE` provenance.
 
 ## Plural and izāfat
 
 `کتاب‌های ایران` is modeled as `[کتاب + ها] --IZAFAT--> ایران`. The final `ی` is retained as explicit plural-host izāfat evidence. Morphological provenance (`PERSIAN-MORPH-PLURAL-HA`, `PERSIAN-MORPH-PLURAL-IZAFAT-YE`) remains separate from relation interpretation and IJMES rendering (`PERSIAN-CONTEXT-IZAFAT-EXPLICIT`, `IJMES-P-IZAFAT-RENDER`). Bare `کتاب‌ها ایران` does not receive the same confirmed relation.
 
-## Ambiguity and limitations
+## Ambiguity and morphology review in Phase 2C
 
-Unknown stems never become authoritative because a suffix matches. If a reviewed whole-token reading competes with a valid segmentation, both are exposed and copying is disabled. Superlative `ترین` is one scoped morpheme, never recursively `تر + ین`.
+Unknown stems never become authoritative because a suffix matches. If a reviewed whole-token reading competes with a valid segmentation, both are exposed under `MORPHOLOGY_AMBIGUITY`. In Phase 2C:
+- Reviewers can explicitly select `WHOLE_WORD` (applying reviewed lexical canonical reading) or `PRODUCTIVE_SEGMENTATION` (applying stem + suffix rule rendering).
+- The decision attaches `USER-MORPHOLOGY-SELECTION` provenance and assigns `USER_OVERRIDE` status.
 
-There is no general parser, POS tagger, compound splitter, verb morphology, `می-` analysis, negation, unrestricted suffix stacking, or exhaustive Persian plural handling. Vowel-final allomorphs beyond the directly composed forms remain outside this phase.
+There is no general parser, POS tagger, compound splitter, verb morphology, `می-` analysis, negation, unrestricted suffix stacking, exhaustive Persian plural handling, or automatic vowel-final/heh-final possessive realization.
 
 ## Linguistic sources
 

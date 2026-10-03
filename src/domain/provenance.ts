@@ -1,34 +1,263 @@
 import { RuleDefinition } from './types';
+
 export const RULES = {
-  lexicalResolution: { id: 'LEXICON-READING', title: 'Lexical reading', description: 'A reviewed lexical entry supplies the canonical scholarly reading.', authority: 'lexical-data', reference: 'Entry-specific source recorded with the token.' },
-  consonantalScaffold: { id: 'DIAGNOSTIC-CONSONANT-SCAFFOLD', title: 'Diagnostic scaffold', description: 'Character mappings provide diagnostic evidence only; this is not final transliteration.', authority: 'chart', reference: 'IJMES transliteration chart, Persian column.' },
-  initialHamzaDrop: { id: 'IJMES-P-INITIAL-HAMZA-DROP', title: 'Drop initial hamza', description: 'Drop initial hamza in canonical IJMES transliteration.', authority: 'current-guide', reference: 'Current IJMES Translation and Transliteration Guide.' },
-  medialHamza: { id: 'IJMES-P-NONINITIAL-HAMZA', title: 'Preserve non-initial hamza', description: 'Preserve non-initial hamza as Unicode ʾ.', authority: 'current-guide', reference: 'Current IJMES Translation and Transliteration Guide.' },
-  ayn: { id: 'IJMES-P-AYN', title: 'Preserve ʿayn', description: 'Preserve ʿayn as distinct Unicode ʿ.', authority: 'chart', reference: 'IJMES transliteration chart, Persian column.' },
-  persianTaMarbuta: { id: 'IJMES-P-TA-MARBUTA-IH', title: 'Persian tāʾ marbūṭa', description: 'Render tāʾ marbūṭa as ih in Persian; a diagnostic scaffold marks but does not synthesize this vowel-bearing ending.', authority: 'current-guide', reference: 'Current IJMES Translation and Transliteration Guide, Detailed Transliteration Guidelines.' },
-  orthFatha: { id: 'PERSIAN-ORTH-FATHA', title: 'Explicit fatḥa', description: 'The source contains an explicit fatḥa representing a.', authority: 'chart', reference: 'IJMES transliteration chart.' },
-  orthKasra: { id: 'PERSIAN-ORTH-KASRA', title: 'Explicit kasra', description: 'The source contains an explicit kasra representing i.', authority: 'chart', reference: 'IJMES transliteration chart.' },
-  orthDamma: { id: 'PERSIAN-ORTH-DAMMA', title: 'Explicit ḍamma', description: 'The source contains an explicit ḍamma representing u.', authority: 'chart', reference: 'IJMES transliteration chart.' },
-  orthZwnj: { id: 'PERSIAN-ORTH-ZWNJ-BOUNDARY', title: 'ZWNJ boundary', description: 'The source contains a word-internal ZWNJ boundary; no suffix semantics are inferred.', authority: 'linguistic-convention', reference: 'Unicode source evidence and conservative project analysis.' },
-  orthHehIzafat: { id: 'PERSIAN-ORTH-HEH-IZAFAT', title: 'Explicit heh izāfat orthography', description: 'The source contains preserved final-heh orthography associated with izāfat.', authority: 'linguistic-convention', reference: 'Source orthography; allomorphic IJMES rendering remains under review.' },
-  orthUnsupportedCombining: { id: 'PERSIAN-ORTH-UNSUPPORTED-COMBINING-MARK', title: 'Unsupported combining mark', description: 'The normalized token contains a preserved Unicode combining mark whose linguistic semantics Phase 2A does not interpret.', authority: 'linguistic-convention', reference: 'Unicode category evidence; interpretation intentionally deferred.' },
-  morphStem: { id: 'PERSIAN-MORPH-REVIEWED-STEM', title: 'Reviewed morphological stem', description: 'A proposed productive analysis is validated against a reviewed lexical stem and compatible lexical category.', authority: 'lexical-data', reference: 'Entry-specific lexical source recorded with the stem.' },
-  morphZwnjEvidence: { id: 'PERSIAN-MORPH-ZWNJ-EVIDENCE', title: 'Morphological ZWNJ evidence', description: 'A source ZWNJ supplies an explicit orthographic boundary but does not independently assign morpheme semantics.', authority: 'linguistic-convention', reference: 'Unicode source evidence interpreted conservatively with a supported suffix rule.' },
-  morphWholeWordCompetition: { id: 'PERSIAN-MORPH-WHOLE-WORD-COMPETITION', title: 'Whole-word morphological competition', description: 'A reviewed whole-word reading and a productive segmentation are both plausible, so neither is selected by ordering.', authority: 'editorial', reference: 'Project ambiguity policy.' },
-  morphPluralHa: { id: 'PERSIAN-MORPH-PLURAL-HA', title: 'Persian plural -hā', description: 'The productive Persian suffix ها marks plural number on a compatible nominal stem.', authority: 'linguistic-convention', reference: 'Windfuhr and Perry, “Persian and Tajik,” The Iranian Languages (2009); Encyclopaedia Iranica, “EŻĀFA.”' },
-  morphComparativeTar: { id: 'PERSIAN-MORPH-COMPARATIVE-TAR', title: 'Persian comparative -tar', description: 'The productive suffix تر forms a comparative from a compatible adjective stem.', authority: 'linguistic-convention', reference: 'Yousef and Torabi, Intermediate Persian: A Grammar and Workbook, 2nd ed. (Routledge, 2020), unit 8.' },
-  morphSuperlativeTarin: { id: 'PERSIAN-MORPH-SUPERLATIVE-TARIN', title: 'Persian superlative -tarīn', description: 'The productive suffix ترین forms a superlative from a compatible adjective stem and is not recursively decomposed.', authority: 'linguistic-convention', reference: 'Yousef and Torabi, Intermediate Persian: A Grammar and Workbook, 2nd ed. (Routledge, 2020), unit 8.' },
-  morphPossessive1sg: { id: 'PERSIAN-MORPH-POSS-1SG', title: 'First-person singular possessive enclitic', description: 'The enclitic م marks a first-person singular pronominal possessor on a compatible nominal host.', authority: 'linguistic-convention', reference: 'Windfuhr and Perry, “Persian and Tajik,” The Iranian Languages (2009), pronominal enclitics.' },
-  morphPossessive2sg: { id: 'PERSIAN-MORPH-POSS-2SG', title: 'Second-person singular possessive enclitic', description: 'The enclitic ت marks a second-person singular pronominal possessor on a compatible nominal host.', authority: 'linguistic-convention', reference: 'Windfuhr and Perry, “Persian and Tajik,” The Iranian Languages (2009), pronominal enclitics.' },
-  morphPossessive3sg: { id: 'PERSIAN-MORPH-POSS-3SG', title: 'Third-person singular possessive enclitic', description: 'The enclitic ش marks a third-person singular pronominal possessor on a compatible nominal host.', authority: 'linguistic-convention', reference: 'Windfuhr and Perry, “Persian and Tajik,” The Iranian Languages (2009), pronominal enclitics.' },
-  morphPossessive1pl: { id: 'PERSIAN-MORPH-POSS-1PL', title: 'First-person plural possessive enclitic', description: 'The enclitic مان marks a first-person plural pronominal possessor on a compatible nominal host.', authority: 'linguistic-convention', reference: 'Windfuhr and Perry, “Persian and Tajik,” The Iranian Languages (2009), pronominal enclitics.' },
-  morphPossessive2pl: { id: 'PERSIAN-MORPH-POSS-2PL', title: 'Second-person plural possessive enclitic', description: 'The enclitic تان marks a second-person plural pronominal possessor on a compatible nominal host.', authority: 'linguistic-convention', reference: 'Windfuhr and Perry, “Persian and Tajik,” The Iranian Languages (2009), pronominal enclitics.' },
-  morphPossessive3pl: { id: 'PERSIAN-MORPH-POSS-3PL', title: 'Third-person plural possessive enclitic', description: 'The enclitic شان marks a third-person plural pronominal possessor on a compatible nominal host.', authority: 'linguistic-convention', reference: 'Windfuhr and Perry, “Persian and Tajik,” The Iranian Languages (2009), pronominal enclitics.' },
-  morphPluralIzafatYe: { id: 'PERSIAN-MORPH-PLURAL-IZAFAT-YE', title: 'Plural-host izāfat yā evidence', description: 'In های, final ی after plural ها explicitly marks izāfat on the inflected plural host.', authority: 'linguistic-convention', reference: 'Encyclopaedia Iranica, “EŻĀFA,” including eżāfa phrases with plural -hā.' },
-  izafatExplicitInterpretation: { id: 'PERSIAN-CONTEXT-IZAFAT-EXPLICIT', title: 'Explicit izāfat interpretation', description: 'Final kasra or preserved heh orthography confirms an izāfat relation.', authority: 'linguistic-convention', reference: 'Conservative Persian orthographic analysis; not an IJMES syntax rule.' },
-  izafatCandidate: { id: 'PERSIAN-GRAMMAR-IZAFAT-CANDIDATE', title: 'Unmarked izāfat candidate', description: 'Resolved adjacent lexical categories make izāfat plausible but not certain.', authority: 'linguistic-convention', reference: 'Conservative project grammar analysis requiring future scholarly citation.' },
-  izafatDetected: { id: 'PERSIAN-CONTEXT-IZAFAT-DETECTED', title: 'Izāfat detected', description: 'Lexical/context evidence identifies an izāfat relation at this position.', authority: 'linguistic-convention', reference: 'Entry-specific context evidence recorded with the token.' },
-  izafatRender: { id: 'IJMES-P-IZAFAT-RENDER', title: 'Render Persian izāfat', description: 'Render a detected Persian izāfat as -i.', authority: 'current-guide', reference: 'Current IJMES guide; example: vilāyat-i faqīh.' },
-  titleDiacritics: { id: 'IJMES-TITLE-DIACRITIC-REMOVAL', title: 'Title diacritic policy', description: 'Remove scholarly diacritics while preserving ʿayn and non-initial hamza.', authority: 'current-guide', reference: 'Current IJMES Translation and Transliteration Guide.' },
-  titleCase: { id: 'IJMES-TITLE-CAPITALIZATION', title: 'English title capitalization', description: 'Capitalize major title words; keep listed minor words lowercase except at title boundaries.', authority: 'current-guide', reference: 'Current IJMES Translation and Transliteration Guide.' }
+  lexicalResolution: {
+    id: 'LEXICON-READING',
+    title: 'Lexical reading',
+    description: 'A reviewed lexical entry supplies the canonical scholarly reading.',
+    authority: 'lexical-data',
+    reference: 'Entry-specific source recorded with the token.'
+  },
+  consonantalScaffold: {
+    id: 'DIAGNOSTIC-CONSONANT-SCAFFOLD',
+    title: 'Diagnostic scaffold',
+    description: 'Character mappings provide diagnostic evidence only; this is not final transliteration.',
+    authority: 'chart',
+    reference: 'IJMES transliteration chart, Persian column.'
+  },
+  initialHamzaDrop: {
+    id: 'IJMES-P-INITIAL-HAMZA-DROP',
+    title: 'Drop initial hamza',
+    description: 'Drop initial hamza in canonical IJMES transliteration.',
+    authority: 'current-guide',
+    reference: 'Current IJMES Translation and Transliteration Guide.'
+  },
+  medialHamza: {
+    id: 'IJMES-P-NONINITIAL-HAMZA',
+    title: 'Preserve non-initial hamza',
+    description: 'Preserve non-initial hamza as Unicode ʾ.',
+    authority: 'current-guide',
+    reference: 'Current IJMES Translation and Transliteration Guide.'
+  },
+  ayn: {
+    id: 'IJMES-P-AYN',
+    title: 'Preserve ʿayn',
+    description: 'Preserve ʿayn as distinct Unicode ʿ.',
+    authority: 'chart',
+    reference: 'IJMES transliteration chart, Persian column.'
+  },
+  persianTaMarbuta: {
+    id: 'IJMES-P-TA-MARBUTA-IH',
+    title: 'Persian tāʾ marbūṭa',
+    description: 'Render tāʾ marbūṭa as ih in Persian; a diagnostic scaffold marks but does not synthesize this vowel-bearing ending.',
+    authority: 'current-guide',
+    reference: 'Current IJMES Translation and Transliteration Guide, Detailed Transliteration Guidelines.'
+  },
+  orthFatha: {
+    id: 'PERSIAN-ORTH-FATHA',
+    title: 'Explicit fatḥa',
+    description: 'The source contains an explicit fatḥa representing a.',
+    authority: 'chart',
+    reference: 'IJMES transliteration chart.'
+  },
+  orthKasra: {
+    id: 'PERSIAN-ORTH-KASRA',
+    title: 'Explicit kasra',
+    description: 'The source contains an explicit kasra representing i.',
+    authority: 'chart',
+    reference: 'IJMES transliteration chart.'
+  },
+  orthDamma: {
+    id: 'PERSIAN-ORTH-DAMMA',
+    title: 'Explicit ḍamma',
+    description: 'The source contains an explicit ḍamma representing u.',
+    authority: 'chart',
+    reference: 'IJMES transliteration chart.'
+  },
+  orthZwnj: {
+    id: 'PERSIAN-ORTH-ZWNJ-BOUNDARY',
+    title: 'ZWNJ boundary',
+    description: 'The source contains a word-internal ZWNJ boundary; no suffix semantics are inferred.',
+    authority: 'linguistic-convention',
+    reference: 'Unicode source evidence and conservative project analysis.'
+  },
+  orthHehIzafat: {
+    id: 'PERSIAN-ORTH-HEH-IZAFAT',
+    title: 'Explicit heh izāfat orthography',
+    description: 'The source contains preserved final-heh orthography associated with izāfat.',
+    authority: 'linguistic-convention',
+    reference: 'Source orthography; allomorphic IJMES rendering remains under review.'
+  },
+  orthUnsupportedCombining: {
+    id: 'PERSIAN-ORTH-UNSUPPORTED-COMBINING-MARK',
+    title: 'Unsupported combining mark',
+    description: 'The normalized token contains a preserved Unicode combining mark whose linguistic semantics Phase 2A does not interpret.',
+    authority: 'linguistic-convention',
+    reference: 'Unicode category evidence; interpretation intentionally deferred.'
+  },
+  morphStem: {
+    id: 'PERSIAN-MORPH-REVIEWED-STEM',
+    title: 'Reviewed morphological stem',
+    description: 'A proposed productive analysis is validated against a reviewed lexical stem and compatible lexical category.',
+    authority: 'lexical-data',
+    reference: 'Entry-specific lexical source recorded with the stem.'
+  },
+  morphHostEnding: {
+    id: 'PERSIAN-MORPH-HOST-ENDING',
+    title: 'Morphological host-ending class',
+    description: 'Reviewed canonical stem evidence classifies a host as consonant-final, vowel-final, heh-final, or unknown for rule applicability.',
+    authority: 'linguistic-convention',
+    reference: 'Project classification implementing host-conditioned allomorph constraints documented by the cited Persian grammars.'
+  },
+  morphZwnjEvidence: {
+    id: 'PERSIAN-MORPH-ZWNJ-EVIDENCE',
+    title: 'Morphological ZWNJ evidence',
+    description: 'A source ZWNJ supplies an explicit orthographic boundary but does not independently assign morpheme semantics.',
+    authority: 'linguistic-convention',
+    reference: 'Unicode source evidence interpreted conservatively with a supported suffix rule.'
+  },
+  morphWholeWordCompetition: {
+    id: 'PERSIAN-MORPH-WHOLE-WORD-COMPETITION',
+    title: 'Whole-word morphological competition',
+    description: 'A reviewed whole-word reading and a productive segmentation are both plausible, so neither is selected by ordering.',
+    authority: 'editorial',
+    reference: 'Project ambiguity policy.'
+  },
+  morphPluralHa: {
+    id: 'PERSIAN-MORPH-PLURAL-HA',
+    title: 'Persian plural -hā',
+    description: 'The productive Persian suffix ها marks plural number on a compatible nominal stem.',
+    authority: 'linguistic-convention',
+    reference: 'Windfuhr and Perry, “Persian and Tajik,” The Iranian Languages (2009); Encyclopaedia Iranica, “EŻĀFA.”'
+  },
+  morphComparativeTar: {
+    id: 'PERSIAN-MORPH-COMPARATIVE-TAR',
+    title: 'Persian comparative -tar',
+    description: 'The productive suffix تر forms a comparative from a compatible adjective stem.',
+    authority: 'linguistic-convention',
+    reference: 'Yousef and Torabi, Intermediate Persian: A Grammar and Workbook, 2nd ed. (Routledge, 2020), unit 8.'
+  },
+  morphSuperlativeTarin: {
+    id: 'PERSIAN-MORPH-SUPERLATIVE-TARIN',
+    title: 'Persian superlative -tarīn',
+    description: 'The productive suffix ترین forms a superlative from a compatible adjective stem and is not recursively decomposed.',
+    authority: 'linguistic-convention',
+    reference: 'Yousef and Torabi, Intermediate Persian: A Grammar and Workbook, 2nd ed. (Routledge, 2020), unit 8.'
+  },
+  morphPossessive1sg: {
+    id: 'PERSIAN-MORPH-POSS-1SG',
+    title: 'First-person singular possessive enclitic',
+    description: 'The enclitic م marks a first-person singular pronominal possessor on a compatible nominal host.',
+    authority: 'linguistic-convention',
+    reference: 'Windfuhr and Perry, “Persian and Tajik,” The Iranian Languages (2009), pronominal enclitics.'
+  },
+  morphPossessive2sg: {
+    id: 'PERSIAN-MORPH-POSS-2SG',
+    title: 'Second-person singular possessive enclitic',
+    description: 'The enclitic ت marks a second-person singular pronominal possessor on a compatible nominal host.',
+    authority: 'linguistic-convention',
+    reference: 'Windfuhr and Perry, “Persian and Tajik,” The Iranian Languages (2009), pronominal enclitics.'
+  },
+  morphPossessive3sg: {
+    id: 'PERSIAN-MORPH-POSS-3SG',
+    title: 'Third-person singular possessive enclitic',
+    description: 'The enclitic ش marks a third-person singular pronominal possessor on a compatible nominal host.',
+    authority: 'linguistic-convention',
+    reference: 'Windfuhr and Perry, “Persian and Tajik,” The Iranian Languages (2009), pronominal enclitics.'
+  },
+  morphPossessive1pl: {
+    id: 'PERSIAN-MORPH-POSS-1PL',
+    title: 'First-person plural possessive enclitic',
+    description: 'The enclitic مان marks a first-person plural pronominal possessor; Phase 2B renders post-consonantal -emān as IJMES-compatible -imān.',
+    authority: 'linguistic-convention',
+    reference: 'Windfuhr and Perry, “Persian and Tajik,” The Iranian Languages (2009), pronominal enclitics; IJMES Persian i/e convention applies only to rendering.'
+  },
+  morphPossessive2pl: {
+    id: 'PERSIAN-MORPH-POSS-2PL',
+    title: 'Second-person plural possessive enclitic',
+    description: 'The enclitic تان marks a second-person plural pronominal possessor; Phase 2B renders post-consonantal -etān as IJMES-compatible -itān.',
+    authority: 'linguistic-convention',
+    reference: 'Windfuhr and Perry, “Persian and Tajik,” The Iranian Languages (2009), pronominal enclitics; IJMES Persian i/e convention applies only to rendering.'
+  },
+  morphPossessive3pl: {
+    id: 'PERSIAN-MORPH-POSS-3PL',
+    title: 'Third-person plural possessive enclitic',
+    description: 'The enclitic شان marks a third-person plural pronominal possessor; Phase 2B renders post-consonantal -ešān as IJMES-compatible -ishān.',
+    authority: 'linguistic-convention',
+    reference: 'Windfuhr and Perry, “Persian and Tajik,” The Iranian Languages (2009), pronominal enclitics; IJMES Persian i/e convention applies only to rendering.'
+  },
+  morphPluralIzafatYe: {
+    id: 'PERSIAN-MORPH-PLURAL-IZAFAT-YE',
+    title: 'Plural-host izāfat yā evidence',
+    description: 'In های, final ی after plural ها explicitly marks izāfat on the inflected plural host.',
+    authority: 'linguistic-convention',
+    reference: 'Encyclopaedia Iranica, “EŻĀFA,” including eżāfa phrases with plural -hā.'
+  },
+  izafatExplicitInterpretation: {
+    id: 'PERSIAN-CONTEXT-IZAFAT-EXPLICIT',
+    title: 'Explicit izāfat interpretation',
+    description: 'Final kasra or preserved heh orthography confirms an izāfat relation.',
+    authority: 'linguistic-convention',
+    reference: 'Conservative Persian orthographic analysis; not an IJMES syntax rule.'
+  },
+  izafatCandidate: {
+    id: 'PERSIAN-GRAMMAR-IZAFAT-CANDIDATE',
+    title: 'Unmarked izāfat candidate',
+    description: 'Resolved adjacent lexical categories make izāfat plausible but not certain.',
+    authority: 'linguistic-convention',
+    reference: 'Conservative project grammar analysis requiring future scholarly citation.'
+  },
+  izafatDetected: {
+    id: 'PERSIAN-CONTEXT-IZAFAT-DETECTED',
+    title: 'Izāfat detected',
+    description: 'Lexical/context evidence identifies an izāfat relation at this position.',
+    authority: 'linguistic-convention',
+    reference: 'Entry-specific context evidence recorded with the token.'
+  },
+  izafatRender: {
+    id: 'IJMES-P-IZAFAT-RENDER',
+    title: 'Render Persian izāfat',
+    description: 'Render a detected Persian izāfat as -i.',
+    authority: 'current-guide',
+    reference: 'Current IJMES guide; example: vilāyat-i faqīh.'
+  },
+  titleDiacritics: {
+    id: 'IJMES-TITLE-DIACRITIC-REMOVAL',
+    title: 'Title diacritic policy',
+    description: 'Remove scholarly diacritics while preserving ʿayn and non-initial hamza.',
+    authority: 'current-guide',
+    reference: 'Current IJMES Translation and Transliteration Guide.'
+  },
+  titleCase: {
+    id: 'IJMES-TITLE-CAPITALIZATION',
+    title: 'English title capitalization',
+    description: 'Capitalize major title words; keep listed minor words lowercase except at title boundaries.',
+    authority: 'current-guide',
+    reference: 'Current IJMES Translation and Transliteration Guide.'
+  },
+  userLexicalReadingSelection: {
+    id: 'USER-LEXICAL-READING-SELECTION',
+    title: 'User lexical reading selection',
+    description: 'An explicit human decision selected one of the supported reviewed lexical readings for this session.',
+    authority: 'user-decision',
+    reference: 'Human review session override.'
+  },
+  userManualCanonicalOverride: {
+    id: 'USER-MANUAL-CANONICAL-OVERRIDE',
+    title: 'User manual canonical override',
+    description: 'An explicit human transliteration was provided for an unresolved token; this is not authoritative lexicon data.',
+    authority: 'user-decision',
+    reference: 'Human review session manual entry.'
+  },
+  userIzafatAccept: {
+    id: 'USER-IZAFAT-ACCEPT',
+    title: 'User confirmed izāfat relation',
+    description: 'Human decision confirmed the presence of an izāfat relation at this position.',
+    authority: 'user-decision',
+    reference: 'Human review session relation confirmation.'
+  },
+  userIzafatReject: {
+    id: 'USER-IZAFAT-REJECT',
+    title: 'User rejected izāfat relation',
+    description: 'Human decision rejected the candidate izāfat relation.',
+    authority: 'user-decision',
+    reference: 'Human review session relation rejection.'
+  },
+  userMorphologySelection: {
+    id: 'USER-MORPHOLOGY-SELECTION',
+    title: 'User morphology selection',
+    description: 'Human decision selected between competing whole-word and productive morphological segmentations.',
+    authority: 'user-decision',
+    reference: 'Human review session morphology resolution.'
+  }
 } satisfies Record<string, RuleDefinition>;

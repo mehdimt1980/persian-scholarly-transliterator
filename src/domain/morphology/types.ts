@@ -13,9 +13,15 @@ export type MorphemeType =
   | 'POSSESSIVE_3PL';
 
 export type MorphologyStatus = 'CONFIRMED' | 'CANDIDATE' | 'CONFLICT';
+export type MorphologicalHostEnding = 'CONSONANT_FINAL' | 'VOWEL_FINAL' | 'HEH_FINAL' | 'UNKNOWN';
+
+export interface MorphemeRealization {
+  hostEnding: MorphologicalHostEnding;
+  canonicalRendering: string;
+}
 
 export interface MorphemeEvidence {
-  kind: 'ZWNJ_BOUNDARY' | 'REVIEWED_STEM' | 'PRODUCTIVE_RULE' | 'EXPLICIT_IZAFAT_YE' | 'WHOLE_WORD_READING';
+  kind: 'ZWNJ_BOUNDARY' | 'REVIEWED_STEM' | 'HOST_ENDING' | 'PRODUCTIVE_RULE' | 'EXPLICIT_IZAFAT_YE' | 'WHOLE_WORD_READING';
   rule: RuleDefinition;
   description: string;
 }
@@ -38,6 +44,7 @@ export interface MorphologicalAnalysis {
   lexicalLookupStem: string;
   stemEntry?: LexicalEntry;
   stemCategory?: LexicalCategory;
+  hostEnding: MorphologicalHostEnding;
   stemVowelEvidence: OrthographicVowelEvidence[];
   morphemes: MorphemeSegment[];
   status: MorphologyStatus;
@@ -52,7 +59,8 @@ export interface ProductiveSuffixRule {
   surfaceForms: string[];
   morphemeType: Exclude<MorphemeType, 'STEM'>;
   hostCategories: LexicalCategory[];
-  canonicalRendering: string;
+  canonicalRendering?: string;
+  realizations?: MorphemeRealization[];
   allowWithoutZwnj: boolean;
   rule: RuleDefinition;
 }

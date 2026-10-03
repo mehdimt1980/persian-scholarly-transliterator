@@ -1,11 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap');
-:root { --ink:#20201e; --muted:#77746d; --line:#d9d5cb; --paper:#f5f3ee; --accent:#b4492d; --sage:#536a5b; }
+:root { --ink:#20201e; --muted:#77746d; --line:#d9d5cb; --paper:#f5f3ee; --accent:#b4492d; --sage:#536a5b; --gold:#9c6500; --blue:#2d5b88; }
 * { box-sizing:border-box; }
 body { margin:0; background:var(--paper); color:var(--ink); font-family:'DM Sans',sans-serif; }
 main { max-width:1160px; margin:0 auto; padding:54px 30px 38px; }
 header { max-width:730px; margin-bottom:48px; }
 .eyebrow { margin:0 0 14px; color:var(--accent); font:500 11px 'DM Mono',monospace; letter-spacing:.13em; }
-h1,h2 { margin:0; font-family:'Source Serif 4',serif; font-weight:500; }
+h1,h2,h3 { margin:0; font-family:'Source Serif 4',serif; font-weight:500; }
 h1 { font-size:64px; line-height:1.02; letter-spacing:-.045em; }
 h1 em { color:var(--accent); font-style:normal; }
 .lede { max-width:620px; margin:22px 0 0; color:#5f5b54; font:20px/1.5 'Source Serif 4',serif; }
@@ -15,6 +15,7 @@ h1 em { color:var(--accent); font-style:normal; }
 .panel-top label { font:500 12px 'DM Mono',monospace; letter-spacing:.08em; text-transform:uppercase; }
 .panel-top span { color:var(--muted); font:11px 'DM Mono',monospace; }
 .panel-top .status { color:var(--sage); }
+.panel-top .status.user_override { color:var(--blue); }
 textarea { width:100%; height:155px; padding:18px; resize:vertical; border:0; outline:0; background:#faf9f6; color:var(--ink); font:23px/1.65 'Source Serif 4',serif; }
 .controls { margin-top:17px; }
 .controls label,.profile,.token-meta { color:var(--muted); font:11px 'DM Mono',monospace; }
@@ -23,15 +24,21 @@ select { display:block; margin-top:8px; padding:10px 36px 10px 12px; border:1px 
 .muted { color:#aaa; }
 .review-notice { margin:0 0 14px; color:var(--accent); font:11px/1.45 'DM Mono',monospace; }
 .output-actions { display:flex; align-items:center; justify-content:space-between; padding-top:15px; border-top:1px solid var(--line); }
-button { padding:10px 15px; border:0; background:var(--ink); color:#fff; cursor:pointer; font:500 12px 'DM Sans',sans-serif; }
+button { padding:10px 15px; border:0; background:var(--ink); color:#fff; cursor:pointer; font:500 12px 'DM Sans',sans-serif; transition:background .15s ease; }
 button:hover:not(:disabled) { background:var(--accent); }
 button:disabled { background:#aaa7a0; cursor:not-allowed; }
+button.secondary { background:#fff; color:var(--ink); border:1px solid var(--line); }
+button.secondary:hover:not(:disabled) { background:#eae6dd; }
+button.btn-active { background:var(--blue); color:#fff; }
+button.btn-clear { background:transparent; color:var(--muted); border:1px dashed var(--line); padding:6px 10px; font-size:11px; }
+button.btn-clear:hover { color:var(--accent); border-color:var(--accent); background:#fff; }
+
 .inspection { margin-top:55px; }
 .inspection.relations { margin-top:38px; }
 .empty-evidence { padding:18px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); color:var(--muted); font:12px 'DM Mono',monospace; }
 .section-heading { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:17px; }
 .section-heading h2 { font-size:30px; }
-.section-heading>p { max-width:310px; margin:0; color:var(--muted); text-align:right; font:12px/1.5 'DM Mono',monospace; }
+.section-heading>p { max-width:340px; margin:0; color:var(--muted); text-align:right; font:12px/1.5 'DM Mono',monospace; }
 .token-list { border-top:1px solid var(--line); }
 .token { padding:15px 0; border-bottom:1px solid var(--line); }
 .token-line { display:flex; align-items:center; gap:13px; font:17px 'Source Serif 4',serif; }
@@ -39,7 +46,26 @@ button:disabled { background:#aaa7a0; cursor:not-allowed; }
 .arrow,.warning { color:var(--accent); }
 .badge { margin-left:auto; padding:5px 7px; border:1px solid #b7c7bb; color:var(--sage); font:10px 'DM Mono',monospace; letter-spacing:.04em; }
 .badge.unresolved,.badge.ambiguous { border-color:#d9b2a5; color:var(--accent); }
+.badge.user_override { border-color:#8aaac8; color:var(--blue); background:#f0f5fa; }
 .token-meta { display:flex; flex-wrap:wrap; gap:17px; margin-top:8px; padding-left:154px; }
+.token-meta .auto-badge { color:var(--muted); font-style:italic; }
+
+/* Review Workspace Styles */
+.review-workspace { margin-top:40px; padding:24px; border:1px solid #d9b2a5; background:#fffbf9; }
+.review-workspace.resolved-all { border-color:#b7c7bb; background:#f9fbf9; }
+.review-workspace-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:12px; border-bottom:1px solid var(--line); }
+.review-workspace-header h3 { font-size:20px; }
+.review-card { padding:18px; margin-bottom:14px; border:1px solid var(--line); background:#fff; }
+.review-card:last-child { margin-bottom:0; }
+.review-card-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.review-card-top .surface { font:20px 'Source Serif 4',serif; font-weight:600; }
+.review-card-body { margin-bottom:14px; font-size:13px; color:#444; line-height:1.5; }
+.review-card-body .evidence-summary { margin-top:6px; font:11px 'DM Mono',monospace; color:var(--muted); }
+.review-actions { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.review-actions .manual-input-row { display:flex; gap:8px; width:100%; max-width:480px; }
+.review-actions input[type="text"] { flex:1; padding:8px 12px; border:1px solid var(--line); font:14px 'Source Serif 4',serif; background:#fff; }
+.review-active-status { display:flex; align-items:center; gap:12px; margin-top:10px; padding:8px 12px; background:#f0f5fa; border:1px solid #bed2e5; font:12px 'DM Mono',monospace; color:var(--blue); }
+
 footer { display:flex; justify-content:space-between; margin-top:58px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); font:10px 'DM Mono',monospace; }
 @media (max-width:760px) {
   main { padding:35px 18px; }
@@ -48,6 +74,7 @@ footer { display:flex; justify-content:space-between; margin-top:58px; padding-t
   .section-heading { display:block; }
   .section-heading>p { margin-top:12px; text-align:left; }
   .token-meta { padding-left:0; }
+  .review-actions .manual-input-row { flex-direction:column; }
   footer { display:block; }
   footer span { display:block; margin-bottom:6px; }
 }
