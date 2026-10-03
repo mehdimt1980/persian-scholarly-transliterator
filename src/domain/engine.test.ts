@@ -21,7 +21,15 @@ describe('resolution behavior', () => {
   it('records lexical provenance without falsely claiming consonant production', () => { const token = transliterate('ایران').tokens[0]; expect(token.status).toBe('LEXICON_RESOLVED'); expect(token.appliedRules.map((rule) => rule.id)).toContain('LEXICON-READING'); expect(token.appliedRules.map((rule) => rule.id)).not.toContain('IJMES-P-CONSONANT'); });
   it('represents unknown material as non-copyable unresolved review content', () => { const result = transliterate('واژهناشناخته'); expect(result.status).toBe('UNRESOLVED'); expect(result.copyable).toBe(false); expect(result.tokens[0].canonicalTransliteration).toBeNull(); expect(result.output).toMatch(/unresolved/); expect(result.tokens[0].diagnosticScaffold).not.toMatch(/[\u0600-\u06ff]/u); });
   it('retains every ambiguous alternative without selecting the first', () => { const result = transliterate('کرم'); expect(result.status).toBe('AMBIGUOUS'); expect(result.copyable).toBe(false); expect(result.tokens[0].canonicalTransliteration).toBeNull(); expect(result.tokens[0].alternatives).toEqual(['karam', 'kirm']); expect(result.output).toContain('ambiguous'); });
-  it('passes punctuation and numbers through deterministically', () => { const result = transliterate('ایران: ۱۴۰۰'); expect(result.output).toBe('īrān: ۱۴۰۰'); expect(result.tokens.find((token) => token.source === ':')?.status).toBe('DETERMINISTIC'); });
+  it('passes punctuation and numbers through deterministically', () => { const result = transliterate('ایران: ۱۴۰۰'); expect(result.output).toBe('īrān: ۱۴۰۰'); expect(result.tokens.find((token) => token.normalizedSurface === ':')?.status).toBe('DETERMINISTIC'); });
+
+  it('exposes normalized token coordinates without implying original-input spans', () => {
+    const token = transliterate('ايران').tokens[0];
+    expect(token).toMatchObject({ normalizedSurface: 'ایران', normalizedStart: 0, normalizedEnd: 5 });
+    expect(token).not.toHaveProperty('source');
+    expect(token).not.toHaveProperty('start');
+    expect(token).not.toHaveProperty('end');
+  });
 });
 
 describe('integration fixtures', () => {

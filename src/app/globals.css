@@ -27,6 +27,8 @@ button { padding:10px 15px; border:0; background:var(--ink); color:#fff; cursor:
 button:hover:not(:disabled) { background:var(--accent); }
 button:disabled { background:#aaa7a0; cursor:not-allowed; }
 .inspection { margin-top:55px; }
+.inspection.relations { margin-top:38px; }
+.empty-evidence { padding:18px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); color:var(--muted); font:12px 'DM Mono',monospace; }
 .section-heading { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:17px; }
 .section-heading h2 { font-size:30px; }
 .section-heading>p { max-width:310px; margin:0; color:var(--muted); text-align:right; font:12px/1.5 'DM Mono',monospace; }

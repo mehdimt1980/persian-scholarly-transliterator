@@ -2,13 +2,16 @@
 
 The public `transliterate(input, profile)` pipeline is deliberately staged:
 
-1. **Loss-aware normalization** returns original input, normalized input, and a change log. Safe Arabic/Persian yeh and kaf variants are canonicalized. `ۀ` and `ة` remain distinct and carry semantic metadata; ZWNJ is preserved.
-2. **Tokenization** preserves order, punctuation, whitespace, numbers, Latin text, and offsets.
-3. **Lexical resolution** supplies a canonical reading only when exactly one reviewed reading exists. Multiple readings produce `AMBIGUOUS`; no entry produces `UNRESOLVED`.
-4. **Context detection** consumes structured lexical grammatical evidence. It can detect the seeded izāfat relation without checking lexical values in engine code.
-5. **Canonical IJMES rendering** drops initial hamza, preserves non-initial `ʾ` and `ʿ`, and renders detected izāfat as `-i`. Detailed-guide exceptions such as Persian tāʾ marbūṭa `ih` are represented separately from consonant mapping data.
-6. **Output profiles** leave full scholarly output intact or deterministically remove title diacritics and apply the documented title-capitalization subset, including structural lowercase treatment for supported hyphenated articles/prefixes.
+1. **Loss-aware normalization** returns original input, normalized input, and a change log. Meaningful heh forms and ZWNJ survive.
+2. **Tokenization** scans Unicode categories. Persian words contain Arabic-script letters plus following combining marks and internal ZWNJ; Arabic/Persian punctuation is always a separate structural token, and Persian digits remain number tokens. Offsets are explicitly normalized-source offsets.
+3. **Orthographic analysis** separates normalized token surface from lexical lookup form while retaining explicit vowels, unsupported combining marks, final-kasra/heh izāfat evidence, ZWNJ boundaries, evidenced segments, warnings, and provenance. Only Arabic-script letters advance base-letter indexes; combining marks and ZWNJ never do.
+4. **Lexical resolution** compares reviewed candidates using `MATCH`, `CONFLICT`, or `UNKNOWN`. Missing metadata is absence of evidence, not evidence of conflict. Resolution occurs only when exactly one reading matches and every competitor conflicts.
+5. **Relation analysis** independently creates confirmed or candidate izāfat relations. Explicit source evidence outranks curated phrase evidence, which outranks conservative grammatical candidates.
+6. **Canonical IJMES rendering** applies deterministic rules only to confirmed, supported relations and resolved lexical readings.
+7. **Output profiles** format canonical output. Candidate or unsupported-allomorph relations add review markers and disable copying.
 
 Diagnostic consonantal scaffolds are separate from `canonicalTransliteration`. Because a consonantal scaffold cannot safely synthesize the vowel in Persian `ة → ih`, it emits `[TM]` and attaches the guide rule as review evidence rather than pretending `h` is a final IJMES rendering. Ambiguous and unresolved tokens use explicit review placeholders, make the aggregate result non-copyable, and never become authoritative by array order.
 
-The engine has no React/Next dependency. React displays domain results and enforces the domain’s `copyable` decision.
+The engine has no React/Next dependency. React displays token analyses and relations and enforces the domain’s `copyable` decision.
+
+`originalInput` and `normalizedInput` are both retained. `Token.normalizedSurface`, `normalizedStart`, `normalizedEnd`, the public `TokenResult` fields of the same names, and the corresponding `TokenAnalysis` fields refer only to normalized input. Normalization can change code-point composition or length, so Phase 2A does not claim exact original-token spans; an original↔normalized alignment map remains a contained future improvement.
