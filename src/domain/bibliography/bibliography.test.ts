@@ -15,10 +15,12 @@ import {
   sanitizeBibTeXKey,
   validateBibliographyAssistanceApplicability,
   candidateToBibliographyReviewDecision,
+  processBibliographyRecord,
   BibliographyRecord,
   BibliographyReviewDecision,
   BibliographyAssistanceState,
-  ProcessedBibliographyRecord
+  ProcessedBibliographyRecord,
+  ProcessedBibliographyBatch
 } from './index';
 import {
   AssistedResolution,
@@ -836,7 +838,7 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
 
     it('48D. duplicate citation key fails closed with DUPLICATE_CITATION_KEY diagnostic', () => {
       const recA: BibliographyRecord = {
-        id: 'pst_dup',
+        id: 'pst_dup:1',
         type: 'BOOK',
         title: 'کتاب',
         authors: [],
@@ -847,7 +849,7 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
         passthrough: {}
       };
       const recB: BibliographyRecord = {
-        id: 'pst_dup',
+        id: 'pst_dup_1',
         type: 'BOOK',
         title: 'ایران',
         authors: [],
@@ -858,30 +860,227 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
         passthrough: {}
       };
 
-      const batch = {
-        records: [
-          {
-            record: recA,
-            fields: { title: { fieldPath: 'title' as const, sourceText: 'کتاب', profile: 'ijmes_title' as const, requiresTransliteration: true, finalText: 'Kitab', status: 'DETERMINISTIC' as const, reviewIssues: [] } },
-            readiness: 'READY' as const,
-            reviewIssueCount: 0,
-            invalidReasons: []
-          },
-          {
-            record: recB,
-            fields: { title: { fieldPath: 'title' as const, sourceText: 'ایران', profile: 'ijmes_title' as const, requiresTransliteration: true, finalText: 'Iran', status: 'DETERMINISTIC' as const, reviewIssues: [] } },
-            readiness: 'READY' as const,
-            reviewIssueCount: 0,
-            invalidReasons: []
-          }
-        ],
-        summary: { total: 2, ready: 2, reviewRequired: 0, invalid: 0 },
-        diagnostics: []
-      };
+      const batch = processBibliographyBatch([recA, recB]);
 
       const report = exportToBibTeX(batch, 'STRICT_ALL');
       expect(report.success).toBe(false);
       expect(report.diagnostics.some((d) => d.code === 'DUPLICATE_CITATION_KEY')).toBe(true);
+    });
+
+    it('48E. rejects record in final export when field profile does not match expected policy', () => {
+      const pr = processBibliographyRecord({
+        id: 'r_prof',
+        type: 'BOOK',
+        title: 'دولت',
+        authors: [],
+        editors: [],
+        translators: [],
+        sourceRowIndex: 1,
+        sourceColumns: [],
+        passthrough: {}
+      });
+      // Artificially tamper profile to ijmes_full instead of ijmes_title
+      pr.fields.title.profile = 'ijmes_full';
+
+      const batch: ProcessedBibliographyBatch = {
+        records: [pr],
+        summary: { total: 1, ready: 1, reviewRequired: 0, invalid: 0 },
+        diagnostics: []
+      };
+
+      const csvReport = exportFinalCsv(batch, 'STRICT_ALL');
+      expect(csvReport.success).toBe(false);
+      expect(csvReport.diagnostics.some((d) => d.code === 'FIELD_PROFILE_MISMATCH')).toBe(true);
+
+      const risReport = exportToRis(batch, 'STRICT_ALL');
+      expect(risReport.success).toBe(false);
+      expect(risReport.diagnostics.some((d) => d.code === 'FIELD_PROFILE_MISMATCH')).toBe(true);
+
+      const bibtexReport = exportToBibTeX(batch, 'STRICT_ALL');
+      expect(bibtexReport.success).toBe(false);
+      expect(bibtexReport.diagnostics.some((d) => d.code === 'FIELD_PROFILE_MISMATCH')).toBe(true);
+    });
+
+    it('48F. rejects record in final export when Persian field is missing transliteration result', () => {
+      const pr = processBibliographyRecord({
+        id: 'r_fake',
+        type: 'BOOK',
+        title: 'دولت',
+        authors: [],
+        editors: [],
+        translators: [],
+        sourceRowIndex: 1,
+        sourceColumns: [],
+        passthrough: {}
+      });
+      // Tamper transliterationResult to undefined
+      pr.fields.title.transliterationResult = undefined;
+      pr.fields.title.finalText = 'Fake';
+
+      const batch: ProcessedBibliographyBatch = {
+        records: [pr],
+        summary: { total: 1, ready: 1, reviewRequired: 0, invalid: 0 },
+        diagnostics: []
+      };
+
+      const csvReport = exportFinalCsv(batch, 'STRICT_ALL');
+      expect(csvReport.success).toBe(false);
+      expect(csvReport.diagnostics.some((d) => d.code === 'MISSING_TRANSLITERATION_RESULT')).toBe(true);
+
+      const risReport = exportToRis(batch, 'STRICT_ALL');
+      expect(risReport.success).toBe(false);
+      expect(risReport.diagnostics.some((d) => d.code === 'MISSING_TRANSLITERATION_RESULT')).toBe(true);
+
+      const bibtexReport = exportToBibTeX(batch, 'STRICT_ALL');
+      expect(bibtexReport.success).toBe(false);
+      expect(bibtexReport.diagnostics.some((d) => d.code === 'MISSING_TRANSLITERATION_RESULT')).toBe(true);
+    });
+
+    it('48G. rejects record in final export when transliteration result is uncopyable', () => {
+      const pr = processBibliographyRecord({
+        id: 'r_uncopy',
+        type: 'BOOK',
+        title: 'دولت',
+        authors: [],
+        editors: [],
+        translators: [],
+        sourceRowIndex: 1,
+        sourceColumns: [],
+        passthrough: {}
+      });
+      if (pr.fields.title.transliterationResult) {
+        pr.fields.title.transliterationResult.copyable = false;
+      }
+      pr.fields.title.finalText = 'Something';
+
+      const batch: ProcessedBibliographyBatch = {
+        records: [pr],
+        summary: { total: 1, ready: 1, reviewRequired: 0, invalid: 0 },
+        diagnostics: []
+      };
+
+      const csvReport = exportFinalCsv(batch, 'STRICT_ALL');
+      expect(csvReport.success).toBe(false);
+      expect(csvReport.diagnostics.some((d) => d.code === 'UNCOPYABLE_TRANSLITERATION_RESULT')).toBe(true);
+
+      const risReport = exportToRis(batch, 'STRICT_ALL');
+      expect(risReport.success).toBe(false);
+      expect(risReport.diagnostics.some((d) => d.code === 'UNCOPYABLE_TRANSLITERATION_RESULT')).toBe(true);
+
+      const bibtexReport = exportToBibTeX(batch, 'STRICT_ALL');
+      expect(bibtexReport.success).toBe(false);
+      expect(bibtexReport.diagnostics.some((d) => d.code === 'UNCOPYABLE_TRANSLITERATION_RESULT')).toBe(true);
+    });
+
+    it('48H. rejects record in final export when finalText does not match transliteration result output', () => {
+      const pr = processBibliographyRecord({
+        id: 'r_mismatch',
+        type: 'BOOK',
+        title: 'دولت',
+        authors: [],
+        editors: [],
+        translators: [],
+        sourceRowIndex: 1,
+        sourceColumns: [],
+        passthrough: {}
+      });
+      pr.fields.title.finalText = 'Dawlat'; // Engine output is 'Daulat'
+
+      const batch: ProcessedBibliographyBatch = {
+        records: [pr],
+        summary: { total: 1, ready: 1, reviewRequired: 0, invalid: 0 },
+        diagnostics: []
+      };
+
+      const csvReport = exportFinalCsv(batch, 'STRICT_ALL');
+      expect(csvReport.success).toBe(false);
+      expect(csvReport.diagnostics.some((d) => d.code === 'FINAL_TEXT_RESULT_MISMATCH')).toBe(true);
+
+      const risReport = exportToRis(batch, 'STRICT_ALL');
+      expect(risReport.success).toBe(false);
+      expect(risReport.diagnostics.some((d) => d.code === 'FINAL_TEXT_RESULT_MISMATCH')).toBe(true);
+
+      const bibtexReport = exportToBibTeX(batch, 'STRICT_ALL');
+      expect(bibtexReport.success).toBe(false);
+      expect(bibtexReport.diagnostics.some((d) => d.code === 'FINAL_TEXT_RESULT_MISMATCH')).toBe(true);
+    });
+
+    it('48I. rejects record in final export when Latin passthrough field is modified', () => {
+      const pr = processBibliographyRecord({
+        id: 'r_latin_mod',
+        type: 'BOOK',
+        title: 'State and Society in Iran',
+        authors: [],
+        editors: [],
+        translators: [],
+        sourceRowIndex: 1,
+        sourceColumns: [],
+        passthrough: {}
+      });
+      // Tamper finalText
+      pr.fields.title.finalText = 'Changed title';
+
+      const batch: ProcessedBibliographyBatch = {
+        records: [pr],
+        summary: { total: 1, ready: 1, reviewRequired: 0, invalid: 0 },
+        diagnostics: []
+      };
+
+      const csvReport = exportFinalCsv(batch, 'STRICT_ALL');
+      expect(csvReport.success).toBe(false);
+      expect(csvReport.diagnostics.some((d) => d.code === 'INVALID_PASSTHROUGH_FIELD')).toBe(true);
+
+      const risReport = exportToRis(batch, 'STRICT_ALL');
+      expect(risReport.success).toBe(false);
+      expect(risReport.diagnostics.some((d) => d.code === 'INVALID_PASSTHROUGH_FIELD')).toBe(true);
+
+      const bibtexReport = exportToBibTeX(batch, 'STRICT_ALL');
+      expect(bibtexReport.success).toBe(false);
+      expect(bibtexReport.diagnostics.some((d) => d.code === 'INVALID_PASSTHROUGH_FIELD')).toBe(true);
+    });
+
+    it('48J. successfully exports legitimate Persian resolved and Latin passthrough records', () => {
+      const persianRecord = processBibliographyRecord({
+        id: 'r_persian',
+        type: 'BOOK',
+        title: 'دولت',
+        authors: [],
+        editors: [],
+        translators: [],
+        sourceRowIndex: 1,
+        sourceColumns: [],
+        passthrough: {}
+      });
+
+      const latinRecord = processBibliographyRecord({
+        id: 'r_latin',
+        type: 'BOOK',
+        title: 'State and Society in Iran',
+        authors: [],
+        editors: [],
+        translators: [],
+        sourceRowIndex: 2,
+        sourceColumns: [],
+        passthrough: {}
+      });
+
+      const batch: ProcessedBibliographyBatch = {
+        records: [persianRecord, latinRecord],
+        summary: { total: 2, ready: 2, reviewRequired: 0, invalid: 0 },
+        diagnostics: []
+      };
+
+      const csvReport = exportFinalCsv(batch, 'STRICT_ALL');
+      expect(csvReport.success).toBe(true);
+      expect(csvReport.exportedRecordIds).toEqual(['r_persian', 'r_latin']);
+
+      const risReport = exportToRis(batch, 'STRICT_ALL');
+      expect(risReport.success).toBe(true);
+      expect(risReport.exportedRecordIds).toEqual(['r_persian', 'r_latin']);
+
+      const bibtexReport = exportToBibTeX(batch, 'STRICT_ALL');
+      expect(bibtexReport.success).toBe(true);
+      expect(bibtexReport.exportedRecordIds).toEqual(['r_persian', 'r_latin']);
     });
   });
 });

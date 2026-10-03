@@ -1,5 +1,6 @@
+import { getFieldPolicy } from '../fieldPolicy';
 import { containsArabicScript } from '../scriptDetection';
-import { BibliographyDiagnostic, ProcessedBibliographyRecord } from '../types';
+import { BibliographyDiagnostic, BibliographyFieldPath, ProcessedBibliographyRecord } from '../types';
 
 export interface FinalExportValidationResult {
   valid: boolean;
@@ -15,7 +16,7 @@ export function validateRecordForFinalExport(
   const r = pr.record;
 
   // Derive all expected transformable field paths from source record
-  const expectedFields: Array<{ path: string; sourceText: string }> = [];
+  const expectedFields: Array<{ path: BibliographyFieldPath; sourceText: string }> = [];
 
   // 1. Title is always required
   expectedFields.push({ path: 'title', sourceText: r.title ?? '' });
@@ -27,17 +28,17 @@ export function validateRecordForFinalExport(
 
   // 3. Authors
   r.authors.forEach((creator, idx) => {
-    expectedFields.push({ path: `authors.${idx}.literal`, sourceText: creator.literal });
+    expectedFields.push({ path: `authors.${idx}.literal` as BibliographyFieldPath, sourceText: creator.literal });
   });
 
   // 4. Editors
   r.editors.forEach((creator, idx) => {
-    expectedFields.push({ path: `editors.${idx}.literal`, sourceText: creator.literal });
+    expectedFields.push({ path: `editors.${idx}.literal` as BibliographyFieldPath, sourceText: creator.literal });
   });
 
   // 5. Translators
   r.translators.forEach((creator, idx) => {
-    expectedFields.push({ path: `translators.${idx}.literal`, sourceText: creator.literal });
+    expectedFields.push({ path: `translators.${idx}.literal` as BibliographyFieldPath, sourceText: creator.literal });
   });
 
   // 6. Publisher if present in source
@@ -50,7 +51,7 @@ export function validateRecordForFinalExport(
     expectedFields.push({ path: 'place', sourceText: r.place });
   }
 
-  // For every expected path, verify existence, provenance, and authoritative completion
+  // For every expected path, verify existence, provenance, profile, and authoritative completion
   for (const { path, sourceText } of expectedFields) {
     const field = pr.fields[path];
 
@@ -78,29 +79,90 @@ export function validateRecordForFinalExport(
       continue;
     }
 
+    const expectedPolicy = getFieldPolicy(path);
+    if (field.profile !== expectedPolicy.profile) {
+      diagnostics.push({
+        recordId: r.id,
+        row: r.sourceRowIndex,
+        field: path,
+        severity: 'ERROR',
+        code: 'FIELD_PROFILE_MISMATCH',
+        message: `Field "${path}" profile ("${field.profile}") does not match expected policy profile ("${expectedPolicy.profile}").`
+      });
+      continue;
+    }
+
     const hasArabic = containsArabicScript(sourceText);
 
     if (hasArabic) {
-      // Must require transliteration and must have non-null finalText
-      if (!field.requiresTransliteration || field.finalText === null) {
+      if (!field.requiresTransliteration) {
         diagnostics.push({
           recordId: r.id,
           row: r.sourceRowIndex,
           field: path,
           severity: 'ERROR',
           code: 'UNAUTHORITATIVE_FINAL_FIELD',
-          message: `Field "${path}" contains Persian script but is unresolved or unauthoritative for final export.`
+          message: `Field "${path}" contains Persian script but requiresTransliteration is false.`
         });
         continue;
       }
+
+      if (!field.transliterationResult) {
+        diagnostics.push({
+          recordId: r.id,
+          row: r.sourceRowIndex,
+          field: path,
+          severity: 'ERROR',
+          code: 'MISSING_TRANSLITERATION_RESULT',
+          message: `Field "${path}" is missing an authoritative transliteration result.`
+        });
+        continue;
+      }
+
+      if (!field.transliterationResult.copyable || field.transliterationResult.status === 'UNRESOLVED') {
+        diagnostics.push({
+          recordId: r.id,
+          row: r.sourceRowIndex,
+          field: path,
+          severity: 'ERROR',
+          code: 'UNCOPYABLE_TRANSLITERATION_RESULT',
+          message: `Field "${path}" transliteration result is uncopyable or unresolved.`
+        });
+        continue;
+      }
+
+      if (field.finalText === null || field.finalText !== field.transliterationResult.output) {
+        diagnostics.push({
+          recordId: r.id,
+          row: r.sourceRowIndex,
+          field: path,
+          severity: 'ERROR',
+          code: 'FINAL_TEXT_RESULT_MISMATCH',
+          message: `Field "${path}" finalText does not match transliteration result output.`
+        });
+        continue;
+      }
+
       authoritativeValues[path] = field.finalText;
     } else {
-      // Latin/Passthrough field
-      if (field.finalText !== null) {
-        authoritativeValues[path] = field.finalText;
-      } else {
-        authoritativeValues[path] = sourceText;
+      // Latin / non-Arabic script: true passthrough required
+      if (
+        field.requiresTransliteration !== false ||
+        field.status !== 'PASSTHROUGH' ||
+        field.finalText !== sourceText
+      ) {
+        diagnostics.push({
+          recordId: r.id,
+          row: r.sourceRowIndex,
+          field: path,
+          severity: 'ERROR',
+          code: 'INVALID_PASSTHROUGH_FIELD',
+          message: `Field "${path}" contains non-Persian source and must be an unmodified passthrough.`
+        });
+        continue;
       }
+
+      authoritativeValues[path] = field.finalText;
     }
   }
 

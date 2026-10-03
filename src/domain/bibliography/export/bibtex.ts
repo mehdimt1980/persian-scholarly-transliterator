@@ -63,6 +63,7 @@ export function exportToBibTeX(
     if (!validation.valid) {
       for (const d of validation.diagnostics) {
         reasons.push(d.message);
+        diagnostics.push(d);
       }
     }
 
