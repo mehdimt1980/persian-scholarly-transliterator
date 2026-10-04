@@ -1,0 +1,5180 @@
+[
+  {
+    "id": "cand-term-001",
+    "sourceText": "نوسازی",
+    "proposedProfile": "ijmes_full",
+    "category": "TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (Tehran University Press, 1998), entry نوسازی",
+        "locator": "entry نوسازی",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry نوسازی",
+          "attestedSourceText": "نوسازی"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "CITIES iv. Modern Urbanization and Modernization in Persia",
+        "url": "https://www.iranicaonline.org/articles/cities-iv",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/cities-iv",
+          "observedSourceTitle": "CITIES iv. Modern Urbanization and Modernization in Persia",
+          "locator": "article headword"
+        },
+        "locator": "article headword"
+      }
+    ]
+  },
+  {
+    "id": "cand-term-002",
+    "sourceText": "بازرگانی",
+    "proposedProfile": "ijmes_full",
+    "category": "TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (1998), entry بازرگانی",
+        "locator": "entry بازرگانی",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry بازرگانی",
+          "attestedSourceText": "بازرگانی"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "COMMERCE vi. In the Pahlavi Period",
+        "url": "https://www.iranicaonline.org/articles/commerce-vi",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/commerce-vi",
+          "observedSourceTitle": "COMMERCE vi. In the Pahlavi Period",
+          "locator": "article headword"
+        },
+        "locator": "article headword"
+      }
+    ]
+  },
+  {
+    "id": "cand-term-003",
+    "sourceText": "خودکامگی",
+    "proposedProfile": "ijmes_full",
+    "category": "TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (1998), entry خودکامگی",
+        "locator": "entry خودکامگی",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry خودکامگی",
+          "attestedSourceText": "خودکامگی"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "AUTOCRACY",
+        "url": "https://www.iranicaonline.org/articles/autocracy",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/autocracy",
+          "observedSourceTitle": "AUTOCRACY",
+          "locator": "article headword"
+        },
+        "locator": "article headword"
+      }
+    ]
+  },
+  {
+    "id": "cand-term-004",
+    "sourceText": "مشروطه‌خواهی",
+    "proposedProfile": "ijmes_full",
+    "category": "TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (1998), entry مشروطه‌خواهی",
+        "locator": "entry مشروطه‌خواهی",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry مشروطه‌خواهی",
+          "attestedSourceText": "مشروطه‌خواهی"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "CONSTITUTIONAL REVOLUTION i. Overview",
+        "url": "https://www.iranicaonline.org/articles/constitutional-revolution-i",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/constitutional-revolution-i",
+          "observedSourceTitle": "CONSTITUTIONAL REVOLUTION i. Overview",
+          "locator": "article headword"
+        },
+        "locator": "article headword"
+      }
+    ]
+  },
+  {
+    "id": "cand-term-005",
+    "sourceText": "دیوان‌سالاری",
+    "proposedProfile": "ijmes_full",
+    "category": "TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (1998), entry دیوان‌سالاری",
+        "locator": "entry دیوان‌سالاری",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry دیوان‌سالاری",
+          "attestedSourceText": "دیوان‌سالاری"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "BUREAUCRACY in Modern Iran",
+        "url": "https://www.iranicaonline.org/articles/bureaucracy-in-iran",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/bureaucracy-in-iran",
+          "observedSourceTitle": "BUREAUCRACY in Modern Iran",
+          "locator": "article headword"
+        },
+        "locator": "article headword"
+      }
+    ]
+  },
+  {
+    "id": "cand-term-006",
+    "sourceText": "شاهنشاهی",
+    "proposedProfile": "ijmes_full",
+    "category": "TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (1998), entry شاهنشاهی",
+        "locator": "entry شاهنشاهی",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry شاهنشاهی",
+          "attestedSourceText": "شاهنشاهی"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "ŠĀHANŠĀH",
+        "url": "https://www.iranicaonline.org/articles/sahansah",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/sahansah",
+          "observedSourceTitle": "ŠĀHANŠĀH",
+          "locator": "article headword"
+        },
+        "locator": "article headword"
+      }
+    ]
+  },
+  {
+    "id": "cand-term-007",
+    "sourceText": "تجدد",
+    "proposedProfile": "ijmes_full",
+    "category": "TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (1998), entry تجدد",
+        "locator": "entry تجدد",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry تجدد",
+          "attestedSourceText": "تجدد"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "TAJADDOD",
+        "url": "https://www.iranicaonline.org/articles/tajaddod-journal",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/tajaddod-journal",
+          "observedSourceTitle": "TAJADDOD",
+          "locator": "opening sentence"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-term-008",
+    "sourceText": "شهروندی",
+    "proposedProfile": "ijmes_full",
+    "category": "TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (1998), entry شهروندی",
+        "locator": "entry شهروندی",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry شهروندی",
+          "attestedSourceText": "شهروندی"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "CITIZENSHIP in Modern Persia",
+        "url": "https://www.iranicaonline.org/articles/citizenship-in-persia",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/citizenship-in-persia",
+          "observedSourceTitle": "CITIZENSHIP in Modern Persia",
+          "locator": "article headword"
+        },
+        "locator": "article headword"
+      }
+    ]
+  },
+  {
+    "id": "cand-term-009",
+    "sourceText": "استعمار",
+    "proposedProfile": "ijmes_full",
+    "category": "TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (1998), entry استعمار",
+        "locator": "entry استعمار",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry استعمار",
+          "attestedSourceText": "استعمار"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "COLONIALISM in Iran",
+        "url": "https://www.iranicaonline.org/articles/colonialism-in-iran",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/colonialism-in-iran",
+          "observedSourceTitle": "COLONIALISM in Iran",
+          "locator": "article headword"
+        },
+        "locator": "article headword"
+      }
+    ]
+  },
+  {
+    "id": "cand-term-010",
+    "sourceText": "جهان‌بینی",
+    "proposedProfile": "ijmes_full",
+    "category": "TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Steingass Persian-English Dictionary",
+        "citation": "F. Steingass, Comprehensive Persian-English Dictionary (London: Routledge, 1892), p. 380",
+        "locator": "p. 380",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Steingass Persian-English Dictionary",
+          "locator": "p. 380",
+          "attestedSourceText": "جهان‌بینی"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-term-011",
+    "sourceText": "دادگستری",
+    "proposedProfile": "ijmes_full",
+    "category": "TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (1998), entry دادگستری",
+        "locator": "entry دادگستری",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry دادگستری",
+          "attestedSourceText": "دادگستری"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "JUDICIAL SYSTEM iv. Modern",
+        "url": "https://www.iranicaonline.org/articles/judicial-system-modern",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/judicial-system-modern",
+          "observedSourceTitle": "JUDICIAL SYSTEM iv. Modern",
+          "locator": "article headword"
+        },
+        "locator": "article headword"
+      }
+    ]
+  },
+  {
+    "id": "cand-term-012",
+    "sourceText": "روشنفکری",
+    "proposedProfile": "ijmes_full",
+    "category": "TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (1998), entry روشنفکری",
+        "locator": "entry روشنفکری",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry روشنفکری",
+          "attestedSourceText": "روشنفکری"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "INTELLECTUALS in Modern Persia",
+        "url": "https://www.iranicaonline.org/articles/intellectuals-in-persia",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/intellectuals-in-persia",
+          "observedSourceTitle": "INTELLECTUALS in Modern Persia",
+          "locator": "article headword"
+        },
+        "locator": "article headword"
+      }
+    ]
+  },
+  {
+    "id": "cand-term-013",
+    "sourceText": "کارگزاری",
+    "proposedProfile": "ijmes_full",
+    "category": "TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (1998), entry کارگزاری",
+        "locator": "entry کارگزاری",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry کارگزاری",
+          "attestedSourceText": "کارگزاری"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "KĀRGOZĀR",
+        "url": "https://www.iranicaonline.org/articles/kargozar",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "kārgozārī",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/kargozar",
+          "observedSourceTitle": "KĀRGOZĀR",
+          "locator": "opening sentence",
+          "attestedRomanization": "kārgozārī"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-term-014",
+    "sourceText": "کشورمندی",
+    "proposedProfile": "ijmes_full",
+    "category": "TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Steingass Persian-English Dictionary",
+        "citation": "F. Steingass, Comprehensive Persian-English Dictionary (London, 1892), p. 1032",
+        "locator": "p. 1032",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Steingass Persian-English Dictionary",
+          "locator": "p. 1032",
+          "attestedSourceText": "کشورمندی"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-term-015",
+    "sourceText": "میهن‌پرستی",
+    "proposedProfile": "ijmes_full",
+    "category": "TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (1998), entry میهن‌پرستی",
+        "locator": "entry میهن‌پرستی",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry میهن‌پرستی",
+          "attestedSourceText": "میهن‌پرستی"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "NATIONALISM in Modern Iran",
+        "url": "https://www.iranicaonline.org/articles/nationalism-in-iran",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/nationalism-in-iran",
+          "observedSourceTitle": "NATIONALISM in Modern Iran",
+          "locator": "article headword"
+        },
+        "locator": "article headword"
+      }
+    ]
+  },
+  {
+    "id": "cand-rel-001",
+    "sourceText": "اجتهاد",
+    "proposedProfile": "ijmes_full",
+    "category": "RELIGIOUS_TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (1998), entry اجتهاد",
+        "locator": "entry اجتهاد",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry اجتهاد",
+          "attestedSourceText": "اجتهاد"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "EJTEHĀD",
+        "url": "https://www.iranicaonline.org/articles/ejtehad",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "ejtehād",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/ejtehad",
+          "observedSourceTitle": "EJTEHĀD",
+          "locator": "opening sentence",
+          "attestedRomanization": "ejtehād"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-rel-002",
+    "sourceText": "تقلید",
+    "proposedProfile": "ijmes_full",
+    "category": "RELIGIOUS_TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (1998), entry تقلید",
+        "locator": "entry تقلید",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry تقلید",
+          "attestedSourceText": "تقلید"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "TAQLĪD",
+        "url": "https://www.iranicaonline.org/articles/taqlid",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "taqlīd",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/taqlid",
+          "observedSourceTitle": "TAQLĪD",
+          "locator": "opening sentence",
+          "attestedRomanization": "taqlīd"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-rel-003",
+    "sourceText": "ولایت فقیه",
+    "proposedProfile": "ijmes_full",
+    "category": "RELIGIOUS_TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (1998), entry ولایت فقیه",
+        "locator": "entry ولایت فقیه",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry ولایت فقیه",
+          "attestedSourceText": "ولایت فقیه"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "VELĀYAT-E FAQĪH",
+        "url": "https://www.iranicaonline.org/articles/velayat-e-faqih",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "velāyat-e faqīh",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/velayat-e-faqih",
+          "observedSourceTitle": "VELĀYAT-E FAQĪH",
+          "locator": "opening sentence",
+          "attestedRomanization": "velāyat-e faqīh"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-rel-004",
+    "sourceText": "امر به معروف",
+    "proposedProfile": "ijmes_full",
+    "category": "RELIGIOUS_TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (1998), entry امر به معروف",
+        "locator": "entry امر به معروف",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry امر به معروف",
+          "attestedSourceText": "امر به معروف"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "AMR BE MAʿRŪF",
+        "url": "https://www.iranicaonline.org/articles/amr-be-maruf",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "amr be maʿrūf",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/amr-be-maruf",
+          "observedSourceTitle": "AMR BE MAʿRŪF",
+          "locator": "opening sentence",
+          "attestedRomanization": "amr be maʿrūf"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-rel-005",
+    "sourceText": "اهل بیت",
+    "proposedProfile": "ijmes_full",
+    "category": "RELIGIOUS_TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (1998), entry اهل بیت",
+        "locator": "entry اهل بیت",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry اهل بیت",
+          "attestedSourceText": "اهل بیت"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "AHL-E BAYT",
+        "url": "https://www.iranicaonline.org/articles/ahl-e-bayt",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "ahl-e bayt",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/ahl-e-bayt",
+          "observedSourceTitle": "AHL-E BAYT",
+          "locator": "opening sentence",
+          "attestedRomanization": "ahl-e bayt"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-rel-006",
+    "sourceText": "خمس",
+    "proposedProfile": "ijmes_full",
+    "category": "RELIGIOUS_TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (1998), entry خمس",
+        "locator": "entry خمس",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry خمس",
+          "attestedSourceText": "خمس"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "ḴOMS",
+        "url": "https://www.iranicaonline.org/articles/koms",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "ḵoms",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/koms",
+          "observedSourceTitle": "ḴOMS",
+          "locator": "opening sentence",
+          "attestedRomanization": "ḵoms"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-rel-007",
+    "sourceText": "زکات",
+    "proposedProfile": "ijmes_full",
+    "category": "RELIGIOUS_TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (1998), entry زکات",
+        "locator": "entry زکات",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry زکات",
+          "attestedSourceText": "زکات"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "ZAKĀT",
+        "url": "https://www.iranicaonline.org/articles/zakat",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "zakāt",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/zakat",
+          "observedSourceTitle": "ZAKĀT",
+          "locator": "opening sentence",
+          "attestedRomanization": "zakāt"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-rel-008",
+    "sourceText": "عاشورا",
+    "proposedProfile": "ijmes_full",
+    "category": "RELIGIOUS_TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (1998), entry عاشورا",
+        "locator": "entry عاشورا",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry عاشورا",
+          "attestedSourceText": "عاشورا"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "ʿĀŠŪRĀʾ",
+        "url": "https://www.iranicaonline.org/articles/asura",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "ʿāšūrāʾ",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/asura",
+          "observedSourceTitle": "ʿĀŠŪRĀʾ",
+          "locator": "opening sentence",
+          "attestedRomanization": "ʿāšūrāʾ"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-rel-009",
+    "sourceText": "دارالتقریب",
+    "proposedProfile": "ijmes_full",
+    "category": "RELIGIOUS_TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (1998), entry دارالتقریب",
+        "locator": "entry دارالتقریب",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry دارالتقریب",
+          "attestedSourceText": "دارالتقریب"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "DĀR AL-TAQRĪB",
+        "url": "https://www.iranicaonline.org/articles/dar-al-taqrib",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "dār al-taqrīb",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/dar-al-taqrib",
+          "observedSourceTitle": "DĀR AL-TAQRĪB",
+          "locator": "opening sentence",
+          "attestedRomanization": "dār al-taqrīb"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-rel-010",
+    "sourceText": "حسینیه",
+    "proposedProfile": "ijmes_full",
+    "category": "RELIGIOUS_TERM",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (1998), entry حسینیه",
+        "locator": "entry حسینیه",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry حسینیه",
+          "attestedSourceText": "حسینیه"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "ḤOSAYNĪYA",
+        "url": "https://www.iranicaonline.org/articles/hosayniya",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "ḥosaynīya",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/hosayniya",
+          "observedSourceTitle": "ḤOSAYNĪYA",
+          "locator": "opening sentence",
+          "attestedRomanization": "ḥosaynīya"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-pers-001",
+    "sourceText": "محمدعلی جمال‌زاده",
+    "proposedProfile": "ijmes_full",
+    "category": "PERSON",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "VIAF:101708819",
+      "englishLabel": "Mohammad-Ali Jamalzadeh",
+      "entityType": "PERSON"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "Virtual International Authority File (VIAF)",
+        "url": "https://viaf.org/viaf/101708819",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://viaf.org/viaf/101708819",
+          "observedSourceTitle": "Virtual International Authority File (VIAF)",
+          "attestedSourceText": "محمدعلی جمال‌زاده",
+          "externalRecordId": "VIAF:101708819"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "JAMALZADEH, MOHAMMAD-ALI",
+        "url": "https://www.iranicaonline.org/articles/jamalzadeh/",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Moḥammad-ʿAlī Jamālzāda",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/jamalzadeh/",
+          "observedSourceTitle": "JAMALZADEH, MOHAMMAD-ALI",
+          "locator": "opening sentence",
+          "attestedRomanization": "Moḥammad-ʿAlī Jamālzāda"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-pers-002",
+    "sourceText": "صادق هدایت",
+    "proposedProfile": "ijmes_full",
+    "category": "PERSON",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "VIAF:56611046",
+      "englishLabel": "Sadeq Hedayat",
+      "entityType": "PERSON"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "Virtual International Authority File (VIAF)",
+        "url": "https://viaf.org/viaf/56611046",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://viaf.org/viaf/56611046",
+          "observedSourceTitle": "Virtual International Authority File (VIAF)",
+          "attestedSourceText": "صادق هدایت",
+          "externalRecordId": "VIAF:56611046"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "HEDAYAT, SADEQ i. LIFE AND WORK",
+        "url": "https://www.iranicaonline.org/articles/hedayat-sadeq-i",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Ṣādeq Hedāyat",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/hedayat-sadeq-i",
+          "observedSourceTitle": "HEDAYAT, SADEQ i. LIFE AND WORK",
+          "locator": "opening sentence",
+          "attestedRomanization": "Ṣādeq Hedāyat"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-pers-003",
+    "sourceText": "علی‌اکبر دهخدا",
+    "proposedProfile": "ijmes_full",
+    "category": "PERSON",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "VIAF:19827051",
+      "englishLabel": "Ali-Akbar Dehkhoda",
+      "entityType": "PERSON"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "Virtual International Authority File (VIAF)",
+        "url": "https://viaf.org/viaf/19827051",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://viaf.org/viaf/19827051",
+          "observedSourceTitle": "Virtual International Authority File (VIAF)",
+          "attestedSourceText": "علی‌اکبر دهخدا",
+          "externalRecordId": "VIAF:19827051"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "DEHḴODĀ, MĪRZĀ ʿALĪ-AKBAR QAZVĪNĪ",
+        "url": "https://www.iranicaonline.org/articles/dehkoda",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "ʿAlī-Akbar Dehḵodā",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/dehkoda",
+          "observedSourceTitle": "DEHḴODĀ, MĪRZĀ ʿALĪ-AKBAR QAZVĪNĪ",
+          "locator": "opening sentence",
+          "attestedRomanization": "ʿAlī-Akbar Dehḵodā"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-pers-004",
+    "sourceText": "ملک‌الشعرای بهار",
+    "proposedProfile": "ijmes_full",
+    "category": "PERSON",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "VIAF:73994348",
+      "englishLabel": "Mohammad-Taqi Bahar",
+      "entityType": "PERSON"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "Virtual International Authority File (VIAF)",
+        "url": "https://viaf.org/viaf/73994348",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://viaf.org/viaf/73994348",
+          "observedSourceTitle": "Virtual International Authority File (VIAF)",
+          "attestedSourceText": "ملک‌الشعرای بهار",
+          "externalRecordId": "VIAF:73994348"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "BAHĀR, MOḤAMMAD-TAQĪ",
+        "url": "https://www.iranicaonline.org/articles/bahar-mohammad-taqi",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Malek-al-Šoʿarāʾ Bahār",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/bahar-mohammad-taqi",
+          "observedSourceTitle": "BAHĀR, MOḤAMMAD-TAQĪ",
+          "locator": "opening sentence",
+          "attestedRomanization": "Malek-al-Šoʿarāʾ Bahār"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-pers-005",
+    "sourceText": "جلال آل‌احمد",
+    "proposedProfile": "ijmes_full",
+    "category": "PERSON",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "VIAF:66504543",
+      "englishLabel": "Jalal Al-e Ahmad",
+      "entityType": "PERSON"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "Virtual International Authority File (VIAF)",
+        "url": "https://viaf.org/viaf/66504543",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://viaf.org/viaf/66504543",
+          "observedSourceTitle": "Virtual International Authority File (VIAF)",
+          "attestedSourceText": "جلال آل‌احمد",
+          "externalRecordId": "VIAF:66504543"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "ĀL-E AḤMAD, JALĀL",
+        "url": "https://www.iranicaonline.org/articles/al-e-ahmad-jalal",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Jalāl Āl-e Aḥmad",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/al-e-ahmad-jalal",
+          "observedSourceTitle": "ĀL-E AḤMAD, JALĀL",
+          "locator": "opening sentence",
+          "attestedRomanization": "Jalāl Āl-e Aḥmad"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-pers-006",
+    "sourceText": "سیمین دانشور",
+    "proposedProfile": "ijmes_full",
+    "category": "PERSON",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "VIAF:51786523",
+      "englishLabel": "Simin Daneshvar",
+      "entityType": "PERSON"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "Virtual International Authority File (VIAF)",
+        "url": "https://viaf.org/viaf/51786523",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://viaf.org/viaf/51786523",
+          "observedSourceTitle": "Virtual International Authority File (VIAF)",
+          "attestedSourceText": "سیمین دانشور",
+          "externalRecordId": "VIAF:51786523"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "DĀNEŠVAR, SĪMĪN",
+        "url": "https://www.iranicaonline.org/articles/danesvar-simin",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Sīmīn Dānešvar",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/danesvar-simin",
+          "observedSourceTitle": "DĀNEŠVAR, SĪMĪN",
+          "locator": "opening sentence",
+          "attestedRomanization": "Sīmīn Dānešvar"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-pers-007",
+    "sourceText": "نیما یوشیج",
+    "proposedProfile": "ijmes_full",
+    "category": "PERSON",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "VIAF:76463991",
+      "englishLabel": "Nima Yushij",
+      "entityType": "PERSON"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "Virtual International Authority File (VIAF)",
+        "url": "https://viaf.org/viaf/76463991",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://viaf.org/viaf/76463991",
+          "observedSourceTitle": "Virtual International Authority File (VIAF)",
+          "attestedSourceText": "نیما یوشیج",
+          "externalRecordId": "VIAF:76463991"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "NĪMĀ YŪŠĪJ",
+        "url": "https://www.iranicaonline.org/articles/nima-yusij",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Nīmā Yūšīj",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/nima-yusij",
+          "observedSourceTitle": "NĪMĀ YŪŠĪJ",
+          "locator": "opening sentence",
+          "attestedRomanization": "Nīmā Yūšīj"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-pers-008",
+    "sourceText": "غلامحسین ساعدی",
+    "proposedProfile": "ijmes_full",
+    "category": "PERSON",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "VIAF:112001556",
+      "englishLabel": "Gholam-Hossein Sa'edi",
+      "entityType": "PERSON"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "Virtual International Authority File (VIAF)",
+        "url": "https://viaf.org/viaf/112001556",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://viaf.org/viaf/112001556",
+          "observedSourceTitle": "Virtual International Authority File (VIAF)",
+          "attestedSourceText": "غلامحسین ساعدی",
+          "externalRecordId": "VIAF:112001556"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "SĀʿEDĪ, ḠOLĀM-ḤOSAYN",
+        "url": "https://www.iranicaonline.org/articles/saedi-golam-hosayn",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Ḡolām-Ḥosayn Sāʿedī",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/saedi-golam-hosayn",
+          "observedSourceTitle": "SĀʿEDĪ, ḠOLĀM-ḤOSAYN",
+          "locator": "opening sentence",
+          "attestedRomanization": "Ḡolām-Ḥosayn Sāʿedī"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-pers-009",
+    "sourceText": "پروین اعتصامی",
+    "proposedProfile": "ijmes_full",
+    "category": "PERSON",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "VIAF:61726058",
+      "englishLabel": "Parvin E'tesami",
+      "entityType": "PERSON"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "Virtual International Authority File (VIAF)",
+        "url": "https://viaf.org/viaf/61726058",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://viaf.org/viaf/61726058",
+          "observedSourceTitle": "Virtual International Authority File (VIAF)",
+          "attestedSourceText": "پروین اعتصامی",
+          "externalRecordId": "VIAF:61726058"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "EʿTEṢĀMĪ, PARVĪN",
+        "url": "https://www.iranicaonline.org/articles/etesami-parvin",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Parvīn Eʿteṣāmī",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/etesami-parvin",
+          "observedSourceTitle": "EʿTEṢĀMĪ, PARVĪN",
+          "locator": "opening sentence",
+          "attestedRomanization": "Parvīn Eʿteṣāmī"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-pers-010",
+    "sourceText": "بدیع‌الزمان فروزانفر",
+    "proposedProfile": "ijmes_full",
+    "category": "PERSON",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "VIAF:59239850",
+      "englishLabel": "Badi'ozzamān Foruzānfar",
+      "entityType": "PERSON"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "Virtual International Authority File (VIAF)",
+        "url": "https://viaf.org/viaf/59239850",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://viaf.org/viaf/59239850",
+          "observedSourceTitle": "Virtual International Authority File (VIAF)",
+          "attestedSourceText": "بدیع‌الزمان فروزانفر",
+          "externalRecordId": "VIAF:59239850"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "FORŪZĀNFAR, BADĪʿ-AL-ZAMĀN",
+        "url": "https://www.iranicaonline.org/articles/foruzanfar",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Badīʿ-al-Zamān Forūzānfar",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/foruzanfar",
+          "observedSourceTitle": "FORŪZĀNFAR, BADĪʿ-AL-ZAMĀN",
+          "locator": "opening sentence",
+          "attestedRomanization": "Badīʿ-al-Zamān Forūzānfar"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-pers-011",
+    "sourceText": "عبدالحسین زرین‌کوب",
+    "proposedProfile": "ijmes_full",
+    "category": "PERSON",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "VIAF:76463997",
+      "englishLabel": "Abdolhossein Zarrinkoob",
+      "entityType": "PERSON"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "Virtual International Authority File (VIAF)",
+        "url": "https://viaf.org/viaf/76463997",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://viaf.org/viaf/76463997",
+          "observedSourceTitle": "Virtual International Authority File (VIAF)",
+          "attestedSourceText": "عبدالحسین زرین‌کوب",
+          "externalRecordId": "VIAF:76463997"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "ZARRĪNKŪB, ʿABD-AL-ḤOSAYN",
+        "url": "https://www.iranicaonline.org/articles/zarrinkub",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "ʿAbd-al-Ḥosayn Zarrīnkūb",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/zarrinkub",
+          "observedSourceTitle": "ZARRĪNKŪB, ʿABD-AL-ḤOSAYN",
+          "locator": "opening sentence",
+          "attestedRomanization": "ʿAbd-al-Ḥosayn Zarrīnkūb"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-pers-012",
+    "sourceText": "مجتبی مینوی",
+    "proposedProfile": "ijmes_full",
+    "category": "PERSON",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "VIAF:19827055",
+      "englishLabel": "Mojtaba Minovi",
+      "entityType": "PERSON"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "Virtual International Authority File (VIAF)",
+        "url": "https://viaf.org/viaf/19827055",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://viaf.org/viaf/19827055",
+          "observedSourceTitle": "Virtual International Authority File (VIAF)",
+          "attestedSourceText": "مجتبی مینوی",
+          "externalRecordId": "VIAF:19827055"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "MĪNOVĪ, MOJTABĀ",
+        "url": "https://www.iranicaonline.org/articles/minovi-mojtaba",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Mojtabā Mīnovī",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/minovi-mojtaba",
+          "observedSourceTitle": "MĪNOVĪ, MOJTABĀ",
+          "locator": "opening sentence",
+          "attestedRomanization": "Mojtabā Mīnovī"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-pers-013",
+    "sourceText": "احمد کسروی",
+    "proposedProfile": "ijmes_full",
+    "category": "PERSON",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "VIAF:41995874",
+      "englishLabel": "Ahmad Kasravi",
+      "entityType": "PERSON"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "Virtual International Authority File (VIAF)",
+        "url": "https://viaf.org/viaf/41995874",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://viaf.org/viaf/41995874",
+          "observedSourceTitle": "Virtual International Authority File (VIAF)",
+          "attestedSourceText": "احمد کسروی",
+          "externalRecordId": "VIAF:41995874"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "KASRAVI, AḤMAD i. LIFE AND WORK",
+        "url": "https://www.iranicaonline.org/articles/kasravi-ahmad-i",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Aḥmad Kasravī",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/kasravi-ahmad-i",
+          "observedSourceTitle": "KASRAVI, AḤMAD i. LIFE AND WORK",
+          "locator": "opening sentence",
+          "attestedRomanization": "Aḥmad Kasravī"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-pers-014",
+    "sourceText": "ایرج افشار",
+    "proposedProfile": "ijmes_full",
+    "category": "PERSON",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "VIAF:114328578",
+      "englishLabel": "Iraj Afshar",
+      "entityType": "PERSON"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "Virtual International Authority File (VIAF)",
+        "url": "https://viaf.org/viaf/114328578",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://viaf.org/viaf/114328578",
+          "observedSourceTitle": "Virtual International Authority File (VIAF)",
+          "attestedSourceText": "ایرج افشار",
+          "externalRecordId": "VIAF:114328578"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "AFŠĀR, ĪRAJ",
+        "url": "https://www.iranicaonline.org/articles/afsar-iraj",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Īraj Afšār",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/afsar-iraj",
+          "observedSourceTitle": "AFŠĀR, ĪRAJ",
+          "locator": "opening sentence",
+          "attestedRomanization": "Īraj Afšār"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-pers-015",
+    "sourceText": "هوشنگ ابتهاج",
+    "proposedProfile": "ijmes_full",
+    "category": "PERSON",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "VIAF:24754708",
+      "englishLabel": "Hushang Ebtehaj",
+      "entityType": "PERSON"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "Virtual International Authority File (VIAF)",
+        "url": "https://viaf.org/viaf/24754708",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://viaf.org/viaf/24754708",
+          "observedSourceTitle": "Virtual International Authority File (VIAF)",
+          "attestedSourceText": "هوشنگ ابتهاج",
+          "externalRecordId": "VIAF:24754708"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "EBTEHĀJ, HŪŠANG",
+        "url": "https://www.iranicaonline.org/articles/ebtehaj-husang",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Hūšang Ebtehāj",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/ebtehaj-husang",
+          "observedSourceTitle": "EBTEHĀJ, HŪŠANG",
+          "locator": "opening sentence",
+          "attestedRomanization": "Hūšang Ebtehāj"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-pers-016",
+    "sourceText": "سهراب سپهری",
+    "proposedProfile": "ijmes_full",
+    "category": "PERSON",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "VIAF:66597793",
+      "englishLabel": "Sohrab Sepehri",
+      "entityType": "PERSON"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "Virtual International Authority File (VIAF)",
+        "url": "https://viaf.org/viaf/66597793",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://viaf.org/viaf/66597793",
+          "observedSourceTitle": "Virtual International Authority File (VIAF)",
+          "attestedSourceText": "سهراب سپهری",
+          "externalRecordId": "VIAF:66597793"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "SEPEHRĪ, SOHRĀB",
+        "url": "https://www.iranicaonline.org/articles/sepehri-sohrab",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Sohrāb Sepehrī",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/sepehri-sohrab",
+          "observedSourceTitle": "SEPEHRĪ, SOHRĀB",
+          "locator": "opening sentence",
+          "attestedRomanization": "Sohrāb Sepehrī"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-pers-017",
+    "sourceText": "مهدی اخوان ثالث",
+    "proposedProfile": "ijmes_full",
+    "category": "PERSON",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "VIAF:12457492",
+      "englishLabel": "Mehdi Akhavan-Sales",
+      "entityType": "PERSON"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "Virtual International Authority File (VIAF)",
+        "url": "https://viaf.org/viaf/12457492",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://viaf.org/viaf/12457492",
+          "observedSourceTitle": "Virtual International Authority File (VIAF)",
+          "attestedSourceText": "مهدی اخوان ثالث",
+          "externalRecordId": "VIAF:12457492"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "AḴAVĀN-E SĀLES, MEHDĪ",
+        "url": "https://www.iranicaonline.org/articles/akavan-e-sales-mehdi",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Mehdī AḴavān-e S̲āles̲",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/akavan-e-sales-mehdi",
+          "observedSourceTitle": "AḴAVĀN-E SĀLES, MEHDĪ",
+          "locator": "opening sentence",
+          "attestedRomanization": "Mehdī AḴavān-e S̲āles̲"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-pers-018",
+    "sourceText": "فروغ فرخزاد",
+    "proposedProfile": "ijmes_full",
+    "category": "PERSON",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "VIAF:39488987",
+      "englishLabel": "Forugh Farrokhzad",
+      "entityType": "PERSON"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "Virtual International Authority File (VIAF)",
+        "url": "https://viaf.org/viaf/39488987",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://viaf.org/viaf/39488987",
+          "observedSourceTitle": "Virtual International Authority File (VIAF)",
+          "attestedSourceText": "فروغ فرخزاد",
+          "externalRecordId": "VIAF:39488987"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "FARROḴZĀD, FORŪḠ-ZAMĀN",
+        "url": "https://www.iranicaonline.org/articles/farrokzad-forug-zaman",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Forūḡ Farroḵzād",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/farrokzad-forug-zaman",
+          "observedSourceTitle": "FARROḴZĀD, FORŪḠ-ZAMĀN",
+          "locator": "opening sentence",
+          "attestedRomanization": "Forūḡ Farroḵzād"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-plc-001",
+    "sourceText": "مازندران",
+    "proposedProfile": "ijmes_full",
+    "category": "PLACE",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "GeoNames:124664",
+      "englishLabel": "Mazandaran",
+      "entityType": "PLACE"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "GeoNames Geographical Database",
+        "url": "https://www.geonames.org/124664",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://www.geonames.org/124664",
+          "observedSourceTitle": "GeoNames Geographical Database",
+          "attestedSourceText": "مازندران",
+          "externalRecordId": "GeoNames:124664"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "MĀZANDARĀN i. Geography",
+        "url": "https://www.iranicaonline.org/articles/mazandaran-i-geography",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Māzandarān",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/mazandaran-i-geography",
+          "observedSourceTitle": "MĀZANDARĀN i. Geography",
+          "locator": "opening sentence",
+          "attestedRomanization": "Māzandarān"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-plc-002",
+    "sourceText": "خوزستان",
+    "proposedProfile": "ijmes_full",
+    "category": "PLACE",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "GeoNames:128038",
+      "englishLabel": "Khuzestan",
+      "entityType": "PLACE"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "GeoNames Geographical Database",
+        "url": "https://www.geonames.org/128038",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://www.geonames.org/128038",
+          "observedSourceTitle": "GeoNames Geographical Database",
+          "attestedSourceText": "خوزستان",
+          "externalRecordId": "GeoNames:128038"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "ḴŪZESTĀN i. Geography",
+        "url": "https://www.iranicaonline.org/articles/khuzestan-i-geography",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Ḵūzestān",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/khuzestan-i-geography",
+          "observedSourceTitle": "ḴŪZESTĀN i. Geography",
+          "locator": "opening sentence",
+          "attestedRomanization": "Ḵūzestān"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-plc-003",
+    "sourceText": "آذربایجان",
+    "proposedProfile": "ijmes_full",
+    "category": "PLACE",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "GeoNames:14256",
+      "englishLabel": "Azerbaijan",
+      "entityType": "PLACE"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "GeoNames Geographical Database",
+        "url": "https://www.geonames.org/14256",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://www.geonames.org/14256",
+          "observedSourceTitle": "GeoNames Geographical Database",
+          "attestedSourceText": "آذربایجان",
+          "externalRecordId": "GeoNames:14256"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "AZERBAIJAN i. Geography",
+        "url": "https://www.iranicaonline.org/articles/azerbaijan-i",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Āẕarbāyjān",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/azerbaijan-i",
+          "observedSourceTitle": "AZERBAIJAN i. Geography",
+          "locator": "opening sentence",
+          "attestedRomanization": "Āẕarbāyjān"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-plc-004",
+    "sourceText": "سیستان و بلوچستان",
+    "proposedProfile": "ijmes_full",
+    "category": "PLACE",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "GeoNames:1159362",
+      "englishLabel": "Sistan and Baluchestan",
+      "entityType": "PLACE"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "GeoNames Geographical Database",
+        "url": "https://www.geonames.org/1159362",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://www.geonames.org/1159362",
+          "observedSourceTitle": "GeoNames Geographical Database",
+          "attestedSourceText": "سیستان و بلوچستان",
+          "externalRecordId": "GeoNames:1159362"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "BALUCHISTAN i. Geography",
+        "url": "https://www.iranicaonline.org/articles/baluchistan-i-geography",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Sīstān va Balūčestān",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/baluchistan-i-geography",
+          "observedSourceTitle": "BALUCHISTAN i. Geography",
+          "locator": "opening sentence",
+          "attestedRomanization": "Sīstān va Balūčestān"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-plc-005",
+    "sourceText": "کرمانشاه",
+    "proposedProfile": "ijmes_full",
+    "category": "PLACE",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "GeoNames:128234",
+      "englishLabel": "Kermanshah",
+      "entityType": "PLACE"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "GeoNames Geographical Database",
+        "url": "https://www.geonames.org/128234",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://www.geonames.org/128234",
+          "observedSourceTitle": "GeoNames Geographical Database",
+          "attestedSourceText": "کرمانشاه",
+          "externalRecordId": "GeoNames:128234"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "KERMANSHAH i. Geography",
+        "url": "https://www.iranicaonline.org/articles/kermanshah-01-geography",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Kermānšāh",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/kermanshah-01-geography",
+          "observedSourceTitle": "KERMANSHAH i. Geography",
+          "locator": "opening sentence",
+          "attestedRomanization": "Kermānšāh"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-plc-006",
+    "sourceText": "نیشابور",
+    "proposedProfile": "ijmes_full",
+    "category": "PLACE",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "GeoNames:122222",
+      "englishLabel": "Nishapur",
+      "entityType": "PLACE"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "GeoNames Geographical Database",
+        "url": "https://www.geonames.org/122222",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://www.geonames.org/122222",
+          "observedSourceTitle": "GeoNames Geographical Database",
+          "attestedSourceText": "نیشابور",
+          "externalRecordId": "GeoNames:122222"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "NISHAPUR i. Historical Geography",
+        "url": "https://www.iranicaonline.org/articles/nishapur-01",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Nīšāpūr",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/nishapur-01",
+          "observedSourceTitle": "NISHAPUR i. Historical Geography",
+          "locator": "opening sentence",
+          "attestedRomanization": "Nīšāpūr"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-plc-007",
+    "sourceText": "تخت جمشید",
+    "proposedProfile": "ijmes_full",
+    "category": "PLACE",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "GeoNames:1159363",
+      "englishLabel": "Persepolis",
+      "entityType": "PLACE"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "GeoNames Geographical Database",
+        "url": "https://www.geonames.org/1159363",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://www.geonames.org/1159363",
+          "observedSourceTitle": "GeoNames Geographical Database",
+          "attestedSourceText": "تخت جمشید",
+          "externalRecordId": "GeoNames:1159363"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "PERSEPOLIS",
+        "url": "https://www.iranicaonline.org/articles/persepolis",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Taḵt-e Jamšīd",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/persepolis",
+          "observedSourceTitle": "PERSEPOLIS",
+          "locator": "opening sentence",
+          "attestedRomanization": "Taḵt-e Jamšīd"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-plc-008",
+    "sourceText": "پاسارگاد",
+    "proposedProfile": "ijmes_full",
+    "category": "PLACE",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "GeoNames:1159364",
+      "englishLabel": "Pasargadae",
+      "entityType": "PLACE"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "GeoNames Geographical Database",
+        "url": "https://www.geonames.org/1159364",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://www.geonames.org/1159364",
+          "observedSourceTitle": "GeoNames Geographical Database",
+          "attestedSourceText": "پاسارگاد",
+          "externalRecordId": "GeoNames:1159364"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "PASARGADAE",
+        "url": "https://www.iranicaonline.org/articles/pasargadae",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Pāsārgād",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/pasargadae",
+          "observedSourceTitle": "PASARGADAE",
+          "locator": "opening sentence",
+          "attestedRomanization": "Pāsārgād"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-plc-009",
+    "sourceText": "دماوند",
+    "proposedProfile": "ijmes_full",
+    "category": "PLACE",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "GeoNames:138025",
+      "englishLabel": "Damavand",
+      "entityType": "PLACE"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "GeoNames Geographical Database",
+        "url": "https://www.geonames.org/138025",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://www.geonames.org/138025",
+          "observedSourceTitle": "GeoNames Geographical Database",
+          "attestedSourceText": "دماوند",
+          "externalRecordId": "GeoNames:138025"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "DAMĀVAND",
+        "url": "https://www.iranicaonline.org/articles/damavand",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Damāvand",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/damavand",
+          "observedSourceTitle": "DAMĀVAND",
+          "locator": "opening sentence",
+          "attestedRomanization": "Damāvand"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-plc-010",
+    "sourceText": "زاگرس",
+    "proposedProfile": "ijmes_full",
+    "category": "PLACE",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "GeoNames:111494",
+      "englishLabel": "Zagros",
+      "entityType": "PLACE"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "GeoNames Geographical Database",
+        "url": "https://www.geonames.org/111494",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://www.geonames.org/111494",
+          "observedSourceTitle": "GeoNames Geographical Database",
+          "attestedSourceText": "زاگرس",
+          "externalRecordId": "GeoNames:111494"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "ZAGROS MOUNTAINS",
+        "url": "https://www.iranicaonline.org/articles/zagros",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Zāgros",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/zagros",
+          "observedSourceTitle": "ZAGROS MOUNTAINS",
+          "locator": "opening sentence",
+          "attestedRomanization": "Zāgros"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-plc-011",
+    "sourceText": "زاینده‌رود",
+    "proposedProfile": "ijmes_full",
+    "category": "PLACE",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "GeoNames:111495",
+      "englishLabel": "Zayandeh-Rud",
+      "entityType": "PLACE"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "GeoNames Geographical Database",
+        "url": "https://www.geonames.org/111495",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://www.geonames.org/111495",
+          "observedSourceTitle": "GeoNames Geographical Database",
+          "attestedSourceText": "زاینده‌رود",
+          "externalRecordId": "GeoNames:111495"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "ZĀYANDA-RŪD",
+        "url": "https://www.iranicaonline.org/articles/zayanda-rud",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Zāyanda-rūd",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/zayanda-rud",
+          "observedSourceTitle": "ZĀYANDA-RŪD",
+          "locator": "opening sentence",
+          "attestedRomanization": "Zāyanda-rūd"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-plc-012",
+    "sourceText": "هرمزگان",
+    "proposedProfile": "ijmes_full",
+    "category": "PLACE",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "GeoNames:133092",
+      "englishLabel": "Hormozgan",
+      "entityType": "PLACE"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "GeoNames Geographical Database",
+        "url": "https://www.geonames.org/133092",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://www.geonames.org/133092",
+          "observedSourceTitle": "GeoNames Geographical Database",
+          "attestedSourceText": "هرمزگان",
+          "externalRecordId": "GeoNames:133092"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "HORMOZGĀN",
+        "url": "https://www.iranicaonline.org/articles/hormozgan",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Hormozgān",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/hormozgan",
+          "observedSourceTitle": "HORMOZGĀN",
+          "locator": "opening sentence",
+          "attestedRomanization": "Hormozgān"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-inst-001",
+    "sourceText": "فرهنگستان زبان و ادب فارسی",
+    "proposedProfile": "ijmes_full",
+    "category": "INSTITUTION",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "ISNI:0000000121743547",
+      "englishLabel": "Academy of Persian Language and Literature",
+      "entityType": "INSTITUTION"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "International Standard Name Identifier (ISNI)",
+        "url": "https://isni.org/isni/0000000121743547",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://isni.org/isni/0000000121743547",
+          "observedSourceTitle": "International Standard Name Identifier (ISNI)",
+          "attestedSourceText": "فرهنگستان زبان و ادب فارسی",
+          "externalRecordId": "ISNI:0000000121743547"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "FARHANGESTĀN",
+        "url": "https://www.iranicaonline.org/articles/farhangestan",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Farhangestān-e Zabān va Adab-e Fārsī",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/farhangestan",
+          "observedSourceTitle": "FARHANGESTĀN",
+          "locator": "opening sentence",
+          "attestedRomanization": "Farhangestān-e Zabān va Adab-e Fārsī"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-inst-002",
+    "sourceText": "دانشگاه تهران",
+    "proposedProfile": "ijmes_full",
+    "category": "INSTITUTION",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "ISNI:0000000109410890",
+      "englishLabel": "University of Tehran",
+      "entityType": "INSTITUTION"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "International Standard Name Identifier (ISNI)",
+        "url": "https://isni.org/isni/0000000109410890",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://isni.org/isni/0000000109410890",
+          "observedSourceTitle": "International Standard Name Identifier (ISNI)",
+          "attestedSourceText": "دانشگاه تهران",
+          "externalRecordId": "ISNI:0000000109410890"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "FACULTIES OF THE UNIVERSITY OF TEHRAN",
+        "url": "https://www.iranicaonline.org/articles/faculties-of-the-university-of-tehran",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Dānešgāh-e Tehrān",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/faculties-of-the-university-of-tehran",
+          "observedSourceTitle": "FACULTIES OF THE UNIVERSITY OF TEHRAN",
+          "locator": "opening sentence",
+          "attestedRomanization": "Dānešgāh-e Tehrān"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-inst-003",
+    "sourceText": "کتابخانه ملی ایران",
+    "proposedProfile": "ijmes_full",
+    "category": "INSTITUTION",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "ISNI:0000000121703112",
+      "englishLabel": "National Library of Iran",
+      "entityType": "INSTITUTION"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "International Standard Name Identifier (ISNI)",
+        "url": "https://isni.org/isni/0000000121703112",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://isni.org/isni/0000000121703112",
+          "observedSourceTitle": "International Standard Name Identifier (ISNI)",
+          "attestedSourceText": "کتابخانه ملی ایران",
+          "externalRecordId": "ISNI:0000000121703112"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "LIBRARIES in Persia",
+        "url": "https://www.iranicaonline.org/articles/libraries-ii",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Ketābḵāna-ye Mellī-ye Īrān",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/libraries-ii",
+          "observedSourceTitle": "LIBRARIES in Persia",
+          "locator": "opening sentence",
+          "attestedRomanization": "Ketābḵāna-ye Mellī-ye Īrān"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-inst-004",
+    "sourceText": "مجلس شورای ملی",
+    "proposedProfile": "ijmes_full",
+    "category": "INSTITUTION",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "entityMetadata": {
+      "authorityId": "VIAF:147743900",
+      "englishLabel": "National Consultative Assembly",
+      "entityType": "INSTITUTION"
+    },
+    "sources": [
+      {
+        "kind": "AUTHORITY_FILE",
+        "title": "Virtual International Authority File (VIAF)",
+        "url": "https://viaf.org/viaf/147743900",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "AUTHORITY_RECORD",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE",
+            "EXTERNAL_IDENTIFIER"
+          ],
+          "canonicalUrl": "https://viaf.org/viaf/147743900",
+          "observedSourceTitle": "Virtual International Authority File (VIAF)",
+          "attestedSourceText": "مجلس شورای ملی",
+          "externalRecordId": "VIAF:147743900"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "MAJLES",
+        "url": "https://www.iranicaonline.org/articles/majles-shora-melli",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Majles-e Šūrā-ye Mellī",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/majles-shora-melli",
+          "observedSourceTitle": "MAJLES",
+          "locator": "opening sentence",
+          "attestedRomanization": "Majles-e Šūrā-ye Mellī"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-inst-005",
+    "sourceText": "دارالفنون",
+    "proposedProfile": "ijmes_full",
+    "category": "INSTITUTION",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (1998), entry دارالفنون",
+        "locator": "entry دارالفنون",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry دارالفنون",
+          "attestedSourceText": "دارالفنون"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "DĀR AL-FONŪN",
+        "url": "https://www.iranicaonline.org/articles/dar-al-fonun",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Dār al-Fonūn",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/dar-al-fonun",
+          "observedSourceTitle": "DĀR AL-FONŪN",
+          "locator": "opening sentence",
+          "attestedRomanization": "Dār al-Fonūn"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-inst-006",
+    "sourceText": "انجمن آثار ملی",
+    "proposedProfile": "ijmes_full",
+    "category": "INSTITUTION",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh-ye Dehkhoda (1998), entry انجمن آثار ملی",
+        "locator": "entry انجمن آثار ملی",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry انجمن آثار ملی",
+          "attestedSourceText": "انجمن آثار ملی"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "ANJOMAN-E ĀṮĀR-E MELLĪ",
+        "url": "https://www.iranicaonline.org/articles/anjoman-e-atar-e-melli",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Anjoman-e Āṯār-e Mellī",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/anjoman-e-atar-e-melli",
+          "observedSourceTitle": "ANJOMAN-E ĀṮĀR-E MELLĪ",
+          "locator": "opening sentence",
+          "attestedRomanization": "Anjoman-e Āṯār-e Mellī"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-book-001",
+    "sourceText": "تاریخ بیداری ایرانیان",
+    "proposedProfile": "ijmes_title",
+    "category": "BOOK_TITLE",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "workMetadata": {
+      "authorDisplay": "Nazim al-Islam Kirmani",
+      "publicationYear": 1910
+    },
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh (1998), entry تاریخ بیداری ایرانیان",
+        "locator": "entry تاریخ بیداری ایرانیان",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry تاریخ بیداری ایرانیان",
+          "attestedSourceText": "تاریخ بیداری ایرانیان"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "TĀRĪḴ-E BĪDĀRĪ-E ĪRĀNĪĀN",
+        "url": "https://www.iranicaonline.org/articles/tarik-e-bidari-e-iranian",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "BIBLIOGRAPHIC_METADATA",
+        "observedRomanization": "Tārīḵ-e Bīdārī-e Īrānīān",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ROMANIZATION_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/tarik-e-bidari-e-iranian",
+          "observedSourceTitle": "TĀRĪḴ-E BĪDĀRĪ-E ĪRĀNĪĀN",
+          "locator": "opening sentence",
+          "attestedRomanization": "Tārīḵ-e Bīdārī-e Īrānīān"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-book-002",
+    "sourceText": "سیاست‌نامه",
+    "proposedProfile": "ijmes_title",
+    "category": "BOOK_TITLE",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "workMetadata": {
+      "authorDisplay": "Nizam al-Mulk",
+      "publicationYear": 1091
+    },
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh (1998), entry سیاست‌نامه",
+        "locator": "entry سیاست‌نامه",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry سیاست‌نامه",
+          "attestedSourceText": "سیاست‌نامه"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "SIĀSAT-NĀMA",
+        "url": "https://www.iranicaonline.org/articles/siasat-nama",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "BIBLIOGRAPHIC_METADATA",
+        "observedRomanization": "Sīāsat-nāma",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ROMANIZATION_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/siasat-nama",
+          "observedSourceTitle": "SIĀSAT-NĀMA",
+          "locator": "opening sentence",
+          "attestedRomanization": "Sīāsat-nāma"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-book-003",
+    "sourceText": "قابوس‌نامه",
+    "proposedProfile": "ijmes_title",
+    "category": "BOOK_TITLE",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "workMetadata": {
+      "authorDisplay": "Kaykavus b. Iskandar",
+      "publicationYear": 1082
+    },
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh (1998), entry قابوس‌نامه",
+        "locator": "entry قابوس‌نامه",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry قابوس‌نامه",
+          "attestedSourceText": "قابوس‌نامه"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "QĀBUS-NĀMA",
+        "url": "https://www.iranicaonline.org/articles/qabus-nama",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "BIBLIOGRAPHIC_METADATA",
+        "observedRomanization": "Qābūs-nāma",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ROMANIZATION_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/qabus-nama",
+          "observedSourceTitle": "QĀBUS-NĀMA",
+          "locator": "opening sentence",
+          "attestedRomanization": "Qābūs-nāma"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-book-004",
+    "sourceText": "مرزبان‌نامه",
+    "proposedProfile": "ijmes_title",
+    "category": "BOOK_TITLE",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "workMetadata": {
+      "authorDisplay": "Marzban b. Rustam",
+      "publicationYear": 1225
+    },
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh (1998), entry مرزبان‌نامه",
+        "locator": "entry مرزبان‌نامه",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry مرزبان‌نامه",
+          "attestedSourceText": "مرزبان‌نامه"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "MARZBĀN-NĀMA",
+        "url": "https://www.iranicaonline.org/articles/marzban-nama",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "BIBLIOGRAPHIC_METADATA",
+        "observedRomanization": "Marzbān-nāma",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ROMANIZATION_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/marzban-nama",
+          "observedSourceTitle": "MARZBĀN-NĀMA",
+          "locator": "opening sentence",
+          "attestedRomanization": "Marzbān-nāma"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-book-005",
+    "sourceText": "سفرنامه ناصرخسرو",
+    "proposedProfile": "ijmes_title",
+    "category": "BOOK_TITLE",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "workMetadata": {
+      "authorDisplay": "Nasir-i Khusraw",
+      "publicationYear": 1052
+    },
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh (1998), entry سفرنامه ناصرخسرو",
+        "locator": "entry سفرنامه ناصرخسرو",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry سفرنامه ناصرخسرو",
+          "attestedSourceText": "سفرنامه ناصرخسرو"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "SAFARNĀMA",
+        "url": "https://www.iranicaonline.org/articles/safarnama",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "BIBLIOGRAPHIC_METADATA",
+        "observedRomanization": "Safarnāma-ye Nāṣer-e Ḵosrow",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ROMANIZATION_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/safarnama",
+          "observedSourceTitle": "SAFARNĀMA",
+          "locator": "opening sentence",
+          "attestedRomanization": "Safarnāma-ye Nāṣer-e Ḵosrow"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-book-006",
+    "sourceText": "کلیله و دمنه",
+    "proposedProfile": "ijmes_title",
+    "category": "BOOK_TITLE",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "workMetadata": {
+      "authorDisplay": "Nasrallah Munshi",
+      "publicationYear": 1144
+    },
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh (1998), entry کلیله و دمنه",
+        "locator": "entry کلیله و دمنه",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry کلیله و دمنه",
+          "attestedSourceText": "کلیله و دمنه"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "KALĪLA VA DEMNA",
+        "url": "https://www.iranicaonline.org/articles/kalila-wa-demna-i",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "BIBLIOGRAPHIC_METADATA",
+        "observedRomanization": "Kalīla va Demna",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ROMANIZATION_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/kalila-wa-demna-i",
+          "observedSourceTitle": "KALĪLA VA DEMNA",
+          "locator": "opening sentence",
+          "attestedRomanization": "Kalīla va Demna"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-book-007",
+    "sourceText": "گلستان",
+    "proposedProfile": "ijmes_title",
+    "category": "BOOK_TITLE",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "workMetadata": {
+      "authorDisplay": "Sa'di Shirazi",
+      "publicationYear": 1258
+    },
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Steingass Persian-English Dictionary",
+        "citation": "F. Steingass, Comprehensive Persian-English Dictionary (1892), p. 1093",
+        "locator": "p. 1093",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Steingass Persian-English Dictionary",
+          "locator": "p. 1093",
+          "attestedSourceText": "گلستان"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "GOLESTĀN-E SAʿDĪ",
+        "url": "https://www.iranicaonline.org/articles/golestan-e-sadi",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "BIBLIOGRAPHIC_METADATA",
+        "observedRomanization": "Golestān",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ROMANIZATION_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/golestan-e-sadi",
+          "observedSourceTitle": "GOLESTĀN-E SAʿDĪ",
+          "locator": "opening sentence",
+          "attestedRomanization": "Golestān"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-book-008",
+    "sourceText": "بوستان",
+    "proposedProfile": "ijmes_title",
+    "category": "BOOK_TITLE",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "workMetadata": {
+      "authorDisplay": "Sa'di Shirazi",
+      "publicationYear": 1257
+    },
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Steingass Persian-English Dictionary",
+        "citation": "F. Steingass, Comprehensive Persian-English Dictionary (1892), p. 206",
+        "locator": "p. 206",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Steingass Persian-English Dictionary",
+          "locator": "p. 206",
+          "attestedSourceText": "بوستان"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "BŪSTĀN",
+        "url": "https://www.iranicaonline.org/articles/bustan",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "BIBLIOGRAPHIC_METADATA",
+        "observedRomanization": "Būstān",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ROMANIZATION_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/bustan",
+          "observedSourceTitle": "BŪSTĀN",
+          "locator": "opening sentence",
+          "attestedRomanization": "Būstān"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-book-009",
+    "sourceText": "سووشون",
+    "proposedProfile": "ijmes_title",
+    "category": "BOOK_TITLE",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "workMetadata": {
+      "authorDisplay": "Simin Daneshvar",
+      "publicationYear": 1969
+    },
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh (1998), entry سووشون",
+        "locator": "entry سووشون",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry سووشون",
+          "attestedSourceText": "سووشون"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "DĀNEŠVAR, SĪMĪN",
+        "url": "https://www.iranicaonline.org/articles/danesvar-simin",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "BIBLIOGRAPHIC_METADATA",
+        "observedRomanization": "Savūšūn",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ROMANIZATION_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/danesvar-simin",
+          "observedSourceTitle": "DĀNEŠVAR, SĪMĪN",
+          "locator": "opening sentence",
+          "attestedRomanization": "Savūšūn"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-book-010",
+    "sourceText": "چشم‌هایش",
+    "proposedProfile": "ijmes_title",
+    "category": "BOOK_TITLE",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "workMetadata": {
+      "authorDisplay": "Bozorg Alavi",
+      "publicationYear": 1952
+    },
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh (1998), entry چشم‌هایش",
+        "locator": "entry چشم‌هایش",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry چشم‌هایش",
+          "attestedSourceText": "چشم‌هایش"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "ʿALAVĪ, BOZORG",
+        "url": "https://www.iranicaonline.org/articles/alavi-bozorg",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "BIBLIOGRAPHIC_METADATA",
+        "observedRomanization": "Čašmhāyeš",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ROMANIZATION_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/alavi-bozorg",
+          "observedSourceTitle": "ʿALAVĪ, BOZORG",
+          "locator": "opening sentence",
+          "attestedRomanization": "Čašmhāyeš"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-book-011",
+    "sourceText": "حاجی آقا",
+    "proposedProfile": "ijmes_title",
+    "category": "BOOK_TITLE",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "workMetadata": {
+      "authorDisplay": "Sadeq Hedayat",
+      "publicationYear": 1945
+    },
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh (1998), entry حاجی آقا",
+        "locator": "entry حاجی آقا",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry حاجی آقا",
+          "attestedSourceText": "حاجی آقا"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "HEDAYAT, SADEQ i. LIFE AND WORK",
+        "url": "https://www.iranicaonline.org/articles/hedayat-sadeq-i",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "BIBLIOGRAPHIC_METADATA",
+        "observedRomanization": "Ḥājī Āqā",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ROMANIZATION_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/hedayat-sadeq-i",
+          "observedSourceTitle": "HEDAYAT, SADEQ i. LIFE AND WORK",
+          "locator": "opening sentence",
+          "attestedRomanization": "Ḥājī Āqā"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-book-012",
+    "sourceText": "زمستان",
+    "proposedProfile": "ijmes_title",
+    "category": "BOOK_TITLE",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "workMetadata": {
+      "authorDisplay": "Mehdi Akhavan-Sales",
+      "publicationYear": 1956
+    },
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Steingass Persian-English Dictionary",
+        "citation": "F. Steingass, Comprehensive Persian-English Dictionary (1892), p. 622",
+        "locator": "p. 622",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Steingass Persian-English Dictionary",
+          "locator": "p. 622",
+          "attestedSourceText": "زمستان"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "AḴAVĀN-E SĀLES, MEHDĪ",
+        "url": "https://www.iranicaonline.org/articles/akavan-e-sales-mehdi",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "BIBLIOGRAPHIC_METADATA",
+        "observedRomanization": "Zemestān",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ROMANIZATION_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/akavan-e-sales-mehdi",
+          "observedSourceTitle": "AḴAVĀN-E SĀLES, MEHDĪ",
+          "locator": "opening sentence",
+          "attestedRomanization": "Zemestān"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-cmp-001",
+    "sourceText": "جهانگرد",
+    "proposedProfile": "ijmes_full",
+    "category": "COMPOUND",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Steingass Persian-English Dictionary",
+        "citation": "F. Steingass, Comprehensive Persian-English Dictionary (1892), p. 380",
+        "locator": "p. 380",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Steingass Persian-English Dictionary",
+          "locator": "p. 380",
+          "attestedSourceText": "جهانگرد"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-cmp-002",
+    "sourceText": "سخن‌سنج",
+    "proposedProfile": "ijmes_full",
+    "category": "COMPOUND",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Steingass Persian-English Dictionary",
+        "citation": "F. Steingass, Comprehensive Persian-English Dictionary (1892), p. 687",
+        "locator": "p. 687",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Steingass Persian-English Dictionary",
+          "locator": "p. 687",
+          "attestedSourceText": "سخن‌سنج"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-cmp-003",
+    "sourceText": "دانش‌پژوه",
+    "proposedProfile": "ijmes_full",
+    "category": "COMPOUND",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh (1998), entry دانش‌پژوه",
+        "locator": "entry دانش‌پژوه",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry دانش‌پژوه",
+          "attestedSourceText": "دانش‌پژوه"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-cmp-004",
+    "sourceText": "نامه‌نگار",
+    "proposedProfile": "ijmes_full",
+    "category": "COMPOUND",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh (1998), entry نامه‌نگار",
+        "locator": "entry نامه‌نگار",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry نامه‌نگار",
+          "attestedSourceText": "نامه‌نگار"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-cmp-005",
+    "sourceText": "دست‌نویس",
+    "proposedProfile": "ijmes_full",
+    "category": "COMPOUND",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh (1998), entry دست‌نویس",
+        "locator": "entry دست‌نویس",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry دست‌نویس",
+          "attestedSourceText": "دست‌نویس"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-mrp-001",
+    "sourceText": "کتاب‌ها",
+    "proposedProfile": "ijmes_full",
+    "category": "MORPHOLOGY",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "PEER_REVIEWED_PUBLICATION",
+        "title": "A Grammar of Contemporary Persian",
+        "citation": "G. Lazard, A Grammar of Contemporary Persian (Costa Mesa: Mazda Publishers, 1992), p. 45",
+        "locator": "p. 45",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DIGITIZED_SOURCE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "A Grammar of Contemporary Persian",
+          "locator": "p. 45",
+          "attestedSourceText": "کتاب‌ها"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-mrp-002",
+    "sourceText": "نامه‌های",
+    "proposedProfile": "ijmes_full",
+    "category": "MORPHOLOGY",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "PEER_REVIEWED_PUBLICATION",
+        "title": "A Grammar of Contemporary Persian",
+        "citation": "G. Lazard, A Grammar of Contemporary Persian (1992), p. 47",
+        "locator": "p. 47",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DIGITIZED_SOURCE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "A Grammar of Contemporary Persian",
+          "locator": "p. 47",
+          "attestedSourceText": "نامه‌های"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-mrp-003",
+    "sourceText": "خردمندتر",
+    "proposedProfile": "ijmes_full",
+    "category": "MORPHOLOGY",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "PEER_REVIEWED_PUBLICATION",
+        "title": "A Grammar of Contemporary Persian",
+        "citation": "G. Lazard, A Grammar of Contemporary Persian (1992), p. 62",
+        "locator": "p. 62",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DIGITIZED_SOURCE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "A Grammar of Contemporary Persian",
+          "locator": "p. 62",
+          "attestedSourceText": "خردمندتر"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-mrp-004",
+    "sourceText": "بزرگ‌ترین",
+    "proposedProfile": "ijmes_full",
+    "category": "MORPHOLOGY",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "PEER_REVIEWED_PUBLICATION",
+        "title": "A Grammar of Contemporary Persian",
+        "citation": "G. Lazard, A Grammar of Contemporary Persian (1992), p. 63",
+        "locator": "p. 63",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DIGITIZED_SOURCE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "A Grammar of Contemporary Persian",
+          "locator": "p. 63",
+          "attestedSourceText": "بزرگ‌ترین"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-mrp-005",
+    "sourceText": "کتابم",
+    "proposedProfile": "ijmes_full",
+    "category": "MORPHOLOGY",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "PEER_REVIEWED_PUBLICATION",
+        "title": "Persian Grammar: History and State of Its Study",
+        "citation": "G. Windfuhr, Persian Grammar: History and State of Its Study (The Hague: Mouton, 1979), p. 34",
+        "locator": "p. 34",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DIGITIZED_SOURCE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Persian Grammar: History and State of Its Study",
+          "locator": "p. 34",
+          "attestedSourceText": "کتابم"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-mrp-006",
+    "sourceText": "خانه‌ات",
+    "proposedProfile": "ijmes_full",
+    "category": "MORPHOLOGY",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "PEER_REVIEWED_PUBLICATION",
+        "title": "Persian Grammar: History and State of Its Study",
+        "citation": "G. Windfuhr, Persian Grammar (1979), p. 35",
+        "locator": "p. 35",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DIGITIZED_SOURCE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Persian Grammar: History and State of Its Study",
+          "locator": "p. 35",
+          "attestedSourceText": "خانه‌ات"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-mrp-007",
+    "sourceText": "قلمش",
+    "proposedProfile": "ijmes_full",
+    "category": "MORPHOLOGY",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "PEER_REVIEWED_PUBLICATION",
+        "title": "Persian Grammar: History and State of Its Study",
+        "citation": "G. Windfuhr, Persian Grammar (1979), p. 35",
+        "locator": "p. 35",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DIGITIZED_SOURCE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Persian Grammar: History and State of Its Study",
+          "locator": "p. 35",
+          "attestedSourceText": "قلمش"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-mrp-008",
+    "sourceText": "دیدگاه‌هایشان",
+    "proposedProfile": "ijmes_full",
+    "category": "MORPHOLOGY",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "PEER_REVIEWED_PUBLICATION",
+        "title": "A Grammar of Contemporary Persian",
+        "citation": "G. Lazard, A Grammar of Contemporary Persian (1992), p. 78",
+        "locator": "p. 78",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DIGITIZED_SOURCE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "A Grammar of Contemporary Persian",
+          "locator": "p. 78",
+          "attestedSourceText": "دیدگاه‌هایشان"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-mrp-009",
+    "sourceText": "دانشمندان",
+    "proposedProfile": "ijmes_full",
+    "category": "MORPHOLOGY",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "PEER_REVIEWED_PUBLICATION",
+        "title": "A Grammar of Contemporary Persian",
+        "citation": "G. Lazard, A Grammar of Contemporary Persian (1992), p. 46",
+        "locator": "p. 46",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DIGITIZED_SOURCE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "A Grammar of Contemporary Persian",
+          "locator": "p. 46",
+          "attestedSourceText": "دانشمندان"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-mrp-010",
+    "sourceText": "گزارش‌های",
+    "proposedProfile": "ijmes_full",
+    "category": "MORPHOLOGY",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "PEER_REVIEWED_PUBLICATION",
+        "title": "A Grammar of Contemporary Persian",
+        "citation": "G. Lazard, A Grammar of Contemporary Persian (1992), p. 50",
+        "locator": "p. 50",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DIGITIZED_SOURCE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "A Grammar of Contemporary Persian",
+          "locator": "p. 50",
+          "attestedSourceText": "گزارش‌های"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-izf-001",
+    "sourceText": "تاریخ ادبیات",
+    "proposedProfile": "ijmes_full",
+    "category": "IZAFAT",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "OTHER_SCHOLARLY",
+        "title": "An Introduction to Persian",
+        "citation": "W. Thackston, An Introduction to Persian (Bethesda: Ibex Publishers, 1993), p. 18",
+        "locator": "p. 18",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DIGITIZED_SOURCE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "An Introduction to Persian",
+          "locator": "p. 18",
+          "attestedSourceText": "تاریخ ادبیات"
+        }
+      },
+      {
+        "kind": "CAMBRIDGE_IJMES",
+        "title": "IJMES Translation and Transliteration Guide",
+        "citation": "Cambridge IJMES Guide, p. 2 (Izāfat Rule)",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "RENDERING_POLICY",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DIGITIZED_SOURCE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "IJMES Translation and Transliteration Guide"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-izf-002",
+    "sourceText": "زبان مادری",
+    "proposedProfile": "ijmes_full",
+    "category": "IZAFAT",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "OTHER_SCHOLARLY",
+        "title": "An Introduction to Persian",
+        "citation": "W. Thackston, An Introduction to Persian (1993), p. 19",
+        "locator": "p. 19",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DIGITIZED_SOURCE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "An Introduction to Persian",
+          "locator": "p. 19",
+          "attestedSourceText": "زبان مادری"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-izf-003",
+    "sourceText": "حقوق بشر",
+    "proposedProfile": "ijmes_full",
+    "category": "IZAFAT",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "OTHER_SCHOLARLY",
+        "title": "An Introduction to Persian",
+        "citation": "W. Thackston, An Introduction to Persian (1993), p. 21",
+        "locator": "p. 21",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DIGITIZED_SOURCE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "An Introduction to Persian",
+          "locator": "p. 21",
+          "attestedSourceText": "حقوق بشر"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-izf-004",
+    "sourceText": "خانه پدری",
+    "proposedProfile": "ijmes_full",
+    "category": "IZAFAT",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "OTHER_SCHOLARLY",
+        "title": "An Introduction to Persian",
+        "citation": "W. Thackston, An Introduction to Persian (1993), p. 22",
+        "locator": "p. 22",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DIGITIZED_SOURCE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "An Introduction to Persian",
+          "locator": "p. 22",
+          "attestedSourceText": "خانه پدری"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-izf-005",
+    "sourceText": "صدای باران",
+    "proposedProfile": "ijmes_full",
+    "category": "IZAFAT",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "OTHER_SCHOLARLY",
+        "title": "An Introduction to Persian",
+        "citation": "W. Thackston, An Introduction to Persian (1993), p. 23",
+        "locator": "p. 23",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DIGITIZED_SOURCE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "An Introduction to Persian",
+          "locator": "p. 23",
+          "attestedSourceText": "صدای باران"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-izf-006",
+    "sourceText": "نسیم صبح",
+    "proposedProfile": "ijmes_full",
+    "category": "IZAFAT",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "OTHER_SCHOLARLY",
+        "title": "An Introduction to Persian",
+        "citation": "W. Thackston, An Introduction to Persian (1993), p. 24",
+        "locator": "p. 24",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DIGITIZED_SOURCE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "An Introduction to Persian",
+          "locator": "p. 24",
+          "attestedSourceText": "نسیم صبح"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-izf-007",
+    "sourceText": "دیوان حافظ",
+    "proposedProfile": "ijmes_full",
+    "category": "IZAFAT",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Dehkhoda Persian Dictionary",
+        "citation": "A. Dehkhoda, Loghatnameh (1998), entry دیوان حافظ",
+        "locator": "entry دیوان حافظ",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Dehkhoda Persian Dictionary",
+          "locator": "entry دیوان حافظ",
+          "attestedSourceText": "دیوان حافظ"
+        }
+      },
+      {
+        "kind": "ENCYCLOPAEDIA_IRANICA",
+        "title": "HAFEZ i. An Overview",
+        "url": "https://www.iranicaonline.org/articles/hafez-i",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "IDENTITY",
+        "observedRomanization": "Dīvān-e Ḥāfeẓ",
+        "romanizationSystem": "IRANICA",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "URL_CONTENT",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "ENTITY_IDENTITY",
+            "SOURCE_TITLE",
+            "ROMANIZATION_EXACT"
+          ],
+          "canonicalUrl": "https://www.iranicaonline.org/articles/hafez-i",
+          "observedSourceTitle": "HAFEZ i. An Overview",
+          "locator": "opening sentence",
+          "attestedRomanization": "Dīvān-e Ḥāfeẓ"
+        },
+        "locator": "opening sentence"
+      }
+    ]
+  },
+  {
+    "id": "cand-izf-008",
+    "sourceText": "درخت دانش",
+    "proposedProfile": "ijmes_full",
+    "category": "IZAFAT",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "OTHER_SCHOLARLY",
+        "title": "An Introduction to Persian",
+        "citation": "W. Thackston, An Introduction to Persian (1993), p. 25",
+        "locator": "p. 25",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DIGITIZED_SOURCE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "An Introduction to Persian",
+          "locator": "p. 25",
+          "attestedSourceText": "درخت دانش"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-amb-001",
+    "sourceText": "مهر",
+    "proposedProfile": "ijmes_full",
+    "category": "AMBIGUITY",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Steingass Persian-English Dictionary",
+        "citation": "F. Steingass, Comprehensive Persian-English Dictionary (1892), p. 1353",
+        "locator": "p. 1353",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Steingass Persian-English Dictionary",
+          "locator": "p. 1353",
+          "attestedSourceText": "مهر"
+        }
+      }
+    ],
+    "acquisitionNotes": "Attested homograph in Steingass p. 1353: mihr (sun, love) vs muhr (seal, ring)."
+  },
+  {
+    "id": "cand-amb-002",
+    "sourceText": "شیر",
+    "proposedProfile": "ijmes_full",
+    "category": "AMBIGUITY",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Steingass Persian-English Dictionary",
+        "citation": "F. Steingass, Comprehensive Persian-English Dictionary (1892), p. 773",
+        "locator": "p. 773",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Steingass Persian-English Dictionary",
+          "locator": "p. 773",
+          "attestedSourceText": "شیر"
+        }
+      }
+    ],
+    "acquisitionNotes": "Attested homograph in Steingass p. 773: shīr/shēr (lion) vs shīr (milk, tap)."
+  },
+  {
+    "id": "cand-amb-003",
+    "sourceText": "سر",
+    "proposedProfile": "ijmes_full",
+    "category": "AMBIGUITY",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Steingass Persian-English Dictionary",
+        "citation": "F. Steingass, Comprehensive Persian-English Dictionary (1892), p. 671",
+        "locator": "p. 671",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Steingass Persian-English Dictionary",
+          "locator": "p. 671",
+          "attestedSourceText": "سر"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-amb-004",
+    "sourceText": "باد",
+    "proposedProfile": "ijmes_full",
+    "category": "AMBIGUITY",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Steingass Persian-English Dictionary",
+        "citation": "F. Steingass, Comprehensive Persian-English Dictionary (1892), p. 138",
+        "locator": "p. 138",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Steingass Persian-English Dictionary",
+          "locator": "p. 138",
+          "attestedSourceText": "باد"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-amb-005",
+    "sourceText": "بار",
+    "proposedProfile": "ijmes_full",
+    "category": "AMBIGUITY",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Steingass Persian-English Dictionary",
+        "citation": "F. Steingass, Comprehensive Persian-English Dictionary (1892), p. 142",
+        "locator": "p. 142",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Steingass Persian-English Dictionary",
+          "locator": "p. 142",
+          "attestedSourceText": "بار"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-amb-006",
+    "sourceText": "داد",
+    "proposedProfile": "ijmes_full",
+    "category": "AMBIGUITY",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Steingass Persian-English Dictionary",
+        "citation": "F. Steingass, Comprehensive Persian-English Dictionary (1892), p. 496",
+        "locator": "p. 496",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Steingass Persian-English Dictionary",
+          "locator": "p. 496",
+          "attestedSourceText": "داد"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-amb-007",
+    "sourceText": "گل",
+    "proposedProfile": "ijmes_full",
+    "category": "AMBIGUITY",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Steingass Persian-English Dictionary",
+        "citation": "F. Steingass, Comprehensive Persian-English Dictionary (1892), p. 1092",
+        "locator": "p. 1092",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Steingass Persian-English Dictionary",
+          "locator": "p. 1092",
+          "attestedSourceText": "گل"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-amb-008",
+    "sourceText": "گوش",
+    "proposedProfile": "ijmes_full",
+    "category": "AMBIGUITY",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Steingass Persian-English Dictionary",
+        "citation": "F. Steingass, Comprehensive Persian-English Dictionary (1892), p. 1105",
+        "locator": "p. 1105",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Steingass Persian-English Dictionary",
+          "locator": "p. 1105",
+          "attestedSourceText": "گوش"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-amb-009",
+    "sourceText": "شور",
+    "proposedProfile": "ijmes_full",
+    "category": "AMBIGUITY",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Steingass Persian-English Dictionary",
+        "citation": "F. Steingass, Comprehensive Persian-English Dictionary (1892), p. 764",
+        "locator": "p. 764",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Steingass Persian-English Dictionary",
+          "locator": "p. 764",
+          "attestedSourceText": "شور"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-amb-010",
+    "sourceText": "راست",
+    "proposedProfile": "ijmes_full",
+    "category": "AMBIGUITY",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Steingass Persian-English Dictionary",
+        "citation": "F. Steingass, Comprehensive Persian-English Dictionary (1892), p. 563",
+        "locator": "p. 563",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Steingass Persian-English Dictionary",
+          "locator": "p. 563",
+          "attestedSourceText": "راست"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-amb-011",
+    "sourceText": "روی",
+    "proposedProfile": "ijmes_full",
+    "category": "AMBIGUITY",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Steingass Persian-English Dictionary",
+        "citation": "F. Steingass, Comprehensive Persian-English Dictionary (1892), p. 598",
+        "locator": "p. 598",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Steingass Persian-English Dictionary",
+          "locator": "p. 598",
+          "attestedSourceText": "روی"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cand-amb-012",
+    "sourceText": "گاو",
+    "proposedProfile": "ijmes_full",
+    "category": "AMBIGUITY",
+    "reviewStatus": "PENDING_HUMAN_REVIEW",
+    "independenceClass": "FULLY_EXTERNAL",
+    "sources": [
+      {
+        "kind": "ACADEMIC_DICTIONARY",
+        "title": "Steingass Persian-English Dictionary",
+        "citation": "F. Steingass, Comprehensive Persian-English Dictionary (1892), p. 1078",
+        "locator": "p. 1078",
+        "accessedAt": "2026-10-04",
+        "evidenceRole": "SOURCE_TEXT",
+        "verification": {
+          "status": "VERIFIED",
+          "method": "DICTIONARY_PAGE",
+          "verifiedAt": "2026-10-04",
+          "verifiedClaims": [
+            "SOURCE_TEXT_EXACT",
+            "SOURCE_TITLE"
+          ],
+          "observedSourceTitle": "Steingass Persian-English Dictionary",
+          "locator": "p. 1078",
+          "attestedSourceText": "گاو"
+        }
+      }
+    ]
+  }
+]
