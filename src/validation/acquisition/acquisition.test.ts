@@ -14,6 +14,7 @@ import {
   ExternalCorpusCandidateSchema,
   SourceVerificationEntrySchema,
   SourceVerificationLedgerSchema,
+  SourceVerificationSchema,
   validateAcquisitionCorpusData,
   validateAcquisitionManifest,
   validateCandidate
@@ -62,7 +63,7 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
           verifiedClaims: ['ENTITY_IDENTITY', 'ROMANIZATION_EXACT', 'SOURCE_TITLE'],
           canonicalUrl: 'https://www.iranicaonline.org/articles/constitutional-revolution-index',
           observedSourceTitle: 'CONSTITUTIONAL REVOLUTION',
-          locator: 'article headword',
+          locator: 'opening sentence',
           attestedRomanization: 'mašrūṭa'
         }
       }
@@ -96,7 +97,7 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
         verifiedClaims: ['ENTITY_IDENTITY', 'ROMANIZATION_EXACT', 'SOURCE_TITLE'],
         canonicalUrl: 'https://www.iranicaonline.org/articles/constitutional-revolution-index',
         observedSourceTitle: 'CONSTITUTIONAL REVOLUTION',
-        locator: 'article headword',
+        locator: 'opening sentence',
         attestedRomanization: 'mašrūṭa'
       }
     ]
@@ -431,7 +432,7 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
     }).toThrow(/generic source title/);
   });
 
-  // --- Provenance Integrity Focus Tests (Section 20 & 21) ---
+  // --- Provenance Integrity & Claim Authority Focus Tests ---
 
   it('18. accepted candidate requires at least one VERIFIED source in verification ledger', () => {
     const emptyLedger: SourceVerificationLedger = {
@@ -461,10 +462,11 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
           status: 'VERIFIED',
           verificationMethod: 'URL_CONTENT',
           verifiedAt: '2026-10-04T10:00:00Z',
+          verifiedClaims: ['ENTITY_IDENTITY', 'ROMANIZATION_EXACT', 'SOURCE_TITLE'],
           canonicalUrl: 'https://www.iranicaonline.org/articles/constitutional-revolution-index',
           observedSourceTitle: 'CONSTITUTIONAL REVOLUTION',
+          locator: 'opening sentence',
           attestedRomanization: 'mašrūṭa'
-          // no attestedSourceText
         }
       ]
     };
@@ -487,6 +489,7 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
           status: 'VERIFIED',
           verificationMethod: 'DICTIONARY_PAGE',
           verifiedAt: '2026-10-04T10:00:00Z',
+          verifiedClaims: ['SOURCE_TEXT_EXACT', 'SOURCE_TITLE'],
           observedSourceTitle: 'Dehkhoda Dictionary',
           attestedSourceText: 'مشروطیت' // Mismatched text
         }
@@ -511,9 +514,7 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
           title: 'CITIES iv. Modern Urbanization and Modernization in Persia',
           url: 'https://www.iranicaonline.org/articles/cities-iv',
           accessedAt: '2026-10-04',
-          evidenceRole: 'IDENTITY',
-          observedRomanization: 'now-sāzī',
-          romanizationSystem: 'IRANICA'
+          evidenceRole: 'IDENTITY'
         }
       ]
     };
@@ -531,9 +532,9 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
           status: 'VERIFIED',
           verificationMethod: 'URL_CONTENT',
           verifiedAt: '2026-10-04T10:00:00Z',
+          verifiedClaims: ['ENTITY_IDENTITY', 'SOURCE_TITLE'],
           canonicalUrl: 'https://www.iranicaonline.org/articles/cities-iv',
-          observedSourceTitle: 'CITIES iv. Modern Urbanization and Modernization in Persia',
-          attestedRomanization: 'now-sāzī'
+          observedSourceTitle: 'CITIES iv. Modern Urbanization and Modernization in Persia'
         }
       ]
     };
@@ -557,8 +558,9 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
           status: 'VERIFIED',
           verificationMethod: 'URL_CONTENT',
           verifiedAt: '2026-10-04T10:00:00Z',
+          verifiedClaims: ['ROMANIZATION_EXACT', 'SOURCE_TITLE'],
+          locator: 'opening sentence',
           attestedRomanization: 'mašrūṭa'
-          // No Persian script attested
         }
       ]
     };
@@ -611,7 +613,9 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
             sourceIndex: -1,
             status: 'VERIFIED',
             verificationMethod: 'URL_CONTENT',
-            verifiedAt: '2026-10-04'
+            verifiedAt: '2026-10-04',
+            verifiedClaims: ['SOURCE_TEXT_EXACT'],
+            attestedSourceText: 'تست'
           }
         ]
       });
@@ -654,6 +658,7 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
           status: 'VERIFIED',
           verificationMethod: 'API_RECORD',
           verifiedAt: '2026-10-04T10:00:00Z',
+          verifiedClaims: ['SOURCE_TEXT_EXACT', 'EXTERNAL_IDENTIFIER', 'SOURCE_TITLE'],
           requestedIdentifier: '10.1000/182',
           resolvedIdentifier: '10.1000/182',
           observedSourceTitle: 'Unrelated Article Title',
@@ -704,6 +709,7 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
           status: 'VERIFIED',
           verificationMethod: 'AUTHORITY_RECORD',
           verifiedAt: '2026-10-04T10:00:00Z',
+          verifiedClaims: ['SOURCE_TEXT_EXACT', 'EXTERNAL_IDENTIFIER', 'SOURCE_TITLE'],
           requestedIdentifier: 'VIAF:12345',
           resolvedIdentifier: 'VIAF:99999', // Identifier mismatch
           observedSourceTitle: 'VIAF Record',
@@ -731,6 +737,7 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
           status: 'VERIFIED',
           verificationMethod: 'DICTIONARY_PAGE',
           verifiedAt: '2026-10-04T10:00:00Z',
+          verifiedClaims: ['SOURCE_TEXT_EXACT', 'SOURCE_TITLE'],
           observedSourceTitle: 'Dehkhoda Dictionary',
           attestedSourceText: 'مشروطه'
         },
@@ -740,8 +747,10 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
           status: 'VERIFIED',
           verificationMethod: 'URL_CONTENT',
           verifiedAt: '2026-10-04T10:00:00Z',
+          verifiedClaims: ['ENTITY_IDENTITY', 'ROMANIZATION_EXACT', 'SOURCE_TITLE'],
           canonicalUrl: 'https://www.iranicaonline.org/articles/constitutional-revolution-index',
           observedSourceTitle: 'CONSTITUTIONAL REVOLUTION',
+          locator: 'opening sentence',
           attestedRomanization: 'mashrooteh' // Mismatches mašrūṭa
         }
       ]
@@ -766,6 +775,7 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
           status: 'VERIFIED',
           verificationMethod: 'DICTIONARY_PAGE',
           verifiedAt: '2026-10-04T10:00:00Z',
+          verifiedClaims: ['SOURCE_TEXT_EXACT', 'SOURCE_TITLE'],
           observedSourceTitle: 'Dehkhoda Dictionary',
           attestedSourceText: 'مشروطه'
         },
@@ -775,8 +785,10 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
           status: 'VERIFIED',
           verificationMethod: 'URL_CONTENT',
           verifiedAt: '2026-10-04T10:00:00Z',
+          verifiedClaims: ['ENTITY_IDENTITY', 'ROMANIZATION_EXACT', 'SOURCE_TITLE'],
           canonicalUrl: 'https://www.iranicaonline.org/articles/wrong-page', // Mismatched URL
           observedSourceTitle: 'CONSTITUTIONAL REVOLUTION',
+          locator: 'opening sentence',
           attestedRomanization: 'mašrūṭa'
         }
       ]
@@ -819,6 +831,7 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
           status: 'VERIFIED',
           verificationMethod: 'DICTIONARY_PAGE',
           verifiedAt: '2026-10-04T10:00:00Z',
+          verifiedClaims: ['SOURCE_TEXT_EXACT', 'SOURCE_TITLE'],
           observedSourceTitle: 'Dehkhoda Dictionary',
           attestedSourceText: 'مشروطه'
         }
@@ -892,9 +905,11 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
     expect(audit.diagnostics.length).toBe(0);
   });
 
-  it('33. fails if observedRomanization exists but verification receipt lacks ROMANIZATION_EXACT claim', () => {
-    const missingClaimCandidate: ExternalCorpusCandidate = {
-      id: 'cand-claim-missing',
+  // --- Section 12 Required Regression Tests ---
+
+  it('33. SOURCE_TEXT with matching attested text but no SOURCE_TEXT_EXACT claim fails closed', () => {
+    const candidateWithoutExactClaim: ExternalCorpusCandidate = {
+      id: 'cand-no-exact-claim',
       sourceText: 'مشروطه',
       proposedProfile: 'ijmes_full',
       category: 'TERM',
@@ -911,38 +926,21 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
             status: 'VERIFIED',
             method: 'DICTIONARY_PAGE',
             verifiedAt: '2026-10-04',
-            verifiedClaims: ['SOURCE_TEXT_EXACT'],
+            verifiedClaims: ['SOURCE_TITLE'], // Missing SOURCE_TEXT_EXACT
             attestedSourceText: 'مشروطه'
-          }
-        },
-        {
-          kind: 'ENCYCLOPAEDIA_IRANICA',
-          title: 'CONSTITUTIONAL REVOLUTION',
-          url: 'https://www.iranicaonline.org/articles/constitutional-revolution-index',
-          accessedAt: '2026-10-04',
-          evidenceRole: 'IDENTITY',
-          observedRomanization: 'mašrūṭa',
-          romanizationSystem: 'IRANICA',
-          verification: {
-            status: 'VERIFIED',
-            method: 'URL_CONTENT',
-            verifiedAt: '2026-10-04',
-            verifiedClaims: ['ENTITY_IDENTITY', 'SOURCE_TITLE'], // Lacks ROMANIZATION_EXACT
-            canonicalUrl: 'https://www.iranicaonline.org/articles/constitutional-revolution-index',
-            observedSourceTitle: 'CONSTITUTIONAL REVOLUTION'
           }
         }
       ]
     };
 
-    const audit = auditProvenanceIntegrity([missingClaimCandidate]);
+    const audit = auditProvenanceIntegrity([candidateWithoutExactClaim]);
     expect(audit.passed).toBe(false);
-    expect(audit.diagnostics.some(d => d.code === 'OBSERVED_ROMANIZATION_NOT_ATTESTED')).toBe(true);
+    expect(audit.diagnostics.some(d => d.code === 'MISSING_SOURCE_TEXT_EXACT_CLAIM')).toBe(true);
   });
 
-  it('34. exact romanization passes only when verification claim explicitly covers exact romanization with an exact locator', () => {
-    const exactRomCandidate: ExternalCorpusCandidate = {
-      id: 'cand-exact-rom',
+  it('34. observedRomanization with matching attested string but no ROMANIZATION_EXACT claim fails closed', () => {
+    const missingRomExactClaimCandidate: ExternalCorpusCandidate = {
+      id: 'cand-claim-missing',
       sourceText: 'مشروطه',
       proposedProfile: 'ijmes_full',
       category: 'TERM',
@@ -975,10 +973,221 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
             status: 'VERIFIED',
             method: 'URL_CONTENT',
             verifiedAt: '2026-10-04',
+            verifiedClaims: ['ENTITY_IDENTITY', 'SOURCE_TITLE'], // Lacks ROMANIZATION_EXACT
+            canonicalUrl: 'https://www.iranicaonline.org/articles/constitutional-revolution-index',
+            observedSourceTitle: 'CONSTITUTIONAL REVOLUTION',
+            locator: 'opening sentence',
+            attestedRomanization: 'mašrūṭa'
+          }
+        }
+      ]
+    };
+
+    const audit = auditProvenanceIntegrity([missingRomExactClaimCandidate]);
+    expect(audit.passed).toBe(false);
+    expect(audit.diagnostics.some(d => d.code === 'OBSERVED_ROMANIZATION_NOT_ATTESTED')).toBe(true);
+  });
+
+  it('35. VERIFIED receipt with no verifiedClaims fails schema validation', () => {
+    expect(() => {
+      SourceVerificationSchema.parse({
+        status: 'VERIFIED',
+        method: 'DICTIONARY_PAGE',
+        verifiedAt: '2026-10-04',
+        verifiedClaims: [] // Empty claims
+      });
+    }).toThrow(/VERIFIED verification requires at least one verifiedClaim/);
+
+    expect(() => {
+      SourceVerificationEntrySchema.parse({
+        candidateId: 'cand-1',
+        sourceIndex: 0,
+        status: 'VERIFIED',
+        verificationMethod: 'DICTIONARY_PAGE',
+        verifiedAt: '2026-10-04',
+        verifiedClaims: [] // Empty claims
+      });
+    }).toThrow(/VERIFIED verification entry requires at least one verifiedClaim/);
+  });
+
+  it('36. EXTERNAL_IDENTIFIER field without EXTERNAL_IDENTIFIER claim fails closed', () => {
+    const candidateWithoutIdClaim: ExternalCorpusCandidate = {
+      id: 'cand-no-id-claim',
+      sourceText: 'مصدق',
+      proposedProfile: 'ijmes_full',
+      category: 'PERSON',
+      reviewStatus: 'PENDING_HUMAN_REVIEW',
+      independenceClass: 'FULLY_EXTERNAL',
+      entityMetadata: {
+        authorityId: 'VIAF:12345',
+        englishLabel: 'Mohammad Mossadegh',
+        entityType: 'PERSON'
+      },
+      sources: [
+        {
+          kind: 'AUTHORITY_FILE',
+          title: 'VIAF Record',
+          url: 'https://viaf.org/viaf/12345',
+          accessedAt: '2026-10-04',
+          evidenceRole: 'SOURCE_TEXT',
+          externalId: 'VIAF:12345',
+          verification: {
+            status: 'VERIFIED',
+            method: 'AUTHORITY_RECORD',
+            verifiedAt: '2026-10-04',
+            verifiedClaims: ['SOURCE_TEXT_EXACT', 'SOURCE_TITLE'], // Missing EXTERNAL_IDENTIFIER claim
+            externalRecordId: 'VIAF:12345',
+            attestedSourceText: 'مصدق'
+          }
+        }
+      ]
+    };
+
+    const audit = auditProvenanceIntegrity([candidateWithoutIdClaim]);
+    expect(audit.passed).toBe(false);
+    expect(audit.diagnostics.some(d => d.code === 'UNVERIFIED_EXTERNAL_IDENTIFIER')).toBe(true);
+  });
+
+  it('37. article headword locator with a different string fails closed', () => {
+    const wrongHeadwordCandidate: ExternalCorpusCandidate = {
+      id: 'cand-wrong-headword',
+      sourceText: 'شاهنشاهی',
+      proposedProfile: 'ijmes_full',
+      category: 'TERM',
+      reviewStatus: 'PENDING_HUMAN_REVIEW',
+      independenceClass: 'FULLY_EXTERNAL',
+      sources: [
+        {
+          kind: 'ACADEMIC_DICTIONARY',
+          title: 'Dehkhoda Dictionary',
+          citation: 'Loghatnāmeh-ye Dehkhodā, Headword: شاهنشاهی',
+          accessedAt: '2026-10-04',
+          evidenceRole: 'SOURCE_TEXT',
+          verification: {
+            status: 'VERIFIED',
+            method: 'DICTIONARY_PAGE',
+            verifiedAt: '2026-10-04',
+            verifiedClaims: ['SOURCE_TEXT_EXACT', 'SOURCE_TITLE'],
+            attestedSourceText: 'شاهنشاهی'
+          }
+        },
+        {
+          kind: 'ENCYCLOPAEDIA_IRANICA',
+          title: 'ŠĀHANŠĀH',
+          url: 'https://www.iranicaonline.org/articles/sahansah',
+          accessedAt: '2026-10-04',
+          evidenceRole: 'IDENTITY',
+          observedRomanization: 'šāhanšāhī',
+          romanizationSystem: 'IRANICA',
+          verification: {
+            status: 'VERIFIED',
+            method: 'URL_CONTENT',
+            verifiedAt: '2026-10-04',
+            verifiedClaims: ['ENTITY_IDENTITY', 'ROMANIZATION_EXACT', 'SOURCE_TITLE'],
+            canonicalUrl: 'https://www.iranicaonline.org/articles/sahansah',
+            observedSourceTitle: 'ŠĀHANŠĀH',
+            locator: 'article headword',
+            attestedRomanization: 'šāhanšāh' // Mismatches observed šāhanšāhī
+          }
+        }
+      ]
+    };
+
+    const audit = auditProvenanceIntegrity([wrongHeadwordCandidate]);
+    expect(audit.passed).toBe(false);
+    expect(audit.diagnostics.some(d => d.code === 'OBSERVED_ROMANIZATION_NOT_ATTESTED')).toBe(true);
+  });
+
+  it('38. lowercase/uppercase difference does not count as ROMANIZATION_EXACT', () => {
+    const caseMismatchCandidate: ExternalCorpusCandidate = {
+      id: 'cand-case-mismatch',
+      sourceText: 'تجدد',
+      proposedProfile: 'ijmes_full',
+      category: 'TERM',
+      reviewStatus: 'PENDING_HUMAN_REVIEW',
+      independenceClass: 'FULLY_EXTERNAL',
+      sources: [
+        {
+          kind: 'ACADEMIC_DICTIONARY',
+          title: 'Dehkhoda Dictionary',
+          citation: 'Loghatnāmeh-ye Dehkhodā, Headword: تجدد',
+          accessedAt: '2026-10-04',
+          evidenceRole: 'SOURCE_TEXT',
+          verification: {
+            status: 'VERIFIED',
+            method: 'DICTIONARY_PAGE',
+            verifiedAt: '2026-10-04',
+            verifiedClaims: ['SOURCE_TEXT_EXACT', 'SOURCE_TITLE'],
+            attestedSourceText: 'تجدد'
+          }
+        },
+        {
+          kind: 'ENCYCLOPAEDIA_IRANICA',
+          title: 'TAJADDOD',
+          url: 'https://www.iranicaonline.org/articles/tajaddod-journal',
+          accessedAt: '2026-10-04',
+          evidenceRole: 'IDENTITY',
+          observedRomanization: 'tajaddod',
+          romanizationSystem: 'IRANICA',
+          verification: {
+            status: 'VERIFIED',
+            method: 'URL_CONTENT',
+            verifiedAt: '2026-10-04',
+            verifiedClaims: ['ENTITY_IDENTITY', 'ROMANIZATION_EXACT', 'SOURCE_TITLE'],
+            canonicalUrl: 'https://www.iranicaonline.org/articles/tajaddod-journal',
+            observedSourceTitle: 'TAJADDOD',
+            locator: 'article headword',
+            attestedRomanization: 'TAJADDOD' // Case mismatch with tajaddod
+          }
+        }
+      ]
+    };
+
+    const audit = auditProvenanceIntegrity([caseMismatchCandidate]);
+    expect(audit.passed).toBe(false);
+    expect(audit.diagnostics.some(d => d.code === 'OBSERVED_ROMANIZATION_NOT_ATTESTED')).toBe(true);
+  });
+
+  it('39. valid exact romanization + truthful locator passes cleanly', () => {
+    const exactRomCandidate: ExternalCorpusCandidate = {
+      id: 'cand-exact-rom',
+      sourceText: 'مشروطه',
+      proposedProfile: 'ijmes_full',
+      category: 'TERM',
+      reviewStatus: 'PENDING_HUMAN_REVIEW',
+      independenceClass: 'FULLY_EXTERNAL',
+      sources: [
+        {
+          kind: 'ACADEMIC_DICTIONARY',
+          title: 'Dehkhoda Dictionary',
+          citation: 'Loghatnāmeh-ye Dehkhodā, Headword: مشروطه',
+          accessedAt: '2026-10-04',
+          evidenceRole: 'SOURCE_TEXT',
+          verification: {
+            status: 'VERIFIED',
+            method: 'DICTIONARY_PAGE',
+            verifiedAt: '2026-10-04',
+            verifiedClaims: ['SOURCE_TEXT_EXACT', 'SOURCE_TITLE'],
+            attestedSourceText: 'مشروطه',
+            locator: 'Headword: مشروطه'
+          }
+        },
+        {
+          kind: 'ENCYCLOPAEDIA_IRANICA',
+          title: 'CONSTITUTIONAL REVOLUTION',
+          url: 'https://www.iranicaonline.org/articles/constitutional-revolution-index',
+          accessedAt: '2026-10-04',
+          evidenceRole: 'IDENTITY',
+          observedRomanization: 'mašrūṭa',
+          romanizationSystem: 'IRANICA',
+          verification: {
+            status: 'VERIFIED',
+            method: 'URL_CONTENT',
+            verifiedAt: '2026-10-04',
             verifiedClaims: ['ENTITY_IDENTITY', 'ROMANIZATION_EXACT', 'SOURCE_TITLE'],
             canonicalUrl: 'https://www.iranicaonline.org/articles/constitutional-revolution-index',
             observedSourceTitle: 'CONSTITUTIONAL REVOLUTION',
-            locator: 'article headword',
+            locator: 'opening sentence',
             attestedRomanization: 'mašrūṭa'
           }
         }
@@ -988,5 +1197,47 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
     const audit = auditProvenanceIntegrity([exactRomCandidate]);
     expect(audit.passed).toBe(true);
     expect(audit.diagnostics.length).toBe(0);
+  });
+
+  it('40. candidate-local and ledger claim disagreement fails closed', () => {
+    const candidateLocal: ExternalCorpusCandidate = {
+      ...validCandidate,
+      sources: [
+        {
+          ...validCandidate.sources[0],
+          verification: {
+            ...validCandidate.sources[0].verification!,
+            verifiedClaims: ['SOURCE_TEXT_EXACT', 'SOURCE_TITLE']
+          }
+        },
+        validCandidate.sources[1]
+      ]
+    };
+
+    const disagreeingLedger: SourceVerificationLedger = {
+      version: '1.0.0',
+      generatedAt: '2026-10-04T10:00:00Z',
+      verifiedCount: 2,
+      rejectedCount: 0,
+      unverifiedCount: 0,
+      receipts: [
+        {
+          candidateId: 'cand-test-01',
+          sourceIndex: 0,
+          status: 'VERIFIED',
+          verificationMethod: 'DICTIONARY_PAGE',
+          verifiedAt: '2026-10-04T10:00:00Z',
+          verifiedClaims: ['SOURCE_TEXT_EXACT'], // Disagrees with local claims
+          observedSourceTitle: 'Dehkhoda Dictionary',
+          attestedSourceText: 'مشروطه',
+          locator: 'Headword: مشروطه'
+        },
+        validLedger.receipts![1]
+      ]
+    };
+
+    const audit = auditProvenanceIntegrity([candidateLocal], disagreeingLedger);
+    expect(audit.passed).toBe(false);
+    expect(audit.diagnostics.some(d => d.code === 'LEDGER_CLAIM_DISAGREEMENT')).toBe(true);
   });
 });

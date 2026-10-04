@@ -283,21 +283,17 @@
         "url": "https://www.iranicaonline.org/articles/sahansah",
         "accessedAt": "2026-10-04",
         "evidenceRole": "IDENTITY",
-        "observedRomanization": "šāhanšāhī",
-        "romanizationSystem": "IRANICA",
         "verification": {
           "status": "VERIFIED",
           "method": "URL_CONTENT",
           "verifiedAt": "2026-10-04",
           "verifiedClaims": [
             "ENTITY_IDENTITY",
-            "SOURCE_TITLE",
-            "ROMANIZATION_EXACT"
+            "SOURCE_TITLE"
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/sahansah",
           "observedSourceTitle": "ŠĀHANŠĀH",
-          "locator": "article headword",
-          "attestedRomanization": "šāhanšāhī"
+          "locator": "article headword"
         },
         "locator": "article headword"
       }
@@ -350,10 +346,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/tajaddod-journal",
           "observedSourceTitle": "TAJADDOD",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "tajaddod"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -634,10 +630,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/kargozar",
           "observedSourceTitle": "KĀRGOZĀR",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "kārgozārī"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -768,10 +764,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/ejtehad",
           "observedSourceTitle": "EJTEHĀD",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "ejtehād"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -822,10 +818,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/taqlid",
           "observedSourceTitle": "TAQLĪD",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "taqlīd"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -876,10 +872,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/velayat-e-faqih",
           "observedSourceTitle": "VELĀYAT-E FAQĪH",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "velāyat-e faqīh"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -930,10 +926,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/amr-be-maruf",
           "observedSourceTitle": "AMR BE MAʿRŪF",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "amr be maʿrūf"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -984,10 +980,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/ahl-e-bayt",
           "observedSourceTitle": "AHL-E BAYT",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "ahl-e bayt"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -1038,10 +1034,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/koms",
           "observedSourceTitle": "ḴOMS",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "ḵoms"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -1092,10 +1088,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/zakat",
           "observedSourceTitle": "ZAKĀT",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "zakāt"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -1146,10 +1142,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/asura",
           "observedSourceTitle": "ʿĀŠŪRĀʾ",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "ʿāšūrāʾ"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -1200,10 +1196,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/dar-al-taqrib",
           "observedSourceTitle": "DĀR AL-TAQRĪB",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "dār al-taqrīb"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -1254,10 +1250,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/hosayniya",
           "observedSourceTitle": "ḤOSAYNĪYA",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "ḥosaynīya"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -1314,10 +1310,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/jamalzadeh/",
           "observedSourceTitle": "JAMALZADEH, MOHAMMAD-ALI",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Moḥammad-ʿAlī Jamālzāda"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -1374,10 +1370,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/hedayat-sadeq-i",
           "observedSourceTitle": "HEDAYAT, SADEQ i. LIFE AND WORK",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Ṣādeq Hedāyat"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -1434,10 +1430,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/dehkoda",
           "observedSourceTitle": "DEHḴODĀ, MĪRZĀ ʿALĪ-AKBAR QAZVĪNĪ",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "ʿAlī-Akbar Dehḵodā"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -1494,10 +1490,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/bahar-mohammad-taqi",
           "observedSourceTitle": "BAHĀR, MOḤAMMAD-TAQĪ",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Malek-al-Šoʿarāʾ Bahār"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -1554,10 +1550,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/al-e-ahmad-jalal",
           "observedSourceTitle": "ĀL-E AḤMAD, JALĀL",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Jalāl Āl-e Aḥmad"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -1614,10 +1610,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/danesvar-simin",
           "observedSourceTitle": "DĀNEŠVAR, SĪMĪN",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Sīmīn Dānešvar"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -1674,10 +1670,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/nima-yusij",
           "observedSourceTitle": "NĪMĀ YŪŠĪJ",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Nīmā Yūšīj"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -1734,10 +1730,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/saedi-golam-hosayn",
           "observedSourceTitle": "SĀʿEDĪ, ḠOLĀM-ḤOSAYN",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Ḡolām-Ḥosayn Sāʿedī"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -1794,10 +1790,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/etesami-parvin",
           "observedSourceTitle": "EʿTEṢĀMĪ, PARVĪN",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Parvīn Eʿteṣāmī"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -1854,10 +1850,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/foruzanfar",
           "observedSourceTitle": "FORŪZĀNFAR, BADĪʿ-AL-ZAMĀN",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Badīʿ-al-Zamān Forūzānfar"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -1914,10 +1910,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/zarrinkub",
           "observedSourceTitle": "ZARRĪNKŪB, ʿABD-AL-ḤOSAYN",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "ʿAbd-al-Ḥosayn Zarrīnkūb"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -1974,10 +1970,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/minovi-mojtaba",
           "observedSourceTitle": "MĪNOVĪ, MOJTABĀ",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Mojtabā Mīnovī"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -2034,10 +2030,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/kasravi-ahmad-i",
           "observedSourceTitle": "KASRAVI, AḤMAD i. LIFE AND WORK",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Aḥmad Kasravī"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -2094,10 +2090,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/afsar-iraj",
           "observedSourceTitle": "AFŠĀR, ĪRAJ",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Īraj Afšār"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -2154,10 +2150,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/ebtehaj-husang",
           "observedSourceTitle": "EBTEHĀJ, HŪŠANG",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Hūšang Ebtehāj"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -2214,10 +2210,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/sepehri-sohrab",
           "observedSourceTitle": "SEPEHRĪ, SOHRĀB",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Sohrāb Sepehrī"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -2274,10 +2270,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/akavan-e-sales-mehdi",
           "observedSourceTitle": "AḴAVĀN-E SĀLES, MEHDĪ",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Mehdī AḴavān-e S̲āles̲"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -2334,10 +2330,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/farrokzad-forug-zaman",
           "observedSourceTitle": "FARROḴZĀD, FORŪḠ-ZAMĀN",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Forūḡ Farroḵzād"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -2394,10 +2390,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/mazandaran-i-geography",
           "observedSourceTitle": "MĀZANDARĀN i. Geography",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Māzandarān"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -2454,10 +2450,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/khuzestan-i-geography",
           "observedSourceTitle": "ḴŪZESTĀN i. Geography",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Ḵūzestān"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -2514,10 +2510,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/azerbaijan-i",
           "observedSourceTitle": "AZERBAIJAN i. Geography",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Āẕarbāyjān"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -2574,10 +2570,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/baluchistan-i-geography",
           "observedSourceTitle": "BALUCHISTAN i. Geography",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Sīstān va Balūčestān"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -2634,10 +2630,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/kermanshah-01-geography",
           "observedSourceTitle": "KERMANSHAH i. Geography",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Kermānšāh"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -2694,10 +2690,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/nishapur-01",
           "observedSourceTitle": "NISHAPUR i. Historical Geography",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Nīšāpūr"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -2754,10 +2750,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/persepolis",
           "observedSourceTitle": "PERSEPOLIS",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Taḵt-e Jamšīd"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -2814,10 +2810,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/pasargadae",
           "observedSourceTitle": "PASARGADAE",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Pāsārgād"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -2874,10 +2870,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/damavand",
           "observedSourceTitle": "DAMĀVAND",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Damāvand"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -2934,10 +2930,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/zagros",
           "observedSourceTitle": "ZAGROS MOUNTAINS",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Zāgros"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -2994,10 +2990,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/zayanda-rud",
           "observedSourceTitle": "ZĀYANDA-RŪD",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Zāyanda-rūd"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -3054,10 +3050,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/hormozgan",
           "observedSourceTitle": "HORMOZGĀN",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Hormozgān"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -3114,10 +3110,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/farhangestan",
           "observedSourceTitle": "FARHANGESTĀN",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Farhangestān-e Zabān va Adab-e Fārsī"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -3174,10 +3170,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/faculties-of-the-university-of-tehran",
           "observedSourceTitle": "FACULTIES OF THE UNIVERSITY OF TEHRAN",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Dānešgāh-e Tehrān"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -3234,10 +3230,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/libraries-ii",
           "observedSourceTitle": "LIBRARIES in Persia",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Ketābḵāna-ye Mellī-ye Īrān"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -3294,10 +3290,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/majles-shora-melli",
           "observedSourceTitle": "MAJLES",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Majles-e Šūrā-ye Mellī"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -3348,10 +3344,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/dar-al-fonun",
           "observedSourceTitle": "DĀR AL-FONŪN",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Dār al-Fonūn"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -3402,10 +3398,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/anjoman-e-atar-e-melli",
           "observedSourceTitle": "ANJOMAN-E ĀṮĀR-E MELLĪ",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Anjoman-e Āṯār-e Mellī"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -3458,10 +3454,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/tarik-e-bidari-e-iranian",
           "observedSourceTitle": "TĀRĪḴ-E BĪDĀRĪ-E ĪRĀNĪĀN",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Tārīḵ-e Bīdārī-e Īrānīān"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -3514,10 +3510,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/siasat-nama",
           "observedSourceTitle": "SIĀSAT-NĀMA",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Sīāsat-nāma"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -3570,10 +3566,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/qabus-nama",
           "observedSourceTitle": "QĀBUS-NĀMA",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Qābūs-nāma"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -3626,10 +3622,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/marzban-nama",
           "observedSourceTitle": "MARZBĀN-NĀMA",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Marzbān-nāma"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -3682,10 +3678,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/safarnama",
           "observedSourceTitle": "SAFARNĀMA",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Safarnāma-ye Nāṣer-e Ḵosrow"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -3738,10 +3734,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/kalila-wa-demna-i",
           "observedSourceTitle": "KALĪLA VA DEMNA",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Kalīla va Demna"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -3794,10 +3790,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/golestan-e-sadi",
           "observedSourceTitle": "GOLESTĀN-E SAʿDĪ",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Golestān"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -3850,10 +3846,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/bustan",
           "observedSourceTitle": "BŪSTĀN",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Būstān"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -3906,10 +3902,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/danesvar-simin",
           "observedSourceTitle": "DĀNEŠVAR, SĪMĪN",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Savūšūn"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -3962,10 +3958,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/alavi-bozorg",
           "observedSourceTitle": "ʿALAVĪ, BOZORG",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Čašmhāyeš"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -4018,10 +4014,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/hedayat-sadeq-i",
           "observedSourceTitle": "HEDAYAT, SADEQ i. LIFE AND WORK",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Ḥājī Āqā"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -4074,10 +4070,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/akavan-e-sales-mehdi",
           "observedSourceTitle": "AḴAVĀN-E SĀLES, MEHDĪ",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Zemestān"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },
@@ -4774,10 +4770,10 @@
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/hafez-i",
           "observedSourceTitle": "HAFEZ i. An Overview",
-          "locator": "article headword",
+          "locator": "opening sentence",
           "attestedRomanization": "Dīvān-e Ḥāfeẓ"
         },
-        "locator": "article headword"
+        "locator": "opening sentence"
       }
     ]
   },

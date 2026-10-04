@@ -47,6 +47,7 @@ export function auditProvenanceIntegrity(
     }
 
     // Resolve verification for each source either from candidate.source.verification or from ledger
+    let ledgerAgreementValid = true;
     const sourceVerifications: {
       sourceIndex: number;
       source: (typeof sources)[0];
@@ -55,6 +56,27 @@ export function auditProvenanceIntegrity(
     }[] = sources.map((source, index) => {
       let verification = source.verification;
       const entry = ledger ? ledgerMap.get(`${candidate.id}:${index}`) : undefined;
+
+      if (ledger && source.verification && entry) {
+        // Cross-check candidate-local verification vs ledger receipt agreement
+        const localClaims = [...(source.verification.verifiedClaims || [])].sort().join(',');
+        const entryClaims = [...(entry.verifiedClaims || [])].sort().join(',');
+        if (
+          source.verification.status !== entry.status ||
+          localClaims !== entryClaims ||
+          source.verification.attestedSourceText !== entry.attestedSourceText ||
+          source.verification.attestedRomanization !== entry.attestedRomanization ||
+          (source.verification.externalRecordId || undefined) !== (entry.resolvedIdentifier || entry.externalRecordId || undefined)
+        ) {
+          diagnostics.push({
+            code: 'LEDGER_CLAIM_DISAGREEMENT',
+            candidateId: candidate.id,
+            message: `Candidate "${candidate.id}" source index ${index} local verification disagrees with ledger receipt.`
+          });
+          ledgerAgreementValid = false;
+        }
+      }
+
       if (ledger) {
         if (entry) {
           verification = {
@@ -89,17 +111,29 @@ export function auditProvenanceIntegrity(
       continue;
     }
 
-    // Rule 3, 5, 12: at least one VERIFIED source directly attests candidate.sourceText
+    // Rule 2: at least one VERIFIED source directly attests candidate.sourceText with explicit SOURCE_TEXT_EXACT claim
     const expectedNormalizedText = candidate.sourceText.trim().normalize('NFC');
     const sourceTextRoles = verifiedSources.filter((s) => s.source.evidenceRole === 'SOURCE_TEXT');
 
     let hasExactSourceTextAttestation = false;
     let hasSourceTextMismatch = false;
+    let hasMissingClaim = false;
 
     for (const item of sourceTextRoles) {
       const attested = item.verification?.attestedSourceText?.trim().normalize('NFC');
+      const hasClaim = item.verification?.verifiedClaims?.includes('SOURCE_TEXT_EXACT') === true;
+
       if (attested === expectedNormalizedText) {
-        hasExactSourceTextAttestation = true;
+        if (hasClaim) {
+          hasExactSourceTextAttestation = true;
+        } else {
+          hasMissingClaim = true;
+          diagnostics.push({
+            code: 'MISSING_SOURCE_TEXT_EXACT_CLAIM',
+            candidateId: candidate.id,
+            message: `Candidate "${candidate.id}" source "${item.source.title}" attests source text but lacks required SOURCE_TEXT_EXACT claim.`
+          });
+        }
       } else if (attested) {
         hasSourceTextMismatch = true;
         diagnostics.push({
@@ -110,7 +144,7 @@ export function auditProvenanceIntegrity(
       }
     }
 
-    if (!hasExactSourceTextAttestation && !hasSourceTextMismatch) {
+    if (!hasExactSourceTextAttestation && !hasSourceTextMismatch && !hasMissingClaim) {
       diagnostics.push({
         code: 'MISSING_SOURCE_TEXT_ATTESTATION',
         candidateId: candidate.id,
@@ -118,7 +152,7 @@ export function auditProvenanceIntegrity(
       });
       unverifiedCount++;
       continue;
-    } else if (hasSourceTextMismatch && !hasExactSourceTextAttestation) {
+    } else if ((hasSourceTextMismatch || hasMissingClaim) && !hasExactSourceTextAttestation) {
       unverifiedCount++;
       continue;
     }
@@ -153,11 +187,9 @@ export function auditProvenanceIntegrity(
     for (const item of sources) {
       if (item.observedRomanization) {
         const matchingVerified = verifiedSources.find((vs) => vs.source === item);
-        const observedNorm = item.observedRomanization.trim().normalize('NFC');
-        const attestedNorm = matchingVerified?.verification?.attestedRomanization?.trim().normalize('NFC');
-        const hasClaim = matchingVerified?.verification?.verifiedClaims
-          ? matchingVerified.verification.verifiedClaims.includes('ROMANIZATION_EXACT')
-          : true;
+        const observedNorm = item.observedRomanization.normalize('NFC');
+        const attestedNorm = matchingVerified?.verification?.attestedRomanization?.normalize('NFC');
+        const hasClaim = matchingVerified?.verification?.verifiedClaims?.includes('ROMANIZATION_EXACT') === true;
 
         if (!attestedNorm || !hasClaim) {
           diagnostics.push({
@@ -184,22 +216,23 @@ export function auditProvenanceIntegrity(
       }
     }
 
-    // Rule 8 & 9: Work and Entity external IDs must be verified
+    // Rule 8 & 9: Work and Entity external IDs must be verified with EXTERNAL_IDENTIFIER claim
     let extIdValid = true;
     const workDoi = candidate.workMetadata?.doi || candidate.bibliographicMetadata?.doi;
     const workOpenAlex = candidate.workMetadata?.openAlexId;
     if (workDoi || workOpenAlex) {
       const bibVerified = verifiedSources.some((s) => {
+        const hasClaim = s.verification?.verifiedClaims?.includes('EXTERNAL_IDENTIFIER') === true;
         const recId = s.verification?.externalRecordId || s.entry?.resolvedIdentifier;
         const reqId = s.entry?.requestedIdentifier;
         if (workDoi && reqId && reqId !== recId) return false;
-        return (s.source.evidenceRole === 'BIBLIOGRAPHIC_METADATA' || s.source.evidenceRole === 'SOURCE_TEXT') && !!recId;
+        return hasClaim && (s.source.evidenceRole === 'BIBLIOGRAPHIC_METADATA' || s.source.evidenceRole === 'SOURCE_TEXT') && !!recId;
       });
       if (!bibVerified) {
         diagnostics.push({
           code: 'UNVERIFIED_EXTERNAL_IDENTIFIER',
           candidateId: candidate.id,
-          message: `Candidate "${candidate.id}" has bibliographic metadata (DOI / OpenAlex) without verified external identifier receipt.`
+          message: `Candidate "${candidate.id}" has bibliographic metadata (DOI / OpenAlex) without verified EXTERNAL_IDENTIFIER claim receipt.`
         });
         extIdValid = false;
       }
@@ -207,10 +240,12 @@ export function auditProvenanceIntegrity(
 
     if (candidate.entityMetadata?.authorityId) {
       const entityVerified = verifiedSources.some((s) => {
+        const hasClaim = s.verification?.verifiedClaims?.includes('EXTERNAL_IDENTIFIER') === true;
         const recId = s.verification?.externalRecordId || s.entry?.resolvedIdentifier;
         const reqId = s.entry?.requestedIdentifier || candidate.entityMetadata?.authorityId;
         if (reqId && recId && reqId !== recId) return false;
         return (
+          hasClaim &&
           (s.source.evidenceRole === 'IDENTITY' || s.source.evidenceRole === 'SOURCE_TEXT') &&
           recId === candidate.entityMetadata?.authorityId
         );
@@ -219,13 +254,13 @@ export function auditProvenanceIntegrity(
         diagnostics.push({
           code: 'UNVERIFIED_EXTERNAL_IDENTIFIER',
           candidateId: candidate.id,
-          message: `Candidate "${candidate.id}" has entity authorityId "${candidate.entityMetadata.authorityId}" without verified externalRecordId receipt.`
+          message: `Candidate "${candidate.id}" has entity authorityId "${candidate.entityMetadata.authorityId}" without verified EXTERNAL_IDENTIFIER claim receipt.`
         });
         extIdValid = false;
       }
     }
 
-    if (romValid && extIdValid && sourceMatchValid) {
+    if (romValid && extIdValid && sourceMatchValid && ledgerAgreementValid) {
       verifiedCount++;
     } else {
       unverifiedCount++;
