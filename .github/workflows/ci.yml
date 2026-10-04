@@ -30,8 +30,14 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: Validate acquisition corpus
+        run: npm run validate:acquisition
+
       - name: Validate scholarly adjudication
         run: npm run validate:adjudication
+
+      - name: Validate existing validation corpus
+        run: npm run validate:corpus
 
       - name: Typecheck
         run: npm run typecheck
