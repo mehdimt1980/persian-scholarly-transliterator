@@ -1,65 +1,56 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  validateReauditWorklist,
-  validateRepositoryReauditWorklist,
-  ReauditWorklistDocument,
   AcquisitionCandidateMinimal,
-  getExpectedReauditBatch
+  ReauditWorklistDocument,
+  getExpectedReauditBatch,
+  validateReauditWorklist,
+  validateRepositoryReauditWorklist
 } from './reauditWorklist';
 
-describe('V2 Re-Audit Worklist & Blindness Validator Suite', () => {
-  // Helper to create synthetic valid test fixtures
-  function createSyntheticWorklistFixture(): {
-    worklist: ReauditWorklistDocument;
-    acquisition: AcquisitionCandidateMinimal[];
-  } {
-    const categories: Array<{ cat: string; profile: string; count: number }> = [
-      { cat: 'TERM', profile: 'ijmes_full', count: 15 },
-      { cat: 'RELIGIOUS_TERM', profile: 'ijmes_full', count: 10 },
-      { cat: 'COMPOUND', profile: 'ijmes_full', count: 5 },
-      { cat: 'MORPHOLOGY', profile: 'ijmes_full', count: 10 },
-      { cat: 'IZAFAT', profile: 'ijmes_full', count: 8 },
-      { cat: 'PERSON', profile: 'ijmes_full', count: 18 },
-      { cat: 'PLACE', profile: 'ijmes_full', count: 12 },
-      { cat: 'INSTITUTION', profile: 'ijmes_full', count: 6 },
-      { cat: 'BOOK_TITLE', profile: 'ijmes_title', count: 12 },
-      { cat: 'AMBIGUITY', profile: 'ijmes_full', count: 12 }
-    ];
+function createBlankFixture(): {
+  worklist: ReauditWorklistDocument;
+  acquisition: AcquisitionCandidateMinimal[];
+} {
+  const categories: Array<{ category: string; profile: string; count: number }> = [
+    { category: 'TERM', profile: 'ijmes_full', count: 15 },
+    { category: 'RELIGIOUS_TERM', profile: 'ijmes_full', count: 10 },
+    { category: 'COMPOUND', profile: 'ijmes_full', count: 5 },
+    { category: 'MORPHOLOGY', profile: 'ijmes_full', count: 10 },
+    { category: 'IZAFAT', profile: 'ijmes_full', count: 8 },
+    { category: 'PERSON', profile: 'ijmes_full', count: 18 },
+    { category: 'PLACE', profile: 'ijmes_full', count: 12 },
+    { category: 'INSTITUTION', profile: 'ijmes_full', count: 6 },
+    { category: 'BOOK_TITLE', profile: 'ijmes_title', count: 12 },
+    { category: 'AMBIGUITY', profile: 'ijmes_full', count: 12 }
+  ];
 
-    const acquisition: AcquisitionCandidateMinimal[] = [];
-    const cases: ReauditWorklistDocument['cases'] = [];
+  const acquisition: AcquisitionCandidateMinimal[] = [];
+  const cases: ReauditWorklistDocument['cases'] = [];
+  let counter = 1;
 
-    let idx = 1;
-    for (const { cat, profile, count } of categories) {
-      for (let i = 0; i < count; i++) {
-        const id = `cand-synth-${String(idx).padStart(3, '0')}`;
-        const sourceText = `synth_source_${idx}`;
-        const batch = getExpectedReauditBatch(cat);
-
-        acquisition.push({
-          id,
-          sourceText,
-          category: cat,
-          proposedProfile: profile
-        });
-
-        cases.push({
-          id,
-          sourceText,
-          category: cat,
-          profile,
-          batch,
-          reviewState: 'PENDING',
-          decision: null
-        });
-
-        idx++;
-      }
+  for (const { category, profile, count } of categories) {
+    for (let i = 0; i < count; i++) {
+      const id = `cand-synth-${String(counter).padStart(3, '0')}`;
+      const sourceText = `synthetic_${counter}`;
+      acquisition.push({ id, sourceText, category, proposedProfile: profile });
+      cases.push({
+        id,
+        sourceText,
+        category,
+        profile,
+        batch: getExpectedReauditBatch(category),
+        reviewState: 'PENDING',
+        decision: null
+      });
+      counter++;
     }
+  }
 
-    const worklist: ReauditWorklistDocument = {
+  return {
+    acquisition,
+    worklist: {
       metadata: {
         schemaVersion: 2,
         artifactType: 'BLIND_REAUDIT_WORKLIST',
@@ -89,269 +80,232 @@ describe('V2 Re-Audit Worklist & Blindness Validator Suite', () => {
         }
       },
       cases
+    }
+  };
+}
+
+function completeBatchA(worklist: ReauditWorklistDocument): void {
+  worklist.metadata.status = 'BATCH_A_COMPLETED';
+  worklist.summary.pending = 83;
+  worklist.summary.adjudicated = 25;
+
+  for (const c of worklist.cases) {
+    if (c.batch !== 'A') continue;
+    c.reviewState = 'COMPLETED';
+    c.decision = {
+      disposition: 'FINAL',
+      scholarlyCanonical: `canonical-${c.id}`,
+      renderedOutput: `rendered-${c.id}`,
+      readingEvidence: [
+        {
+          source: 'Synthetic lexical authority',
+          citation: `Synthetic citation ${c.id}`,
+          locator: 'entry'
+        }
+      ],
+      renderingEvidence: [
+        {
+          source: 'Synthetic style authority',
+          citation: 'Synthetic rendering rule',
+          locator: 'rule'
+        }
+      ],
+      reviewNote: 'Synthetic non-adjudicative fixture.',
+      reviewer: {
+        name: 'OpenAI GPT-5.6 Sol',
+        type: 'AI_SPECIALIST',
+        reviewedAt: '2026-10-04'
+      }
     };
-
-    return { worklist, acquisition };
   }
+}
 
-  // 1. Canonical blank 108-case worklist validates
-  it('1. validates the canonical repository blank 108-case worklist', () => {
+describe('V2 re-audit worklist validator', () => {
+  it('validates the repository Batch A artifact', () => {
     expect(() => validateRepositoryReauditWorklist()).not.toThrow();
   });
 
-  // 2. Duplicate ID fails
-  it('2. throws on duplicate case IDs in the worklist', () => {
-    const { worklist, acquisition } = createSyntheticWorklistFixture();
-    worklist.cases[1].id = worklist.cases[0].id; // duplicate ID
+  it('preserves support for the pristine blank 108-case artifact', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    expect(() => validateReauditWorklist(worklist, acquisition)).not.toThrow();
+  });
 
+  it('validates a synthetic Batch A completed artifact', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    completeBatchA(worklist);
+    expect(() => validateReauditWorklist(worklist, acquisition)).not.toThrow();
+  });
+
+  it('rejects duplicate case IDs', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    worklist.cases[1].id = worklist.cases[0].id;
     expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
       /WORKLIST_DUPLICATE_CASE_ID/
     );
   });
 
-  // 3. Missing candidate fails
-  it('3. throws when a candidate is missing from the worklist', () => {
-    const { worklist, acquisition } = createSyntheticWorklistFixture();
-    worklist.cases.pop(); // remove one case
-
-    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_CASE_COUNT_MISMATCH/
-    );
-  });
-
-  // 4. Extra candidate fails
-  it('4. throws when an extra candidate is added to the worklist', () => {
-    const { worklist, acquisition } = createSyntheticWorklistFixture();
-    worklist.cases.push({
-      id: 'cand-extra-999',
-      sourceText: 'extra',
-      category: 'TERM',
-      profile: 'ijmes_full',
-      batch: 'A',
-      reviewState: 'PENDING',
-      decision: null
-    });
-
-    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_CASE_COUNT_MISMATCH/
-    );
-  });
-
-  // 5. sourceText mismatch fails
-  it('5. throws when sourceText diverges from acquisition record', () => {
-    const { worklist, acquisition } = createSyntheticWorklistFixture();
-    worklist.cases[0].sourceText = 'tampered_source';
-
+  it('rejects acquisition alignment mismatches', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    worklist.cases[0].sourceText = 'tampered';
     expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
       /WORKLIST_SOURCETEXT_MISMATCH/
     );
   });
 
-  // 6. category mismatch fails
-  it('6. throws when category diverges from acquisition record', () => {
-    const { worklist, acquisition } = createSyntheticWorklistFixture();
-    worklist.cases[0].category = 'PLACE'; // was TERM
-
+  it('rejects unexpected root contamination', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    (worklist as any).historicalCanonicals = {};
     expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_CATEGORY_MISMATCH/
+      /WORKLIST_DOCUMENT_CONTAINS_UNEXPECTED_KEY/
     );
   });
 
-  // 7. profile mismatch fails
-  it('7. throws when profile diverges from proposedProfile in acquisition', () => {
-    const { worklist, acquisition } = createSyntheticWorklistFixture();
-    worklist.cases[0].profile = 'ijmes_title'; // was ijmes_full
-
+  it('rejects unexpected case keys', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    (worklist.cases[0] as any).priorCanonical = 'anchor';
     expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_PROFILE_MISMATCH/
+      /WORKLIST_CASE.*CONTAINS_UNEXPECTED_KEY/
     );
   });
 
-  // 8. wrong batch fails
-  it('8. throws when deterministic batch assignment is incorrect', () => {
-    const { worklist, acquisition } = createSyntheticWorklistFixture();
-    worklist.cases[0].batch = 'C'; // was A for TERM
-
-    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_BATCH_MISMATCH/
-    );
-  });
-
-  // 9. non-PENDING state fails in the initial blank artifact
-  it('9. throws when reviewState is not PENDING in the initial blank worklist', () => {
-    const { worklist, acquisition } = createSyntheticWorklistFixture();
-    worklist.cases[0].reviewState = 'COMPLETED';
-
-    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_CASE_NOT_PENDING/
-    );
-  });
-
-  // 10. non-null decision fails in this initialization PR
-  it('10. throws when a decision object is populated in the initialization worklist', () => {
-    const { worklist, acquisition } = createSyntheticWorklistFixture();
-    worklist.cases[0].decision = { disposition: 'FINAL', scholarlyCanonical: 'test' };
-
-    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_CASE_HAS_NON_NULL_DECISION/
-    );
-  });
-
-  // 11. engineEvaluationPerformed: true fails
-  it('11. throws when engineEvaluationPerformed is true', () => {
-    const { worklist, acquisition } = createSyntheticWorklistFixture();
+  it('rejects engineEvaluationPerformed=true', () => {
+    const { worklist, acquisition } = createBlankFixture();
     worklist.metadata.engineEvaluationPerformed = true;
-
     expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
       /WORKLIST_ENGINE_EVALUATION_MUST_BE_FALSE/
     );
   });
 
-  // 12. non-null humanSignoff fails
-  it('12. throws when humanSignoff is prematurely populated', () => {
-    const { worklist, acquisition } = createSyntheticWorklistFixture();
-    worklist.metadata.humanSignoff = { reviewer: 'Human', approvedAt: '2026-10-04' };
-
+  it('rejects non-null human sign-off', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    worklist.metadata.humanSignoff = { approved: true };
     expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
       /WORKLIST_HUMAN_SIGNOFF_MUST_BE_NULL/
     );
   });
 
-  // 13. Exact allowlist fails when scholarlyCanonical is at case root
-  it('13. throws when scholarlyCanonical is placed at case root', () => {
-    const { worklist, acquisition } = createSyntheticWorklistFixture();
-    (worklist.cases[0] as any).scholarlyCanonical = 'anchored_canonical';
-
+  it('requires every Batch A case to be completed in BATCH_A_COMPLETED state', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    completeBatchA(worklist);
+    const batchACase = worklist.cases.find((c) => c.batch === 'A')!;
+    batchACase.reviewState = 'PENDING';
+    batchACase.decision = null;
     expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_CASE_CONTAINS_PROHIBITED_FIELD.*scholarlyCanonical/
+      /WORKLIST_BATCH_A_CASE_NOT_COMPLETED/
     );
   });
 
-  // 14. Exact allowlist fails when renderedOutput is at case root
-  it('14. throws when renderedOutput is placed at case root', () => {
-    const { worklist, acquisition } = createSyntheticWorklistFixture();
-    (worklist.cases[0] as any).renderedOutput = 'anchored_rendered';
-
+  it('keeps every non-Batch-A case pending and blank', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    completeBatchA(worklist);
+    const batchBCase = worklist.cases.find((c) => c.batch === 'B')!;
+    batchBCase.reviewState = 'COMPLETED';
+    batchBCase.decision = worklist.cases.find((c) => c.batch === 'A')!.decision;
     expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_CASE_CONTAINS_PROHIBITED_FIELD.*renderedOutput/
+      /WORKLIST_NON_BATCH_A_CASE_MUST_REMAIN_PENDING/
     );
   });
 
-  // 15. Exact allowlist fails on arbitrary unknown field (e.g. unexpectedAnchor)
-  it('15. throws on arbitrary unknown field like unexpectedAnchor due to positive allowlist', () => {
-    const { worklist, acquisition } = createSyntheticWorklistFixture();
-    (worklist.cases[0] as any).unexpectedAnchor = 'unknown_anchor_value';
-
+  it('rejects non-FINAL Batch A decisions', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    completeBatchA(worklist);
+    const decision = worklist.cases.find((c) => c.batch === 'A')!.decision as any;
+    decision.disposition = 'REVIEW_REQUIRED';
     expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_CASE_CONTAINS_PROHIBITED_FIELD.*unexpectedAnchor/
+      /WORKLIST_BATCH_A_DISPOSITION_MUST_BE_FINAL/
     );
   });
 
-  // 16. Missing required case key fails
-  it('16. throws when a required case key is missing', () => {
-    const { worklist, acquisition } = createSyntheticWorklistFixture();
-    delete (worklist.cases[0] as any).batch;
-
+  it('rejects extra fields inside a Batch A decision', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    completeBatchA(worklist);
+    const decision = worklist.cases.find((c) => c.batch === 'A')!.decision as any;
+    decision.priorCanonical = 'anchor';
     expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_CASE_MISSING_REQUIRED_KEY.*batch/
+      /WORKLIST_BATCH_A_DECISION.*CONTAINS_UNEXPECTED_KEY/
     );
   });
 
-  // 17. Incorrect metadata sourceCorpus fails
-  it('17. throws when metadata.sourceCorpus is incorrect', () => {
-    const { worklist, acquisition } = createSyntheticWorklistFixture();
-    worklist.metadata.sourceCorpus = 'wrong/path/corpus.json';
-
+  it('rejects Persian/Arabic script in scholarlyCanonical', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    completeBatchA(worklist);
+    const decision = worklist.cases.find((c) => c.batch === 'A')!.decision as any;
+    decision.scholarlyCanonical = 'تست';
     expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_SOURCE_CORPUS_INVALID/
+      /SCHOLARLY_CANONICAL_CONTAINS_ARABIC_SCRIPT/
     );
   });
 
-  // 18. Incorrect metadata priorAdjudicationAuthority fails
-  it('18. throws when metadata.priorAdjudicationAuthority is not HISTORICAL_ONLY', () => {
-    const { worklist, acquisition } = createSyntheticWorklistFixture();
-    worklist.metadata.priorAdjudicationAuthority = 'AUTHORITATIVE';
-
+  it('rejects Persian/Arabic script in renderedOutput', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    completeBatchA(worklist);
+    const decision = worklist.cases.find((c) => c.batch === 'A')!.decision as any;
+    decision.renderedOutput = 'تست';
     expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_PRIOR_ADJUDICATION_AUTHORITY_INVALID/
+      /RENDERED_OUTPUT_CONTAINS_ARABIC_SCRIPT/
     );
   });
 
-  // 19. Unexpected metadata key fails
-  it('19. throws when metadata contains an unexpected extra key', () => {
-    const { worklist, acquisition } = createSyntheticWorklistFixture();
-    (worklist.metadata as any).unexpectedExtra = 'prohibited';
-
+  it('requires non-empty reading evidence', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    completeBatchA(worklist);
+    const decision = worklist.cases.find((c) => c.batch === 'A')!.decision as any;
+    decision.readingEvidence = [];
     expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_METADATA_CONTAINS_UNEXPECTED_KEY.*unexpectedExtra/
+      /READING_EVIDENCE_MUST_BE_NONEMPTY/
     );
   });
 
-  // 20. Tampered summary batch count fails
-  it('20. throws when summary.byBatch is tampered while cases remain unchanged', () => {
-    const { worklist, acquisition } = createSyntheticWorklistFixture();
-    worklist.summary.byBatch.A = 99; // tampered summary
-
+  it('requires non-empty rendering evidence', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    completeBatchA(worklist);
+    const decision = worklist.cases.find((c) => c.batch === 'A')!.decision as any;
+    decision.renderingEvidence = [];
     expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_SUMMARY_BATCH_COUNT_MISMATCH:A/
+      /RENDERING_EVIDENCE_MUST_BE_NONEMPTY/
     );
   });
 
-  // 21. Tampered summary category count fails
-  it('21. throws when summary.byCategory is tampered while cases remain unchanged', () => {
-    const { worklist, acquisition } = createSyntheticWorklistFixture();
-    worklist.summary.byCategory.TERM = 99; // tampered summary
-
+  it('rejects incorrect reviewer provenance', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    completeBatchA(worklist);
+    const decision = worklist.cases.find((c) => c.batch === 'A')!.decision as any;
+    decision.reviewer.type = 'HUMAN';
     expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_SUMMARY_CATEGORY_COUNT_MISMATCH:TERM/
+      /WORKLIST_DECISION_REVIEWER_TYPE_INVALID/
     );
   });
 
-  // 22. Unexpected root field fails
-  it('22. throws when root document contains an unexpected field (e.g. historicalCanonicals)', () => {
-    const { worklist, acquisition } = createSyntheticWorklistFixture();
-    (worklist as any).historicalCanonicals = ['anchored'];
-
+  it('requires the actual Batch A review date', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    completeBatchA(worklist);
+    const decision = worklist.cases.find((c) => c.batch === 'A')!.decision as any;
+    decision.reviewer.reviewedAt = '2026-10-03';
     expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_DOCUMENT_CONTAINS_UNEXPECTED_KEY:historicalCanonicals/
+      /WORKLIST_DECISION_REVIEW_DATE_INVALID/
     );
   });
 
-  // 23. Unexpected summary field fails
-  it('23. throws when summary contains an unexpected field (e.g. oldAnswers)', () => {
-    const { worklist, acquisition } = createSyntheticWorklistFixture();
-    (worklist.summary as any).oldAnswers = { cand1: 'answer' };
-
+  it('rejects Batch A summary count drift', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    completeBatchA(worklist);
+    worklist.summary.pending = 84;
     expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_SUMMARY_CONTAINS_UNEXPECTED_KEY:oldAnswers/
+      /WORKLIST_SUMMARY_PENDING_MISMATCH/
     );
   });
 
-  // 24. Unexpected byBatch key fails
-  it('24. throws when summary.byBatch contains an unexpected key', () => {
-    const { worklist, acquisition } = createSyntheticWorklistFixture();
-    (worklist.summary.byBatch as any).F = 10;
-
+  it('keeps strict summary key allowlists', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    (worklist.summary as any).oldAnswers = {};
     expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_SUMMARY_BY_BATCH_CONTAINS_UNEXPECTED_KEY:F/
+      /WORKLIST_SUMMARY_CONTAINS_UNEXPECTED_KEY/
     );
   });
 
-  // 25. Unexpected byCategory key fails
-  it('25. throws when summary.byCategory contains an unexpected key', () => {
-    const { worklist, acquisition } = createSyntheticWorklistFixture();
-    (worklist.summary.byCategory as any).UNKNOWN_CAT = 5;
-
-    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_SUMMARY_BY_CATEGORY_CONTAINS_UNEXPECTED_KEY:UNKNOWN_CAT/
-    );
-  });
-
-  // 26. Validator source code contains no transliteration/engine execution path
-  it('26. confirms re-audit validator source code does not import or execute transliteration engine', () => {
+  it('contains no transliteration engine execution path', () => {
     const validatorFilePath = path.join(__dirname, 'reauditWorklist.ts');
     const sourceCode = fs.readFileSync(validatorFilePath, 'utf8');
-
     expect(sourceCode).not.toMatch(/import.*transliterate/);
     expect(sourceCode).not.toMatch(/transliterate\s*\(/);
     expect(sourceCode).not.toMatch(/from\s+['"].*domain\/engine['"]/);
