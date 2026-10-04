@@ -26,7 +26,7 @@ Rendering policy authority:
 
 Reading / identity evidence may come from the verified Phase 4.6A acquisition sources, including Encyclopaedia Iranica, VIAF/ISNI/GeoNames, scholarly dictionaries, grammars, and catalog records.
 
-**Important:** Encyclopaedia Iranica romanization is reading/identity evidence, not IJMES rendering authority. Persian IJMES requires `i/u`, not Iranica `e/o`.
+**Important:** Encyclopaedia Iranica romanization is reading/identity evidence, not IJMES rendering authority. Persian IJMES uses the IJMES vowel/consonant system and must not be produced by mechanically copying Iranica's pronunciation-oriented `e/o` conventions.
 
 ## Decision classes
 
@@ -50,7 +50,16 @@ Applies normally to:
 - `MORPHOLOGY`
 - `IZAFAT`
 
-Use full IJMES scholarly transliteration with diacritics. Persian short vowels use `i/u`, not Iranica `e/o`. Persian izāfat is `-i`.
+Use full IJMES scholarly transliteration with diacritics.
+
+Persian vowel/izafat policy used in this review:
+
+- short modern Persian `e/o` are normally represented by IJMES `i/u` where that is the correct lexical reading;
+- written Persian diphthongs must be handled as diphthongs rather than mechanically converted to short `i/u`; the current IJMES chart includes `aw/au` and `ay/ai`;
+- consonant-final izafat is `-i`;
+- post-vocalic izafat/linker is `-yi` where required, including explicit `های` after plural `-hā`.
+
+The `-i` / `-yi` distinction is part of gold truth and must not be collapsed merely because the present runtime models some izafat paths differently.
 
 ### 2. `PROPER_NODIACRITIC`
 
@@ -60,7 +69,9 @@ Applies normally to:
 - `PLACE`
 - `INSTITUTION`
 
-Current IJMES policy says personal names, place names, and organization names are written without diacritics, while preserving ʿayn and hamza (except initial hamza) and following normal capitalization. Accepted English spellings take precedence when clearly established under IJMES policy.
+Current IJMES policy says personal names, place names, and organization names are written without ordinary diacritics, while preserving ʿayn and hamza (except initial hamza) and following normal capitalization. Accepted English spellings take precedence when clearly established under IJMES policy.
+
+Gold output must remain source-faithful: an accepted English form may normalize the spelling of the **same name/entity expressed by the input**, but must not silently substitute a different personal name or title. For example, `ملک‌الشعرای بهار` cannot be adjudicated as `Mohammad-Taqi Bahar`, because that replaces the supplied epithet/name string rather than transliterating it.
 
 The current runtime only exposes `ijmes_full` and `ijmes_title`; therefore Phase 4.6B must not silently pretend that `ijmes_full` is publication-correct for proper names. Gold promotion must either map these cases to a correct no-diacritic rendering profile or introduce a dedicated category-aware/non-diacritic presentation policy before release evaluation.
 
@@ -71,11 +82,13 @@ Applies to:
 - `BOOK_TITLE`
 - future `ARTICLE_TITLE`
 
-Use IJMES title presentation: remove diacritics other than ʿayn/hamza, preserve initial-hamza rule, and apply English capitalization conventions while leaving articles/conjunctions/prepositions appropriately lowercase.
+Use IJMES title presentation: remove ordinary diacritics other than ʿayn/hamza, preserve the initial-hamza rule, and apply English capitalization conventions while leaving structural minor elements appropriately lowercase. Persian izafat/linker distinctions (`-i` vs post-vocalic `-yi`) remain meaningful even when ordinary diacritics are removed.
 
 ### 4. `AMBIGUITY_BLOCKED`
 
 Applies to genuinely ambiguous unvocalized forms where the source string alone supports multiple readings. Gold disposition should normally be `REVIEW_REQUIRED`, with documented allowed readings where evidence permits.
+
+Semantic polysemy does not by itself require blocking when all relevant senses collapse to the same material IJMES rendering.
 
 ## Accepted-English policy
 
@@ -88,6 +101,8 @@ For prominent personal names and place names, current IJMES policy permits or re
 - Do not treat topic relevance as reading evidence.
 - Do not use the current engine output to decide gold truth.
 - Do not change acquisition provenance during adjudication except to correct demonstrable source errors in a separate provenance correction.
+- Do not treat one external romanization system as a mechanical character-substitution source for IJMES.
+- Do not alter the input's identity by substituting a different name/title even when it refers to the same person or work.
 
 ## Freeze rule
 
