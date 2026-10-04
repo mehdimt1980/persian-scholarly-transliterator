@@ -23,7 +23,7 @@
   "devDependencies": {
     "@types/node": "20.16.10",
     "@types/react": "18.3.3",
-    "@types/react-dom": "18.3.3",
+    "@types/react-dom": "18.3.0",
     "eslint": "8.57.1",
     "eslint-config-next": "14.2.15",
     "tsx": "^4.23.15",
