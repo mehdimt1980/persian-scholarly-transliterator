@@ -1,5 +1,20 @@
 # Phase 4.6B — Human Sign-Off Checklist
 
+> [!WARNING]
+> **HUMAN GOVERNANCE SIGN-OFF PAUSED**
+>
+> Formal human governance sign-off on Phase 4.6B is currently **PAUSED**.
+>
+> During attempted human review, a material contract ambiguity was identified between **Scholarly Canonical Transliteration** (linguistic/scholarly reading truth preserving all diacritics) and **Publication Rendering** (style-dependent presentation such as proper-name diacritic removal, title capitalization, and IJMES Word List forms).
+>
+> Sign-off may resume only after:
+> 1. The validation contract is formally updated (see `CANONICAL_RENDERING_CONTRACT.md`);
+> 2. Affected benchmark cases are systematically re-audited to separate canonical gold from rendering gold;
+> 3. The consolidated benchmark artifact is regenerated/updated;
+> 4. A fresh representative human review is performed against the separated fields.
+>
+> All checklist items below remain unapproved drafts pending completion of the contract repair and re-audit.
+
 ## Purpose
 
 This checklist is the final human approval layer over the specialist adjudication in:

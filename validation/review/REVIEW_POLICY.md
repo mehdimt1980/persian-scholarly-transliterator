@@ -38,6 +38,21 @@ Each candidate receives one of:
 
 `REVIEW_REQUIRED` and `UNRESOLVED` are valid scholarly outcomes and must never be converted to `FINAL` merely to improve coverage metrics.
 
+## Scholarly Canonical Transliteration vs. Publication Rendering
+
+During human governance review of Phase 4.6B, a key architectural distinction was formalized in `CANONICAL_RENDERING_CONTRACT.md`:
+
+1. **Scholarly Canonical Transliteration:** The linguistically rigorous, source-faithful, diacritic-preserving representation that records the reading and morphological truth of the supplied Persian source string under the project's adopted scholarly transliteration scheme.
+2. **Publication Rendering:** A deterministic, style-dependent presentation transformation applied to an established canonical reading under a named presentation policy (e.g. proper-name diacritic stripping, title capitalization, publisher-specific word list forms, or explicitly permitted established English spellings).
+
+### Governance Rules for the Benchmark
+
+- **This policy defines the relationship between canonical truth and rendering. It does not determine the exact scholarly canonical strings of the pending benchmark re-audit.**
+- **Gold scholarly truth must be established independently of the runtime's current profile limitations.**
+- **Rendering conventions must not be allowed to overwrite scholarly canonical truth.**
+- Earlier Phase 4.6B draft adjudication sometimes used the field name `canonical` for publication-form outputs. The benchmark metadata and schemas will be updated in dedicated follow-up work to maintain clean separation between canonical gold and rendered gold.
+- Formal human governance sign-off is paused until this contract separation is reflected in the benchmark data and audit ledgers. No provisional human feedback or illustrative example is gold truth until formal re-audit and approval.
+
 ## Rendering classes
 
 ### 1. `TECHNICAL_FULL`
