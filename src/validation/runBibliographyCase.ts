@@ -22,6 +22,7 @@ export function runBibliographyCase(
   const fieldEvaluations: BibliographyCaseEvaluationResult['fieldEvaluations'] = [];
 
   let isFieldMismatch = false;
+  let hasUnderBlockedField = false;
 
   if (testCase.expected.fields) {
     for (const [fieldPath, expectedField] of Object.entries(testCase.expected.fields)) {
@@ -55,10 +56,19 @@ export function runBibliographyCase(
           }
         }
       } else if (expectedField.disposition === 'REVIEW_REQUIRED') {
-        if (actualField.finalText !== null) {
+        if (actualField.finalText !== null || actualField.transliterationResult?.copyable === true) {
           passed = false;
-          reason = `Expected REVIEW_REQUIRED, but actual field has finalText "${actualField.finalText}".`;
+          reason = `Expected REVIEW_REQUIRED, but actual field has finalText "${actualField.finalText}" or copyable=true.`;
           isFieldMismatch = true;
+          hasUnderBlockedField = true;
+          reasons.push(`Field "${fieldPath}": ${reason}`);
+        }
+      } else if (expectedField.disposition === 'UNRESOLVED') {
+        if (actualField.finalText !== null || actualField.transliterationResult?.copyable === true) {
+          passed = false;
+          reason = `Expected UNRESOLVED, but actual field has finalText "${actualField.finalText}" or copyable=true.`;
+          isFieldMismatch = true;
+          hasUnderBlockedField = true;
           reasons.push(`Field "${fieldPath}": ${reason}`);
         }
       }
@@ -116,7 +126,9 @@ export function runBibliographyCase(
   }
 
   let classification: ValidationClassification;
-  if (testCase.expected.readiness === 'READY') {
+  if (hasUnderBlockedField) {
+    classification = 'UNDER_BLOCKED';
+  } else if (testCase.expected.readiness === 'READY') {
     if (processed.readiness === 'READY' && !isFieldMismatch && reasons.length === 0) {
       classification = 'CORRECT_AUTHORITATIVE';
     } else if (processed.readiness === 'READY' && isFieldMismatch) {

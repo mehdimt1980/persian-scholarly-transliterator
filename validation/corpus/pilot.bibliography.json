@@ -2,9 +2,9 @@
   "metadata": {
     "id": "pilot.bibliography",
     "version": "pilot-v1",
-    "description": "Initial reviewed pilot validation corpus for batch bibliography processing and scholarly exports.",
-    "reviewedAt": "2026-10-04",
-    "reviewer": "Scholarly Review Pair"
+    "description": "Scholarly transliteration source-backed pilot validation fixtures for batch bibliography processing",
+    "tier": "PILOT",
+    "reviewStatus": "SOURCE_BACKED_FIXTURE"
   },
   "cases": [
     {
@@ -49,9 +49,13 @@
         }
       },
       "provenance": {
-        "kind": "ACADEMIC_SOURCE",
-        "citation": "Constitutional history monograph fixture",
-        "locator": "1995 bibliography entry"
+        "sources": [
+          {
+            "kind": "PROJECT_REVIEW",
+            "citation": "Constitutional history monograph validation fixture",
+            "locator": "1995 synthetic record test"
+          }
+        ]
       },
       "tags": ["bibliography", "persian-monograph", "ready"]
     },
@@ -97,9 +101,13 @@
         }
       },
       "provenance": {
-        "kind": "ACADEMIC_SOURCE",
-        "citation": "Katouzian, State and Society in Iran (London: I.B. Tauris, 2000)",
-        "locator": "Front matter"
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Katouzian, State and Society in Iran (London: I.B. Tauris, 2000)",
+            "locator": "Front matter"
+          }
+        ]
       },
       "tags": ["bibliography", "latin-passthrough", "ready"]
     },
@@ -125,9 +133,13 @@
         }
       },
       "provenance": {
-        "kind": "PROJECT_REVIEW",
-        "citation": "Ambiguous unvocalized single-word title review test",
-        "note": "Unresolved review issue blocks export"
+        "sources": [
+          {
+            "kind": "PROJECT_REVIEW",
+            "citation": "Ambiguous unvocalized single-word title review validation fixture",
+            "note": "Unresolved review issue blocks export"
+          }
+        ]
       },
       "tags": ["bibliography", "review-required", "safety"]
     }

@@ -31,11 +31,16 @@ export type ValidationProvenanceKind =
   | 'DISSERTATION_REVIEW'
   | 'PROJECT_REVIEW';
 
-export interface ValidationProvenance {
+export interface ValidationSource {
   kind: ValidationProvenanceKind;
   citation: string;
   locator?: string;
   note?: string;
+}
+
+export interface ValidationProvenance {
+  sources: ValidationSource[];
+  reviewNote?: string;
 }
 
 export interface ScholarlyValidationCase {
@@ -56,12 +61,40 @@ export interface ScholarlyValidationCase {
   tags?: string[];
 }
 
+export type CorpusTier =
+  | 'PILOT'
+  | 'REAL_DISSERTATION';
+
+export type ReleaseTarget =
+  | 'PILOT'
+  | 'RC';
+
+export type CorpusReviewStatus =
+  | 'SOURCE_BACKED_FIXTURE'
+  | 'HUMAN_REVIEWED';
+
 export interface CorpusMetadata {
   id: string;
   version: string;
   description: string;
-  reviewedAt?: string;
+  tier: CorpusTier;
+  reviewStatus: CorpusReviewStatus;
   reviewer?: string;
+  reviewedAt?: string;
+  reviewNote?: string;
+}
+
+export interface CorpusManifest {
+  id: string;
+  version: string;
+  description: string;
+  tier: CorpusTier;
+  reviewStatus: CorpusReviewStatus;
+  reviewer?: string;
+  reviewedAt?: string;
+  reviewNote?: string;
+  single?: string;
+  bibliography?: string;
 }
 
 export interface SingleValidationCorpus {
@@ -137,17 +170,52 @@ export interface ValidationMetrics {
   byProfile: Record<string, ValidationCategoryMetrics>;
 }
 
+export interface BibliographyValidationMetrics {
+  total: number;
+  correctAuthoritative: number;
+  falseAuthoritative: number;
+  correctReviewRequired: number;
+  correctUnresolved: number;
+  overBlocked: number;
+  underBlocked: number;
+  safeBehaviorCount: number;
+  safeBehaviorRate: number;
+}
+
+export interface CombinedValidationMetrics {
+  total: number;
+  correctAuthoritative: number;
+  falseAuthoritative: number;
+  correctReviewRequired: number;
+  correctUnresolved: number;
+  overBlocked: number;
+  underBlocked: number;
+  issueTypeMismatch: number;
+  invalidGoldCases: number;
+  safeBehaviorCount: number;
+  safeBehaviorRate: number;
+  single: ValidationMetrics;
+  bibliography: BibliographyValidationMetrics;
+}
+
 export type ReleaseReadiness =
   | 'BLOCKED'
   | 'PILOT_PASS'
   | 'REAL_CORPUS_REQUIRED'
   | 'RC_READY';
 
+export interface ReleaseGateContext {
+  corpusTier: CorpusTier;
+  releaseTarget: ReleaseTarget;
+  reviewStatus: CorpusReviewStatus;
+  lexiconValid?: boolean;
+}
+
 export interface ReleaseGateResult {
   readiness: ReleaseReadiness;
   passed: boolean;
   violations: string[];
-  metrics: ValidationMetrics;
+  metrics: CombinedValidationMetrics;
 }
 
 // Bibliography validation types

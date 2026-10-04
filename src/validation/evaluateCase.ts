@@ -3,10 +3,10 @@ import { CaseEvaluationResult, ScholarlyValidationCase, ValidationClassification
 
 /**
  * Compares two transliteration strings with exact Unicode equality (NFC normalized).
- * Does NOT strip diacritics, lowercase, or ignore ʿayn / hamza / hyphens.
+ * Does NOT strip whitespace, diacritics, or lower/upper case.
  */
 export function exactUnicodeMatch(actual: string, expected: string): boolean {
-  return actual.normalize('NFC').trim() === expected.normalize('NFC').trim();
+  return actual.normalize('NFC') === expected.normalize('NFC');
 }
 
 export function evaluateSingleCase(
@@ -28,13 +28,13 @@ export function evaluateSingleCase(
     }
   }
 
-  const actualIssueTypes = result.reviewIssues.map((i) => i.type);
+  const actualIssueTypes = (result.reviewIssues || []).map((i) => i.type);
 
   let classification: ValidationClassification;
 
   // Case 1: Expected FINAL
   if (expected.disposition === 'FINAL') {
-    if (result.copyable && result.status !== 'UNRESOLVED' && result.status !== 'AMBIGUOUS') {
+    if (result.copyable) {
       const isMatch = expectedCanonicals.some((can) => exactUnicodeMatch(result.output, can));
       if (isMatch) {
         classification = 'CORRECT_AUTHORITATIVE';
@@ -53,13 +53,12 @@ export function evaluateSingleCase(
   }
   // Case 2: Expected REVIEW_REQUIRED
   else if (expected.disposition === 'REVIEW_REQUIRED') {
-    if (result.copyable && result.status !== 'UNRESOLVED' && result.status !== 'AMBIGUOUS') {
+    if (result.copyable) {
       classification = 'UNDER_BLOCKED';
       reasons.push(
-        `Gold expectation requires human review, but engine produced copyable authoritative output "${result.output}".`
+        `Gold expectation requires human review, but engine produced copyable authoritative output "${result.output}" (status: ${result.status}).`
       );
     } else {
-      // Check required and forbidden issue types if specified
       let issueTypeMismatch = false;
       if (expected.requiredIssueTypes && expected.requiredIssueTypes.length > 0) {
         for (const reqType of expected.requiredIssueTypes) {
@@ -88,10 +87,10 @@ export function evaluateSingleCase(
   }
   // Case 3: Expected UNRESOLVED
   else if (expected.disposition === 'UNRESOLVED') {
-    if (result.copyable && result.status !== 'UNRESOLVED' && result.status !== 'AMBIGUOUS') {
+    if (result.copyable) {
       classification = 'UNDER_BLOCKED';
       reasons.push(
-        `Gold expectation is UNRESOLVED, but engine produced copyable authoritative output "${result.output}".`
+        `Gold expectation is UNRESOLVED, but engine produced copyable authoritative output "${result.output}" (status: ${result.status}).`
       );
     } else {
       classification = 'CORRECT_UNRESOLVED';

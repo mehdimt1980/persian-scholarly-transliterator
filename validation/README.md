@@ -19,16 +19,22 @@ Every test case in this corpus serves as an inviolable authority benchmark to en
    - **Never use current engine output as the justification for a gold answer.**
    - All gold expectations must originate from explicit scholarly review backed by cited sources.
 
-2. **Mandatory Provenance**:
-   - Every case must include full provenance metadata:
-     - `kind`: `'IJMES_GUIDE' | 'SCHOLARLY_DICTIONARY' | 'ENCYCLOPEDIA' | 'ACADEMIC_SOURCE' | 'DISSERTATION_REVIEW' | 'PROJECT_REVIEW'`
-     - `citation`: Full academic citation (e.g., dictionary, grammar reference, monograph, or guide).
-     - `locator`: Page number, section, or lemma.
-     - `note`: Explanatory context when appropriate.
+2. **Mandatory Multi-Source Provenance**:
+   - Every case must include full provenance metadata with one or more cited sources:
+     - `sources`: Array of `ValidationSource` objects (`kind`, `citation`, optional `locator`, optional `note`).
+     - Supported source kinds: `'IJMES_GUIDE' | 'SCHOLARLY_DICTIONARY' | 'ENCYCLOPEDIA' | 'ACADEMIC_SOURCE' | 'DISSERTATION_REVIEW' | 'PROJECT_REVIEW'`.
+     - Allows citing lexical evidence (e.g. *Encyclopaedia Iranica*) alongside transliteration rules (e.g. *Cambridge IJMES Guide*).
+     - Optional `reviewNote`: Explanatory context when appropriate.
 
-3. **Exact Unicode Fidelity**:
+3. **Exact Unicode Fidelity & No Automatic Trimming**:
    - Gold answers use exact Unicode characters and diacritics (`ā`, `ī`, `ū`, `ḥ`, `ṣ`, `ṭ`, `ẓ`, `ʿ`, `ʾ`, `-`).
-   - Do not lowercase, strip diacritics, or homogenize vowels.
+   - Comparison is strictly exact (`normalize('NFC')` without `.trim()`).
+   - Accidental leading or trailing whitespace in gold data is rejected during schema validation.
+
+4. **Corpus Maturity & Review Status**:
+   - `tier`: `'PILOT' | 'REAL_DISSERTATION'`
+   - `reviewStatus`: `'SOURCE_BACKED_FIXTURE' | 'HUMAN_REVIEWED'`
+   - When `reviewStatus === 'HUMAN_REVIEWED'`, valid `reviewer` and `reviewedAt` fields are mandatory.
 
 ---
 
@@ -39,7 +45,7 @@ Used when scholarly consensus or reference evidence establishes a single authori
 
 **Requirements**:
 - Must provide `canonical` or `allowedCanonicals`.
-- Must not contain Arabic/Persian script in the canonical string.
+- Every canonical value must be non-empty, unique, trimmed, and Latin/scholarly transliteration (not Arabic/Persian script).
 
 **Example**:
 ```json
@@ -53,9 +59,13 @@ Used when scholarly consensus or reference evidence establishes a single authori
     "canonical": "kitāb"
   },
   "provenance": {
-    "kind": "SCHOLARLY_DICTIONARY",
-    "citation": "Steingass, Comprehensive Persian-English Dictionary",
-    "locator": "p. 1013"
+    "sources": [
+      {
+        "kind": "SCHOLARLY_DICTIONARY",
+        "citation": "Steingass, Comprehensive Persian-English Dictionary",
+        "locator": "p. 1013"
+      }
+    ]
   }
 }
 ```
@@ -66,7 +76,7 @@ Used when the input is unvocalized, ambiguous, or contains context-dependent str
 **Requirements**:
 - The engine must output `copyable = false`.
 - May specify `requiredIssueTypes` (e.g. `['LEXICAL_AMBIGUITY']`, `['IZAFAT_CANDIDATE']`).
-- Must not provide an authoritative `canonical` unless accompanied by an explanatory note.
+- Must not provide an authoritative `canonical` or `allowedCanonicals`.
 
 **Example**:
 ```json
@@ -80,10 +90,14 @@ Used when the input is unvocalized, ambiguous, or contains context-dependent str
     "requiredIssueTypes": ["LEXICAL_AMBIGUITY"]
   },
   "provenance": {
-    "kind": "SCHOLARLY_DICTIONARY",
-    "citation": "Steingass, Comprehensive Persian-English Dictionary",
-    "locator": "p. 1025 (kirm worm vs karam generosity)",
-    "note": "Unvocalized Persian homograph requires human review."
+    "sources": [
+      {
+        "kind": "SCHOLARLY_DICTIONARY",
+        "citation": "Steingass, Comprehensive Persian-English Dictionary",
+        "locator": "p. 1025 (kirm worm / karam generosity)",
+        "note": "Unvocalized Persian form has multiple distinct lexical readings requiring human review."
+      }
+    ]
   }
 }
 ```
@@ -102,9 +116,13 @@ Used when scholarly evidence is intentionally insufficient or lexical coverage i
     "disposition": "UNRESOLVED"
   },
   "provenance": {
-    "kind": "PROJECT_REVIEW",
-    "citation": "Unreviewed stem fixture",
-    "note": "Engine must not manufacture a stem reading for unreviewed vocabulary."
+    "sources": [
+      {
+        "kind": "PROJECT_REVIEW",
+        "citation": "Unreviewed stem with plural morphology fixture",
+        "note": "Engine must not manufacture a stem reading for unreviewed vocabulary."
+      }
+    ]
   }
 }
 ```
@@ -127,9 +145,3 @@ When validation detects a non-passing case, it must be triaged into one of the f
 10. `REVIEW_AUTHORITY`: Incorrect issue detection or decision application.
 11. `BIBLIOGRAPHY_PIPELINE`: Field policy or record export defect.
 12. `GOLD_DATA_ERROR`: Flaw in the gold corpus case definition itself.
-
----
-
-## Regression Policy
-
-Any confirmed `FALSE_AUTHORITATIVE` or `UNDER_BLOCKED` case discovered in production or testing must immediately be converted into a permanent regression test case. No fix may be merged without a test reproducing the original failure.

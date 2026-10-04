@@ -2,9 +2,9 @@
   "metadata": {
     "id": "pilot.single",
     "version": "pilot-v1",
-    "description": "Initial reviewed pilot validation corpus for Persian scholarly transliteration (IJMES standard).",
-    "reviewedAt": "2026-10-04",
-    "reviewer": "Scholarly Review Pair"
+    "description": "Scholarly transliteration source-backed pilot validation fixtures",
+    "tier": "PILOT",
+    "reviewStatus": "SOURCE_BACKED_FIXTURE"
   },
   "cases": [
     {
@@ -17,9 +17,13 @@
         "canonical": "kitāb"
       },
       "provenance": {
-        "kind": "SCHOLARLY_DICTIONARY",
-        "citation": "Steingass, Comprehensive Persian-English Dictionary",
-        "locator": "p. 1013"
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary",
+            "locator": "p. 1013"
+          }
+        ]
       },
       "tags": ["seed", "noun", "basic"]
     },
@@ -33,9 +37,13 @@
         "canonical": "qānūn"
       },
       "provenance": {
-        "kind": "SCHOLARLY_DICTIONARY",
-        "citation": "Steingass, Comprehensive Persian-English Dictionary",
-        "locator": "p. 953"
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary",
+            "locator": "p. 953"
+          }
+        ]
       },
       "tags": ["seed", "legal", "constitutional"]
     },
@@ -49,9 +57,13 @@
         "canonical": "shāh"
       },
       "provenance": {
-        "kind": "SCHOLARLY_DICTIONARY",
-        "citation": "Steingass, Comprehensive Persian-English Dictionary",
-        "locator": "p. 724"
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary",
+            "locator": "p. 724"
+          }
+        ]
       },
       "tags": ["seed", "title", "monarchy"]
     },
@@ -65,9 +77,13 @@
         "canonical": "maktab"
       },
       "provenance": {
-        "kind": "SCHOLARLY_DICTIONARY",
-        "citation": "Steingass, Comprehensive Persian-English Dictionary",
-        "locator": "p. 1298"
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary",
+            "locator": "p. 1298"
+          }
+        ]
       },
       "tags": ["seed", "intellectual"]
     },
@@ -81,9 +97,13 @@
         "canonical": "inqilāb"
       },
       "provenance": {
-        "kind": "SCHOLARLY_DICTIONARY",
-        "citation": "Steingass, Comprehensive Persian-English Dictionary",
-        "locator": "p. 111"
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary",
+            "locator": "p. 111"
+          }
+        ]
       },
       "tags": ["seed", "political"]
     },
@@ -97,9 +117,13 @@
         "canonical": "mardum"
       },
       "provenance": {
-        "kind": "SCHOLARLY_DICTIONARY",
-        "citation": "Steingass, Comprehensive Persian-English Dictionary",
-        "locator": "p. 1216"
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary",
+            "locator": "p. 1216"
+          }
+        ]
       },
       "tags": ["seed", "social"]
     },
@@ -113,9 +137,13 @@
         "canonical": "khāna"
       },
       "provenance": {
-        "kind": "SCHOLARLY_DICTIONARY",
-        "citation": "Steingass, Comprehensive Persian-English Dictionary",
-        "locator": "p. 442"
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary",
+            "locator": "p. 442"
+          }
+        ]
       },
       "tags": ["seed", "noun", "heh-final"]
     },
@@ -129,8 +157,12 @@
         "canonical": "buzurg"
       },
       "provenance": {
-        "kind": "ACADEMIC_SOURCE",
-        "citation": "UT Austin Persian Online, Comparative and Superlative Adjectives"
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "UT Austin Persian Online, Comparative and Superlative Adjectives"
+          }
+        ]
       },
       "tags": ["seed", "adjective"]
     },
@@ -144,9 +176,13 @@
         "canonical": "īrān"
       },
       "provenance": {
-        "kind": "ENCYCLOPEDIA",
-        "citation": "Encyclopaedia Iranica",
-        "locator": "entry 'IRAN'"
+        "sources": [
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "Encyclopaedia Iranica",
+            "locator": "entry 'IRAN'"
+          }
+        ]
       },
       "tags": ["geography", "realm"]
     },
@@ -160,9 +196,18 @@
         "canonical": "Iran"
       },
       "provenance": {
-        "kind": "IJMES_GUIDE",
-        "citation": "IJMES Translation and Transliteration Guide",
-        "locator": "Diacritics omitted in English/article titles (Rule 1)"
+        "sources": [
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "Encyclopaedia Iranica",
+            "locator": "entry 'IRAN'"
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "Current IJMES Translation and Transliteration Guide",
+            "locator": "General Transliteration Guideline #4 (Diacritic omission in titles/proper names) and Guideline #7 (English title capitalization)"
+          }
+        ]
       },
       "tags": ["geography", "title-capitalization", "title-diacritic-omission"]
     },
@@ -176,9 +221,13 @@
         "canonical": "tabrīz"
       },
       "provenance": {
-        "kind": "ENCYCLOPEDIA",
-        "citation": "Encyclopaedia Iranica",
-        "locator": "entry 'TABRIZ'"
+        "sources": [
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "Encyclopaedia Iranica",
+            "locator": "entry 'TABRIZ'"
+          }
+        ]
       },
       "tags": ["city", "azerbaijan"]
     },
@@ -192,9 +241,13 @@
         "canonical": "tihrān"
       },
       "provenance": {
-        "kind": "ENCYCLOPEDIA",
-        "citation": "Encyclopaedia Iranica",
-        "locator": "entry 'TEHRAN'"
+        "sources": [
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "Encyclopaedia Iranica",
+            "locator": "entry 'TEHRAN'"
+          }
+        ]
       },
       "tags": ["city", "capital"]
     },
@@ -208,9 +261,13 @@
         "canonical": "iṣfahān"
       },
       "provenance": {
-        "kind": "ENCYCLOPEDIA",
-        "citation": "Encyclopaedia Iranica",
-        "locator": "entry 'ISFAHAN'"
+        "sources": [
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "Encyclopaedia Iranica",
+            "locator": "entry 'ISFAHAN'"
+          }
+        ]
       },
       "tags": ["city", "safavid-capital"]
     },
@@ -224,9 +281,18 @@
         "canonical": "Majlis"
       },
       "provenance": {
-        "kind": "ENCYCLOPEDIA",
-        "citation": "Encyclopaedia Iranica",
-        "locator": "entry 'MAJLES'"
+        "sources": [
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "Encyclopaedia Iranica",
+            "locator": "entry 'MAJLES'"
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "Current IJMES Translation and Transliteration Guide",
+            "locator": "General Transliteration Guideline #4 and #7"
+          }
+        ]
       },
       "tags": ["parliament", "constitutional"]
     },
@@ -240,9 +306,13 @@
         "canonical": "majlis"
       },
       "provenance": {
-        "kind": "ENCYCLOPEDIA",
-        "citation": "Encyclopaedia Iranica",
-        "locator": "entry 'MAJLES'"
+        "sources": [
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "Encyclopaedia Iranica",
+            "locator": "entry 'MAJLES'"
+          }
+        ]
       },
       "tags": ["parliament", "lowercase-full"]
     },
@@ -256,9 +326,13 @@
         "canonical": "ḥukūmat"
       },
       "provenance": {
-        "kind": "SCHOLARLY_DICTIONARY",
-        "citation": "Steingass, Comprehensive Persian-English Dictionary",
-        "locator": "p. 427"
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary",
+            "locator": "p. 427"
+          }
+        ]
       },
       "tags": ["governance", "legal"]
     },
@@ -272,8 +346,12 @@
         "canonical": "mashrūṭa"
       },
       "provenance": {
-        "kind": "ACADEMIC_SOURCE",
-        "citation": "E. G. Browne, The Persian Revolution of 1905–1909 (Cambridge, 1910)"
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "E. G. Browne, The Persian Revolution of 1905–1909 (Cambridge, 1910)"
+          }
+        ]
       },
       "tags": ["constitutionalism", "legal"]
     },
@@ -287,9 +365,13 @@
         "canonical": "mashrūṭīyat"
       },
       "provenance": {
-        "kind": "ENCYCLOPEDIA",
-        "citation": "Encyclopaedia Iranica",
-        "locator": "entry 'CONSTITUTIONAL REVOLUTION'"
+        "sources": [
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "Encyclopaedia Iranica",
+            "locator": "entry 'CONSTITUTIONAL REVOLUTION'"
+          }
+        ]
       },
       "tags": ["constitutionalism", "abstract-noun"]
     },
@@ -303,9 +385,13 @@
         "canonical": "ḥuqūq"
       },
       "provenance": {
-        "kind": "SCHOLARLY_DICTIONARY",
-        "citation": "Steingass, Comprehensive Persian-English Dictionary",
-        "locator": "p. 426"
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary",
+            "locator": "p. 426"
+          }
+        ]
       },
       "tags": ["rights", "jurisprudence"]
     },
@@ -319,9 +405,13 @@
         "canonical": "sharīʿat"
       },
       "provenance": {
-        "kind": "SCHOLARLY_DICTIONARY",
-        "citation": "Steingass, Comprehensive Persian-English Dictionary",
-        "locator": "p. 744"
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary",
+            "locator": "p. 744"
+          }
+        ]
       },
       "tags": ["law", "islamic"]
     },
@@ -335,9 +425,13 @@
         "canonical": "faqīh"
       },
       "provenance": {
-        "kind": "IJMES_GUIDE",
-        "citation": "Current IJMES Translation and Transliteration Guide",
-        "locator": "Compound title example: vilāyat-i faqīh"
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary",
+            "locator": "p. 936"
+          }
+        ]
       },
       "tags": ["jurist", "ijmes-seed"]
     },
@@ -351,9 +445,13 @@
         "canonical": "vilāyat-i faqīh"
       },
       "provenance": {
-        "kind": "IJMES_GUIDE",
-        "citation": "Current IJMES Translation and Transliteration Guide",
-        "locator": "Compound title example: vilāyat-i faqīh"
+        "sources": [
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "Current IJMES Translation and Transliteration Guide",
+            "locator": "Detailed Transliteration Guidelines (Compound titles and Persian izafat -i)"
+          }
+        ]
       },
       "tags": ["compound", "context-izafat"]
     },
@@ -367,9 +465,13 @@
         "canonical": "fiqh"
       },
       "provenance": {
-        "kind": "SCHOLARLY_DICTIONARY",
-        "citation": "Steingass, Comprehensive Persian-English Dictionary",
-        "locator": "p. 933"
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary",
+            "locator": "p. 933"
+          }
+        ]
       },
       "tags": ["jurisprudence", "islamic"]
     },
@@ -383,9 +485,13 @@
         "canonical": "dīn"
       },
       "provenance": {
-        "kind": "SCHOLARLY_DICTIONARY",
-        "citation": "Steingass, Comprehensive Persian-English Dictionary",
-        "locator": "p. 553"
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary",
+            "locator": "p. 553"
+          }
+        ]
       },
       "tags": ["religion", "theology"]
     },
@@ -399,9 +505,13 @@
         "canonical": "mazhab"
       },
       "provenance": {
-        "kind": "SCHOLARLY_DICTIONARY",
-        "citation": "Steingass, Comprehensive Persian-English Dictionary",
-        "locator": "p. 1215"
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary",
+            "locator": "p. 1215"
+          }
+        ]
       },
       "tags": ["denomination", "creed"]
     },
@@ -415,9 +525,13 @@
         "canonical": "ʿulamā"
       },
       "provenance": {
-        "kind": "SCHOLARLY_DICTIONARY",
-        "citation": "Steingass, Comprehensive Persian-English Dictionary",
-        "locator": "p. 863"
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary",
+            "locator": "p. 863"
+          }
+        ]
       },
       "tags": ["clerics", "scholars"]
     },
@@ -431,9 +545,13 @@
         "canonical": "mujtahid"
       },
       "provenance": {
-        "kind": "SCHOLARLY_DICTIONARY",
-        "citation": "Steingass, Comprehensive Persian-English Dictionary",
-        "locator": "p. 1181"
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary",
+            "locator": "p. 1181"
+          }
+        ]
       },
       "tags": ["jurist", "theology"]
     },
@@ -447,9 +565,13 @@
         "canonical": "ham-kārī"
       },
       "provenance": {
-        "kind": "ACADEMIC_SOURCE",
-        "citation": "Windfuhr and Perry, The Iranian Languages (2009)",
-        "locator": "Persian compound morphology"
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Windfuhr and Perry, The Iranian Languages (2009)",
+            "locator": "Persian compound morphology"
+          }
+        ]
       },
       "tags": ["compound", "prefix-ham"]
     },
@@ -463,9 +585,13 @@
         "canonical": "al-Hilal"
       },
       "provenance": {
-        "kind": "IJMES_GUIDE",
-        "citation": "Current IJMES Translation and Transliteration Guide",
-        "locator": "Arabic definite article in titles (Rule 5)"
+        "sources": [
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "Current IJMES Translation and Transliteration Guide",
+            "locator": "Detailed Transliteration Guidelines (Arabic definite article al-) and General Guideline #4 (Diacritic omission in titles)"
+          }
+        ]
       },
       "tags": ["compound", "arabic-article", "title-diacritic-omission"]
     },
@@ -479,9 +605,13 @@
         "canonical": "kitāb-hā"
       },
       "provenance": {
-        "kind": "ACADEMIC_SOURCE",
-        "citation": "Lambton, Persian Grammar",
-        "locator": "p. 9 (Plural in -ha)"
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Lambton, Persian Grammar",
+            "locator": "p. 9 (Plural in -ha)"
+          }
+        ]
       },
       "tags": ["plural", "zwnj-suffix"]
     },
@@ -495,9 +625,13 @@
         "canonical": "buzurg-tar"
       },
       "provenance": {
-        "kind": "ACADEMIC_SOURCE",
-        "citation": "Lambton, Persian Grammar",
-        "locator": "p. 25 (Comparative adjective)"
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Lambton, Persian Grammar",
+            "locator": "p. 25 (Comparative adjective)"
+          }
+        ]
       },
       "tags": ["comparative", "zwnj-suffix"]
     },
@@ -511,9 +645,13 @@
         "canonical": "buzurg-tarīn"
       },
       "provenance": {
-        "kind": "ACADEMIC_SOURCE",
-        "citation": "Lambton, Persian Grammar",
-        "locator": "p. 25 (Superlative adjective)"
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Lambton, Persian Grammar",
+            "locator": "p. 25 (Superlative adjective)"
+          }
+        ]
       },
       "tags": ["superlative", "zwnj-suffix"]
     },
@@ -527,9 +665,13 @@
         "canonical": "kitāb-am"
       },
       "provenance": {
-        "kind": "ACADEMIC_SOURCE",
-        "citation": "Lambton, Persian Grammar",
-        "locator": "p. 37 (Pronominal enclitic 1sg)"
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Lambton, Persian Grammar",
+            "locator": "p. 37 (Pronominal enclitic 1sg)"
+          }
+        ]
       },
       "tags": ["possessive", "enclitic"]
     },
@@ -543,9 +685,13 @@
         "canonical": "kitāb-at"
       },
       "provenance": {
-        "kind": "ACADEMIC_SOURCE",
-        "citation": "Lambton, Persian Grammar",
-        "locator": "p. 37 (Pronominal enclitic 2sg)"
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Lambton, Persian Grammar",
+            "locator": "p. 37 (Pronominal enclitic 2sg)"
+          }
+        ]
       },
       "tags": ["possessive", "enclitic"]
     },
@@ -559,9 +705,13 @@
         "canonical": "kitāb-ash"
       },
       "provenance": {
-        "kind": "ACADEMIC_SOURCE",
-        "citation": "Lambton, Persian Grammar",
-        "locator": "p. 37 (Pronominal enclitic 3sg)"
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Lambton, Persian Grammar",
+            "locator": "p. 37 (Pronominal enclitic 3sg)"
+          }
+        ]
       },
       "tags": ["possessive", "enclitic"]
     },
@@ -575,9 +725,13 @@
         "canonical": "khāna-hā"
       },
       "provenance": {
-        "kind": "ACADEMIC_SOURCE",
-        "citation": "Lambton, Persian Grammar",
-        "locator": "p. 9 (Heh-final plural)"
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Lambton, Persian Grammar",
+            "locator": "p. 9 (Heh-final plural)"
+          }
+        ]
       },
       "tags": ["plural", "heh-final"]
     },
@@ -591,9 +745,13 @@
         "canonical": "kitāb-i tārīkh"
       },
       "provenance": {
-        "kind": "IJMES_GUIDE",
-        "citation": "Current IJMES Translation and Transliteration Guide",
-        "locator": "Rule 4 (Izafat construction with kasra)"
+        "sources": [
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "Current IJMES Translation and Transliteration Guide",
+            "locator": "Detailed Transliteration Guidelines (Persian izafat -i with kasra)"
+          }
+        ]
       },
       "tags": ["izafat", "vocalized-kasra"]
     },
@@ -607,9 +765,13 @@
         "canonical": "maktab-i tabrīz"
       },
       "provenance": {
-        "kind": "PROJECT_REVIEW",
-        "citation": "Dissertation proper-name school construction",
-        "locator": "Intellectual history glossary"
+        "sources": [
+          {
+            "kind": "PROJECT_REVIEW",
+            "citation": "Dissertation proper-name school construction fixture",
+            "locator": "Intellectual history glossary"
+          }
+        ]
       },
       "tags": ["izafat", "vocalized-kasra"]
     },
@@ -623,8 +785,13 @@
         "canonical": "kitāb-hā-i īrān"
       },
       "provenance": {
-        "kind": "ACADEMIC_SOURCE",
-        "citation": "Lambton, Persian Grammar, p. 12 (Plural host izafat)"
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Lambton, Persian Grammar",
+            "locator": "p. 12 (Plural host izafat)"
+          }
+        ]
       },
       "tags": ["izafat", "plural-host"]
     },
@@ -638,10 +805,14 @@
         "requiredIssueTypes": ["LEXICAL_AMBIGUITY"]
       },
       "provenance": {
-        "kind": "SCHOLARLY_DICTIONARY",
-        "citation": "Steingass, Comprehensive Persian-English Dictionary",
-        "locator": "p. 1025 (kirm worm / karam generosity)",
-        "note": "Unvocalized Persian form has multiple distinct lexical readings requiring human review."
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary",
+            "locator": "p. 1025 (kirm worm / karam generosity)",
+            "note": "Unvocalized Persian form has multiple distinct lexical readings requiring human review."
+          }
+        ]
       },
       "tags": ["ambiguity", "safety", "lexical"]
     },
@@ -655,9 +826,13 @@
         "requiredIssueTypes": ["LEXICAL_AMBIGUITY"]
       },
       "provenance": {
-        "kind": "ACADEMIC_SOURCE",
-        "citation": "Lambton, Persian Grammar, p. 115 vs Windfuhr Persian Grammar",
-        "note": "Segmented dar bāra-yi vs joined darbāra-yi requires human editorial review."
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Lambton, Persian Grammar, p. 115 vs Windfuhr Persian Grammar",
+            "note": "Segmented dar bāra-yi vs joined darbāra-yi requires human editorial review."
+          }
+        ]
       },
       "tags": ["ambiguity", "editorial-joining"]
     },
@@ -671,9 +846,13 @@
         "requiredIssueTypes": ["LEXICAL_AMBIGUITY"]
       },
       "provenance": {
-        "kind": "ACADEMIC_SOURCE",
-        "citation": "Windfuhr and Perry, The Iranian Languages (2009)",
-        "note": "Hyphenated vs solid compound reading requires human editorial review."
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Windfuhr and Perry, The Iranian Languages (2009)",
+            "note": "Hyphenated vs solid compound reading requires human editorial review."
+          }
+        ]
       },
       "tags": ["ambiguity", "compound-joining"]
     },
@@ -687,10 +866,13 @@
         "requiredIssueTypes": ["IZAFAT_CANDIDATE"]
       },
       "provenance": {
-        "kind": "IJMES_GUIDE",
-        "citation": "Current IJMES Translation and Transliteration Guide",
-        "locator": "Rule on unvocalized context relations",
-        "note": "Unvocalized izafat candidate requires human review/confirmation."
+        "sources": [
+          {
+            "kind": "PROJECT_REVIEW",
+            "citation": "Project unvocalized context relation safety policy",
+            "note": "Unvocalized izafat candidate requires human review/confirmation."
+          }
+        ]
       },
       "tags": ["ambiguity", "izafat-candidate", "safety"]
     },
@@ -703,9 +885,13 @@
         "disposition": "UNRESOLVED"
       },
       "provenance": {
-        "kind": "PROJECT_REVIEW",
-        "citation": "Unreviewed stem with plural morphology fixture",
-        "note": "Engine must not manufacture a stem reading for unreviewed vocabulary."
+        "sources": [
+          {
+            "kind": "PROJECT_REVIEW",
+            "citation": "Unreviewed stem with plural morphology fixture",
+            "note": "Engine must not manufacture a stem reading for unreviewed vocabulary."
+          }
+        ]
       },
       "tags": ["unresolved", "safety", "unreviewed-stem"]
     },
@@ -719,8 +905,12 @@
         "canonical": "Iran and daulat"
       },
       "provenance": {
-        "kind": "PROJECT_REVIEW",
-        "citation": "Reviewed mixed Latin and Persian academic source title fixture"
+        "sources": [
+          {
+            "kind": "PROJECT_REVIEW",
+            "citation": "Reviewed mixed Latin and Persian academic source title fixture"
+          }
+        ]
       },
       "tags": ["mixed-script", "latin-passthrough"]
     },
@@ -734,8 +924,12 @@
         "canonical": "1906 qānūn"
       },
       "provenance": {
-        "kind": "PROJECT_REVIEW",
-        "citation": "Reviewed date and legal term fixture"
+        "sources": [
+          {
+            "kind": "PROJECT_REVIEW",
+            "citation": "Reviewed date and legal term fixture"
+          }
+        ]
       },
       "tags": ["mixed-script", "number-handling"]
     }

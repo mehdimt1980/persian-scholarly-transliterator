@@ -1,0 +1,9 @@
+{
+  "id": "pilot-v1",
+  "version": "1.0.0",
+  "description": "Scholarly transliteration source-backed pilot validation fixtures",
+  "tier": "PILOT",
+  "reviewStatus": "SOURCE_BACKED_FIXTURE",
+  "single": "pilot.single.json",
+  "bibliography": "pilot.bibliography.json"
+}

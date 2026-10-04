@@ -1,14 +1,37 @@
-import { ReleaseGateResult, ReleaseReadiness, ValidationMetrics } from './types';
+import { DEFAULT_LEXICON_REPOSITORY } from '../data/lexicon';
+import {
+  CombinedValidationMetrics,
+  ReleaseGateContext,
+  ReleaseGateResult,
+  ReleaseReadiness,
+  ValidationMetrics
+} from './types';
 
 export interface ReleaseGateOptions {
+  context?: ReleaseGateContext;
   isPilot?: boolean;
 }
 
 export function evaluateReleaseGates(
-  metrics: ValidationMetrics,
+  metrics: CombinedValidationMetrics | ValidationMetrics,
   options: ReleaseGateOptions = {}
 ): ReleaseGateResult {
   const violations: string[] = [];
+
+  // Determine context
+  const context: ReleaseGateContext = options.context ?? {
+    corpusTier: options.isPilot !== false ? 'PILOT' : 'REAL_DISSERTATION',
+    releaseTarget: options.isPilot !== false ? 'PILOT' : 'RC',
+    reviewStatus: options.isPilot !== false ? 'SOURCE_BACKED_FIXTURE' : 'HUMAN_REVIEWED'
+  };
+
+  // Lexicon repository validation
+  const lexiconReport = DEFAULT_LEXICON_REPOSITORY.validateIntegrity();
+  if (!lexiconReport.valid || context.lexiconValid === false) {
+    violations.push(
+      `DEFAULT LEXICON INTEGRITY FAILURE: Lexicon repository failed validation with errors: ${(lexiconReport.errors || []).join('; ')}`
+    );
+  }
 
   if (metrics.falseAuthoritative > 0) {
     violations.push(
@@ -33,16 +56,58 @@ export function evaluateReleaseGates(
   let readiness: ReleaseReadiness;
   if (!passed) {
     readiness = 'BLOCKED';
-  } else if (options.isPilot) {
+  } else if (context.releaseTarget === 'PILOT') {
     readiness = 'PILOT_PASS';
   } else {
-    readiness = 'RC_READY';
+    // releaseTarget === 'RC'
+    if (context.corpusTier === 'PILOT') {
+      readiness = 'REAL_CORPUS_REQUIRED';
+    } else if (context.reviewStatus === 'SOURCE_BACKED_FIXTURE') {
+      readiness = 'REAL_CORPUS_REQUIRED';
+    } else if (
+      context.corpusTier === 'REAL_DISSERTATION' &&
+      context.reviewStatus === 'HUMAN_REVIEWED'
+    ) {
+      readiness = 'RC_READY';
+    } else {
+      readiness = 'REAL_CORPUS_REQUIRED';
+    }
   }
+
+  // Ensure combined metrics shape if a plain ValidationMetrics was passed
+  const combinedMetrics: CombinedValidationMetrics =
+    'single' in metrics
+      ? (metrics as CombinedValidationMetrics)
+      : {
+          total: metrics.total,
+          correctAuthoritative: metrics.correctAuthoritative,
+          falseAuthoritative: metrics.falseAuthoritative,
+          correctReviewRequired: metrics.correctReviewRequired,
+          correctUnresolved: metrics.correctUnresolved,
+          overBlocked: metrics.overBlocked,
+          underBlocked: metrics.underBlocked,
+          issueTypeMismatch: metrics.issueTypeMismatch,
+          invalidGoldCases: metrics.invalidGoldCases,
+          safeBehaviorCount: metrics.safeBehaviorCount,
+          safeBehaviorRate: metrics.safeBehaviorRate,
+          single: metrics as ValidationMetrics,
+          bibliography: {
+            total: 0,
+            correctAuthoritative: 0,
+            falseAuthoritative: 0,
+            correctReviewRequired: 0,
+            correctUnresolved: 0,
+            overBlocked: 0,
+            underBlocked: 0,
+            safeBehaviorCount: 0,
+            safeBehaviorRate: 1
+          }
+        };
 
   return {
     readiness,
     passed,
     violations,
-    metrics
+    metrics: combinedMetrics
   };
 }

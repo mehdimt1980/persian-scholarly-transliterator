@@ -1,4 +1,11 @@
-import { CaseEvaluationResult, ValidationCategoryMetrics, ValidationMetrics } from './types';
+import {
+  BibliographyCaseEvaluationResult,
+  BibliographyValidationMetrics,
+  CaseEvaluationResult,
+  CombinedValidationMetrics,
+  ValidationCategoryMetrics,
+  ValidationMetrics
+} from './types';
 
 function createInitialCategoryMetrics(): ValidationCategoryMetrics {
   return {
@@ -52,8 +59,8 @@ function updateCategoryMetrics(
       metrics.underBlocked++;
       break;
     case 'ISSUE_TYPE_MISMATCH':
+      // CRITICAL: ISSUE_TYPE_MISMATCH is NOT counted as safe behavior
       metrics.issueTypeMismatch++;
-      metrics.safeBehaviorCount++;
       break;
     case 'INVALID_GOLD_CASE':
       metrics.invalidGoldCases++;
@@ -103,5 +110,102 @@ export function computeValidationMetrics(results: CaseEvaluationResult[]): Valid
     safeBehaviorRate: totalMetrics.safeBehaviorRate,
     byCategory,
     byProfile
+  };
+}
+
+export function computeBibliographyValidationMetrics(
+  results: BibliographyCaseEvaluationResult[]
+): BibliographyValidationMetrics {
+  let correctAuthoritative = 0;
+  let falseAuthoritative = 0;
+  let correctReviewRequired = 0;
+  let correctUnresolved = 0;
+  let overBlocked = 0;
+  let underBlocked = 0;
+  let safeBehaviorCount = 0;
+
+  for (const res of results) {
+    switch (res.classification) {
+      case 'CORRECT_AUTHORITATIVE':
+        correctAuthoritative++;
+        safeBehaviorCount++;
+        break;
+      case 'FALSE_AUTHORITATIVE':
+        falseAuthoritative++;
+        break;
+      case 'CORRECT_REVIEW_REQUIRED':
+        correctReviewRequired++;
+        safeBehaviorCount++;
+        break;
+      case 'CORRECT_UNRESOLVED':
+        correctUnresolved++;
+        safeBehaviorCount++;
+        break;
+      case 'OVER_BLOCKED':
+        overBlocked++;
+        safeBehaviorCount++;
+        break;
+      case 'UNDER_BLOCKED':
+        underBlocked++;
+        break;
+    }
+  }
+
+  const total = results.length;
+  const safeBehaviorRate = total > 0 ? safeBehaviorCount / total : 0;
+
+  return {
+    total,
+    correctAuthoritative,
+    falseAuthoritative,
+    correctReviewRequired,
+    correctUnresolved,
+    overBlocked,
+    underBlocked,
+    safeBehaviorCount,
+    safeBehaviorRate
+  };
+}
+
+export function computeCombinedValidationMetrics(
+  single: ValidationMetrics | CaseEvaluationResult[],
+  bibliography: BibliographyValidationMetrics | BibliographyCaseEvaluationResult[]
+): CombinedValidationMetrics {
+  const singleMetrics = Array.isArray(single) ? computeValidationMetrics(single) : single;
+  const bibMetrics = Array.isArray(bibliography)
+    ? computeBibliographyValidationMetrics(bibliography)
+    : bibliography;
+
+  const total = singleMetrics.total + bibMetrics.total;
+  const correctAuthoritative =
+    singleMetrics.correctAuthoritative + bibMetrics.correctAuthoritative;
+  const falseAuthoritative =
+    singleMetrics.falseAuthoritative + bibMetrics.falseAuthoritative;
+  const correctReviewRequired =
+    singleMetrics.correctReviewRequired + bibMetrics.correctReviewRequired;
+  const correctUnresolved =
+    singleMetrics.correctUnresolved + bibMetrics.correctUnresolved;
+  const overBlocked = singleMetrics.overBlocked + bibMetrics.overBlocked;
+  const underBlocked = singleMetrics.underBlocked + bibMetrics.underBlocked;
+  const issueTypeMismatch = singleMetrics.issueTypeMismatch;
+  const invalidGoldCases = singleMetrics.invalidGoldCases;
+  const safeBehaviorCount =
+    singleMetrics.safeBehaviorCount + bibMetrics.safeBehaviorCount;
+  const safeBehaviorRate = total > 0 ? safeBehaviorCount / total : 0;
+
+  return {
+    total,
+    correctAuthoritative,
+    falseAuthoritative,
+    correctReviewRequired,
+    correctUnresolved,
+    overBlocked,
+    underBlocked,
+    issueTypeMismatch,
+    invalidGoldCases,
+    safeBehaviorCount,
+    safeBehaviorRate,
+    single: singleMetrics,
+    bibliography: bibMetrics
   };
 }
