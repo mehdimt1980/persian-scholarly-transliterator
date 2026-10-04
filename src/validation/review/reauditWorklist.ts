@@ -20,44 +20,74 @@ export interface ReauditWorklistCase {
   batch: ReauditBatch;
   reviewState: 'PENDING' | 'IN_REVIEW' | 'COMPLETED';
   decision: unknown;
-  [key: string]: unknown;
+}
+
+export interface ReauditWorklistMetadata {
+  schemaVersion: number;
+  artifactType: string;
+  sourceCorpus: string;
+  sourceCorpusCount: number;
+  status: string;
+  engineEvaluationPerformed: boolean;
+  humanSignoff: unknown;
+  priorAdjudicationAuthority: string;
+}
+
+export interface ReauditWorklistSummary {
+  total: number;
+  pending: number;
+  adjudicated: number;
+  byBatch: Record<string, number>;
+  byCategory: Record<string, number>;
 }
 
 export interface ReauditWorklistDocument {
-  metadata: {
-    schemaVersion: number;
-    artifactType: string;
-    sourceCorpus: string;
-    sourceCorpusCount: number;
-    status: string;
-    engineEvaluationPerformed: boolean;
-    humanSignoff: unknown;
-    priorAdjudicationAuthority: string;
-    [key: string]: unknown;
-  };
-  summary: {
-    total: number;
-    pending: number;
-    adjudicated: number;
-    byBatch: Record<string, number>;
-    byCategory: Record<string, number>;
-    [key: string]: unknown;
-  };
+  metadata: ReauditWorklistMetadata;
+  summary: ReauditWorklistSummary;
   cases: ReauditWorklistCase[];
 }
 
-export const PROHIBITED_WORKLIST_CASE_FIELDS = [
-  'canonical',
-  'allowedCanonicals',
-  'priorCanonical',
-  'priorAllowedCanonicals',
-  'engineOutput',
-  'runtimeOutput',
-  'renderingClass',
-  'reviewNote',
-  'amendmentFrom',
-  'amendmentTo'
-];
+export const EXACT_ALLOWED_CASE_KEYS = [
+  'id',
+  'sourceText',
+  'category',
+  'profile',
+  'batch',
+  'reviewState',
+  'decision'
+] as const;
+
+export const EXACT_ALLOWED_METADATA_KEYS = [
+  'schemaVersion',
+  'artifactType',
+  'sourceCorpus',
+  'sourceCorpusCount',
+  'status',
+  'engineEvaluationPerformed',
+  'humanSignoff',
+  'priorAdjudicationAuthority'
+] as const;
+
+export const EXPECTED_BATCH_COUNTS: Record<ReauditBatch, number> = {
+  A: 25,
+  B: 23,
+  C: 36,
+  D: 12,
+  E: 12
+};
+
+export const EXPECTED_CATEGORY_COUNTS: Record<string, number> = {
+  TERM: 15,
+  RELIGIOUS_TERM: 10,
+  PERSON: 18,
+  PLACE: 12,
+  INSTITUTION: 6,
+  BOOK_TITLE: 12,
+  COMPOUND: 5,
+  MORPHOLOGY: 10,
+  IZAFAT: 8,
+  AMBIGUITY: 12
+};
 
 export function getExpectedReauditBatch(category: string): ReauditBatch {
   switch (category) {
@@ -83,7 +113,7 @@ export function getExpectedReauditBatch(category: string): ReauditBatch {
 
 /**
  * Validates the blank V2 re-audit worklist against the acquired candidate corpus
- * and enforces anti-anchoring, engine-blindness, and governance invariants.
+ * and enforces strict allowlisting, anti-anchoring, engine-blindness, and governance invariants.
  *
  * NOTE: This validator strictly contains NO transliteration or engine calls.
  */
@@ -91,13 +121,37 @@ export function validateReauditWorklist(
   worklist: ReauditWorklistDocument,
   acquisitionCandidates: AcquisitionCandidateMinimal[]
 ): void {
-  // 1. Metadata Invariants
+  // 1. Metadata Invariants & Strict Key Allowlist
+  const metadataKeys = Object.keys(worklist.metadata);
+  for (const key of metadataKeys) {
+    if (!EXACT_ALLOWED_METADATA_KEYS.includes(key as any)) {
+      throw new Error(`WORKLIST_METADATA_CONTAINS_UNEXPECTED_KEY:${key}`);
+    }
+  }
+  for (const key of EXACT_ALLOWED_METADATA_KEYS) {
+    if (!(key in worklist.metadata)) {
+      throw new Error(`WORKLIST_METADATA_MISSING_REQUIRED_KEY:${key}`);
+    }
+  }
+
   if (worklist.metadata.schemaVersion !== 2) {
     throw new Error(`WORKLIST_SCHEMA_VERSION_INVALID:${worklist.metadata.schemaVersion}`);
   }
 
   if (worklist.metadata.artifactType !== 'BLIND_REAUDIT_WORKLIST') {
     throw new Error(`WORKLIST_ARTIFACT_TYPE_INVALID:${worklist.metadata.artifactType}`);
+  }
+
+  if (worklist.metadata.sourceCorpus !== 'validation/acquisition/external-candidates.v1.json') {
+    throw new Error(`WORKLIST_SOURCE_CORPUS_INVALID:${worklist.metadata.sourceCorpus}`);
+  }
+
+  if (worklist.metadata.sourceCorpusCount !== 108) {
+    throw new Error(`WORKLIST_SOURCE_CORPUS_COUNT_MISMATCH:${worklist.metadata.sourceCorpusCount}`);
+  }
+
+  if (worklist.metadata.status !== 'READY_FOR_BLIND_REAUDIT') {
+    throw new Error(`WORKLIST_STATUS_INVALID:${worklist.metadata.status}`);
   }
 
   if (worklist.metadata.engineEvaluationPerformed !== false) {
@@ -108,12 +162,10 @@ export function validateReauditWorklist(
     throw new Error('WORKLIST_HUMAN_SIGNOFF_MUST_BE_NULL');
   }
 
-  if (worklist.metadata.status !== 'READY_FOR_BLIND_REAUDIT') {
-    throw new Error(`WORKLIST_STATUS_INVALID:${worklist.metadata.status}`);
-  }
-
-  if (worklist.metadata.sourceCorpusCount !== 108) {
-    throw new Error(`WORKLIST_SOURCE_CORPUS_COUNT_MISMATCH:${worklist.metadata.sourceCorpusCount}`);
+  if (worklist.metadata.priorAdjudicationAuthority !== 'HISTORICAL_ONLY') {
+    throw new Error(
+      `WORKLIST_PRIOR_ADJUDICATION_AUTHORITY_INVALID:${worklist.metadata.priorAdjudicationAuthority}`
+    );
   }
 
   // 2. Case count & unique IDs
@@ -126,12 +178,10 @@ export function validateReauditWorklist(
   }
 
   const seenIds = new Set<string>();
-  for (const c of worklist.cases) {
-    if (seenIds.has(c.id)) {
-      throw new Error(`WORKLIST_DUPLICATE_CASE_ID:${c.id}`);
-    }
-    seenIds.add(c.id);
-  }
+  const actualByBatch: Record<ReauditBatch, number> = { A: 0, B: 0, C: 0, D: 0, E: 0 };
+  const actualByCategory: Record<string, number> = {};
+  let actualPending = 0;
+  let actualAdjudicated = 0;
 
   // 3. One-to-one alignment with acquisition candidates
   const acqMap = new Map<string, AcquisitionCandidateMinimal>();
@@ -140,6 +190,24 @@ export function validateReauditWorklist(
   }
 
   for (const c of worklist.cases) {
+    if (seenIds.has(c.id)) {
+      throw new Error(`WORKLIST_DUPLICATE_CASE_ID:${c.id}`);
+    }
+    seenIds.add(c.id);
+
+    // Strict positive allowlist: no extra case fields permitted
+    const caseKeys = Object.keys(c);
+    for (const key of caseKeys) {
+      if (!EXACT_ALLOWED_CASE_KEYS.includes(key as any)) {
+        throw new Error(`WORKLIST_CASE_CONTAINS_PROHIBITED_FIELD:${c.id}:${key}`);
+      }
+    }
+    for (const key of EXACT_ALLOWED_CASE_KEYS) {
+      if (!(key in c)) {
+        throw new Error(`WORKLIST_CASE_MISSING_REQUIRED_KEY:${c.id}:${key}`);
+      }
+    }
+
     const acq = acqMap.get(c.id);
     if (!acq) {
       throw new Error(`WORKLIST_CASE_NOT_IN_ACQUISITION:${c.id}`);
@@ -171,7 +239,7 @@ export function validateReauditWorklist(
       );
     }
 
-    // 4. Initial blank state requirements
+    // Initial blank state requirements
     if (c.reviewState !== 'PENDING') {
       throw new Error(`WORKLIST_CASE_NOT_PENDING:${c.id}: reviewState="${c.reviewState}"`);
     }
@@ -180,12 +248,17 @@ export function validateReauditWorklist(
       throw new Error(`WORKLIST_CASE_HAS_NON_NULL_DECISION:${c.id}`);
     }
 
-    // 5. Anti-anchoring & prohibited field guardrails
-    for (const prohibited of PROHIBITED_WORKLIST_CASE_FIELDS) {
-      if (prohibited in c) {
-        throw new Error(`WORKLIST_CASE_CONTAINS_PROHIBITED_FIELD:${c.id}:${prohibited}`);
-      }
+    // Accumulate counts for summary validation
+    if (c.reviewState === 'PENDING' && c.decision === null) {
+      actualPending++;
+    } else {
+      actualAdjudicated++;
     }
+
+    if (c.batch in actualByBatch) {
+      actualByBatch[c.batch]++;
+    }
+    actualByCategory[c.category] = (actualByCategory[c.category] || 0) + 1;
   }
 
   // Ensure every acquisition candidate is present in worklist
@@ -195,18 +268,49 @@ export function validateReauditWorklist(
     }
   }
 
-  // 6. Summary consistency
-  if (worklist.summary.total !== 108 || worklist.summary.pending !== 108 || worklist.summary.adjudicated !== 0) {
+  // 4. Recomputed Summary Validation
+  if (worklist.summary.total !== worklist.cases.length || worklist.summary.total !== 108) {
     throw new Error(
-      `WORKLIST_SUMMARY_COUNTS_INVALID: total=${worklist.summary.total}, pending=${worklist.summary.pending}, adjudicated=${worklist.summary.adjudicated}`
+      `WORKLIST_SUMMARY_TOTAL_MISMATCH: expected 108 (actual cases: ${worklist.cases.length}), got ${worklist.summary.total}`
     );
   }
 
-  const expectedBatchCounts = { A: 25, B: 23, C: 36, D: 12, E: 12 };
-  for (const [batch, count] of Object.entries(expectedBatchCounts)) {
-    if (worklist.summary.byBatch[batch] !== count) {
+  if (worklist.summary.pending !== actualPending || worklist.summary.pending !== 108) {
+    throw new Error(
+      `WORKLIST_SUMMARY_PENDING_MISMATCH: expected 108 (actual pending: ${actualPending}), got ${worklist.summary.pending}`
+    );
+  }
+
+  if (worklist.summary.adjudicated !== actualAdjudicated || worklist.summary.adjudicated !== 0) {
+    throw new Error(
+      `WORKLIST_SUMMARY_ADJUDICATED_MISMATCH: expected 0 (actual adjudicated: ${actualAdjudicated}), got ${worklist.summary.adjudicated}`
+    );
+  }
+
+  // Validate batch counts against actual recomputed and canonical expected
+  for (const [batch, expectedCount] of Object.entries(EXPECTED_BATCH_COUNTS) as [ReauditBatch, number][]) {
+    if (actualByBatch[batch] !== expectedCount) {
       throw new Error(
-        `WORKLIST_SUMMARY_BATCH_COUNT_MISMATCH:${batch}: expected ${count}, got ${worklist.summary.byBatch[batch]}`
+        `WORKLIST_ACTUAL_BATCH_COUNT_MISMATCH:${batch}: expected ${expectedCount}, actual cases have ${actualByBatch[batch]}`
+      );
+    }
+    if (worklist.summary.byBatch[batch] !== expectedCount) {
+      throw new Error(
+        `WORKLIST_SUMMARY_BATCH_COUNT_MISMATCH:${batch}: expected ${expectedCount}, summary declared ${worklist.summary.byBatch[batch]}`
+      );
+    }
+  }
+
+  // Validate category counts against actual recomputed and canonical expected
+  for (const [cat, expectedCount] of Object.entries(EXPECTED_CATEGORY_COUNTS)) {
+    if (actualByCategory[cat] !== expectedCount) {
+      throw new Error(
+        `WORKLIST_ACTUAL_CATEGORY_COUNT_MISMATCH:${cat}: expected ${expectedCount}, actual cases have ${actualByCategory[cat]}`
+      );
+    }
+    if (worklist.summary.byCategory[cat] !== expectedCount) {
+      throw new Error(
+        `WORKLIST_SUMMARY_CATEGORY_COUNT_MISMATCH:${cat}: expected ${expectedCount}, summary declared ${worklist.summary.byCategory[cat]}`
       );
     }
   }

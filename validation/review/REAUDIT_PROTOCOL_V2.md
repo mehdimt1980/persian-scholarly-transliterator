@@ -2,7 +2,19 @@
 
 ## 1. Purpose & Core Principles
 
-The **Phase 4.6B Systematic Re-Audit** establishes new, independent, release-authoritative ground truth for all 108 externally acquired benchmark candidates under the [Canonical-vs-Rendering Contract](./CANONICAL_RENDERING_CONTRACT.md) and [Validation V2 Specification](../V2_SCHEMA.md).
+The **Phase 4.6B Systematic Re-Audit** establishes proposed V2 scholarly ground truth that remains pending human governance sign-off and gold freeze for all 108 externally acquired benchmark candidates under the [Canonical-vs-Rendering Contract](./CANONICAL_RENDERING_CONTRACT.md) and [Validation V2 Specification](../V2_SCHEMA.md).
+
+```text
+Blind specialist re-audit
+        ↓
+Proposed V2 benchmark
+        ↓
+Human governance sign-off
+        ↓
+Gold freeze
+        ↓
+Phase 4.6C engine evaluation
+```
 
 The re-audit must be conducted under strict **anti-anchoring** and **engine-blindness** discipline. Specifically, all new decisions must be established independently of:
 - Current engine output;
@@ -79,7 +91,7 @@ Reviewers must adjudicate the **exact Persian surface string** supplied in the c
 The primary project invariant is:
 $$\text{FALSE\_AUTHORITATIVE} = 0$$
 
-- If an unvocalized Persian word has multiple plausible readings in the absence of context (e.g. `کرم` -> *karam* / *kirm* / *kram*), the mandatory outcome is **`REVIEW_REQUIRED`**.
+- If an unvocalized Persian surface supports multiple materially different scholarly readings and context does not disambiguate them, the mandatory disposition is **`REVIEW_REQUIRED`**.
 - `REVIEW_REQUIRED` is a successful, safe scholarly outcome. Reviewers must never guess a single reading to force a `FINAL` disposition.
 - Disjunctive candidate readings may be recorded in reviewer notes for discrepancy tracking, but must **not** populate authoritative output fields in V2 gold data.
 
@@ -158,3 +170,65 @@ The 108 candidates are organized into 5 deterministic review batches:
 | **Total** | | **All 10 Categories** | **108** |
 
 All 108 cases start in state **`PENDING`** with **`decision: null`** in [`validation/review/reaudit-worklist.v2.json`](./reaudit-worklist.v2.json).
+
+---
+
+## 10. Future Decision Contract (Batches A–E)
+
+During subsequent batch adjudication PRs, each reviewed case will transition from `reviewState = "PENDING"` to `reviewState = "COMPLETED"` with a populated `decision` object adhering strictly to the contract below.
+
+### A. Contract for `disposition = "FINAL"`
+```json
+{
+  "disposition": "FINAL",
+  "scholarlyCanonical": "source-faithful transliteration with full diacritics",
+  "renderedOutput": "profile-formatted publication string",
+  "readingEvidence": [
+    {
+      "source": "Dehkhoda / Steingass / Academic Lexicon",
+      "citation": "Full scholarly citation",
+      "locator": "Page / entry headword"
+    }
+  ],
+  "renderingEvidence": [
+    {
+      "source": "Cambridge IJMES Guide / Word List",
+      "rule": "Specific rendering rule citation"
+    }
+  ],
+  "reviewNote": "Explanatory scholarly rationale",
+  "reviewer": {
+    "name": "Specialist Reviewer",
+    "type": "AI_SPECIALIST",
+    "reviewedAt": "2026-10-04"
+  }
+}
+```
+
+### B. Contract for `disposition = "REVIEW_REQUIRED"` and `UNRESOLVED`
+For non-FINAL cases:
+- Authoritative `scholarlyCanonical` must be **absent**.
+- Authoritative `renderedOutput` must be **absent**.
+- Reading and rendering evidence documenting the ambiguity or gap remain mandatory.
+- Non-authoritative candidate alternative readings may only appear in `nonAuthoritativeAlternatives`:
+```json
+{
+  "disposition": "REVIEW_REQUIRED",
+  "nonAuthoritativeAlternatives": [
+    { "reading": "reading_a", "source": "Citation A" },
+    { "reading": "reading_b", "source": "Citation B" }
+  ],
+  "readingEvidence": [...],
+  "renderingEvidence": [...],
+  "reviewNote": "Unvocalized Persian source supports multiple distinct lexical readings.",
+  "reviewer": {
+    "name": "Specialist Reviewer",
+    "type": "AI_SPECIALIST",
+    "reviewedAt": "2026-10-04"
+  }
+}
+```
+
+> **Important Boundary:**
+> - In this PR (PR #17), all 108 cases remain `decision = null` and `reviewState = "PENDING"`.
+> - Subsequent batch adjudication PRs will use a batch-aware validator to verify populated decisions against this contract.
