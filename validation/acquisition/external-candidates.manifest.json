@@ -4,6 +4,7 @@
   "status": "PENDING_HUMAN_REVIEW",
   "sourcePolicy": "INDEPENDENT_EXTERNAL",
   "candidateFile": "external-candidates.v1.json",
+  "verificationLedgerFile": "source-verification.v1.json",
   "acquiredAt": "2026-10-04",
-  "description": "Independent external scholarly benchmark candidate set (150 candidates across 13 categories) acquired from Encyclopaedia Iranica, OpenAlex, Crossref, Library catalogs, and Academic Lexica."
+  "description": "Independent external scholarly benchmark candidate set (108 verified candidates across 10 categories) acquired from Encyclopaedia Iranica, Academic Lexica, and Library/Entity Authorities."
 }

@@ -2,7 +2,8 @@ import {
   AcquisitionCoverageMetrics,
   AcquisitionManifest,
   DeduplicationResult,
-  OverlapAuditResult
+  OverlapAuditResult,
+  ProvenanceAuditResult
 } from './types';
 
 export function generateAcquisitionReport(
@@ -10,9 +11,12 @@ export function generateAcquisitionReport(
   coverage: AcquisitionCoverageMetrics,
   deduplication: DeduplicationResult,
   overlap: OverlapAuditResult,
+  provenance?: ProvenanceAuditResult,
   errors: string[] = []
 ): string {
   const lines: string[] = [];
+
+  const isPassing = errors.length === 0 && !deduplication.hasBlockingDuplicates && (provenance ? provenance.valid : true);
 
   lines.push('===============================================================');
   lines.push(` External Benchmark Acquisition Report — ${manifest.id} (${manifest.version})`);
@@ -23,11 +27,13 @@ export function generateAcquisitionReport(
   lines.push(`Acquisition Date:   ${manifest.acquiredAt}`);
   lines.push('---------------------------------------------------------------');
   lines.push('Corpus Integrity & Pipeline Status:');
-  lines.push(`  Acquisition Integrity:       ${errors.length === 0 && !deduplication.hasBlockingDuplicates ? 'PASS' : 'FAIL'}`);
+  lines.push(`  Acquisition Integrity:       ${isPassing ? 'PASS' : 'FAIL'}`);
   lines.push('  Human Review Required:       YES (Pending Phase 4.6B)');
   lines.push('  Engine Evaluation Performed: NO (Frozen before Phase 4.6C)');
   lines.push('---------------------------------------------------------------');
   lines.push(`Total Acquired Candidates:     ${coverage.totalCandidates}`);
+  lines.push(`Verified Candidates:           ${coverage.verifiedCandidateCount} / ${coverage.totalCandidates}`);
+  lines.push(`Direct Source-Text Attested:   ${coverage.sourceTextAttestedCount} / ${coverage.totalCandidates}`);
   lines.push(`Multi-Source Evidence Items:   ${coverage.multiSourceCount} (${Math.round((coverage.multiSourceCount / (coverage.totalCandidates || 1)) * 100)}%)`);
   lines.push(`Observed Romanizations Stored: ${coverage.observedRomanizationCount}`);
   lines.push(`Encyclopaedia Iranica Sources: ${coverage.iranicaCount}`);
@@ -72,6 +78,15 @@ export function generateAcquisitionReport(
     for (const f of deduplication.duplicateFindings) {
       lines.push(`    * [${f.type}] ${f.candidateId} vs ${f.duplicateOfId}: ${f.detail} (permitted: ${f.permittedWithDistinctEvidence})`);
     }
+  }
+
+  if (provenance) {
+    lines.push('---------------------------------------------------------------');
+    lines.push('Provenance Verification Audit:');
+    lines.push(`  Verified Candidates:         ${provenance.verifiedCount}`);
+    lines.push(`  Unverified / Mismatched:     ${provenance.unverifiedCount}`);
+    lines.push(`  Rejected Circular:           ${provenance.rejectedCount}`);
+    lines.push(`  Provenance Integrity:        ${provenance.valid ? 'PASS  ✓' : 'FAIL'}`);
   }
 
   if (errors.length > 0) {

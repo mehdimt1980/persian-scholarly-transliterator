@@ -11,6 +11,11 @@ import {
   IndependenceClass,
   ProposedProfile,
   RomanizationSystem,
+  SourceVerification,
+  SourceVerificationEntry,
+  SourceVerificationLedger,
+  SourceVerificationStatus,
+  VerificationMethod,
   WorkMetadata
 } from './types';
 
@@ -71,6 +76,34 @@ export const IndependenceClassSchema = z.enum([
   'REJECT_CIRCULAR'
 ]);
 
+export const SourceVerificationStatusSchema = z.enum([
+  'VERIFIED',
+  'UNVERIFIED',
+  'REJECTED'
+]);
+
+export const VerificationMethodSchema = z.enum([
+  'URL_CONTENT',
+  'API_RECORD',
+  'LIBRARY_RECORD',
+  'AUTHORITY_RECORD',
+  'DICTIONARY_PAGE',
+  'DIGITIZED_SOURCE'
+]);
+
+export const SourceVerificationSchema = z.object({
+  status: SourceVerificationStatusSchema,
+  method: VerificationMethodSchema,
+  verifiedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}/, 'verifiedAt must start with YYYY-MM-DD'),
+  canonicalUrl: z.string().url().optional(),
+  observedSourceTitle: z.string().optional(),
+  locator: z.string().optional(),
+  attestedSourceText: z.string().optional(),
+  attestedRomanization: z.string().optional(),
+  externalRecordId: z.string().optional(),
+  note: z.string().optional()
+});
+
 export const AcquisitionSourceSchema = z.object({
   kind: AcquisitionSourceKindSchema,
   title: z.string().min(1, 'Source title must not be empty'),
@@ -81,7 +114,8 @@ export const AcquisitionSourceSchema = z.object({
   accessedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'accessedAt must be YYYY-MM-DD'),
   evidenceRole: EvidenceRoleSchema,
   observedRomanization: z.string().optional(),
-  romanizationSystem: RomanizationSystemSchema.optional()
+  romanizationSystem: RomanizationSystemSchema.optional(),
+  verification: SourceVerificationSchema.optional()
 }).superRefine((data, ctx) => {
   // Require structured citation if URL is omitted
   if (!data.url && (!data.citation || data.citation.trim() === '')) {
@@ -127,6 +161,7 @@ export const AcquisitionSourceSchema = z.object({
 });
 
 export const WorkMetadataSchema = z.object({
+  title: z.string().optional(),
   authorDisplay: z.string().optional(),
   publicationYear: z.number().int().optional(),
   doi: z.string().optional(),
@@ -202,6 +237,34 @@ export const ExternalCorpusCandidateSchema = z.object({
   }
 });
 
+export const SourceVerificationEntrySchema = z.object({
+  candidateId: z.string().min(1),
+  sourceIndex: z.number().int().nonnegative(),
+  status: SourceVerificationStatusSchema,
+  verificationMethod: VerificationMethodSchema,
+  verifiedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}/),
+  requestedIdentifier: z.string().optional(),
+  resolvedIdentifier: z.string().optional(),
+  canonicalUrl: z.string().url().optional(),
+  observedSourceTitle: z.string().optional(),
+  attestedSourceText: z.string().optional(),
+  attestedRomanization: z.string().optional(),
+  locator: z.string().optional(),
+  note: z.string().optional()
+});
+
+export const SourceVerificationLedgerSchema = z.object({
+  id: z.string().min(1).optional(),
+  version: z.string().min(1),
+  verifiedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}/).optional(),
+  generatedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}/).optional(),
+  verifiedCount: z.number().optional(),
+  rejectedCount: z.number().optional(),
+  unverifiedCount: z.number().optional(),
+  entries: z.array(SourceVerificationEntrySchema).optional(),
+  receipts: z.array(SourceVerificationEntrySchema).optional()
+});
+
 export const AcquisitionManifestSchema = z.object({
   id: z.string().min(1),
   version: z.string().min(1),
@@ -210,6 +273,7 @@ export const AcquisitionManifestSchema = z.object({
   }),
   sourcePolicy: z.literal('INDEPENDENT_EXTERNAL'),
   candidateFile: z.string().min(1),
+  verificationLedgerFile: z.string().optional(),
   acquiredAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'acquiredAt must be YYYY-MM-DD'),
   description: z.string().min(1)
 }).strict().superRefine((data: any, ctx) => {
@@ -236,4 +300,8 @@ export function validateAcquisitionManifest(data: unknown): AcquisitionManifest 
 
 export function validateAcquisitionCorpusData(data: unknown): AcquisitionCorpusData {
   return ExternalCandidatesFileSchema.parse(data) as AcquisitionCorpusData;
+}
+
+export function validateSourceVerificationLedger(data: unknown): SourceVerificationLedger {
+  return SourceVerificationLedgerSchema.parse(data) as SourceVerificationLedger;
 }

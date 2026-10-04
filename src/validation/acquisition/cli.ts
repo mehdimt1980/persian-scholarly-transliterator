@@ -49,7 +49,17 @@ export function runAcquisitionCli(options: CliOptions = {}): AcquisitionValidati
   const candidateJson = JSON.parse(fs.readFileSync(candidateFilePath, 'utf-8'));
   const rawCandidates = Array.isArray(candidateJson) ? candidateJson : candidateJson.candidates;
 
-  const result = validateAcquisitionCandidates(manifestData, rawCandidates);
+  let ledgerData: any = undefined;
+  if (manifestData.verificationLedgerFile) {
+    const ledgerPath = path.isAbsolute(manifestData.verificationLedgerFile)
+      ? manifestData.verificationLedgerFile
+      : path.join(manifestDir, manifestData.verificationLedgerFile);
+    if (fs.existsSync(ledgerPath)) {
+      ledgerData = JSON.parse(fs.readFileSync(ledgerPath, 'utf-8'));
+    }
+  }
+
+  const result = validateAcquisitionCandidates(manifestData, rawCandidates, ledgerData);
 
   if (options.exportSheet) {
     const csv = generateReviewSheetCsv(result.candidates, result.overlapAudit);

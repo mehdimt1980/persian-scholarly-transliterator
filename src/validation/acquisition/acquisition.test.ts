@@ -5,37 +5,93 @@ import { describe, expect, it } from 'vitest';
 import { computeAcquisitionCoverage } from './coverage';
 import { deduplicateCandidates } from './deduplicate';
 import { auditProjectOverlap } from './overlapAudit';
+import { auditProvenanceIntegrity } from './provenanceAudit';
 import { generateAcquisitionReport } from './report';
 import { generateReviewSheetCsv } from './reviewSheet';
 import {
   AcquisitionManifestSchema,
   AcquisitionSourceSchema,
   ExternalCorpusCandidateSchema,
+  SourceVerificationEntrySchema,
+  SourceVerificationLedgerSchema,
   validateAcquisitionCorpusData,
   validateAcquisitionManifest,
   validateCandidate
 } from './schema';
-import { ExternalCorpusCandidate } from './types';
+import { ExternalCorpusCandidate, SourceVerificationLedger } from './types';
 import { validateAcquisitionCandidates } from './validateCandidates';
 import { runAcquisitionCli } from './cli';
 
 describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
   const validCandidate: ExternalCorpusCandidate = {
     id: 'cand-test-01',
-    sourceText: 'نوسازی',
+    sourceText: 'مشروطه',
     proposedProfile: 'ijmes_full',
     category: 'TERM',
     reviewStatus: 'PENDING_HUMAN_REVIEW',
     independenceClass: 'FULLY_EXTERNAL',
     sources: [
       {
+        kind: 'ACADEMIC_DICTIONARY',
+        title: 'Dehkhoda Dictionary',
+        citation: 'Loghatnāmeh-ye Dehkhodā, Headword: مشروطه',
+        accessedAt: '2026-10-04',
+        evidenceRole: 'SOURCE_TEXT',
+        verification: {
+          status: 'VERIFIED',
+          method: 'DICTIONARY_PAGE',
+          verifiedAt: '2026-10-04T10:00:00Z',
+          observedSourceTitle: 'Dehkhoda Dictionary',
+          attestedSourceText: 'مشروطه',
+          locator: 'Headword: مشروطه'
+        }
+      },
+      {
         kind: 'ENCYCLOPAEDIA_IRANICA',
-        title: 'MODERNIZATION IN PERSIA',
-        url: 'https://www.iranicaonline.org/articles/modernization-in-persia',
+        title: 'CONSTITUTIONAL REVOLUTION',
+        url: 'https://www.iranicaonline.org/articles/constitutional-revolution-index',
         accessedAt: '2026-10-04',
         evidenceRole: 'IDENTITY',
-        observedRomanization: 'now-sāzī',
-        romanizationSystem: 'IRANICA'
+        observedRomanization: 'mašrūṭa',
+        romanizationSystem: 'IRANICA',
+        verification: {
+          status: 'VERIFIED',
+          method: 'URL_CONTENT',
+          verifiedAt: '2026-10-04T10:00:00Z',
+          canonicalUrl: 'https://www.iranicaonline.org/articles/constitutional-revolution-index',
+          observedSourceTitle: 'CONSTITUTIONAL REVOLUTION',
+          attestedRomanization: 'mašrūṭa'
+        }
+      }
+    ]
+  };
+
+  const validLedger: SourceVerificationLedger = {
+    version: '1.0.0',
+    generatedAt: '2026-10-04T10:00:00Z',
+    verifiedCount: 2,
+    rejectedCount: 0,
+    unverifiedCount: 0,
+    receipts: [
+      {
+        candidateId: 'cand-test-01',
+        sourceIndex: 0,
+        status: 'VERIFIED',
+        verificationMethod: 'DICTIONARY_PAGE',
+        verifiedAt: '2026-10-04T10:00:00Z',
+        observedSourceTitle: 'Dehkhoda Dictionary',
+        attestedSourceText: 'مشروطه',
+        locator: 'Headword: مشروطه'
+      },
+      {
+        candidateId: 'cand-test-01',
+        sourceIndex: 1,
+        status: 'VERIFIED',
+        verificationMethod: 'URL_CONTENT',
+        verifiedAt: '2026-10-04T10:00:00Z',
+        canonicalUrl: 'https://www.iranicaonline.org/articles/constitutional-revolution-index',
+        observedSourceTitle: 'CONSTITUTIONAL REVOLUTION',
+        attestedRomanization: 'mašrūṭa'
       }
     ]
   };
@@ -44,21 +100,21 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
     expect(() => {
       validateCandidate({
         ...validCandidate,
-        expected: { canonical: 'nowsāzī' }
+        expected: { canonical: 'mašrūṭah' }
       } as any);
     }).toThrow(/unrecognized_key|Unrecognized key|expected output/);
 
     expect(() => {
       validateCandidate({
         ...validCandidate,
-        canonical: 'nowsāzī'
+        canonical: 'mašrūṭah'
       } as any);
     }).toThrow(/unrecognized_key|Unrecognized key|expected output/);
 
     expect(() => {
       validateCandidate({
         ...validCandidate,
-        finalText: 'nowsāzī'
+        finalText: 'mašrūṭah'
       } as any);
     }).toThrow(/unrecognized_key|Unrecognized key|expected output/);
   });
@@ -100,7 +156,7 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
     expect(() => {
       validateCandidate({
         ...validCandidate,
-        sourceText: ' نوسازی '
+        sourceText: ' مشروطه '
       });
     }).toThrow(/accidental leading or trailing whitespace/);
   });
@@ -164,11 +220,11 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
     expect(() => {
       AcquisitionSourceSchema.parse({
         kind: 'ENCYCLOPAEDIA_IRANICA',
-        title: 'IRANICA ARTICLE',
-        url: 'https://www.iranicaonline.org/articles/sample',
+        title: 'CONSTITUTIONAL REVOLUTION',
+        url: 'https://www.iranicaonline.org/articles/constitutional-revolution-index',
         accessedAt: '2026-10-04',
         evidenceRole: 'IDENTITY',
-        observedRomanization: 'now-sāzī'
+        observedRomanization: 'mašrūṭa'
         // missing romanizationSystem
       });
     }).toThrow(/declare romanizationSystem/);
@@ -176,11 +232,11 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
     expect(() => {
       AcquisitionSourceSchema.parse({
         kind: 'ENCYCLOPAEDIA_IRANICA',
-        title: 'IRANICA ARTICLE',
-        url: 'https://www.iranicaonline.org/articles/sample',
+        title: 'CONSTITUTIONAL REVOLUTION',
+        url: 'https://www.iranicaonline.org/articles/constitutional-revolution-index',
         accessedAt: '2026-10-04',
         evidenceRole: 'IDENTITY',
-        observedRomanization: 'now-sāzī',
+        observedRomanization: 'mašrūṭa',
         romanizationSystem: 'IRANICA'
       });
     }).not.toThrow();
@@ -261,7 +317,6 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
   });
 
   it('13. acquisition validation performs no transliteration engine execution', () => {
-    // Validating candidates should be pure data validation without invoking the transliterator engine
     const manifest = {
       id: 'test-manifest',
       version: '1.0.0',
@@ -275,7 +330,6 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
     const res = validateAcquisitionCandidates(manifest, [validCandidate]);
     expect(res.success).toBe(true);
     expect(res.candidates.length).toBe(1);
-    // No output or transliteration artifact attached
     expect((res.candidates[0] as any).output).toBeUndefined();
   });
 
@@ -371,13 +425,415 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
     }).toThrow(/generic source title/);
   });
 
-  it('18. validates the committed independent external candidate dataset cleanly', () => {
+  // --- Provenance Integrity Focus Tests (Section 20 & 21) ---
+
+  it('18. accepted candidate requires at least one VERIFIED source in verification ledger', () => {
+    const emptyLedger: SourceVerificationLedger = {
+      version: '1.0.0',
+      generatedAt: '2026-10-04T10:00:00Z',
+      verifiedCount: 0,
+      rejectedCount: 0,
+      unverifiedCount: 0,
+      receipts: []
+    };
+    const audit = auditProvenanceIntegrity([validCandidate], emptyLedger);
+    expect(audit.passed).toBe(false);
+    expect(audit.diagnostics.some(d => d.code === 'UNVERIFIED_ACQUISITION_SOURCE')).toBe(true);
+  });
+
+  it('19. accepted candidate requires direct sourceText attestation in verified receipt', () => {
+    const noSourceTextLedger: SourceVerificationLedger = {
+      version: '1.0.0',
+      generatedAt: '2026-10-04T10:00:00Z',
+      verifiedCount: 1,
+      rejectedCount: 0,
+      unverifiedCount: 0,
+      receipts: [
+        {
+          candidateId: 'cand-test-01',
+          sourceIndex: 1,
+          status: 'VERIFIED',
+          verificationMethod: 'URL_CONTENT',
+          verifiedAt: '2026-10-04T10:00:00Z',
+          canonicalUrl: 'https://www.iranicaonline.org/articles/constitutional-revolution-index',
+          observedSourceTitle: 'CONSTITUTIONAL REVOLUTION',
+          attestedRomanization: 'mašrūṭa'
+          // no attestedSourceText
+        }
+      ]
+    };
+    const audit = auditProvenanceIntegrity([validCandidate], noSourceTextLedger);
+    expect(audit.passed).toBe(false);
+    expect(audit.diagnostics.some(d => d.code === 'MISSING_SOURCE_TEXT_ATTESTATION')).toBe(true);
+  });
+
+  it('20. attestedSourceText must equal candidate sourceText exactly after Unicode normalization', () => {
+    const mismatchLedger: SourceVerificationLedger = {
+      version: '1.0.0',
+      generatedAt: '2026-10-04T10:00:00Z',
+      verifiedCount: 1,
+      rejectedCount: 0,
+      unverifiedCount: 0,
+      receipts: [
+        {
+          candidateId: 'cand-test-01',
+          sourceIndex: 0,
+          status: 'VERIFIED',
+          verificationMethod: 'DICTIONARY_PAGE',
+          verifiedAt: '2026-10-04T10:00:00Z',
+          observedSourceTitle: 'Dehkhoda Dictionary',
+          attestedSourceText: 'مشروطیت' // Mismatched text
+        }
+      ]
+    };
+    const audit = auditProvenanceIntegrity([validCandidate], mismatchLedger);
+    expect(audit.passed).toBe(false);
+    expect(audit.diagnostics.some(d => d.code === 'SOURCE_TEXT_ATTESTATION_MISMATCH')).toBe(true);
+  });
+
+  it('21. IDENTITY-only candidate cannot satisfy sourceText requirement', () => {
+    const identityOnlyCandidate: ExternalCorpusCandidate = {
+      id: 'cand-identity-only',
+      sourceText: 'نوسازی',
+      proposedProfile: 'ijmes_full',
+      category: 'TERM',
+      reviewStatus: 'PENDING_HUMAN_REVIEW',
+      independenceClass: 'FULLY_EXTERNAL',
+      sources: [
+        {
+          kind: 'ENCYCLOPAEDIA_IRANICA',
+          title: 'CITIES iv. Modern Urbanization and Modernization in Persia',
+          url: 'https://www.iranicaonline.org/articles/cities-iv',
+          accessedAt: '2026-10-04',
+          evidenceRole: 'IDENTITY',
+          observedRomanization: 'now-sāzī',
+          romanizationSystem: 'IRANICA'
+        }
+      ]
+    };
+
+    const identityLedger: SourceVerificationLedger = {
+      version: '1.0.0',
+      generatedAt: '2026-10-04T10:00:00Z',
+      verifiedCount: 1,
+      rejectedCount: 0,
+      unverifiedCount: 0,
+      receipts: [
+        {
+          candidateId: 'cand-identity-only',
+          sourceIndex: 0,
+          status: 'VERIFIED',
+          verificationMethod: 'URL_CONTENT',
+          verifiedAt: '2026-10-04T10:00:00Z',
+          canonicalUrl: 'https://www.iranicaonline.org/articles/cities-iv',
+          observedSourceTitle: 'CITIES iv. Modern Urbanization and Modernization in Persia',
+          attestedRomanization: 'now-sāzī'
+        }
+      ]
+    };
+
+    const audit = auditProvenanceIntegrity([identityOnlyCandidate], identityLedger);
+    expect(audit.passed).toBe(false);
+    expect(audit.diagnostics.some(d => d.code === 'MISSING_SOURCE_TEXT_ATTESTATION')).toBe(true);
+  });
+
+  it('22. Latin observedRomanization alone cannot establish Persian sourceText', () => {
+    const latinSourceLedger: SourceVerificationLedger = {
+      version: '1.0.0',
+      generatedAt: '2026-10-04T10:00:00Z',
+      verifiedCount: 1,
+      rejectedCount: 0,
+      unverifiedCount: 0,
+      receipts: [
+        {
+          candidateId: 'cand-test-01',
+          sourceIndex: 0,
+          status: 'VERIFIED',
+          verificationMethod: 'URL_CONTENT',
+          verifiedAt: '2026-10-04T10:00:00Z',
+          attestedRomanization: 'mašrūṭa'
+          // No Persian script attested
+        }
+      ]
+    };
+    const audit = auditProvenanceIntegrity([validCandidate], latinSourceLedger);
+    expect(audit.passed).toBe(false);
+    expect(audit.diagnostics.some(d => d.code === 'MISSING_SOURCE_TEXT_ATTESTATION')).toBe(true);
+  });
+
+  it('23. UNVERIFIED source cannot freeze candidate', () => {
+    const unverifiedLedger: SourceVerificationLedger = {
+      version: '1.0.0',
+      generatedAt: '2026-10-04T10:00:00Z',
+      verifiedCount: 0,
+      rejectedCount: 0,
+      unverifiedCount: 1,
+      receipts: [
+        {
+          candidateId: 'cand-test-01',
+          sourceIndex: 0,
+          status: 'UNVERIFIED',
+          verificationMethod: 'DICTIONARY_PAGE',
+          verifiedAt: '2026-10-04T10:00:00Z',
+          attestedSourceText: 'مشروطه'
+        }
+      ]
+    };
+    const audit = auditProvenanceIntegrity([validCandidate], unverifiedLedger);
+    expect(audit.passed).toBe(false);
+    expect(audit.diagnostics.some(d => d.code === 'UNVERIFIED_ACQUISITION_SOURCE')).toBe(true);
+  });
+
+  it('24. malformed verification receipt rejected by schema', () => {
+    expect(() => {
+      SourceVerificationEntrySchema.parse({
+        candidateId: 'cand-1',
+        sourceIndex: 0,
+        status: 'UNKNOWN_STATUS',
+        verificationMethod: 'URL_CONTENT',
+        verifiedAt: '2026-10-04'
+      });
+    }).toThrow();
+
+    expect(() => {
+      SourceVerificationLedgerSchema.parse({
+        version: '1.0.0',
+        generatedAt: '2026-10-04',
+        receipts: [
+          {
+            candidateId: 'cand-1',
+            sourceIndex: -1,
+            status: 'VERIFIED',
+            verificationMethod: 'URL_CONTENT',
+            verifiedAt: '2026-10-04'
+          }
+        ]
+      });
+    }).toThrow();
+  });
+
+  it('25. verified DOI/OpenAlex metadata fixture requires matching returned title', () => {
+    const bibCandidate: ExternalCorpusCandidate = {
+      id: 'cand-bib-01',
+      sourceText: 'تاریخ بیداری ایرانیان',
+      proposedProfile: 'ijmes_title',
+      category: 'BOOK_TITLE',
+      reviewStatus: 'PENDING_HUMAN_REVIEW',
+      independenceClass: 'FULLY_EXTERNAL',
+      bibliographicMetadata: {
+        doi: '10.1000/182',
+        title: 'Tārīkh-i Bīdārī-yi Īrāniyān'
+      },
+      sources: [
+        {
+          kind: 'PEER_REVIEWED_PUBLICATION',
+          title: 'Article referencing book',
+          citation: 'Article referencing book, DOI: 10.1000/182',
+          accessedAt: '2026-10-04',
+          evidenceRole: 'SOURCE_TEXT'
+        }
+      ]
+    };
+
+    const mismatchedDoiLedger: SourceVerificationLedger = {
+      version: '1.0.0',
+      generatedAt: '2026-10-04T10:00:00Z',
+      verifiedCount: 1,
+      rejectedCount: 0,
+      unverifiedCount: 0,
+      receipts: [
+        {
+          candidateId: 'cand-bib-01',
+          sourceIndex: 0,
+          status: 'VERIFIED',
+          verificationMethod: 'API_RECORD',
+          verifiedAt: '2026-10-04T10:00:00Z',
+          requestedIdentifier: '10.1000/182',
+          resolvedIdentifier: '10.1000/182',
+          observedSourceTitle: 'Unrelated Article Title',
+          attestedSourceText: 'تاریخ بیداری ایرانیان'
+        }
+      ]
+    };
+
+    const audit = auditProvenanceIntegrity([bibCandidate], mismatchedDoiLedger);
+    expect(audit.passed).toBe(false);
+    expect(audit.diagnostics.some(d => d.code === 'SOURCE_TITLE_MISMATCH')).toBe(true);
+  });
+
+  it('26. wrong external identifier blocks candidate', () => {
+    const entityCandidate: ExternalCorpusCandidate = {
+      id: 'cand-ent-01',
+      sourceText: 'مصدق',
+      proposedProfile: 'ijmes_full',
+      category: 'PERSON',
+      reviewStatus: 'PENDING_HUMAN_REVIEW',
+      independenceClass: 'FULLY_EXTERNAL',
+      entityMetadata: {
+        authorityId: 'VIAF:12345',
+        englishLabel: 'Mohammad Mossadegh',
+        entityType: 'PERSON'
+      },
+      sources: [
+        {
+          kind: 'AUTHORITY_FILE',
+          title: 'VIAF Record',
+          url: 'https://viaf.org/viaf/12345',
+          accessedAt: '2026-10-04',
+          evidenceRole: 'SOURCE_TEXT'
+        }
+      ]
+    };
+
+    const idMismatchLedger: SourceVerificationLedger = {
+      version: '1.0.0',
+      generatedAt: '2026-10-04T10:00:00Z',
+      verifiedCount: 1,
+      rejectedCount: 0,
+      unverifiedCount: 0,
+      receipts: [
+        {
+          candidateId: 'cand-ent-01',
+          sourceIndex: 0,
+          status: 'VERIFIED',
+          verificationMethod: 'AUTHORITY_RECORD',
+          verifiedAt: '2026-10-04T10:00:00Z',
+          requestedIdentifier: 'VIAF:12345',
+          resolvedIdentifier: 'VIAF:99999', // Identifier mismatch
+          observedSourceTitle: 'VIAF Record',
+          attestedSourceText: 'مصدق'
+        }
+      ]
+    };
+
+    const audit = auditProvenanceIntegrity([entityCandidate], idMismatchLedger);
+    expect(audit.passed).toBe(false);
+    expect(audit.diagnostics.some(d => d.code === 'UNVERIFIED_EXTERNAL_IDENTIFIER')).toBe(true);
+  });
+
+  it('27. observedRomanization must be attested if retained', () => {
+    const mismatchRomLedger: SourceVerificationLedger = {
+      version: '1.0.0',
+      generatedAt: '2026-10-04T10:00:00Z',
+      verifiedCount: 2,
+      rejectedCount: 0,
+      unverifiedCount: 0,
+      receipts: [
+        {
+          candidateId: 'cand-test-01',
+          sourceIndex: 0,
+          status: 'VERIFIED',
+          verificationMethod: 'DICTIONARY_PAGE',
+          verifiedAt: '2026-10-04T10:00:00Z',
+          observedSourceTitle: 'Dehkhoda Dictionary',
+          attestedSourceText: 'مشروطه'
+        },
+        {
+          candidateId: 'cand-test-01',
+          sourceIndex: 1,
+          status: 'VERIFIED',
+          verificationMethod: 'URL_CONTENT',
+          verifiedAt: '2026-10-04T10:00:00Z',
+          canonicalUrl: 'https://www.iranicaonline.org/articles/constitutional-revolution-index',
+          observedSourceTitle: 'CONSTITUTIONAL REVOLUTION',
+          attestedRomanization: 'mashrooteh' // Mismatches mašrūṭa
+        }
+      ]
+    };
+
+    const audit = auditProvenanceIntegrity([validCandidate], mismatchRomLedger);
+    expect(audit.passed).toBe(false);
+    expect(audit.diagnostics.some(d => d.code === 'OBSERVED_ROMANIZATION_NOT_ATTESTED')).toBe(true);
+  });
+
+  it('28. wrong source title / canonical URL verification fails closed', () => {
+    const wrongUrlLedger: SourceVerificationLedger = {
+      version: '1.0.0',
+      generatedAt: '2026-10-04T10:00:00Z',
+      verifiedCount: 2,
+      rejectedCount: 0,
+      unverifiedCount: 0,
+      receipts: [
+        {
+          candidateId: 'cand-test-01',
+          sourceIndex: 0,
+          status: 'VERIFIED',
+          verificationMethod: 'DICTIONARY_PAGE',
+          verifiedAt: '2026-10-04T10:00:00Z',
+          observedSourceTitle: 'Dehkhoda Dictionary',
+          attestedSourceText: 'مشروطه'
+        },
+        {
+          candidateId: 'cand-test-01',
+          sourceIndex: 1,
+          status: 'VERIFIED',
+          verificationMethod: 'URL_CONTENT',
+          verifiedAt: '2026-10-04T10:00:00Z',
+          canonicalUrl: 'https://www.iranicaonline.org/articles/wrong-page', // Mismatched URL
+          observedSourceTitle: 'CONSTITUTIONAL REVOLUTION',
+          attestedRomanization: 'mašrūṭa'
+        }
+      ]
+    };
+
+    const audit = auditProvenanceIntegrity([validCandidate], wrongUrlLedger);
+    expect(audit.passed).toBe(false);
+    expect(audit.diagnostics.some(d => d.code === 'SOURCE_URL_MISMATCH')).toBe(true);
+  });
+
+  it('29. review sheet excludes unverified candidates', () => {
+    const unverifiedCandidate: ExternalCorpusCandidate = {
+      ...validCandidate,
+      id: 'cand-unverified-01',
+      reviewStatus: 'UNVERIFIED' as any
+    };
+
+    const csv = generateReviewSheetCsv([validCandidate, unverifiedCandidate]);
+    const lines = csv.trim().split('\n');
+    // Header + 1 valid candidate = 2 lines (unverified skipped)
+    expect(lines.length).toBe(2);
+    expect(csv).toContain('cand-test-01');
+    expect(csv).not.toContain('cand-unverified-01');
+  });
+
+  it('30. acquisition integrity fails if even one frozen candidate lacks source-text verification', () => {
+    const candidateA = { ...validCandidate, id: 'cand-pass' };
+    const candidateB = { ...validCandidate, id: 'cand-missing-src', sourceText: 'مشروطیت' };
+
+    const partialLedger: SourceVerificationLedger = {
+      version: '1.0.0',
+      generatedAt: '2026-10-04T10:00:00Z',
+      verifiedCount: 1,
+      rejectedCount: 0,
+      unverifiedCount: 0,
+      receipts: [
+        {
+          candidateId: 'cand-pass',
+          sourceIndex: 0,
+          status: 'VERIFIED',
+          verificationMethod: 'DICTIONARY_PAGE',
+          verifiedAt: '2026-10-04T10:00:00Z',
+          observedSourceTitle: 'Dehkhoda Dictionary',
+          attestedSourceText: 'مشروطه'
+        }
+      ]
+    };
+
+    const audit = auditProvenanceIntegrity([candidateA, candidateB], partialLedger);
+    expect(audit.passed).toBe(false);
+    expect(audit.diagnostics.some(d => d.candidateId === 'cand-missing-src')).toBe(true);
+  });
+
+  it('31. validates the committed independent external candidate dataset and ledger cleanly', () => {
     const result = runAcquisitionCli();
     expect(result.success).toBe(true);
-    expect(result.candidates.length).toBe(160);
-    expect(result.coverage.totalCandidates).toBe(160);
+    expect(result.candidates.length).toBe(108);
+    expect(result.coverage.totalCandidates).toBe(108);
     expect(result.overlapAudit.outOfSamplePercent).toBeGreaterThanOrEqual(70.0);
     expect(result.deduplication.hasBlockingDuplicates).toBe(false);
+    expect(result.provenanceAudit.passed).toBe(true);
+    expect(result.provenanceAudit.verifiedCandidateCount).toBe(108);
     expect(result.report).toContain('Acquisition Integrity:       PASS');
+    expect(result.report).toContain('Provenance Integrity:        PASS');
   });
 });

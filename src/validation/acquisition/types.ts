@@ -53,6 +53,32 @@ export type IndependenceClass =
   | 'EXTERNAL_SOURCE_PROJECT_TOPIC_OVERLAP'
   | 'REJECT_CIRCULAR';
 
+export type SourceVerificationStatus =
+  | 'VERIFIED'
+  | 'UNVERIFIED'
+  | 'REJECTED';
+
+export type VerificationMethod =
+  | 'URL_CONTENT'
+  | 'API_RECORD'
+  | 'LIBRARY_RECORD'
+  | 'AUTHORITY_RECORD'
+  | 'DICTIONARY_PAGE'
+  | 'DIGITIZED_SOURCE';
+
+export interface SourceVerification {
+  status: SourceVerificationStatus;
+  method: VerificationMethod;
+  verifiedAt: string;
+  canonicalUrl?: string;
+  observedSourceTitle?: string;
+  locator?: string;
+  attestedSourceText?: string;
+  attestedRomanization?: string;
+  externalRecordId?: string;
+  note?: string;
+}
+
 export interface AcquisitionSource {
   kind: AcquisitionSourceKind;
   title: string;
@@ -64,9 +90,11 @@ export interface AcquisitionSource {
   evidenceRole: EvidenceRole;
   observedRomanization?: string;
   romanizationSystem?: RomanizationSystem;
+  verification?: SourceVerification;
 }
 
 export interface WorkMetadata {
+  title?: string;
   authorDisplay?: string;
   publicationYear?: number;
   doi?: string;
@@ -91,7 +119,37 @@ export interface ExternalCorpusCandidate {
   tags?: string[];
   acquisitionNotes?: string;
   workMetadata?: WorkMetadata;
+  bibliographicMetadata?: WorkMetadata;
   entityMetadata?: EntityMetadata;
+}
+
+export interface SourceVerificationEntry {
+  candidateId: string;
+  sourceIndex: number;
+  status: SourceVerificationStatus;
+  verificationMethod: VerificationMethod;
+  verifiedAt: string;
+  requestedIdentifier?: string;
+  resolvedIdentifier?: string;
+  externalRecordId?: string;
+  canonicalUrl?: string;
+  observedSourceTitle?: string;
+  attestedSourceText?: string;
+  attestedRomanization?: string;
+  locator?: string;
+  note?: string;
+}
+
+export interface SourceVerificationLedger {
+  id?: string;
+  version: string;
+  verifiedAt?: string;
+  generatedAt?: string;
+  verifiedCount?: number;
+  rejectedCount?: number;
+  unverifiedCount?: number;
+  entries?: SourceVerificationEntry[];
+  receipts?: SourceVerificationEntry[];
 }
 
 export interface AcquisitionManifest {
@@ -100,6 +158,7 @@ export interface AcquisitionManifest {
   status: 'PENDING_HUMAN_REVIEW';
   sourcePolicy: 'INDEPENDENT_EXTERNAL';
   candidateFile: string;
+  verificationLedgerFile?: string;
   acquiredAt: string;
   description: string;
 }
@@ -107,6 +166,7 @@ export interface AcquisitionManifest {
 export interface AcquisitionCorpusData {
   manifest: AcquisitionManifest;
   candidates: ExternalCorpusCandidate[];
+  ledger?: SourceVerificationLedger;
 }
 
 export interface DuplicateFinding {
@@ -135,7 +195,7 @@ export interface OverlapAuditResult {
   testFixtureOverlapCount: number;
   outOfSampleCount: number;
   outOfSamplePercent: number;
-  targetSatisfied: boolean; // outOfSamplePercent >= 70%
+  targetSatisfied: boolean;
 }
 
 export interface AcquisitionCoverageMetrics {
@@ -151,6 +211,30 @@ export interface AcquisitionCoverageMetrics {
   iranicaCount: number;
   bibliographicSourceCount: number;
   rejectedCircularCount: number;
+  verifiedCandidateCount: number;
+  unverifiedCandidateCount: number;
+  sourceTextAttestedCount: number;
+  verifiedExternalIdCount: number;
+  verifiedIranicaCount: number;
+  verifiedDoiCount: number;
+  verifiedOpenAlexCount: number;
+}
+
+export interface ProvenanceDiagnostic {
+  code: string;
+  candidateId: string;
+  message: string;
+}
+
+export interface ProvenanceAuditResult {
+  passed: boolean;
+  valid: boolean;
+  verifiedCount: number;
+  verifiedCandidateCount: number;
+  unverifiedCount: number;
+  rejectedCount: number;
+  diagnostics: ProvenanceDiagnostic[];
+  errors: ProvenanceDiagnostic[];
 }
 
 export interface AcquisitionValidationResult {
@@ -159,6 +243,7 @@ export interface AcquisitionValidationResult {
   candidates: ExternalCorpusCandidate[];
   deduplication: DeduplicationResult;
   overlapAudit: OverlapAuditResult;
+  provenanceAudit: ProvenanceAuditResult;
   coverage: AcquisitionCoverageMetrics;
   errors: string[];
   report: string;

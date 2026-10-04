@@ -1,6 +1,7 @@
 import { computeAcquisitionCoverage } from './coverage';
 import { deduplicateCandidates } from './deduplicate';
 import { auditProjectOverlap } from './overlapAudit';
+import { auditProvenanceIntegrity } from './provenanceAudit';
 import { generateAcquisitionReport } from './report';
 import { validateAcquisitionManifest, validateCandidate } from './schema';
 import {
@@ -11,7 +12,8 @@ import {
 
 export function validateAcquisitionCandidates(
   manifestData: unknown,
-  candidatesData: unknown[]
+  candidatesData: unknown[],
+  ledgerData?: unknown
 ): AcquisitionValidationResult {
   const errors: string[] = [];
   let manifest: AcquisitionManifest;
@@ -34,16 +36,28 @@ export function validateAcquisitionCandidates(
     }
   }
 
+  let ledger: any = undefined;
+  if (ledgerData) {
+    ledger = ledgerData;
+  }
+
   const deduplication = deduplicateCandidates(validCandidates);
   const overlapAudit = auditProjectOverlap(validCandidates);
+  const provenanceAudit = auditProvenanceIntegrity(validCandidates, ledger);
   const coverage = computeAcquisitionCoverage(validCandidates);
 
   if (deduplication.hasBlockingDuplicates) {
     errors.push(`Deduplication audit found ${deduplication.duplicateFindings.filter(f => !f.permittedWithDistinctEvidence).length} blocking duplicate(s).`);
   }
 
-  const success = errors.length === 0 && !deduplication.hasBlockingDuplicates;
-  const report = generateAcquisitionReport(manifest, coverage, deduplication, overlapAudit, errors);
+  if (!provenanceAudit.valid) {
+    for (const pErr of provenanceAudit.errors) {
+      errors.push(`[${pErr.code}] ${pErr.message}`);
+    }
+  }
+
+  const success = errors.length === 0 && !deduplication.hasBlockingDuplicates && provenanceAudit.valid;
+  const report = generateAcquisitionReport(manifest, coverage, deduplication, overlapAudit, provenanceAudit, errors);
 
   return {
     success,
@@ -51,6 +65,7 @@ export function validateAcquisitionCandidates(
     candidates: validCandidates,
     deduplication,
     overlapAudit,
+    provenanceAudit,
     coverage,
     errors,
     report

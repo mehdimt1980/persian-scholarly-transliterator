@@ -37,7 +37,14 @@ export function generateReviewSheetCsv(
 
   const rows: string[] = [headers.join(',')];
 
-  for (const c of candidates) {
+  const validCandidates = candidates.filter((c) => {
+    if (c.reviewStatus !== 'PENDING_HUMAN_REVIEW') return false;
+    if (c.independenceClass === 'REJECT_CIRCULAR') return false;
+    const hasVerifiedSource = c.sources?.some((s) => s.verification?.status === 'VERIFIED');
+    return hasVerifiedSource;
+  });
+
+  for (const c of validCandidates) {
     const citations = c.sources
       .map((s) => s.citation || s.title)
       .filter(Boolean)

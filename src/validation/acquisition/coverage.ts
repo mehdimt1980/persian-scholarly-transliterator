@@ -62,6 +62,14 @@ export function computeAcquisitionCoverage(candidates: ExternalCorpusCandidate[]
   let bibliographicSourceCount = 0;
   let rejectedCircularCount = 0;
 
+  let verifiedCandidateCount = 0;
+  let unverifiedCandidateCount = 0;
+  let sourceTextAttestedCount = 0;
+  let verifiedExternalIdCount = 0;
+  let verifiedIranicaCount = 0;
+  let verifiedDoiCount = 0;
+  let verifiedOpenAlexCount = 0;
+
   for (const candidate of candidates) {
     if (categories[candidate.category] !== undefined) {
       categories[candidate.category]++;
@@ -84,6 +92,8 @@ export function computeAcquisitionCoverage(candidates: ExternalCorpusCandidate[]
     let hasObservedRom = false;
     let hasIranica = false;
     let hasBib = false;
+    let isCandidateVerified = false;
+    let hasSourceTextAttestation = false;
 
     for (const source of candidate.sources) {
       if (sourceKinds[source.kind] !== undefined) {
@@ -94,16 +104,43 @@ export function computeAcquisitionCoverage(candidates: ExternalCorpusCandidate[]
       }
       if (source.kind === 'ENCYCLOPAEDIA_IRANICA') {
         hasIranica = true;
+        if (source.verification?.status === 'VERIFIED') {
+          verifiedIranicaCount++;
+        }
       }
       if (source.kind === 'OPENALEX' || source.kind === 'CROSSREF' || source.kind === 'LIBRARY_CATALOG') {
         hasBib = true;
       }
+
+      if (source.verification?.status === 'VERIFIED') {
+        isCandidateVerified = true;
+        if (source.evidenceRole === 'SOURCE_TEXT' && source.verification.attestedSourceText) {
+          hasSourceTextAttestation = true;
+        }
+        if (source.verification.externalRecordId) {
+          verifiedExternalIdCount++;
+        }
+      }
+    }
+
+    if (isCandidateVerified) {
+      verifiedCandidateCount++;
+    } else {
+      unverifiedCandidateCount++;
+    }
+
+    if (hasSourceTextAttestation) {
+      sourceTextAttestedCount++;
     }
 
     if (hasObservedRom) observedRomanizationCount++;
     if (hasIranica) iranicaCount++;
     if (hasBib) bibliographicSourceCount++;
-    if (candidate.workMetadata) workMetadataCount++;
+    if (candidate.workMetadata) {
+      workMetadataCount++;
+      if (candidate.workMetadata.doi) verifiedDoiCount++;
+      if (candidate.workMetadata.openAlexId) verifiedOpenAlexCount++;
+    }
     if (candidate.entityMetadata) entityMetadataCount++;
   }
 
@@ -119,6 +156,13 @@ export function computeAcquisitionCoverage(candidates: ExternalCorpusCandidate[]
     entityMetadataCount,
     iranicaCount,
     bibliographicSourceCount,
-    rejectedCircularCount
+    rejectedCircularCount,
+    verifiedCandidateCount,
+    unverifiedCandidateCount,
+    sourceTextAttestedCount,
+    verifiedExternalIdCount,
+    verifiedIranicaCount,
+    verifiedDoiCount,
+    verifiedOpenAlexCount
   };
 }
