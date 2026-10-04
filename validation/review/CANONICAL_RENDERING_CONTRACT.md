@@ -8,6 +8,8 @@ During human governance review of Phase 4.6B, a conceptual ambiguity was identif
 
 This document establishes the authoritative contract separating these layers.
 
+> **Governing Principle:** This contract defines the relationship between canonical truth and rendering. It does not determine the exact scholarly canonical strings of the pending benchmark re-audit.
+
 ---
 
 ## Conceptual Architecture
@@ -33,9 +35,10 @@ Rendering Profile
 
 ### Core Invariant Rules
 
-1. **Rendering transforms presentation; it does not silently redefine scholarly canonical truth.**
-2. **A benchmark must not call a publication rendering "canonical" when it is actually evaluating presentation behavior.**
-3. **Scholarly canonical truth must be established independently of any runtime profile limitations.**
+1. **This contract defines the relationship between canonical truth and rendering. It does not determine the exact scholarly canonical strings of the pending benchmark re-audit.**
+2. **Rendering transforms presentation; it does not silently redefine scholarly canonical truth.**
+3. **A benchmark must not call a publication rendering "canonical" when it is actually evaluating presentation behavior.**
+4. **Scholarly canonical truth must be established independently of any runtime profile limitations.**
 
 ---
 
@@ -66,8 +69,8 @@ The **Publication Rendering** is a style-dependent, deterministic presentation t
 
 - **Diacritic Modification:** Removal of ordinary diacritics from proper nouns, places, institutions, or titles where mandated by a publication guide (e.g. IJMES proper-name policy).
 - **Capitalization:** Title case capitalization for book and article titles, preserving lowercase structural prefixes (`al-`, `wa-l-`) and minor conjunctions/prepositions (`va`, `dar`, `az`).
-- **Lexical Word List Exceptions:** Specific publisher-prescribed lexical forms (e.g. Cambridge IJMES Word List forms such as `zakat`, `ʿAshuraʾ`).
-- **Established English Presentation:** Widely recognized English conventional spellings (e.g. `Persepolis`, `Tehran`) **only where explicitly permitted and scoped by the active rendering policy**.
+- **Lexical Word List Exceptions:** Specific publisher-prescribed lexical forms where explicitly mandated (e.g. publisher word-list spellings; illustrative only, non-authoritative pending benchmark re-audit).
+- **Established English Presentation:** Widely recognized English conventional spellings **only where explicitly permitted and scoped by the active rendering policy** (illustrative only, non-authoritative pending benchmark re-audit).
 - **Bibliographic / Citation Formatting:** Field-specific formatting required for structured export (CSV, RIS, BibTeX).
 
 ### Prohibited Rendering Behaviors
