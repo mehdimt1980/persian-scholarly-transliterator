@@ -7,6 +7,8 @@ import {
   exactUnicodeMatch
 } from './evaluateCase';
 import {
+  AssistanceDecisionMetadataSchema,
+  isValidBibliographyFieldPath,
   validateBibliographyCase,
   validateBibliographyCorpus,
   validateCorpusManifest,
@@ -16,6 +18,7 @@ import {
 } from './schema';
 import { runSingleCase } from './runSingleCase';
 import { runBibliographyCase } from './runBibliographyCase';
+import { processBibliographyRecord } from '../domain/bibliography/processRecord';
 import {
   computeBibliographyValidationMetrics,
   computeCombinedValidationMetrics,
@@ -478,8 +481,57 @@ describe('Phase 4.5 Scholarly Corpus Validation Framework', () => {
     });
   });
 
-  describe('Bibliography Schemas & Case Runner (Section 10-13, 20.12-16)', () => {
-    it('rejects malformed bibliography record schema (25.14)', () => {
+  describe('Bibliography Schemas, Paths & Contract Alignment (Section 1-8)', () => {
+    it('validates exact production BibliographyFieldPath values (Section 4 & 8)', () => {
+      // Valid paths
+      expect(isValidBibliographyFieldPath('title')).toBe(true);
+      expect(isValidBibliographyFieldPath('containerTitle')).toBe(true);
+      expect(isValidBibliographyFieldPath('publisher')).toBe(true);
+      expect(isValidBibliographyFieldPath('place')).toBe(true);
+      expect(isValidBibliographyFieldPath('authors.0.literal')).toBe(true);
+      expect(isValidBibliographyFieldPath('editors.12.literal')).toBe(true);
+      expect(isValidBibliographyFieldPath('translators.2.literal')).toBe(true);
+
+      // Invalid paths
+      expect(isValidBibliographyFieldPath('year')).toBe(false);
+      expect(isValidBibliographyFieldPath('doi')).toBe(false);
+      expect(isValidBibliographyFieldPath('volume')).toBe(false);
+      expect(isValidBibliographyFieldPath('authors.0.given')).toBe(false);
+      expect(isValidBibliographyFieldPath('authors.0.family')).toBe(false);
+      expect(isValidBibliographyFieldPath('banana.foo')).toBe(false);
+      expect(isValidBibliographyFieldPath('authors.x.literal')).toBe(false);
+    });
+
+    it('validates production-aligned AssistanceDecisionMetadataSchema (Section 3 & 7)', () => {
+      const validAssistance = {
+        suggestionId: 'sugg_1',
+        provider: 'openai',
+        model: 'gpt-4o',
+        promptVersion: 'v1',
+        requestFingerprint: 'fp_123'
+      };
+
+      expect(() => AssistanceDecisionMetadataSchema.parse(validAssistance)).not.toThrow();
+
+      // Missing requestFingerprint
+      expect(() =>
+        AssistanceDecisionMetadataSchema.parse({
+          suggestionId: 'sugg_1',
+          provider: 'openai',
+          model: 'gpt-4o',
+          promptVersion: 'v1'
+        })
+      ).toThrow();
+
+      // Arbitrary / wrong keys
+      expect(() =>
+        AssistanceDecisionMetadataSchema.parse({
+          randomKey: 'foo'
+        })
+      ).toThrow();
+    });
+
+    it('rejects malformed bibliography record schema', () => {
       expect(() => {
         validateBibliographyCase({
           id: 'b-bad-rec',
@@ -498,7 +550,7 @@ describe('Phase 4.5 Scholarly Corpus Validation Framework', () => {
       }).toThrow();
     });
 
-    it('rejects bibliography field with disposition FINAL without finalText (20.13)', () => {
+    it('rejects bibliography field with disposition FINAL without finalText', () => {
       expect(() => {
         validateBibliographyCase({
           id: 'b-missing-finaltext',
@@ -529,7 +581,7 @@ describe('Phase 4.5 Scholarly Corpus Validation Framework', () => {
       }).toThrow(/must specify a non-empty/);
     });
 
-    it('rejects bibliography field with disposition PASSTHROUGH without finalText (20.14)', () => {
+    it('rejects bibliography field with disposition PASSTHROUGH without finalText', () => {
       expect(() => {
         validateBibliographyCase({
           id: 'b-missing-passthrough-text',
@@ -560,8 +612,7 @@ describe('Phase 4.5 Scholarly Corpus Validation Framework', () => {
       }).toThrow(/must specify a non-empty/);
     });
 
-
-    it('rejects invalid action-specific ReviewDecision fixture payloads (20.15)', () => {
+    it('rejects invalid action-specific ReviewDecision fixture payloads (Section 2)', () => {
       // SELECT_LEXICAL_READING without selectedAlternativeId
       expect(() => {
         validateBibliographyCase({
@@ -597,7 +648,7 @@ describe('Phase 4.5 Scholarly Corpus Validation Framework', () => {
         });
       }).toThrow();
 
-      // MANUAL_CANONICAL_OVERRIDE without manualCanonical
+      // MANUAL_CANONICAL_OVERRIDE without manualCanonicalTransliteration
       expect(() => {
         validateBibliographyCase({
           id: 'b-bad-action-override',
@@ -619,7 +670,7 @@ describe('Phase 4.5 Scholarly Corpus Validation Framework', () => {
               decision: {
                 issueId: 'iss_1',
                 action: 'MANUAL_CANONICAL_OVERRIDE'
-                // missing manualCanonical
+                // missing manualCanonicalTransliteration
               } as any
             }
           ],
@@ -633,10 +684,11 @@ describe('Phase 4.5 Scholarly Corpus Validation Framework', () => {
       }).toThrow();
     });
 
-    it('rejects invalid bibliography fieldPath (20.16)', () => {
+    it('rejects invalid bibliography fieldPath in decisions and expected fields (Section 4 & 5)', () => {
+      // In review decisions
       expect(() => {
         validateBibliographyCase({
-          id: 'b-bad-path',
+          id: 'b-bad-path-dec',
           record: {
             id: 'rec_1',
             type: 'BOOK',
@@ -651,7 +703,7 @@ describe('Phase 4.5 Scholarly Corpus Validation Framework', () => {
           reviewDecisions: [
             {
               recordId: 'rec_1',
-              fieldPath: 'banana.invalid_field' as any,
+              fieldPath: 'year' as any,
               decision: {
                 issueId: 'iss_1',
                 action: 'ACCEPT_IZAFAT'
@@ -666,9 +718,117 @@ describe('Phase 4.5 Scholarly Corpus Validation Framework', () => {
           }
         });
       }).toThrow(/Invalid bibliography fieldPath/);
+
+      // In expected.fields
+      expect(() => {
+        validateBibliographyCase({
+          id: 'b-bad-path-exp',
+          record: {
+            id: 'rec_1',
+            type: 'BOOK',
+            title: 'کتاب',
+            authors: [],
+            editors: [],
+            translators: [],
+            sourceRowIndex: 1,
+            sourceColumns: [],
+            passthrough: {}
+          },
+          expected: {
+            readiness: 'READY',
+            fields: {
+              'authors.0.given': {
+                disposition: 'FINAL',
+                finalText: 'Ali'
+              }
+            }
+          },
+          provenance: {
+            sources: [{ kind: 'PROJECT_REVIEW', citation: 'Test' }]
+          }
+        });
+      }).toThrow(/Invalid bibliography expected fieldPath/);
     });
 
-    it('classifies bibliography expected REVIEW_REQUIRED and actual INVALID as OVER_BLOCKED (20.12)', () => {
+    it('executes an end-to-end manual canonical override bibliography validation test (Section 6)', () => {
+      const record = {
+        id: 'rec_override',
+        type: 'BOOK' as const,
+        title: 'کرم',
+        authors: [],
+        editors: [],
+        translators: [],
+        sourceRowIndex: 1,
+        sourceColumns: [],
+        passthrough: {}
+      };
+
+      // 1. First process record without decisions to verify it produces a real review issue
+      const unreviewed = processBibliographyRecord(record, []);
+      expect(unreviewed.readiness).toBe('REVIEW_REQUIRED');
+      const titleIssue = unreviewed.fields['title'].reviewIssues[0];
+      expect(titleIssue).toBeDefined();
+
+      const bCase: BibliographyValidationCase = {
+        id: 'bib-test-override-e2e',
+        record,
+        reviewDecisions: [
+          {
+            recordId: 'rec_override',
+            fieldPath: 'title',
+            decision: {
+              issueId: titleIssue.id,
+              action: 'MANUAL_CANONICAL_OVERRIDE',
+              manualCanonicalTransliteration: 'kirm',
+              note: 'Scholar manual review decision'
+            }
+          }
+        ],
+        expected: {
+          readiness: 'READY',
+          fields: {
+            title: {
+              disposition: 'FINAL',
+              finalText: 'Kirm'
+            }
+          }
+        },
+        provenance: {
+          sources: [
+            {
+              kind: 'PROJECT_REVIEW',
+              citation: 'Manual override end-to-end test fixture'
+            }
+          ]
+        }
+      };
+
+      // 2. Verify it passes validation case schema
+      const validatedCase = validateBibliographyCase(bCase);
+      expect(validatedCase.reviewDecisions?.[0].decision.action).toBe('MANUAL_CANONICAL_OVERRIDE');
+      expect(
+        validatedCase.reviewDecisions?.[0].decision.manualCanonicalTransliteration
+      ).toBe('kirm');
+      expect(validatedCase.reviewDecisions?.[0].decision.note).toBe('Scholar manual review decision');
+
+      // 3. Process record through production pipeline with review decisions
+      const processed = processBibliographyRecord(
+        validatedCase.record,
+        validatedCase.reviewDecisions ?? []
+      );
+
+      expect(processed.readiness).toBe('READY');
+      expect(processed.fields['title'].status).toBe('USER_OVERRIDE');
+      expect(processed.fields['title'].finalText).toBe('Kirm');
+
+      // 4. Run through bibliography case evaluator
+      const res = runBibliographyCase(validatedCase);
+      expect(res.classification).toBe('CORRECT_AUTHORITATIVE');
+      expect(res.actualReadiness).toBe('READY');
+      expect(res.reasons.length).toBe(0);
+    });
+
+    it('classifies bibliography expected REVIEW_REQUIRED and actual INVALID as OVER_BLOCKED', () => {
       const bCase: BibliographyValidationCase = {
         id: 'bib-test-invalid-readiness',
         record: {
@@ -698,7 +858,7 @@ describe('Phase 4.5 Scholarly Corpus Validation Framework', () => {
       expect(result.classification).toBe('CORRECT_REVIEW_REQUIRED');
     });
 
-    it('classifies bibliography UNRESOLVED field becoming final as UNDER_BLOCKED (25.16)', () => {
+    it('classifies bibliography UNRESOLVED field becoming final as UNDER_BLOCKED', () => {
       const bCase: BibliographyValidationCase = {
         id: 'bib-test-unres-fail',
         record: {
@@ -723,13 +883,12 @@ describe('Phase 4.5 Scholarly Corpus Validation Framework', () => {
         }
       };
 
-      // Since 'کتاب' deterministically transliterates to 'kitāb' with copyable=true, expecting UNRESOLVED must fail as UNDER_BLOCKED
       const result = runBibliographyCase(bCase);
       expect(result.classification).toBe('UNDER_BLOCKED');
       expect(result.reasons[0]).toContain('Expected UNRESOLVED');
     });
 
-    it('does not assign fake BOOK_TITLE or ijmes_full to bibliography metrics (25.18)', () => {
+    it('does not assign fake BOOK_TITLE or ijmes_full to bibliography metrics', () => {
       const bibResults: BibliographyCaseEvaluationResult[] = [
         {
           caseId: 'b1',

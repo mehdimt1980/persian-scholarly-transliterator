@@ -266,31 +266,19 @@ export function validateReleaseTarget(target: unknown): 'PILOT' | 'RC' {
   return ReleaseTargetSchema.parse(target);
 }
 
-// Valid bibliography field paths
+// Exact production BibliographyFieldPath validation:
+// title | containerTitle | authors.<n>.literal | editors.<n>.literal | translators.<n>.literal | publisher | place
 export function isValidBibliographyFieldPath(fieldPath: string): boolean {
-  const topLevelPaths = [
-    'title',
-    'containerTitle',
-    'publisher',
-    'place',
-    'year',
-    'volume',
-    'issue',
-    'pageStart',
-    'pageEnd',
-    'doi',
-    'url',
-    'isbn',
-    'issn',
-    'language',
-    'notes'
-  ];
-
-  if (topLevelPaths.includes(fieldPath)) {
+  if (
+    fieldPath === 'title' ||
+    fieldPath === 'containerTitle' ||
+    fieldPath === 'publisher' ||
+    fieldPath === 'place'
+  ) {
     return true;
   }
 
-  const creatorMatch = fieldPath.match(/^(authors|editors|translators)\.(\d+)\.(literal|given|family)$/);
+  const creatorMatch = fieldPath.match(/^(authors|editors|translators)\.(\d+)\.literal$/);
   if (creatorMatch) {
     return true;
   }
@@ -336,46 +324,54 @@ export const BibliographyRecordSchema = z.object({
   passthrough: z.record(z.string())
 });
 
+export const AssistanceDecisionMetadataSchema = z.object({
+  suggestionId: z.string().min(1, 'suggestionId must not be empty'),
+  provider: z.string().min(1, 'provider must not be empty'),
+  model: z.string().min(1, 'model must not be empty'),
+  promptVersion: z.string().min(1, 'promptVersion must not be empty'),
+  requestFingerprint: z.string().min(1, 'requestFingerprint must not be empty')
+});
+
 export const ReviewDecisionSchema = z.discriminatedUnion('action', [
   z.object({
-    issueId: z.string().min(1),
+    issueId: z.string().min(1, 'issueId must not be empty'),
     action: z.literal('SELECT_LEXICAL_READING'),
     selectedAlternativeId: z.string().min(1, 'selectedAlternativeId required for SELECT_LEXICAL_READING'),
-    manualCanonical: z.undefined().optional(),
-    notes: z.string().optional(),
-    assistance: z.any().optional()
+    manualCanonicalTransliteration: z.undefined().optional(),
+    note: z.string().optional(),
+    assistance: AssistanceDecisionMetadataSchema.optional()
   }),
   z.object({
-    issueId: z.string().min(1),
+    issueId: z.string().min(1, 'issueId must not be empty'),
     action: z.literal('MANUAL_CANONICAL_OVERRIDE'),
-    manualCanonical: z.string().min(1, 'manualCanonical required for MANUAL_CANONICAL_OVERRIDE'),
+    manualCanonicalTransliteration: z.string().min(1, 'manualCanonicalTransliteration required for MANUAL_CANONICAL_OVERRIDE'),
     selectedAlternativeId: z.undefined().optional(),
-    notes: z.string().optional(),
-    assistance: z.any().optional()
+    note: z.string().optional(),
+    assistance: AssistanceDecisionMetadataSchema.optional()
   }),
   z.object({
-    issueId: z.string().min(1),
+    issueId: z.string().min(1, 'issueId must not be empty'),
     action: z.literal('ACCEPT_IZAFAT'),
     selectedAlternativeId: z.undefined().optional(),
-    manualCanonical: z.undefined().optional(),
-    notes: z.string().optional(),
-    assistance: z.any().optional()
+    manualCanonicalTransliteration: z.undefined().optional(),
+    note: z.string().optional(),
+    assistance: AssistanceDecisionMetadataSchema.optional()
   }),
   z.object({
-    issueId: z.string().min(1),
+    issueId: z.string().min(1, 'issueId must not be empty'),
     action: z.literal('REJECT_IZAFAT'),
     selectedAlternativeId: z.undefined().optional(),
-    manualCanonical: z.undefined().optional(),
-    notes: z.string().optional(),
-    assistance: z.any().optional()
+    manualCanonicalTransliteration: z.undefined().optional(),
+    note: z.string().optional(),
+    assistance: AssistanceDecisionMetadataSchema.optional()
   }),
   z.object({
-    issueId: z.string().min(1),
+    issueId: z.string().min(1, 'issueId must not be empty'),
     action: z.literal('SELECT_MORPHOLOGY'),
     selectedAlternativeId: z.string().min(1, 'selectedAlternativeId required for SELECT_MORPHOLOGY'),
-    manualCanonical: z.undefined().optional(),
-    notes: z.string().optional(),
-    assistance: z.any().optional()
+    manualCanonicalTransliteration: z.undefined().optional(),
+    note: z.string().optional(),
+    assistance: AssistanceDecisionMetadataSchema.optional()
   })
 ]);
 
@@ -385,7 +381,7 @@ export const BibliographyValidationDecisionFixtureSchema = z.object({
     if (!isValidBibliographyFieldPath(path)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: `Invalid bibliography fieldPath "${path}". Must be a valid supported field path.`
+        message: `Invalid bibliography fieldPath "${path}". Must be an exact supported BibliographyFieldPath.`
       });
     }
   }),
@@ -425,7 +421,7 @@ export const BibliographyValidationCaseSchema = z.object({
         if (!isValidBibliographyFieldPath(path)) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: `Invalid bibliography expected fieldPath "${path}".`
+            message: `Invalid bibliography expected fieldPath "${path}". Must be an exact supported BibliographyFieldPath.`
           });
         }
       }),
