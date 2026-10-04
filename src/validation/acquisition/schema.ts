@@ -142,6 +142,22 @@ export const SourceVerificationSchema = z.object({
           });
         }
       }
+      if (data.verifiedClaims.includes('SOURCE_TITLE')) {
+        if (!data.observedSourceTitle || data.observedSourceTitle.trim() === '') {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Source verification claiming SOURCE_TITLE requires observedSourceTitle.'
+          });
+        }
+      }
+      if (data.observedSourceTitle && data.observedSourceTitle.trim() !== '') {
+        if (!data.verifiedClaims.includes('SOURCE_TITLE')) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Source verification with observedSourceTitle requires SOURCE_TITLE claim.'
+          });
+        }
+      }
     }
   }
 });
@@ -321,6 +337,22 @@ export const SourceVerificationEntrySchema = z.object({
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: 'Source verification entry claiming SOURCE_TEXT_EXACT requires attestedSourceText.'
+          });
+        }
+      }
+      if (data.verifiedClaims.includes('SOURCE_TITLE')) {
+        if (!data.observedSourceTitle || data.observedSourceTitle.trim() === '') {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Source verification entry claiming SOURCE_TITLE requires observedSourceTitle.'
+          });
+        }
+      }
+      if (data.observedSourceTitle && data.observedSourceTitle.trim() !== '') {
+        if (!data.verifiedClaims.includes('SOURCE_TITLE')) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Source verification entry with observedSourceTitle requires SOURCE_TITLE claim.'
           });
         }
       }

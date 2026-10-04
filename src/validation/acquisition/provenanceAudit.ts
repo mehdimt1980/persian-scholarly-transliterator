@@ -58,15 +58,30 @@ export function auditProvenanceIntegrity(
       const entry = ledger ? ledgerMap.get(`${candidate.id}:${index}`) : undefined;
 
       if (ledger && source.verification && entry) {
-        // Cross-check candidate-local verification vs ledger receipt agreement
+        // Cross-check candidate-local verification vs ledger receipt agreement across all authority fields
         const localClaims = [...(source.verification.verifiedClaims || [])].sort().join(',');
         const entryClaims = [...(entry.verifiedClaims || [])].sort().join(',');
+        const localExtId = source.verification.externalRecordId || undefined;
+        const entryExtId = entry.resolvedIdentifier || entry.externalRecordId || undefined;
+        const localUrl = source.verification.canonicalUrl || undefined;
+        const entryUrl = entry.canonicalUrl || undefined;
+        const localTitle = source.verification.observedSourceTitle || undefined;
+        const entryTitle = entry.observedSourceTitle || undefined;
+        const localLoc = source.verification.locator || undefined;
+        const entryLoc = entry.locator || undefined;
+        const localMethod = source.verification.method || undefined;
+        const entryMethod = entry.verificationMethod || undefined;
+
         if (
           source.verification.status !== entry.status ||
           localClaims !== entryClaims ||
-          source.verification.attestedSourceText !== entry.attestedSourceText ||
-          source.verification.attestedRomanization !== entry.attestedRomanization ||
-          (source.verification.externalRecordId || undefined) !== (entry.resolvedIdentifier || entry.externalRecordId || undefined)
+          (source.verification.attestedSourceText || undefined) !== (entry.attestedSourceText || undefined) ||
+          (source.verification.attestedRomanization || undefined) !== (entry.attestedRomanization || undefined) ||
+          localExtId !== entryExtId ||
+          localUrl !== entryUrl ||
+          localTitle !== entryTitle ||
+          localLoc !== entryLoc ||
+          localMethod !== entryMethod
         ) {
           diagnostics.push({
             code: 'LEDGER_CLAIM_DISAGREEMENT',
@@ -157,7 +172,7 @@ export function auditProvenanceIntegrity(
       continue;
     }
 
-    // Rule 6 & Verification Ledger checks: source title and canonical URL matching
+    // Rule 6 & Verification Ledger checks: source title and canonical URL matching with SOURCE_TITLE claim authority
     let sourceMatchValid = true;
     for (const item of verifiedSources) {
       if (item.source.url && item.verification?.canonicalUrl) {
@@ -170,15 +185,33 @@ export function auditProvenanceIntegrity(
           sourceMatchValid = false;
         }
       }
-      if (item.source.title && item.verification?.observedSourceTitle) {
-        if (item.source.title !== item.verification.observedSourceTitle) {
+
+      const hasTitleClaim = item.verification?.verifiedClaims?.includes('SOURCE_TITLE') === true;
+      const observedTitle = item.verification?.observedSourceTitle;
+
+      if (observedTitle && observedTitle.trim() !== '') {
+        if (!hasTitleClaim) {
+          diagnostics.push({
+            code: 'MISSING_SOURCE_TITLE_CLAIM',
+            candidateId: candidate.id,
+            message: `Candidate "${candidate.id}" source "${item.source.title}" has observedSourceTitle "${observedTitle}" without verified SOURCE_TITLE claim.`
+          });
+          sourceMatchValid = false;
+        } else if (item.source.title && item.source.title !== observedTitle) {
           diagnostics.push({
             code: 'SOURCE_TITLE_MISMATCH',
             candidateId: candidate.id,
-            message: `Candidate "${candidate.id}" source title "${item.source.title}" does not match verified observedSourceTitle "${item.verification.observedSourceTitle}".`
+            message: `Candidate "${candidate.id}" source title "${item.source.title}" does not match verified observedSourceTitle "${observedTitle}".`
           });
           sourceMatchValid = false;
         }
+      } else if (hasTitleClaim) {
+        diagnostics.push({
+          code: 'MISSING_OBSERVED_SOURCE_TITLE',
+          candidateId: candidate.id,
+          message: `Candidate "${candidate.id}" source "${item.source.title}" claims SOURCE_TITLE but lacks observedSourceTitle.`
+        });
+        sourceMatchValid = false;
       }
     }
 

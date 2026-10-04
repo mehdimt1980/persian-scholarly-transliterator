@@ -1168,6 +1168,7 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
             method: 'DICTIONARY_PAGE',
             verifiedAt: '2026-10-04',
             verifiedClaims: ['SOURCE_TEXT_EXACT', 'SOURCE_TITLE'],
+            observedSourceTitle: 'Dehkhoda Dictionary',
             attestedSourceText: 'مشروطه',
             locator: 'Headword: مشروطه'
           }
@@ -1239,5 +1240,149 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
     const audit = auditProvenanceIntegrity([candidateLocal], disagreeingLedger);
     expect(audit.passed).toBe(false);
     expect(audit.diagnostics.some(d => d.code === 'LEDGER_CLAIM_DISAGREEMENT')).toBe(true);
+  });
+
+  it('41. observedSourceTitle without SOURCE_TITLE claim fails audit and schema', () => {
+    const noTitleClaimCandidate: ExternalCorpusCandidate = {
+      ...validCandidate,
+      sources: [
+        {
+          ...validCandidate.sources[0],
+          verification: {
+            status: 'VERIFIED',
+            method: 'DICTIONARY_PAGE',
+            verifiedAt: '2026-10-04',
+            verifiedClaims: ['SOURCE_TEXT_EXACT'], // Missing SOURCE_TITLE
+            observedSourceTitle: 'Dehkhoda Dictionary',
+            attestedSourceText: 'مشروطه'
+          }
+        },
+        validCandidate.sources[1]
+      ]
+    };
+
+    const audit = auditProvenanceIntegrity([noTitleClaimCandidate]);
+    expect(audit.passed).toBe(false);
+    expect(audit.diagnostics.some(d => d.code === 'MISSING_SOURCE_TITLE_CLAIM')).toBe(true);
+
+    expect(() => {
+      SourceVerificationSchema.parse({
+        status: 'VERIFIED',
+        method: 'DICTIONARY_PAGE',
+        verifiedAt: '2026-10-04',
+        verifiedClaims: ['SOURCE_TEXT_EXACT'],
+        observedSourceTitle: 'Dehkhoda Dictionary',
+        attestedSourceText: 'مشروطه'
+      });
+    }).toThrow(/requires SOURCE_TITLE claim/);
+  });
+
+  it('42. SOURCE_TITLE claim without observedSourceTitle fails audit and schema', () => {
+    const missingTitleCandidate: ExternalCorpusCandidate = {
+      ...validCandidate,
+      sources: [
+        {
+          ...validCandidate.sources[0],
+          verification: {
+            status: 'VERIFIED',
+            method: 'DICTIONARY_PAGE',
+            verifiedAt: '2026-10-04',
+            verifiedClaims: ['SOURCE_TEXT_EXACT', 'SOURCE_TITLE'],
+            attestedSourceText: 'مشروطه'
+            // observedSourceTitle omitted
+          }
+        },
+        validCandidate.sources[1]
+      ]
+    };
+
+    const audit = auditProvenanceIntegrity([missingTitleCandidate]);
+    expect(audit.passed).toBe(false);
+    expect(audit.diagnostics.some(d => d.code === 'MISSING_OBSERVED_SOURCE_TITLE')).toBe(true);
+
+    expect(() => {
+      SourceVerificationSchema.parse({
+        status: 'VERIFIED',
+        method: 'DICTIONARY_PAGE',
+        verifiedAt: '2026-10-04',
+        verifiedClaims: ['SOURCE_TEXT_EXACT', 'SOURCE_TITLE'],
+        attestedSourceText: 'مشروطه'
+      });
+    }).toThrow(/requires observedSourceTitle/);
+  });
+
+  it('43. local canonicalUrl differs from ledger canonicalUrl fails closed', () => {
+    const disagreeingUrlLedger: SourceVerificationLedger = {
+      ...validLedger,
+      receipts: [
+        validLedger.receipts![0],
+        {
+          ...validLedger.receipts![1],
+          canonicalUrl: 'https://www.iranicaonline.org/articles/different-url'
+        }
+      ]
+    };
+
+    const audit = auditProvenanceIntegrity([validCandidate], disagreeingUrlLedger);
+    expect(audit.passed).toBe(false);
+    expect(audit.diagnostics.some(d => d.code === 'LEDGER_CLAIM_DISAGREEMENT')).toBe(true);
+  });
+
+  it('44. local locator differs from ledger locator fails closed', () => {
+    const disagreeingLocLedger: SourceVerificationLedger = {
+      ...validLedger,
+      receipts: [
+        {
+          ...validLedger.receipts![0],
+          locator: 'entry مشروطه (differing)'
+        },
+        validLedger.receipts![1]
+      ]
+    };
+
+    const audit = auditProvenanceIntegrity([validCandidate], disagreeingLocLedger);
+    expect(audit.passed).toBe(false);
+    expect(audit.diagnostics.some(d => d.code === 'LEDGER_CLAIM_DISAGREEMENT')).toBe(true);
+  });
+
+  it('45. local observedSourceTitle differs from ledger title fails closed', () => {
+    const disagreeingTitleLedger: SourceVerificationLedger = {
+      ...validLedger,
+      receipts: [
+        {
+          ...validLedger.receipts![0],
+          observedSourceTitle: 'Different Dictionary Title'
+        },
+        validLedger.receipts![1]
+      ]
+    };
+
+    const audit = auditProvenanceIntegrity([validCandidate], disagreeingTitleLedger);
+    expect(audit.passed).toBe(false);
+    expect(audit.diagnostics.some(d => d.code === 'LEDGER_CLAIM_DISAGREEMENT')).toBe(true);
+  });
+
+  it('46. local verification method differs from ledger method fails closed', () => {
+    const disagreeingMethodLedger: SourceVerificationLedger = {
+      ...validLedger,
+      receipts: [
+        {
+          ...validLedger.receipts![0],
+          verificationMethod: 'URL_CONTENT' // Differs from DICTIONARY_PAGE
+        },
+        validLedger.receipts![1]
+      ]
+    };
+
+    const audit = auditProvenanceIntegrity([validCandidate], disagreeingMethodLedger);
+    expect(audit.passed).toBe(false);
+    expect(audit.diagnostics.some(d => d.code === 'LEDGER_CLAIM_DISAGREEMENT')).toBe(true);
+  });
+
+  it('47. fully matching local + ledger receipt passes cleanly', () => {
+    const audit = auditProvenanceIntegrity([validCandidate], validLedger);
+    expect(audit.passed).toBe(true);
+    expect(audit.diagnostics.length).toBe(0);
+    expect(audit.verifiedCandidateCount).toBe(1);
   });
 });

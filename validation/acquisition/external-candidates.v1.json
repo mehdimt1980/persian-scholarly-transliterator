@@ -333,21 +333,17 @@
         "url": "https://www.iranicaonline.org/articles/tajaddod-journal",
         "accessedAt": "2026-10-04",
         "evidenceRole": "IDENTITY",
-        "observedRomanization": "tajaddod",
-        "romanizationSystem": "IRANICA",
         "verification": {
           "status": "VERIFIED",
           "method": "URL_CONTENT",
           "verifiedAt": "2026-10-04",
           "verifiedClaims": [
             "ENTITY_IDENTITY",
-            "SOURCE_TITLE",
-            "ROMANIZATION_EXACT"
+            "SOURCE_TITLE"
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/tajaddod-journal",
           "observedSourceTitle": "TAJADDOD",
-          "locator": "opening sentence",
-          "attestedRomanization": "tajaddod"
+          "locator": "opening sentence"
         },
         "locator": "opening sentence"
       }
@@ -3450,7 +3446,8 @@
           "method": "URL_CONTENT",
           "verifiedAt": "2026-10-04",
           "verifiedClaims": [
-            "ROMANIZATION_EXACT"
+            "ROMANIZATION_EXACT",
+            "SOURCE_TITLE"
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/tarik-e-bidari-e-iranian",
           "observedSourceTitle": "TĀRĪḴ-E BĪDĀRĪ-E ĪRĀNĪĀN",
@@ -3506,7 +3503,8 @@
           "method": "URL_CONTENT",
           "verifiedAt": "2026-10-04",
           "verifiedClaims": [
-            "ROMANIZATION_EXACT"
+            "ROMANIZATION_EXACT",
+            "SOURCE_TITLE"
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/siasat-nama",
           "observedSourceTitle": "SIĀSAT-NĀMA",
@@ -3562,7 +3560,8 @@
           "method": "URL_CONTENT",
           "verifiedAt": "2026-10-04",
           "verifiedClaims": [
-            "ROMANIZATION_EXACT"
+            "ROMANIZATION_EXACT",
+            "SOURCE_TITLE"
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/qabus-nama",
           "observedSourceTitle": "QĀBUS-NĀMA",
@@ -3618,7 +3617,8 @@
           "method": "URL_CONTENT",
           "verifiedAt": "2026-10-04",
           "verifiedClaims": [
-            "ROMANIZATION_EXACT"
+            "ROMANIZATION_EXACT",
+            "SOURCE_TITLE"
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/marzban-nama",
           "observedSourceTitle": "MARZBĀN-NĀMA",
@@ -3674,7 +3674,8 @@
           "method": "URL_CONTENT",
           "verifiedAt": "2026-10-04",
           "verifiedClaims": [
-            "ROMANIZATION_EXACT"
+            "ROMANIZATION_EXACT",
+            "SOURCE_TITLE"
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/safarnama",
           "observedSourceTitle": "SAFARNĀMA",
@@ -3730,7 +3731,8 @@
           "method": "URL_CONTENT",
           "verifiedAt": "2026-10-04",
           "verifiedClaims": [
-            "ROMANIZATION_EXACT"
+            "ROMANIZATION_EXACT",
+            "SOURCE_TITLE"
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/kalila-wa-demna-i",
           "observedSourceTitle": "KALĪLA VA DEMNA",
@@ -3786,7 +3788,8 @@
           "method": "URL_CONTENT",
           "verifiedAt": "2026-10-04",
           "verifiedClaims": [
-            "ROMANIZATION_EXACT"
+            "ROMANIZATION_EXACT",
+            "SOURCE_TITLE"
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/golestan-e-sadi",
           "observedSourceTitle": "GOLESTĀN-E SAʿDĪ",
@@ -3842,7 +3845,8 @@
           "method": "URL_CONTENT",
           "verifiedAt": "2026-10-04",
           "verifiedClaims": [
-            "ROMANIZATION_EXACT"
+            "ROMANIZATION_EXACT",
+            "SOURCE_TITLE"
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/bustan",
           "observedSourceTitle": "BŪSTĀN",
@@ -3898,7 +3902,8 @@
           "method": "URL_CONTENT",
           "verifiedAt": "2026-10-04",
           "verifiedClaims": [
-            "ROMANIZATION_EXACT"
+            "ROMANIZATION_EXACT",
+            "SOURCE_TITLE"
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/danesvar-simin",
           "observedSourceTitle": "DĀNEŠVAR, SĪMĪN",
@@ -3954,7 +3959,8 @@
           "method": "URL_CONTENT",
           "verifiedAt": "2026-10-04",
           "verifiedClaims": [
-            "ROMANIZATION_EXACT"
+            "ROMANIZATION_EXACT",
+            "SOURCE_TITLE"
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/alavi-bozorg",
           "observedSourceTitle": "ʿALAVĪ, BOZORG",
@@ -4010,7 +4016,8 @@
           "method": "URL_CONTENT",
           "verifiedAt": "2026-10-04",
           "verifiedClaims": [
-            "ROMANIZATION_EXACT"
+            "ROMANIZATION_EXACT",
+            "SOURCE_TITLE"
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/hedayat-sadeq-i",
           "observedSourceTitle": "HEDAYAT, SADEQ i. LIFE AND WORK",
@@ -4066,7 +4073,8 @@
           "method": "URL_CONTENT",
           "verifiedAt": "2026-10-04",
           "verifiedClaims": [
-            "ROMANIZATION_EXACT"
+            "ROMANIZATION_EXACT",
+            "SOURCE_TITLE"
           ],
           "canonicalUrl": "https://www.iranicaonline.org/articles/akavan-e-sales-mehdi",
           "observedSourceTitle": "AḴAVĀN-E SĀLES, MEHDĪ",
