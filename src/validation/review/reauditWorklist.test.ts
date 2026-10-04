@@ -84,6 +84,14 @@ function createBlankFixture(): {
   };
 }
 
+function syntheticReviewer() {
+  return {
+    name: 'OpenAI GPT-5.6 Sol' as const,
+    type: 'AI_SPECIALIST' as const,
+    reviewedAt: '2026-10-04'
+  };
+}
+
 function completeBatchA(worklist: ReauditWorklistDocument): void {
   worklist.metadata.status = 'BATCH_A_COMPLETED';
   worklist.summary.pending = 83;
@@ -111,11 +119,7 @@ function completeBatchA(worklist: ReauditWorklistDocument): void {
         }
       ],
       reviewNote: 'Synthetic non-adjudicative fixture.',
-      reviewer: {
-        name: 'OpenAI GPT-5.6 Sol',
-        type: 'AI_SPECIALIST',
-        reviewedAt: '2026-10-04'
-      }
+      reviewer: syntheticReviewer()
     };
   }
 }
@@ -134,6 +138,84 @@ describe('V2 re-audit worklist validator', () => {
     const { worklist, acquisition } = createBlankFixture();
     completeBatchA(worklist);
     expect(() => validateReauditWorklist(worklist, acquisition)).not.toThrow();
+  });
+
+  it('does not dictate FINAL: REVIEW_REQUIRED is valid under the protocol contract', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    completeBatchA(worklist);
+    const c = worklist.cases.find((item) => item.batch === 'A')!;
+    c.decision = {
+      disposition: 'REVIEW_REQUIRED',
+      nonAuthoritativeAlternatives: [
+        { reading: 'reading-a', source: 'Synthetic source A' },
+        { reading: 'reading-b', source: 'Synthetic source B' }
+      ],
+      readingEvidence: [
+        {
+          source: 'Synthetic lexical authority',
+          citation: 'Synthetic ambiguity citation',
+          locator: 'entry'
+        }
+      ],
+      reviewNote: 'Synthetic ambiguity; no authoritative output.',
+      reviewer: syntheticReviewer()
+    };
+    expect(() => validateReauditWorklist(worklist, acquisition)).not.toThrow();
+  });
+
+  it('does not dictate FINAL: UNRESOLVED is valid without rendering evidence', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    completeBatchA(worklist);
+    const c = worklist.cases.find((item) => item.batch === 'A')!;
+    c.decision = {
+      disposition: 'UNRESOLVED',
+      readingEvidence: [
+        {
+          source: 'Synthetic lexical authority',
+          citation: 'Synthetic insufficient-evidence citation',
+          locator: 'entry'
+        }
+      ],
+      reviewNote: 'Synthetic unresolved reading.',
+      reviewer: syntheticReviewer()
+    };
+    expect(() => validateReauditWorklist(worklist, acquisition)).not.toThrow();
+  });
+
+  it('rejects authoritative canonical fields on a non-FINAL decision', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    completeBatchA(worklist);
+    const c = worklist.cases.find((item) => item.batch === 'A')!;
+    c.decision = {
+      disposition: 'REVIEW_REQUIRED',
+      readingEvidence: [
+        { source: 'Synthetic', citation: 'Synthetic citation', locator: 'entry' }
+      ],
+      reviewNote: 'Synthetic ambiguity.',
+      reviewer: syntheticReviewer()
+    };
+    (c.decision as any).scholarlyCanonical = 'forbidden';
+    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
+      /WORKLIST_BATCH_A_DECISION.*CONTAINS_UNEXPECTED_KEY:scholarlyCanonical/
+    );
+  });
+
+  it('allows optional renderingEvidence for non-FINAL only when non-empty', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    completeBatchA(worklist);
+    const c = worklist.cases.find((item) => item.batch === 'A')!;
+    c.decision = {
+      disposition: 'UNRESOLVED',
+      readingEvidence: [
+        { source: 'Synthetic', citation: 'Synthetic citation', locator: 'entry' }
+      ],
+      renderingEvidence: [],
+      reviewNote: 'Synthetic unresolved reading.',
+      reviewer: syntheticReviewer()
+    };
+    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
+      /RENDERING_EVIDENCE_MUST_BE_NONEMPTY/
+    );
   });
 
   it('rejects duplicate case IDs', () => {
@@ -206,17 +288,17 @@ describe('V2 re-audit worklist validator', () => {
     );
   });
 
-  it('rejects non-FINAL Batch A decisions', () => {
+  it('rejects unknown Batch A dispositions', () => {
     const { worklist, acquisition } = createBlankFixture();
     completeBatchA(worklist);
     const decision = worklist.cases.find((c) => c.batch === 'A')!.decision as any;
-    decision.disposition = 'REVIEW_REQUIRED';
+    decision.disposition = 'INVENTED';
     expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_BATCH_A_DISPOSITION_MUST_BE_FINAL/
+      /WORKLIST_BATCH_A_DISPOSITION_INVALID/
     );
   });
 
-  it('rejects extra fields inside a Batch A decision', () => {
+  it('rejects extra fields inside a FINAL Batch A decision', () => {
     const { worklist, acquisition } = createBlankFixture();
     completeBatchA(worklist);
     const decision = worklist.cases.find((c) => c.batch === 'A')!.decision as any;
@@ -256,7 +338,7 @@ describe('V2 re-audit worklist validator', () => {
     );
   });
 
-  it('requires non-empty rendering evidence', () => {
+  it('requires non-empty rendering evidence for FINAL decisions', () => {
     const { worklist, acquisition } = createBlankFixture();
     completeBatchA(worklist);
     const decision = worklist.cases.find((c) => c.batch === 'A')!.decision as any;
@@ -308,6 +390,6 @@ describe('V2 re-audit worklist validator', () => {
     const sourceCode = fs.readFileSync(validatorFilePath, 'utf8');
     expect(sourceCode).not.toMatch(/import.*transliterate/);
     expect(sourceCode).not.toMatch(/transliterate\s*\(/);
-    expect(sourceCode).not.toMatch(/from\s+['"].*domain\/engine['"]/);
+    expect(sourceCode).not.toMatch(/from\s+['\"].*domain\/engine['\"]/);
   });
 });
