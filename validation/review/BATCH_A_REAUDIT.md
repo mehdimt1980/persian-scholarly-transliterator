@@ -58,7 +58,7 @@ Reading/identity and rendering were adjudicated separately. Iranica romanization
 | `cand-term-012` | روشنفکری | `TERM` | `rawshanfikrī` | `rawshanfikrī` | `FINAL` |
 | `cand-term-013` | کارگزاری | `TERM` | `kārguzārī` | `kārguzārī` | `FINAL` |
 | `cand-term-014` | کشورمندی | `TERM` | `kishvarmandī` | `kishvarmandī` | `FINAL` |
-| `cand-term-015` | میهن‌پرستی | `TERM` | `mīhan-parastī` | `mīhan-parastī` | `FINAL` |
+| `cand-term-015` | میهن‌پرستی | `TERM` | `mihan-parastī` | `mihan-parastī` | `FINAL` |
 | `cand-rel-001` | اجتهاد | `RELIGIOUS_TERM` | `ijtihād` | `ijtihād` | `FINAL` |
 | `cand-rel-002` | تقلید | `RELIGIOUS_TERM` | `taqlīd` | `taqlīd` | `FINAL` |
 | `cand-rel-003` | ولایت فقیه | `RELIGIOUS_TERM` | `vilāyat-i faqīh` | `vilāyat-i faqīh` | `FINAL` |
@@ -94,8 +94,11 @@ All other Batch A cases have identical canonical and rendered strings under the 
 ### جهان‌بینی
 `jahān-bīnī` remains a transliteration of the supplied Persian source. The benchmark does not silently replace the source with the English translation “worldview.”
 
+### میهن‌پرستی
+`mihan-parastī` uses the independently attested Iranian Persian reading `mihan`; the written yeh is not mechanically interpreted as long `ī`.
+
 ### امر به معروف
-`amr bih maʿrūf` follows the exact Persian phrase and does not substitute a fuller Arabic formula.
+`amr bih maʿrūf` follows the exact Persian phrase and does not substitute a fuller Arabic formula. Contemporary IJMES Persian bibliographic usage independently attests standalone Persian `به` as `bih`.
 
 ### اهل بیت
 `ahl-i bayt` converts the Persian linker to IJMES izāfat `-i`.
