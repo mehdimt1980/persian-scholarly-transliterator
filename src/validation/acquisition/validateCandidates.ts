@@ -44,7 +44,7 @@ export function validateAcquisitionCandidates(
   const deduplication = deduplicateCandidates(validCandidates);
   const overlapAudit = auditProjectOverlap(validCandidates);
   const provenanceAudit = auditProvenanceIntegrity(validCandidates, ledger);
-  const coverage = computeAcquisitionCoverage(validCandidates);
+  const coverage = computeAcquisitionCoverage(validCandidates, ledger);
 
   if (deduplication.hasBlockingDuplicates) {
     errors.push(`Deduplication audit found ${deduplication.duplicateFindings.filter(f => !f.permittedWithDistinctEvidence).length} blocking duplicate(s).`);

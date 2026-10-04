@@ -91,10 +91,20 @@ export const VerificationMethodSchema = z.enum([
   'DIGITIZED_SOURCE'
 ]);
 
+export const VerifiedClaimSchema = z.enum([
+  'SOURCE_TEXT_EXACT',
+  'ROMANIZATION_EXACT',
+  'SOURCE_TITLE',
+  'ENTITY_IDENTITY',
+  'EXTERNAL_IDENTIFIER',
+  'BIBLIOGRAPHIC_METADATA'
+]);
+
 export const SourceVerificationSchema = z.object({
   status: SourceVerificationStatusSchema,
   method: VerificationMethodSchema,
   verifiedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}/, 'verifiedAt must start with YYYY-MM-DD'),
+  verifiedClaims: z.array(VerifiedClaimSchema).optional(),
   canonicalUrl: z.string().url().optional(),
   observedSourceTitle: z.string().optional(),
   locator: z.string().optional(),
@@ -102,6 +112,31 @@ export const SourceVerificationSchema = z.object({
   attestedRomanization: z.string().optional(),
   externalRecordId: z.string().optional(),
   note: z.string().optional()
+}).superRefine((data, ctx) => {
+  if (data.status === 'VERIFIED' && data.verifiedClaims) {
+    if (data.verifiedClaims.includes('ROMANIZATION_EXACT')) {
+      if (!data.attestedRomanization || data.attestedRomanization.trim() === '') {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Source verification claiming ROMANIZATION_EXACT requires attestedRomanization.'
+        });
+      }
+      if (!data.locator || data.locator.trim() === '') {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Source verification claiming ROMANIZATION_EXACT requires an exact locator.'
+        });
+      }
+    }
+    if (data.verifiedClaims.includes('SOURCE_TEXT_EXACT')) {
+      if (!data.attestedSourceText || data.attestedSourceText.trim() === '') {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Source verification claiming SOURCE_TEXT_EXACT requires attestedSourceText.'
+        });
+      }
+    }
+  }
 });
 
 export const AcquisitionSourceSchema = z.object({
@@ -243,6 +278,7 @@ export const SourceVerificationEntrySchema = z.object({
   status: SourceVerificationStatusSchema,
   verificationMethod: VerificationMethodSchema,
   verifiedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}/),
+  verifiedClaims: z.array(VerifiedClaimSchema).optional(),
   requestedIdentifier: z.string().optional(),
   resolvedIdentifier: z.string().optional(),
   canonicalUrl: z.string().url().optional(),
@@ -251,6 +287,31 @@ export const SourceVerificationEntrySchema = z.object({
   attestedRomanization: z.string().optional(),
   locator: z.string().optional(),
   note: z.string().optional()
+}).superRefine((data, ctx) => {
+  if (data.status === 'VERIFIED' && data.verifiedClaims) {
+    if (data.verifiedClaims.includes('ROMANIZATION_EXACT')) {
+      if (!data.attestedRomanization || data.attestedRomanization.trim() === '') {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Source verification entry claiming ROMANIZATION_EXACT requires attestedRomanization.'
+        });
+      }
+      if (!data.locator || data.locator.trim() === '') {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Source verification entry claiming ROMANIZATION_EXACT requires an exact locator.'
+        });
+      }
+    }
+    if (data.verifiedClaims.includes('SOURCE_TEXT_EXACT')) {
+      if (!data.attestedSourceText || data.attestedSourceText.trim() === '') {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Source verification entry claiming SOURCE_TEXT_EXACT requires attestedSourceText.'
+        });
+      }
+    }
+  }
 });
 
 export const SourceVerificationLedgerSchema = z.object({

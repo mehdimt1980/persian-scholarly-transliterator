@@ -66,10 +66,19 @@ export type VerificationMethod =
   | 'DICTIONARY_PAGE'
   | 'DIGITIZED_SOURCE';
 
+export type VerifiedClaim =
+  | 'SOURCE_TEXT_EXACT'
+  | 'ROMANIZATION_EXACT'
+  | 'SOURCE_TITLE'
+  | 'ENTITY_IDENTITY'
+  | 'EXTERNAL_IDENTIFIER'
+  | 'BIBLIOGRAPHIC_METADATA';
+
 export interface SourceVerification {
   status: SourceVerificationStatus;
   method: VerificationMethod;
   verifiedAt: string;
+  verifiedClaims?: VerifiedClaim[];
   canonicalUrl?: string;
   observedSourceTitle?: string;
   locator?: string;
@@ -129,6 +138,7 @@ export interface SourceVerificationEntry {
   status: SourceVerificationStatus;
   verificationMethod: VerificationMethod;
   verifiedAt: string;
+  verifiedClaims?: VerifiedClaim[];
   requestedIdentifier?: string;
   resolvedIdentifier?: string;
   externalRecordId?: string;
@@ -216,6 +226,10 @@ export interface AcquisitionCoverageMetrics {
   sourceTextAttestedCount: number;
   verifiedExternalIdCount: number;
   verifiedIranicaCount: number;
+  verifiedExactIranicaRomanizationCount: number;
+  verifiedExactOtherRomanizationCount: number;
+  removedUnsupportedRomanizationCount: number;
+  committedVerificationReceiptsCount: number;
   verifiedDoiCount: number;
   verifiedOpenAlexCount: number;
 }

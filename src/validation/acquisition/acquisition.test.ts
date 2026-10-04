@@ -41,6 +41,7 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
           status: 'VERIFIED',
           method: 'DICTIONARY_PAGE',
           verifiedAt: '2026-10-04T10:00:00Z',
+          verifiedClaims: ['SOURCE_TEXT_EXACT', 'SOURCE_TITLE'],
           observedSourceTitle: 'Dehkhoda Dictionary',
           attestedSourceText: 'مشروطه',
           locator: 'Headword: مشروطه'
@@ -58,8 +59,10 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
           status: 'VERIFIED',
           method: 'URL_CONTENT',
           verifiedAt: '2026-10-04T10:00:00Z',
+          verifiedClaims: ['ENTITY_IDENTITY', 'ROMANIZATION_EXACT', 'SOURCE_TITLE'],
           canonicalUrl: 'https://www.iranicaonline.org/articles/constitutional-revolution-index',
           observedSourceTitle: 'CONSTITUTIONAL REVOLUTION',
+          locator: 'article headword',
           attestedRomanization: 'mašrūṭa'
         }
       }
@@ -79,6 +82,7 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
         status: 'VERIFIED',
         verificationMethod: 'DICTIONARY_PAGE',
         verifiedAt: '2026-10-04T10:00:00Z',
+        verifiedClaims: ['SOURCE_TEXT_EXACT', 'SOURCE_TITLE'],
         observedSourceTitle: 'Dehkhoda Dictionary',
         attestedSourceText: 'مشروطه',
         locator: 'Headword: مشروطه'
@@ -89,8 +93,10 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
         status: 'VERIFIED',
         verificationMethod: 'URL_CONTENT',
         verifiedAt: '2026-10-04T10:00:00Z',
+        verifiedClaims: ['ENTITY_IDENTITY', 'ROMANIZATION_EXACT', 'SOURCE_TITLE'],
         canonicalUrl: 'https://www.iranicaonline.org/articles/constitutional-revolution-index',
         observedSourceTitle: 'CONSTITUTIONAL REVOLUTION',
+        locator: 'article headword',
         attestedRomanization: 'mašrūṭa'
       }
     ]
@@ -835,5 +841,152 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
     expect(result.provenanceAudit.verifiedCandidateCount).toBe(108);
     expect(result.report).toContain('Acquisition Integrity:       PASS');
     expect(result.report).toContain('Provenance Integrity:        PASS');
+  });
+
+  it('32. topic-only source can be VERIFIED IDENTITY evidence without claiming romanization attestation', () => {
+    const topicOnlyCandidate: ExternalCorpusCandidate = {
+      id: 'cand-topic-only',
+      sourceText: 'نوسازی',
+      proposedProfile: 'ijmes_full',
+      category: 'TERM',
+      reviewStatus: 'PENDING_HUMAN_REVIEW',
+      independenceClass: 'FULLY_EXTERNAL',
+      sources: [
+        {
+          kind: 'ACADEMIC_DICTIONARY',
+          title: 'Dehkhoda Dictionary',
+          citation: 'Loghatnāmeh-ye Dehkhodā, Headword: نوسازی',
+          accessedAt: '2026-10-04',
+          evidenceRole: 'SOURCE_TEXT',
+          verification: {
+            status: 'VERIFIED',
+            method: 'DICTIONARY_PAGE',
+            verifiedAt: '2026-10-04',
+            verifiedClaims: ['SOURCE_TEXT_EXACT', 'SOURCE_TITLE'],
+            observedSourceTitle: 'Dehkhoda Dictionary',
+            attestedSourceText: 'نوسازی',
+            locator: 'entry نوسازی'
+          }
+        },
+        {
+          kind: 'ENCYCLOPAEDIA_IRANICA',
+          title: 'CITIES iv. Modern Urbanization and Modernization in Persia',
+          url: 'https://www.iranicaonline.org/articles/cities-iv',
+          accessedAt: '2026-10-04',
+          evidenceRole: 'IDENTITY',
+          // No observedRomanization
+          verification: {
+            status: 'VERIFIED',
+            method: 'URL_CONTENT',
+            verifiedAt: '2026-10-04',
+            verifiedClaims: ['ENTITY_IDENTITY', 'SOURCE_TITLE'],
+            canonicalUrl: 'https://www.iranicaonline.org/articles/cities-iv',
+            observedSourceTitle: 'CITIES iv. Modern Urbanization and Modernization in Persia'
+          }
+        }
+      ]
+    };
+
+    const audit = auditProvenanceIntegrity([topicOnlyCandidate]);
+    expect(audit.passed).toBe(true);
+    expect(audit.diagnostics.length).toBe(0);
+  });
+
+  it('33. fails if observedRomanization exists but verification receipt lacks ROMANIZATION_EXACT claim', () => {
+    const missingClaimCandidate: ExternalCorpusCandidate = {
+      id: 'cand-claim-missing',
+      sourceText: 'مشروطه',
+      proposedProfile: 'ijmes_full',
+      category: 'TERM',
+      reviewStatus: 'PENDING_HUMAN_REVIEW',
+      independenceClass: 'FULLY_EXTERNAL',
+      sources: [
+        {
+          kind: 'ACADEMIC_DICTIONARY',
+          title: 'Dehkhoda Dictionary',
+          citation: 'Loghatnāmeh-ye Dehkhodā, Headword: مشروطه',
+          accessedAt: '2026-10-04',
+          evidenceRole: 'SOURCE_TEXT',
+          verification: {
+            status: 'VERIFIED',
+            method: 'DICTIONARY_PAGE',
+            verifiedAt: '2026-10-04',
+            verifiedClaims: ['SOURCE_TEXT_EXACT'],
+            attestedSourceText: 'مشروطه'
+          }
+        },
+        {
+          kind: 'ENCYCLOPAEDIA_IRANICA',
+          title: 'CONSTITUTIONAL REVOLUTION',
+          url: 'https://www.iranicaonline.org/articles/constitutional-revolution-index',
+          accessedAt: '2026-10-04',
+          evidenceRole: 'IDENTITY',
+          observedRomanization: 'mašrūṭa',
+          romanizationSystem: 'IRANICA',
+          verification: {
+            status: 'VERIFIED',
+            method: 'URL_CONTENT',
+            verifiedAt: '2026-10-04',
+            verifiedClaims: ['ENTITY_IDENTITY', 'SOURCE_TITLE'], // Lacks ROMANIZATION_EXACT
+            canonicalUrl: 'https://www.iranicaonline.org/articles/constitutional-revolution-index',
+            observedSourceTitle: 'CONSTITUTIONAL REVOLUTION'
+          }
+        }
+      ]
+    };
+
+    const audit = auditProvenanceIntegrity([missingClaimCandidate]);
+    expect(audit.passed).toBe(false);
+    expect(audit.diagnostics.some(d => d.code === 'OBSERVED_ROMANIZATION_NOT_ATTESTED')).toBe(true);
+  });
+
+  it('34. exact romanization passes only when verification claim explicitly covers exact romanization with an exact locator', () => {
+    const exactRomCandidate: ExternalCorpusCandidate = {
+      id: 'cand-exact-rom',
+      sourceText: 'مشروطه',
+      proposedProfile: 'ijmes_full',
+      category: 'TERM',
+      reviewStatus: 'PENDING_HUMAN_REVIEW',
+      independenceClass: 'FULLY_EXTERNAL',
+      sources: [
+        {
+          kind: 'ACADEMIC_DICTIONARY',
+          title: 'Dehkhoda Dictionary',
+          citation: 'Loghatnāmeh-ye Dehkhodā, Headword: مشروطه',
+          accessedAt: '2026-10-04',
+          evidenceRole: 'SOURCE_TEXT',
+          verification: {
+            status: 'VERIFIED',
+            method: 'DICTIONARY_PAGE',
+            verifiedAt: '2026-10-04',
+            verifiedClaims: ['SOURCE_TEXT_EXACT', 'SOURCE_TITLE'],
+            attestedSourceText: 'مشروطه'
+          }
+        },
+        {
+          kind: 'ENCYCLOPAEDIA_IRANICA',
+          title: 'CONSTITUTIONAL REVOLUTION',
+          url: 'https://www.iranicaonline.org/articles/constitutional-revolution-index',
+          accessedAt: '2026-10-04',
+          evidenceRole: 'IDENTITY',
+          observedRomanization: 'mašrūṭa',
+          romanizationSystem: 'IRANICA',
+          verification: {
+            status: 'VERIFIED',
+            method: 'URL_CONTENT',
+            verifiedAt: '2026-10-04',
+            verifiedClaims: ['ENTITY_IDENTITY', 'ROMANIZATION_EXACT', 'SOURCE_TITLE'],
+            canonicalUrl: 'https://www.iranicaonline.org/articles/constitutional-revolution-index',
+            observedSourceTitle: 'CONSTITUTIONAL REVOLUTION',
+            locator: 'article headword',
+            attestedRomanization: 'mašrūṭa'
+          }
+        }
+      ]
+    };
+
+    const audit = auditProvenanceIntegrity([exactRomCandidate]);
+    expect(audit.passed).toBe(true);
+    expect(audit.diagnostics.length).toBe(0);
   });
 });

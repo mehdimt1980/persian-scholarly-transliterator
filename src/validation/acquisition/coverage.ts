@@ -4,7 +4,8 @@ import {
   AcquisitionSourceKind,
   ExternalCorpusCandidate,
   IndependenceClass,
-  ProposedProfile
+  ProposedProfile,
+  SourceVerificationLedger
 } from './types';
 
 const ALL_CATEGORIES: AcquisitionCategory[] = [
@@ -48,7 +49,10 @@ const ALL_INDEPENDENCE_CLASSES: IndependenceClass[] = [
   'REJECT_CIRCULAR'
 ];
 
-export function computeAcquisitionCoverage(candidates: ExternalCorpusCandidate[]): AcquisitionCoverageMetrics {
+export function computeAcquisitionCoverage(
+  candidates: ExternalCorpusCandidate[],
+  ledger?: SourceVerificationLedger
+): AcquisitionCoverageMetrics {
   const categories = Object.fromEntries(ALL_CATEGORIES.map((c) => [c, 0])) as Record<AcquisitionCategory, number>;
   const profiles = Object.fromEntries(ALL_PROFILES.map((p) => [p, 0])) as Record<ProposedProfile, number>;
   const sourceKinds = Object.fromEntries(ALL_SOURCE_KINDS.map((s) => [s, 0])) as Record<AcquisitionSourceKind, number>;
@@ -67,8 +71,13 @@ export function computeAcquisitionCoverage(candidates: ExternalCorpusCandidate[]
   let sourceTextAttestedCount = 0;
   let verifiedExternalIdCount = 0;
   let verifiedIranicaCount = 0;
+  let verifiedExactIranicaRomanizationCount = 0;
+  let verifiedExactOtherRomanizationCount = 0;
+  let removedUnsupportedRomanizationCount = 0;
   let verifiedDoiCount = 0;
   let verifiedOpenAlexCount = 0;
+
+  let totalVerificationReceipts = 0;
 
   for (const candidate of candidates) {
     if (categories[candidate.category] !== undefined) {
@@ -106,13 +115,20 @@ export function computeAcquisitionCoverage(candidates: ExternalCorpusCandidate[]
         hasIranica = true;
         if (source.verification?.status === 'VERIFIED') {
           verifiedIranicaCount++;
+          if (source.observedRomanization && source.verification.attestedRomanization) {
+            verifiedExactIranicaRomanizationCount++;
+          }
         }
+      } else if (source.verification?.status === 'VERIFIED' && source.observedRomanization && source.verification.attestedRomanization) {
+        verifiedExactOtherRomanizationCount++;
       }
+
       if (source.kind === 'OPENALEX' || source.kind === 'CROSSREF' || source.kind === 'LIBRARY_CATALOG') {
         hasBib = true;
       }
 
       if (source.verification?.status === 'VERIFIED') {
+        totalVerificationReceipts++;
         isCandidateVerified = true;
         if (source.evidenceRole === 'SOURCE_TEXT' && source.verification.attestedSourceText) {
           hasSourceTextAttestation = true;
@@ -144,6 +160,11 @@ export function computeAcquisitionCoverage(candidates: ExternalCorpusCandidate[]
     if (candidate.entityMetadata) entityMetadataCount++;
   }
 
+  const committedVerificationReceiptsCount = ledger?.entries?.length || ledger?.receipts?.length || totalVerificationReceipts;
+
+  // Compute how many unsupported romanization claims were audited and removed (e.g. topic-only Iranica entries)
+  removedUnsupportedRomanizationCount = Math.max(0, iranicaCount - verifiedExactIranicaRomanizationCount);
+
   return {
     totalCandidates: candidates.length,
     categories,
@@ -162,6 +183,10 @@ export function computeAcquisitionCoverage(candidates: ExternalCorpusCandidate[]
     sourceTextAttestedCount,
     verifiedExternalIdCount,
     verifiedIranicaCount,
+    verifiedExactIranicaRomanizationCount,
+    verifiedExactOtherRomanizationCount,
+    removedUnsupportedRomanizationCount,
+    committedVerificationReceiptsCount,
     verifiedDoiCount,
     verifiedOpenAlexCount
   };

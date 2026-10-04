@@ -35,8 +35,12 @@ export function generateAcquisitionReport(
   lines.push(`Verified Candidates:           ${coverage.verifiedCandidateCount} / ${coverage.totalCandidates}`);
   lines.push(`Direct Source-Text Attested:   ${coverage.sourceTextAttestedCount} / ${coverage.totalCandidates}`);
   lines.push(`Multi-Source Evidence Items:   ${coverage.multiSourceCount} (${Math.round((coverage.multiSourceCount / (coverage.totalCandidates || 1)) * 100)}%)`);
-  lines.push(`Observed Romanizations Stored: ${coverage.observedRomanizationCount}`);
-  lines.push(`Encyclopaedia Iranica Sources: ${coverage.iranicaCount}`);
+  lines.push(`Committed Verification Receipts: ${coverage.committedVerificationReceiptsCount}`);
+  lines.push(`Encyclopaedia Iranica Records: ${coverage.verifiedIranicaCount}`);
+  lines.push(`  - Exact Romanizations Attested:   ${coverage.verifiedExactIranicaRomanizationCount}`);
+  lines.push(`  - Concept / Identity Only (No Rom): ${coverage.removedUnsupportedRomanizationCount}`);
+  lines.push(`Other Exact Romanizations:     ${coverage.verifiedExactOtherRomanizationCount}`);
+  lines.push(`Total Retained Observed Rom:   ${coverage.observedRomanizationCount}`);
   lines.push(`Bibliographic / DOI Records:   ${coverage.bibliographicSourceCount}`);
   lines.push(`Work / Entity Authority Items: ${coverage.workMetadataCount + coverage.entityMetadataCount}`);
   lines.push('---------------------------------------------------------------');

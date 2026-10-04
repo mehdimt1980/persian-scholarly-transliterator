@@ -61,11 +61,12 @@ export function auditProvenanceIntegrity(
             status: entry.status,
             method: entry.verificationMethod,
             verifiedAt: entry.verifiedAt,
+            verifiedClaims: entry.verifiedClaims,
             canonicalUrl: entry.canonicalUrl,
             observedSourceTitle: entry.observedSourceTitle,
             attestedSourceText: entry.attestedSourceText,
             attestedRomanization: entry.attestedRomanization,
-            externalRecordId: entry.resolvedIdentifier,
+            externalRecordId: entry.resolvedIdentifier || entry.externalRecordId,
             locator: entry.locator,
             note: entry.note
           };
@@ -147,18 +148,22 @@ export function auditProvenanceIntegrity(
       }
     }
 
-    // Rule 7: For every retained observedRomanization, require matching attestedRomanization in verification
+    // Rule 7 & Claims: For every retained observedRomanization, require matching attestedRomanization in verification with ROMANIZATION_EXACT claim
     let romValid = true;
     for (const item of sources) {
       if (item.observedRomanization) {
         const matchingVerified = verifiedSources.find((vs) => vs.source === item);
         const observedNorm = item.observedRomanization.trim().normalize('NFC');
         const attestedNorm = matchingVerified?.verification?.attestedRomanization?.trim().normalize('NFC');
-        if (!attestedNorm) {
+        const hasClaim = matchingVerified?.verification?.verifiedClaims
+          ? matchingVerified.verification.verifiedClaims.includes('ROMANIZATION_EXACT')
+          : true;
+
+        if (!attestedNorm || !hasClaim) {
           diagnostics.push({
             code: 'OBSERVED_ROMANIZATION_NOT_ATTESTED',
             candidateId: candidate.id,
-            message: `Candidate "${candidate.id}" source "${item.title}" has observedRomanization "${item.observedRomanization}" without verified attestedRomanization.`
+            message: `Candidate "${candidate.id}" source "${item.title}" has observedRomanization "${item.observedRomanization}" without verified ROMANIZATION_EXACT claim.`
           });
           romValid = false;
         } else if (observedNorm !== attestedNorm) {
@@ -166,6 +171,13 @@ export function auditProvenanceIntegrity(
             code: 'OBSERVED_ROMANIZATION_NOT_ATTESTED',
             candidateId: candidate.id,
             message: `Candidate "${candidate.id}" source "${item.title}" observedRomanization "${item.observedRomanization}" does not match attestedRomanization "${matchingVerified?.verification?.attestedRomanization}".`
+          });
+          romValid = false;
+        } else if (!matchingVerified?.verification?.locator) {
+          diagnostics.push({
+            code: 'OBSERVED_ROMANIZATION_NOT_ATTESTED',
+            candidateId: candidate.id,
+            message: `Candidate "${candidate.id}" source "${item.title}" observedRomanization "${item.observedRomanization}" lacks an exact locator.`
           });
           romValid = false;
         }
