@@ -3,6 +3,7 @@ import * as path from 'path';
 import {
   validateBibliographyCorpus,
   validateCorpusManifest,
+  validateReleaseTarget,
   validateSingleCorpus
 } from './schema';
 import { runSingleCase } from './runSingleCase';
@@ -74,7 +75,7 @@ export function runCorpusValidation(
         : path.resolve(manifestDir, manifest.bibliography);
     }
   } else {
-    // Check if default manifest exists
+    // Check default manifest
     const defaultManifestPath = path.join(baseDir, 'pilot.manifest.json');
     if (fs.existsSync(defaultManifestPath)) {
       const rawManifest = JSON.parse(fs.readFileSync(defaultManifestPath, 'utf-8'));
@@ -91,18 +92,34 @@ export function runCorpusValidation(
           : path.resolve(manifestDir, manifest.bibliography);
       }
     } else {
-      // Fallback
       singleFilePath = path.join(baseDir, 'pilot.single.json');
       bibFilePath = path.join(baseDir, 'pilot.bibliography.json');
       manifest = {
         id: 'pilot-v1',
         version: '1.0.0',
-        description: 'Scholarly transliteration pilot validation corpus',
+        description: 'Scholarly transliteration source-backed pilot validation fixtures',
         tier: 'PILOT',
         reviewStatus: 'SOURCE_BACKED_FIXTURE',
         single: 'pilot.single.json',
         bibliography: 'pilot.bibliography.json'
       };
+    }
+  }
+
+  // Enforce existence of declared corpus files
+  if (manifest.single) {
+    if (!singleFilePath || !fs.existsSync(singleFilePath)) {
+      throw new Error(
+        `CORPUS_FILE_NOT_FOUND: Declared single corpus file not found at: ${singleFilePath}`
+      );
+    }
+  }
+
+  if (manifest.bibliography) {
+    if (!bibFilePath || !fs.existsSync(bibFilePath)) {
+      throw new Error(
+        `CORPUS_FILE_NOT_FOUND: Declared bibliography corpus file not found at: ${bibFilePath}`
+      );
     }
   }
 
@@ -113,6 +130,28 @@ export function runCorpusValidation(
     const singleRaw = JSON.parse(fs.readFileSync(singleFilePath, 'utf-8'));
     const singleCorpus = validateSingleCorpus(singleRaw);
     singleMetadata = singleCorpus.metadata;
+
+    // Verify manifest and single corpus metadata coherence
+    if (
+      singleCorpus.metadata.tier !== manifest.tier ||
+      singleCorpus.metadata.reviewStatus !== manifest.reviewStatus
+    ) {
+      throw new Error(
+        `CORPUS_MANIFEST_METADATA_MISMATCH: Single corpus metadata (${singleCorpus.metadata.tier}/${singleCorpus.metadata.reviewStatus}) does not match manifest (${manifest.tier}/${manifest.reviewStatus}).`
+      );
+    }
+
+    if (manifest.reviewStatus === 'HUMAN_REVIEWED') {
+      if (
+        singleCorpus.metadata.reviewer !== manifest.reviewer ||
+        singleCorpus.metadata.reviewedAt !== manifest.reviewedAt
+      ) {
+        throw new Error(
+          `CORPUS_MANIFEST_METADATA_MISMATCH: Single corpus reviewer/reviewedAt (${singleCorpus.metadata.reviewer} / ${singleCorpus.metadata.reviewedAt}) does not match manifest (${manifest.reviewer} / ${manifest.reviewedAt}).`
+        );
+      }
+    }
+
     for (const testCase of singleCorpus.cases) {
       const res = runSingleCase(testCase);
       singleResults.push(res);
@@ -126,6 +165,28 @@ export function runCorpusValidation(
     const bibRaw = JSON.parse(fs.readFileSync(bibFilePath, 'utf-8'));
     const bibCorpus = validateBibliographyCorpus(bibRaw);
     bibMetadata = bibCorpus.metadata;
+
+    // Verify manifest and bibliography corpus metadata coherence
+    if (
+      bibCorpus.metadata.tier !== manifest.tier ||
+      bibCorpus.metadata.reviewStatus !== manifest.reviewStatus
+    ) {
+      throw new Error(
+        `CORPUS_MANIFEST_METADATA_MISMATCH: Bibliography corpus metadata (${bibCorpus.metadata.tier}/${bibCorpus.metadata.reviewStatus}) does not match manifest (${manifest.tier}/${manifest.reviewStatus}).`
+      );
+    }
+
+    if (manifest.reviewStatus === 'HUMAN_REVIEWED') {
+      if (
+        bibCorpus.metadata.reviewer !== manifest.reviewer ||
+        bibCorpus.metadata.reviewedAt !== manifest.reviewedAt
+      ) {
+        throw new Error(
+          `CORPUS_MANIFEST_METADATA_MISMATCH: Bibliography corpus reviewer/reviewedAt (${bibCorpus.metadata.reviewer} / ${bibCorpus.metadata.reviewedAt}) does not match manifest (${manifest.reviewer} / ${manifest.reviewedAt}).`
+        );
+      }
+    }
+
     for (const bCase of bibCorpus.cases) {
       const bRes = runBibliographyCase(bCase);
       bibResults.push(bRes);
@@ -136,7 +197,8 @@ export function runCorpusValidation(
   const bibMetrics = computeBibliographyValidationMetrics(bibResults);
   const combinedMetrics = computeCombinedValidationMetrics(singleMetrics, bibMetrics);
 
-  const releaseTarget: ReleaseTarget = options.releaseTarget ?? (manifest.tier === 'PILOT' ? 'PILOT' : 'RC');
+  const releaseTarget: ReleaseTarget =
+    options.releaseTarget ?? (manifest.tier === 'PILOT' ? 'PILOT' : 'RC');
 
   const gateContext: ReleaseGateContext = {
     corpusTier: manifest.tier,
@@ -159,7 +221,7 @@ export function runCorpusValidation(
   );
 
   return {
-    success: gateResult.passed,
+    success: gateResult.targetSatisfied,
     report: textReport,
     metrics: combinedMetrics,
     gateResult
@@ -183,7 +245,15 @@ if (
         manifestPath = args[i + 1];
         i++;
       } else if (args[i] === '--target' && args[i + 1]) {
-        releaseTarget = args[i + 1] as ReleaseTarget;
+        const rawTarget = args[i + 1];
+        try {
+          releaseTarget = validateReleaseTarget(rawTarget);
+        } catch {
+          console.error(
+            `INVALID_RELEASE_TARGET: Invalid release target "${rawTarget}". Expected "PILOT" or "RC".`
+          );
+          process.exit(1);
+        }
         i++;
       }
     }

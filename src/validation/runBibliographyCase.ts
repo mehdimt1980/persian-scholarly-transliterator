@@ -139,14 +139,19 @@ export function runBibliographyCase(
   } else if (testCase.expected.readiness === 'REVIEW_REQUIRED') {
     if (processed.readiness === 'READY') {
       classification = 'UNDER_BLOCKED';
-    } else {
+    } else if (processed.readiness === 'REVIEW_REQUIRED' && !isFieldMismatch) {
       classification = 'CORRECT_REVIEW_REQUIRED';
+    } else {
+      classification = 'OVER_BLOCKED';
     }
   } else {
-    if (processed.readiness === 'INVALID') {
+    // Expected INVALID
+    if (processed.readiness === 'INVALID' && !isFieldMismatch) {
       classification = 'CORRECT_UNRESOLVED';
-    } else {
+    } else if (processed.readiness === 'READY') {
       classification = 'UNDER_BLOCKED';
+    } else {
+      classification = 'OVER_BLOCKED';
     }
   }
 

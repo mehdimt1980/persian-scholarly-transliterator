@@ -91,11 +91,20 @@ export function generateTextReport(
     );
   }
   lines.push('---------------------------------------------------------------');
-  lines.push(`Release Gate Status:      ${gateResult.passed ? 'PASS' : 'FAIL'} (${gateResult.readiness})`);
+  lines.push(`Safety Gate:              ${gateResult.safetyPassed ? 'PASS' : 'FAIL'}`);
+  lines.push(`Requested Target:         ${gateResult.context.releaseTarget}`);
+  lines.push(`Target Satisfaction:      ${gateResult.targetSatisfied ? 'PASS' : 'FAIL'}`);
+  lines.push(`Readiness State:          ${gateResult.readiness}`);
   if (gateResult.violations.length > 0) {
-    lines.push('Violations:');
+    lines.push('Safety Violations:');
     for (const v of gateResult.violations) {
       lines.push(`  - ${v}`);
+    }
+  }
+  if (gateResult.blockers.length > 0 && !gateResult.targetSatisfied) {
+    lines.push('Target Blockers:');
+    for (const b of gateResult.blockers) {
+      lines.push(`  - ${b}`);
     }
   }
   lines.push('---------------------------------------------------------------');

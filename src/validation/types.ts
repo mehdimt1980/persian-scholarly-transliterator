@@ -213,9 +213,13 @@ export interface ReleaseGateContext {
 
 export interface ReleaseGateResult {
   readiness: ReleaseReadiness;
-  passed: boolean;
+  safetyPassed: boolean;
+  targetSatisfied: boolean;
+  passed: boolean; // passed === targetSatisfied
   violations: string[];
+  blockers: string[];
   metrics: CombinedValidationMetrics;
+  context: ReleaseGateContext;
 }
 
 // Bibliography validation types

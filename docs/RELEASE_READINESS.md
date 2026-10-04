@@ -35,23 +35,42 @@ Metrics strictly separate safe behavior from coverage limitations:
 
 ## 3. Corpus Maturity and Release Target Model
 
-To prevent arbitrary non-pilot corpora from falsely claiming release readiness, release gating requires explicit evaluation of **Corpus Tier**, **Review Status**, and **Release Target**:
+To prevent arbitrary non-pilot corpora from falsely claiming release readiness, release gating strictly separates **Safety Gate Evaluation** (`safetyPassed`) from **Target Satisfaction** (`targetSatisfied`):
 
 ```ts
 type CorpusTier = 'PILOT' | 'REAL_DISSERTATION';
 type ReleaseTarget = 'PILOT' | 'RC';
 type CorpusReviewStatus = 'SOURCE_BACKED_FIXTURE' | 'HUMAN_REVIEWED';
+
+interface ReleaseGateResult {
+  readiness: ReleaseReadiness;
+  safetyPassed: boolean;
+  targetSatisfied: boolean;
+  passed: boolean; // passed === targetSatisfied
+  violations: string[];
+  blockers: string[];
+  metrics: CombinedValidationMetrics;
+  context: ReleaseGateContext;
+}
 ```
 
 ### State Semantics:
-- **`BLOCKED`**: Triggered by any safety violation (`FALSE_AUTHORITATIVE > 0`, `UNDER_BLOCKED > 0`, `INVALID_GOLD_CASE > 0`, or lexicon repository integrity failure).
-- **`PILOT_PASS`**: Target is `PILOT` and safety gates pass on a valid pilot corpus (`PILOT` tier).
-- **`REAL_CORPUS_REQUIRED`**: Target is `RC`, but the corpus is only `PILOT` tier or review status is `SOURCE_BACKED_FIXTURE`. A verified `REAL_DISSERTATION` corpus with `HUMAN_REVIEWED` status is mandatory.
-- **`RC_READY`**: Target is `RC`, corpus tier is `REAL_DISSERTATION`, review status is `HUMAN_REVIEWED` (with reviewer identity and review date recorded), and all safety gates pass.
+- **`BLOCKED`**:
+  - `safetyPassed = false`, `targetSatisfied = false`
+  - Triggered by any safety violation (`FALSE_AUTHORITATIVE > 0`, `UNDER_BLOCKED > 0`, `INVALID_GOLD_CASE > 0`, lexicon repository integrity failure, or empty validation corpus).
+- **`PILOT_PASS` (Target = PILOT)**:
+  - `safetyPassed = true`, `targetSatisfied = true`
+  - All safety gates pass on a valid pilot corpus (`PILOT` tier).
+- **`REAL_CORPUS_REQUIRED` (Target = RC)**:
+  - `safetyPassed = true`, `targetSatisfied = false`
+  - Safety gates pass on pilot or fixture data, but a comprehensive real-world dissertation corpus with `HUMAN_REVIEWED` status is mandatory before release candidate declaration. The CLI exits with a non-zero code to block premature release.
+- **`RC_READY` (Target = RC)**:
+  - `safetyPassed = true`, `targetSatisfied = true`
+  - All safety gates pass on a non-empty `REAL_DISSERTATION` corpus with verified `HUMAN_REVIEWED` status (reviewer identity and review date recorded).
 
 ---
 
-## 4. Corpus Manifest Architecture
+## 4. Corpus Manifest Architecture & Coherence
 
 Validation runner uses corpus manifests to configure datasets without hardcoding filenames or inferring authority:
 
@@ -67,12 +86,24 @@ Validation runner uses corpus manifests to configure datasets without hardcoding
 }
 ```
 
-CLI execution:
+### Manifest / Corpus Metadata Coherence
+The validation harness strictly verifies metadata coherence between the manifest and loaded corpus files:
+- `single.metadata.tier === manifest.tier`
+- `single.metadata.reviewStatus === manifest.reviewStatus`
+- `bibliography.metadata.tier === manifest.tier`
+- `bibliography.metadata.reviewStatus === manifest.reviewStatus`
+- For `HUMAN_REVIEWED` status, `reviewer` and `reviewedAt` must also match.
+- Mismatches or declared files that do not exist trigger immediate fatal failure (`CORPUS_MANIFEST_METADATA_MISMATCH` or `CORPUS_FILE_NOT_FOUND`).
+
+### CLI execution:
 ```bash
-# Validate default pilot manifest (target PILOT)
+# Validate default pilot manifest (target PILOT, exits 0 on PILOT_PASS)
 npm run validate:corpus
 
-# Validate arbitrary manifest with explicit target
+# Validate pilot manifest targeting RC (target RC, exits 1 on REAL_CORPUS_REQUIRED)
+npm run validate:corpus -- --target RC
+
+# Validate arbitrary dissertation manifest
 npm run validate:corpus -- --manifest validation/corpus/dissertation.manifest.json --target RC
 ```
 
@@ -96,7 +127,10 @@ npm run validate:corpus -- --manifest validation/corpus/dissertation.manifest.js
   - `Invalid Gold Cases`: 0
   - `Safe Behavior Rate`: 100.0% (49/49)
   - `Single Authoritative Exact-Match Rate`: 100.0% (41/41)
-  - **Release Gate Status**: `PASS (PILOT_PASS)`
+  - **Safety Gate**: `PASS`
+  - **Requested Target**: `PILOT`
+  - **Target Satisfaction**: `PASS`
+  - **Readiness State**: `PILOT_PASS`
 
 ---
 

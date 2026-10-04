@@ -4,9 +4,8 @@ import {
   BibliographyValidationCase,
   BibliographyValidationCorpus,
   CorpusManifest,
-  CorpusMetadata,
-  ScholarlyValidationCase,
-  SingleValidationCorpus
+  SingleValidationCorpus,
+  ScholarlyValidationCase
 } from './types';
 
 export const ScholarlyCategorySchema = z.enum([
@@ -166,6 +165,7 @@ export const ScholarlyValidationCaseSchema = z.object({
 });
 
 export const CorpusTierSchema = z.enum(['PILOT', 'REAL_DISSERTATION']);
+export const ReleaseTargetSchema = z.enum(['PILOT', 'RC']);
 export const CorpusReviewStatusSchema = z.enum(['SOURCE_BACKED_FIXTURE', 'HUMAN_REVIEWED']);
 
 export const CorpusMetadataSchema = z.object({
@@ -208,6 +208,12 @@ export const CorpusManifestSchema = z.object({
   single: z.string().optional(),
   bibliography: z.string().optional()
 }).superRefine((data, ctx) => {
+  if (!data.single && !data.bibliography) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Manifest must declare at least one corpus file (single or bibliography).'
+    });
+  }
   if (data.reviewStatus === 'HUMAN_REVIEWED') {
     if (!data.reviewer || data.reviewer.trim() === '') {
       ctx.addIssue({
@@ -256,6 +262,42 @@ export function validateCorpusManifest(data: unknown): CorpusManifest {
   return CorpusManifestSchema.parse(data) as CorpusManifest;
 }
 
+export function validateReleaseTarget(target: unknown): 'PILOT' | 'RC' {
+  return ReleaseTargetSchema.parse(target);
+}
+
+// Valid bibliography field paths
+export function isValidBibliographyFieldPath(fieldPath: string): boolean {
+  const topLevelPaths = [
+    'title',
+    'containerTitle',
+    'publisher',
+    'place',
+    'year',
+    'volume',
+    'issue',
+    'pageStart',
+    'pageEnd',
+    'doi',
+    'url',
+    'isbn',
+    'issn',
+    'language',
+    'notes'
+  ];
+
+  if (topLevelPaths.includes(fieldPath)) {
+    return true;
+  }
+
+  const creatorMatch = fieldPath.match(/^(authors|editors|translators)\.(\d+)\.(literal|given|family)$/);
+  if (creatorMatch) {
+    return true;
+  }
+
+  return false;
+}
+
 // Strict concrete bibliography fixture schemas
 export const BibliographyCreatorSchema = z.object({
   literal: z.string().min(1),
@@ -294,25 +336,82 @@ export const BibliographyRecordSchema = z.object({
   passthrough: z.record(z.string())
 });
 
-export const ReviewDecisionSchema = z.object({
-  issueId: z.string().min(1),
-  action: z.enum([
-    'SELECT_LEXICAL_READING',
-    'MANUAL_CANONICAL_OVERRIDE',
-    'ACCEPT_IZAFAT',
-    'REJECT_IZAFAT',
-    'SELECT_MORPHOLOGY'
-  ]),
-  selectedAlternativeId: z.string().optional(),
-  manualCanonical: z.string().optional(),
-  notes: z.string().optional(),
-  assistance: z.any().optional()
-});
+export const ReviewDecisionSchema = z.discriminatedUnion('action', [
+  z.object({
+    issueId: z.string().min(1),
+    action: z.literal('SELECT_LEXICAL_READING'),
+    selectedAlternativeId: z.string().min(1, 'selectedAlternativeId required for SELECT_LEXICAL_READING'),
+    manualCanonical: z.undefined().optional(),
+    notes: z.string().optional(),
+    assistance: z.any().optional()
+  }),
+  z.object({
+    issueId: z.string().min(1),
+    action: z.literal('MANUAL_CANONICAL_OVERRIDE'),
+    manualCanonical: z.string().min(1, 'manualCanonical required for MANUAL_CANONICAL_OVERRIDE'),
+    selectedAlternativeId: z.undefined().optional(),
+    notes: z.string().optional(),
+    assistance: z.any().optional()
+  }),
+  z.object({
+    issueId: z.string().min(1),
+    action: z.literal('ACCEPT_IZAFAT'),
+    selectedAlternativeId: z.undefined().optional(),
+    manualCanonical: z.undefined().optional(),
+    notes: z.string().optional(),
+    assistance: z.any().optional()
+  }),
+  z.object({
+    issueId: z.string().min(1),
+    action: z.literal('REJECT_IZAFAT'),
+    selectedAlternativeId: z.undefined().optional(),
+    manualCanonical: z.undefined().optional(),
+    notes: z.string().optional(),
+    assistance: z.any().optional()
+  }),
+  z.object({
+    issueId: z.string().min(1),
+    action: z.literal('SELECT_MORPHOLOGY'),
+    selectedAlternativeId: z.string().min(1, 'selectedAlternativeId required for SELECT_MORPHOLOGY'),
+    manualCanonical: z.undefined().optional(),
+    notes: z.string().optional(),
+    assistance: z.any().optional()
+  })
+]);
 
 export const BibliographyValidationDecisionFixtureSchema = z.object({
-  recordId: z.string().min(1),
-  fieldPath: z.string().min(1),
+  recordId: z.string().min(1, 'Record ID must not be empty'),
+  fieldPath: z.string().superRefine((path, ctx) => {
+    if (!isValidBibliographyFieldPath(path)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Invalid bibliography fieldPath "${path}". Must be a valid supported field path.`
+      });
+    }
+  }),
   decision: ReviewDecisionSchema
+});
+
+export const BibliographyValidationFieldExpectationSchema = z.object({
+  finalText: z.string().min(1).optional(),
+  disposition: z.enum(['FINAL', 'REVIEW_REQUIRED', 'UNRESOLVED', 'PASSTHROUGH'])
+}).superRefine((data, ctx) => {
+  if (data.disposition === 'FINAL' || data.disposition === 'PASSTHROUGH') {
+    if (!data.finalText || data.finalText.trim() === '') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Field with disposition "${data.disposition}" must specify a non-empty "finalText".`
+      });
+    }
+  }
+  if (data.disposition === 'REVIEW_REQUIRED' || data.disposition === 'UNRESOLVED') {
+    if (data.finalText !== undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Field with disposition "${data.disposition}" should not specify "finalText".`
+      });
+    }
+  }
 });
 
 export const BibliographyValidationCaseSchema = z.object({
@@ -322,10 +421,15 @@ export const BibliographyValidationCaseSchema = z.object({
   expected: z.object({
     readiness: z.enum(['READY', 'REVIEW_REQUIRED', 'INVALID']),
     fields: z.record(
-      z.object({
-        finalText: z.string().optional(),
-        disposition: z.enum(['FINAL', 'REVIEW_REQUIRED', 'UNRESOLVED', 'PASSTHROUGH'])
-      })
+      z.string().superRefine((path, ctx) => {
+        if (!isValidBibliographyFieldPath(path)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Invalid bibliography expected fieldPath "${path}".`
+          });
+        }
+      }),
+      BibliographyValidationFieldExpectationSchema
     ).optional()
   }),
   provenance: ValidationProvenanceSchema,
@@ -357,4 +461,3 @@ export function validateBibliographyCorpus(data: unknown): BibliographyValidatio
 export function validateBibliographyCase(data: unknown): BibliographyValidationCase {
   return BibliographyValidationCaseSchema.parse(data) as BibliographyValidationCase;
 }
-
