@@ -43,6 +43,15 @@ export interface ValidationProvenance {
   reviewNote?: string;
 }
 
+/**
+ * ScholarlyValidationCase (Validation V1).
+ *
+ * NOTE (V1 Legacy Compatibility):
+ * In Validation V1, `expected.canonical` is compared directly against `result.output` (the rendered presentation output).
+ * This conflated scholarly canonical transliteration with publication/profile rendering.
+ * V1 is preserved strictly for backward compatibility with existing pilot and release validation.
+ * For the separated canonical-vs-rendering contract and Phase 4.6B benchmark re-audit, use Validation V2 (`src/validation/v2/`).
+ */
 export interface ScholarlyValidationCase {
   id: string;
   input: string;
@@ -51,7 +60,9 @@ export interface ScholarlyValidationCase {
 
   expected: {
     disposition: ValidationExpectedDisposition;
+    /** Legacy V1 expectation compared against rendered result.output. Do NOT use for new gold. */
     canonical?: string;
+    /** Legacy V1 expectation compared against rendered result.output. Do NOT use for new gold. */
     allowedCanonicals?: string[];
     requiredIssueTypes?: ReviewIssueType[];
     forbiddenIssueTypes?: ReviewIssueType[];
