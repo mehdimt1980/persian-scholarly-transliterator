@@ -13,20 +13,40 @@ const REVIEW_IDS = [
   'cand-amb-011'
 ] as const;
 
-function makeAdjudication() {
-  const finalCases = Array.from({ length: 103 }, (_, index) => ({
+type TestCase = {
+  id: string;
+  sourceText: string;
+  category: string;
+  disposition: 'FINAL' | 'REVIEW_REQUIRED' | 'UNRESOLVED';
+  canonical?: string;
+  allowedCanonicals?: string[];
+};
+
+type TestAdjudication = {
+  metadata: {
+    version: string;
+    status: string;
+    humanSignoff: unknown;
+    engineEvaluationPerformed: boolean;
+  };
+  summary: Record<string, unknown>;
+  cases: TestCase[];
+};
+
+function makeAdjudication(): TestAdjudication {
+  const finalCases: TestCase[] = Array.from({ length: 103 }, (_, index) => ({
     id: `final-${index + 1}`,
     sourceText: `متن ${index + 1}`,
     category: 'TERM',
-    disposition: 'FINAL' as const,
+    disposition: 'FINAL',
     canonical: `canonical-${index + 1}`
   }));
 
-  const reviewCases = REVIEW_IDS.map((id, index) => ({
+  const reviewCases: TestCase[] = REVIEW_IDS.map((id, index) => ({
     id,
     sourceText: `مبهم ${index + 1}`,
     category: 'AMBIGUITY',
-    disposition: 'REVIEW_REQUIRED' as const,
+    disposition: 'REVIEW_REQUIRED',
     allowedCanonicals: [`reading-${index + 1}-a`, `reading-${index + 1}-b`]
   }));
 
@@ -42,7 +62,7 @@ function makeAdjudication() {
   };
 }
 
-function makeAcquisition(adjudication: ReturnType<typeof makeAdjudication>) {
+function makeAcquisition(adjudication: TestAdjudication) {
   return adjudication.cases.map((item) => ({
     id: item.id,
     sourceText: item.sourceText,
