@@ -1,11 +1,18 @@
 # Adjudication Consolidation
 
-Phase 4.6B scholarly truth currently consists of:
+Phase 4.6B scholarly truth is now consolidated in:
 
-1. `validation/review/adjudication.v1.json`
-2. `validation/review/adjudication-amendments.v1.json`
+`validation/review/adjudication.v1.json`
 
-The amendments contain substantive expert corrections made after the first draft audit.
+Current artifact version:
+
+`1.0.2-draft`
+
+The historical correction trail remains in:
+
+`validation/review/adjudication-amendments.v1.json`
+
+That file is now marked `CONSOLIDATED`; it is audit provenance, not a second executable layer of gold truth.
 
 Use:
 
@@ -13,21 +20,20 @@ Use:
 npm run validate:adjudication
 ```
 
-to apply the amendments in memory and fail closed if any amendment's expected `from` value no longer matches the base artifact.
+to fail closed unless all of the following are true:
 
-Use:
+- the adjudication artifact contains exactly 108 unique cases;
+- dispositions remain 103 `FINAL`, 5 `REVIEW_REQUIRED`, 0 `UNRESOLVED`;
+- every `FINAL` case has exactly one canonical and no `allowedCanonicals`;
+- every `REVIEW_REQUIRED` case has no single canonical and at least two recorded alternatives;
+- the five expected ambiguity IDs are the only `REVIEW_REQUIRED` cases;
+- adjudication IDs, Persian `sourceText`, and categories match the frozen Phase 4.6A acquisition corpus;
+- every historical amendment's `to` value is present in the consolidated artifact;
+- amendment metadata points to the current adjudication version;
+- `engineEvaluationPerformed` remains false;
+- human sign-off has not been fabricated prematurely.
 
-```bash
-npm run review:consolidate
-```
-
-to write:
-
-`validation/review/adjudication.consolidated.v1.json`
-
-The consolidation step is mechanical only. It may not introduce, remove, or reinterpret scholarly decisions.
-
-Expected effective disposition counts:
+Expected disposition counts:
 
 - total: 108
 - FINAL: 103
@@ -42,4 +48,6 @@ Expected REVIEW_REQUIRED case IDs:
 - `cand-amb-009`
 - `cand-amb-011`
 
-The engine must not be evaluated against this corpus before gold freeze. Human governance sign-off is still required before promotion to a release-authoritative benchmark.
+There is intentionally no command that rewrites or reapplies the historical amendment ledger. Any future scholarly correction after human sign-off must use an explicit corpus-correction process with new provenance rather than silently mutating the frozen gold artifact.
+
+The engine must not be evaluated against this corpus before gold freeze. Explicit human governance sign-off is still required before promotion to a release-authoritative benchmark.
