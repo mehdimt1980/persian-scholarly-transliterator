@@ -38,6 +38,20 @@ Each candidate receives one of:
 
 `REVIEW_REQUIRED` and `UNRESOLVED` are valid scholarly outcomes and must never be converted to `FINAL` merely to improve coverage metrics.
 
+## Scholarly Canonical Transliteration vs. Publication Rendering
+
+During human governance review of Phase 4.6B, a key architectural distinction was formalized in `CANONICAL_RENDERING_CONTRACT.md`:
+
+1. **Scholarly Canonical Transliteration:** The linguistically rigorous, diacritic-preserving transliteration that records the reading and morphological truth of the supplied Persian source string (e.g. `Ṣādiq Hidāyat`, `Takht-i Jamshīd`, `zakāt`, `Tārīkh-i Bīdārī-yi Īrānīyān`).
+2. **Publication Rendering:** A deterministic, style-dependent presentation transformation applied to an established canonical reading under a named presentation policy (e.g. IJMES proper-name diacritic removal `Sadeq Hedayat`, established English forms `Persepolis`, IJMES Word List exceptions `zakat`, title casing `Tarikh-i Bidari-yi Iraniyan`).
+
+### Governance Rules for the Benchmark
+
+- **Gold scholarly truth must be established independently of the runtime's current profile limitations.**
+- **Rendering conventions must not be allowed to overwrite scholarly canonical truth.**
+- Earlier Phase 4.6B draft adjudication sometimes used the field name `canonical` for publication-form outputs. The benchmark metadata and schemas will be updated in dedicated follow-up work to maintain clean separation between canonical gold and rendered gold.
+- Formal human governance sign-off is paused until this contract separation is reflected in the benchmark data and audit ledgers.
+
 ## Rendering classes
 
 ### 1. `TECHNICAL_FULL`
