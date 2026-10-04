@@ -26,6 +26,11 @@ export interface ReauditReviewer {
   reviewedAt: string;
 }
 
+export interface ReauditNonAuthoritativeAlternative {
+  reading: string;
+  source: string;
+}
+
 export interface ReauditFinalDecision {
   disposition: 'FINAL';
   scholarlyCanonical: string;
@@ -36,6 +41,17 @@ export interface ReauditFinalDecision {
   reviewer: ReauditReviewer;
 }
 
+export interface ReauditNonFinalDecision {
+  disposition: 'REVIEW_REQUIRED' | 'UNRESOLVED';
+  nonAuthoritativeAlternatives?: ReauditNonAuthoritativeAlternative[];
+  readingEvidence: ReauditEvidence[];
+  renderingEvidence?: ReauditEvidence[];
+  reviewNote: string;
+  reviewer: ReauditReviewer;
+}
+
+export type ReauditDecision = ReauditFinalDecision | ReauditNonFinalDecision;
+
 export interface ReauditWorklistCase {
   id: string;
   sourceText: string;
@@ -43,7 +59,7 @@ export interface ReauditWorklistCase {
   profile: string;
   batch: ReauditBatch;
   reviewState: ReauditReviewState;
-  decision: ReauditFinalDecision | null;
+  decision: ReauditDecision | null;
 }
 
 export interface ReauditWorklistMetadata {
@@ -121,8 +137,23 @@ const EXACT_ALLOWED_FINAL_DECISION_KEYS = [
   'reviewNote',
   'reviewer'
 ] as const;
+const ALLOWED_NON_FINAL_DECISION_KEYS = [
+  'disposition',
+  'nonAuthoritativeAlternatives',
+  'readingEvidence',
+  'renderingEvidence',
+  'reviewNote',
+  'reviewer'
+] as const;
+const REQUIRED_NON_FINAL_DECISION_KEYS = [
+  'disposition',
+  'readingEvidence',
+  'reviewNote',
+  'reviewer'
+] as const;
 const EXACT_ALLOWED_EVIDENCE_KEYS = ['source', 'citation', 'locator'] as const;
 const EXACT_ALLOWED_REVIEWER_KEYS = ['name', 'type', 'reviewedAt'] as const;
+const EXACT_ALLOWED_ALTERNATIVE_KEYS = ['reading', 'source'] as const;
 
 export const EXPECTED_BATCH_COUNTS: Record<ReauditBatch, number> = {
   A: 25,
@@ -188,13 +219,31 @@ function assertExactKeys(
   }
 }
 
+function assertAllowedKeysWithRequired(
+  value: Record<string, unknown>,
+  allowedKeys: readonly string[],
+  requiredKeys: readonly string[],
+  prefix: string
+): void {
+  for (const key of Object.keys(value)) {
+    if (!allowedKeys.includes(key)) {
+      throw new Error(`${prefix}_CONTAINS_UNEXPECTED_KEY:${key}`);
+    }
+  }
+  for (const key of requiredKeys) {
+    if (!(key in value)) {
+      throw new Error(`${prefix}_MISSING_REQUIRED_KEY:${key}`);
+    }
+  }
+}
+
 function assertNonEmptyTrimmedString(value: unknown, code: string): asserts value is string {
   if (typeof value !== 'string' || value.length === 0 || value.trim() !== value) {
     throw new Error(code);
   }
 }
 
-function assertLatinGoldString(value: unknown, field: string, caseId: string): asserts value is string {
+function assertLatinNfcString(value: unknown, field: string, caseId: string): asserts value is string {
   assertNonEmptyTrimmedString(value, `WORKLIST_DECISION_${field}_INVALID:${caseId}`);
   if (value.normalize('NFC') !== value) {
     throw new Error(`WORKLIST_DECISION_${field}_NOT_NFC:${caseId}`);
@@ -233,33 +282,12 @@ function validateEvidenceArray(value: unknown, field: string, caseId: string): v
   }
 }
 
-function validateBatchAFinalDecision(decision: unknown, caseId: string): void {
-  if (!decision || typeof decision !== 'object' || Array.isArray(decision)) {
-    throw new Error(`WORKLIST_BATCH_A_DECISION_INVALID:${caseId}`);
-  }
-
-  const d = decision as Record<string, unknown>;
-  assertExactKeys(d, EXACT_ALLOWED_FINAL_DECISION_KEYS, `WORKLIST_BATCH_A_DECISION:${caseId}`);
-
-  if (d.disposition !== 'FINAL') {
-    throw new Error(`WORKLIST_BATCH_A_DISPOSITION_MUST_BE_FINAL:${caseId}`);
-  }
-
-  assertLatinGoldString(d.scholarlyCanonical, 'SCHOLARLY_CANONICAL', caseId);
-  assertLatinGoldString(d.renderedOutput, 'RENDERED_OUTPUT', caseId);
-  validateEvidenceArray(d.readingEvidence, 'READING_EVIDENCE', caseId);
-  validateEvidenceArray(d.renderingEvidence, 'RENDERING_EVIDENCE', caseId);
-  assertNonEmptyTrimmedString(d.reviewNote, `WORKLIST_DECISION_REVIEW_NOTE_INVALID:${caseId}`);
-
-  if (!d.reviewer || typeof d.reviewer !== 'object' || Array.isArray(d.reviewer)) {
+function validateReviewer(value: unknown, caseId: string): void {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new Error(`WORKLIST_DECISION_REVIEWER_INVALID:${caseId}`);
   }
-  const reviewer = d.reviewer as Record<string, unknown>;
-  assertExactKeys(
-    reviewer,
-    EXACT_ALLOWED_REVIEWER_KEYS,
-    `WORKLIST_DECISION_REVIEWER:${caseId}`
-  );
+  const reviewer = value as Record<string, unknown>;
+  assertExactKeys(reviewer, EXACT_ALLOWED_REVIEWER_KEYS, `WORKLIST_DECISION_REVIEWER:${caseId}`);
   if (reviewer.name !== 'OpenAI GPT-5.6 Sol') {
     throw new Error(`WORKLIST_DECISION_REVIEWER_NAME_INVALID:${caseId}`);
   }
@@ -271,6 +299,63 @@ function validateBatchAFinalDecision(decision: unknown, caseId: string): void {
   }
 }
 
+function validateAlternatives(value: unknown, caseId: string): void {
+  if (!Array.isArray(value) || value.length < 1) {
+    throw new Error(`WORKLIST_DECISION_ALTERNATIVES_MUST_BE_NONEMPTY:${caseId}`);
+  }
+  for (const [index, item] of value.entries()) {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) {
+      throw new Error(`WORKLIST_DECISION_ALTERNATIVE_INVALID:${caseId}:${index}`);
+    }
+    const alternative = item as Record<string, unknown>;
+    assertExactKeys(
+      alternative,
+      EXACT_ALLOWED_ALTERNATIVE_KEYS,
+      `WORKLIST_DECISION_ALTERNATIVE:${caseId}:${index}`
+    );
+    assertLatinNfcString(alternative.reading, 'ALTERNATIVE_READING', caseId);
+    assertNonEmptyTrimmedString(
+      alternative.source,
+      `WORKLIST_DECISION_ALTERNATIVE_SOURCE_INVALID:${caseId}:${index}`
+    );
+  }
+}
+
+function validateBatchADecision(decision: unknown, caseId: string): void {
+  if (!decision || typeof decision !== 'object' || Array.isArray(decision)) {
+    throw new Error(`WORKLIST_BATCH_A_DECISION_INVALID:${caseId}`);
+  }
+
+  const d = decision as Record<string, unknown>;
+
+  if (d.disposition === 'FINAL') {
+    assertExactKeys(d, EXACT_ALLOWED_FINAL_DECISION_KEYS, `WORKLIST_BATCH_A_DECISION:${caseId}`);
+    assertLatinNfcString(d.scholarlyCanonical, 'SCHOLARLY_CANONICAL', caseId);
+    assertLatinNfcString(d.renderedOutput, 'RENDERED_OUTPUT', caseId);
+    validateEvidenceArray(d.readingEvidence, 'READING_EVIDENCE', caseId);
+    validateEvidenceArray(d.renderingEvidence, 'RENDERING_EVIDENCE', caseId);
+  } else if (d.disposition === 'REVIEW_REQUIRED' || d.disposition === 'UNRESOLVED') {
+    assertAllowedKeysWithRequired(
+      d,
+      ALLOWED_NON_FINAL_DECISION_KEYS,
+      REQUIRED_NON_FINAL_DECISION_KEYS,
+      `WORKLIST_BATCH_A_DECISION:${caseId}`
+    );
+    validateEvidenceArray(d.readingEvidence, 'READING_EVIDENCE', caseId);
+    if ('renderingEvidence' in d) {
+      validateEvidenceArray(d.renderingEvidence, 'RENDERING_EVIDENCE', caseId);
+    }
+    if ('nonAuthoritativeAlternatives' in d) {
+      validateAlternatives(d.nonAuthoritativeAlternatives, caseId);
+    }
+  } else {
+    throw new Error(`WORKLIST_BATCH_A_DISPOSITION_INVALID:${caseId}`);
+  }
+
+  assertNonEmptyTrimmedString(d.reviewNote, `WORKLIST_DECISION_REVIEW_NOTE_INVALID:${caseId}`);
+  validateReviewer(d.reviewer, caseId);
+}
+
 /**
  * Validates the blind V2 re-audit worklist without importing or executing
  * transliteration runtime code.
@@ -278,6 +363,10 @@ function validateBatchAFinalDecision(decision: unknown, caseId: string): void {
  * Supported states:
  * - READY_FOR_BLIND_REAUDIT: all 108 decisions blank.
  * - BATCH_A_COMPLETED: exactly 25 Batch A decisions completed, 83 still blank.
+ *
+ * The validator never dictates a scholarly disposition. A completed Batch A
+ * decision may be FINAL, REVIEW_REQUIRED, or UNRESOLVED if it satisfies the
+ * corresponding protocol contract.
  */
 export function validateReauditWorklist(
   worklist: ReauditWorklistDocument,
@@ -396,16 +485,14 @@ export function validateReauditWorklist(
       if (c.reviewState !== 'PENDING' || c.decision !== null) {
         throw new Error(`WORKLIST_READY_STATE_CASE_MUST_BE_BLANK:${c.id}`);
       }
-    } else {
-      if (c.batch === 'A') {
-        if (c.reviewState !== 'COMPLETED') {
-          throw new Error(`WORKLIST_BATCH_A_CASE_NOT_COMPLETED:${c.id}`);
-        }
-        validateBatchAFinalDecision(c.decision, c.id);
-        completedBatchA++;
-      } else if (c.reviewState !== 'PENDING' || c.decision !== null) {
-        throw new Error(`WORKLIST_NON_BATCH_A_CASE_MUST_REMAIN_PENDING:${c.id}`);
+    } else if (c.batch === 'A') {
+      if (c.reviewState !== 'COMPLETED' || c.decision === null) {
+        throw new Error(`WORKLIST_BATCH_A_CASE_NOT_COMPLETED:${c.id}`);
       }
+      validateBatchADecision(c.decision, c.id);
+      completedBatchA++;
+    } else if (c.reviewState !== 'PENDING' || c.decision !== null) {
+      throw new Error(`WORKLIST_NON_BATCH_A_CASE_MUST_REMAIN_PENDING:${c.id}`);
     }
 
     if (c.reviewState === 'PENDING' && c.decision === null) {
@@ -437,10 +524,7 @@ export function validateReauditWorklist(
   if (worklist.summary.total !== 108 || worklist.summary.total !== worklist.cases.length) {
     throw new Error(`WORKLIST_SUMMARY_TOTAL_MISMATCH:${worklist.summary.total}`);
   }
-  if (
-    worklist.summary.pending !== expectedPending ||
-    worklist.summary.pending !== actualPending
-  ) {
+  if (worklist.summary.pending !== expectedPending || worklist.summary.pending !== actualPending) {
     throw new Error(`WORKLIST_SUMMARY_PENDING_MISMATCH:${worklist.summary.pending}`);
   }
   if (
