@@ -1,7 +1,7 @@
 {
   "metadata": {
     "id": "external-benchmark-adjudication-v1",
-    "version": "1.0.0-draft",
+    "version": "1.0.1-draft",
     "sourceCorpus": "validation/acquisition/external-candidates.v1.json",
     "sourceCorpusCount": 108,
     "status": "EXPERT_ADJUDICATED_PENDING_HUMAN_SIGNOFF",
@@ -18,6 +18,7 @@
     "notes": [
       "Gold truth was adjudicated without consulting current engine output.",
       "PERSON, PLACE, and INSTITUTION cases expose a runtime profile gap: current runtime has only ijmes_full and ijmes_title, while IJMES requires proper names/organizations without diacritics.",
+      "Book-title spellings were independently re-audited against scholarly/catalog evidence after initial adjudication; Tarikh-i Bidari-i Iraniyan, Suvashun, and Chashmhayash reflect that audit.",
       "This artifact MUST NOT be labeled HUMAN_REVIEWED until explicit human sign-off."
     ]
   },
@@ -114,7 +115,7 @@
     {"id":"cand-inst-005","sourceText":"دارالفنون","category":"INSTITUTION","renderingClass":"PROPER_NODIACRITIC","disposition":"FINAL","canonical":"Dar al-Funun","policyFlags":["RUNTIME_PROFILE_GAP"],"reviewNote":"Organization name without diacritics; article remains lowercase."},
     {"id":"cand-inst-006","sourceText":"انجمن آثار ملی","category":"INSTITUTION","renderingClass":"PROPER_NODIACRITIC","disposition":"FINAL","canonical":"Anjuman-i Asar-i Milli","policyFlags":["RUNTIME_PROFILE_GAP"],"reviewNote":"Organization name without diacritics and with Persian izafat -i."},
 
-    {"id":"cand-book-001","sourceText":"تاریخ بیداری ایرانیان","category":"BOOK_TITLE","renderingClass":"TITLE_NODIACRITIC","disposition":"FINAL","canonical":"Tarikh-i Bidari-i Iranian","reviewNote":"IJMES title rendering: no diacritics, Persian i/u, English capitalization."},
+    {"id":"cand-book-001","sourceText":"تاریخ بیداری ایرانیان","category":"BOOK_TITLE","renderingClass":"TITLE_NODIACRITIC","disposition":"FINAL","canonical":"Tarikh-i Bidari-i Iraniyan","evidenceRefs":["CiNii Books Title Transcription: Tārīkh-i bīdārī-i Īrāniyān"],"reviewNote":"IJMES title rendering: catalog transcription independently establishes Īrāniyān; diacritics removed and Persian izafat rendered -i."},
     {"id":"cand-book-002","sourceText":"سیاست‌نامه","category":"BOOK_TITLE","renderingClass":"TITLE_NODIACRITIC","disposition":"FINAL","canonical":"Siyasat-nama","reviewNote":"IJMES title rendering; -nama is an IJMES Word List suffix and remains lowercase."},
     {"id":"cand-book-003","sourceText":"قابوس‌نامه","category":"BOOK_TITLE","renderingClass":"TITLE_NODIACRITIC","disposition":"FINAL","canonical":"Qabus-nama","reviewNote":"IJMES title rendering; -nama suffix remains lowercase."},
     {"id":"cand-book-004","sourceText":"مرزبان‌نامه","category":"BOOK_TITLE","renderingClass":"TITLE_NODIACRITIC","disposition":"FINAL","canonical":"Marzban-nama","reviewNote":"IJMES title rendering; -nama suffix remains lowercase."},
@@ -122,10 +123,10 @@
     {"id":"cand-book-006","sourceText":"کلیله و دمنه","category":"BOOK_TITLE","renderingClass":"TITLE_NODIACRITIC","disposition":"FINAL","canonical":"Kalila va Dimna","reviewNote":"IJMES title rendering; conjunction remains lowercase."},
     {"id":"cand-book-007","sourceText":"گلستان","category":"BOOK_TITLE","renderingClass":"TITLE_NODIACRITIC","disposition":"FINAL","canonical":"Gulistan","reviewNote":"IJMES Persian title rendering uses i/u rather than Iranica e/o."},
     {"id":"cand-book-008","sourceText":"بوستان","category":"BOOK_TITLE","renderingClass":"TITLE_NODIACRITIC","disposition":"FINAL","canonical":"Bustan","reviewNote":"IJMES title rendering without diacritics."},
-    {"id":"cand-book-009","sourceText":"سووشون","category":"BOOK_TITLE","renderingClass":"TITLE_NODIACRITIC","disposition":"FINAL","canonical":"Savushun","reviewNote":"No-diacritic title form; established bibliographic reading retained."},
-    {"id":"cand-book-010","sourceText":"چشم‌هایش","category":"BOOK_TITLE","renderingClass":"TITLE_NODIACRITIC","disposition":"FINAL","canonical":"Chashmhayish","reviewNote":"Derived from verified bibliographic reading Čašmhāyeš, converted to IJMES Persian i/u and ch/sh conventions."},
+    {"id":"cand-book-009","sourceText":"سووشون","category":"BOOK_TITLE","renderingClass":"TITLE_NODIACRITIC","disposition":"FINAL","canonical":"Suvashun","evidenceRefs":["Encyclopaedia Iranica: Suvašun","Cambridge scholarly usage: Sūvashūn"],"reviewNote":"Persian-title transliteration is kept distinct from the published English translation title Savushun; IJMES title profile removes diacritics."},
+    {"id":"cand-book-010","sourceText":"چشم‌هایش","category":"BOOK_TITLE","renderingClass":"TITLE_NODIACRITIC","disposition":"FINAL","canonical":"Chashmhayash","evidenceRefs":["Encyclopaedia Iranica headword: ČAŠMHĀYAŠ"],"reviewNote":"Iranica independently establishes Čašmhāyaš; converted to IJMES consonants and title no-diacritic presentation."},
     {"id":"cand-book-011","sourceText":"حاجی آقا","category":"BOOK_TITLE","renderingClass":"TITLE_NODIACRITIC","disposition":"FINAL","canonical":"Haji Aqa","reviewNote":"IJMES title rendering without diacritics."},
-    {"id":"cand-book-012","sourceText":"زمستان","category":"BOOK_TITLE","renderingClass":"TITLE_NODIACRITIC","disposition":"FINAL","canonical":"Zimistan","reviewNote":"IJMES Persian title rendering converts Iranica e to i and removes diacritics."},
+    {"id":"cand-book-012","sourceText":"زمستان","category":"BOOK_TITLE","renderingClass":"TITLE_NODIACRITIC","disposition":"FINAL","canonical":"Zimistan","reviewNote":"IJMES Persian title rendering converts modern-Persian e to i and removes diacritics; scholarly Persian transliteration also attests Zimistān."},
 
     {"id":"cand-cmp-001","sourceText":"جهانگرد","category":"COMPOUND","renderingClass":"TECHNICAL_FULL","disposition":"FINAL","canonical":"jahāngard","reviewNote":"Full IJMES lexical rendering."},
     {"id":"cand-cmp-002","sourceText":"سخن‌سنج","category":"COMPOUND","renderingClass":"TECHNICAL_FULL","disposition":"FINAL","canonical":"sukhan-sanj","reviewNote":"Full IJMES rendering; explicit ZWNJ represented as a structural hyphen."},
@@ -138,7 +139,7 @@
     {"id":"cand-mrp-003","sourceText":"خردمندتر","category":"MORPHOLOGY","renderingClass":"TECHNICAL_FULL","disposition":"FINAL","canonical":"khiradmand-tar","reviewNote":"Reviewed comparative morphology from cited grammar."},
     {"id":"cand-mrp-004","sourceText":"بزرگ‌ترین","category":"MORPHOLOGY","renderingClass":"TECHNICAL_FULL","disposition":"FINAL","canonical":"buzurg-tarīn","reviewNote":"Reviewed superlative morphology from cited grammar."},
     {"id":"cand-mrp-005","sourceText":"کتابم","category":"MORPHOLOGY","renderingClass":"TECHNICAL_FULL","disposition":"FINAL","canonical":"kitāb-am","reviewNote":"Reviewed consonant-final possessive morphology."},
-    {"id":"cand-mrp-006","sourceText":"خانه‌ات","category":"MORPHOLOGY","renderingClass":"TECHNICAL_FULL","disposition":"FINAL","canonical":"khāna-at","reviewNote":"Gold review records the vowel/heh-final possessive form independently of current runtime support."},
+    {"id":"cand-mrp-006","sourceText":"خانه‌ات","category":"MORPHOLOGY","renderingClass":"TECHNICAL_FULL","disposition":"FINAL","canonical":"khāna-at","reviewNote":"Gold review records the formal orthographic possessive form independently of current runtime support; Persian grammar sources attest khāna-at/xāne-at depending transcription convention."},
     {"id":"cand-mrp-007","sourceText":"قلمش","category":"MORPHOLOGY","renderingClass":"TECHNICAL_FULL","disposition":"FINAL","canonical":"qalam-ash","reviewNote":"Reviewed consonant-final possessive morphology."},
     {"id":"cand-mrp-008","sourceText":"دیدگاه‌هایشان","category":"MORPHOLOGY","renderingClass":"TECHNICAL_FULL","disposition":"FINAL","canonical":"dīdgāh-hā-yi-shān","reviewNote":"Reviewed plural + linker + possessive chain; scholarly Persian examples attest -hā-yi-shān."},
     {"id":"cand-mrp-009","sourceText":"دانشمندان","category":"MORPHOLOGY","renderingClass":"TECHNICAL_FULL","disposition":"FINAL","canonical":"dānishmandān","reviewNote":"Reviewed plural morphology from cited grammar."},
@@ -155,15 +156,15 @@
 
     {"id":"cand-amb-001","sourceText":"مهر","category":"AMBIGUITY","renderingClass":"AMBIGUITY_BLOCKED","disposition":"REVIEW_REQUIRED","allowedCanonicals":["mihr","muhr"],"policyFlags":["LEXICAL_AMBIGUITY"],"reviewNote":"Steingass explicitly attests distinct readings that remain distinct in IJMES."},
     {"id":"cand-amb-002","sourceText":"شیر","category":"AMBIGUITY","renderingClass":"TECHNICAL_FULL","disposition":"FINAL","canonical":"shīr","reviewNote":"Attested semantic/pronunciation variants collapse to the same IJMES rendering; no transliteration-level ambiguity remains."},
-    {"id":"cand-amb-003","sourceText":"سر","category":"AMBIGUITY","renderingClass":"AMBIGUITY_BLOCKED","disposition":"REVIEW_REQUIRED","policyFlags":["LEXICAL_AMBIGUITY"],"reviewNote":"The unvocalized form supports materially different readings; context is required before an authoritative transliteration."},
+    {"id":"cand-amb-003","sourceText":"سر","category":"AMBIGUITY","renderingClass":"AMBIGUITY_BLOCKED","disposition":"REVIEW_REQUIRED","policyFlags":["LEXICAL_AMBIGUITY"],"reviewNote":"The unvocalized form supports materially different native readings (including sar and sur); context is required before an authoritative transliteration."},
     {"id":"cand-amb-004","sourceText":"باد","category":"AMBIGUITY","renderingClass":"TECHNICAL_FULL","disposition":"FINAL","canonical":"bād","reviewNote":"Multiple senses/grammatical uses share the same transliteration bād."},
     {"id":"cand-amb-005","sourceText":"بار","category":"AMBIGUITY","renderingClass":"TECHNICAL_FULL","disposition":"FINAL","canonical":"bār","reviewNote":"Multiple senses share the same transliteration bār."},
     {"id":"cand-amb-006","sourceText":"داد","category":"AMBIGUITY","renderingClass":"TECHNICAL_FULL","disposition":"FINAL","canonical":"dād","reviewNote":"Noun/verbal senses share the same transliteration dād."},
     {"id":"cand-amb-007","sourceText":"گل","category":"AMBIGUITY","renderingClass":"AMBIGUITY_BLOCKED","disposition":"REVIEW_REQUIRED","allowedCanonicals":["gul","gil"],"policyFlags":["LEXICAL_AMBIGUITY"],"reviewNote":"Persian homograph supports distinct readings 'flower' and 'mud/clay'."},
     {"id":"cand-amb-008","sourceText":"گوش","category":"AMBIGUITY","renderingClass":"TECHNICAL_FULL","disposition":"FINAL","canonical":"gūsh","reviewNote":"Relevant senses share the same transliteration gūsh."},
-    {"id":"cand-amb-009","sourceText":"شور","category":"AMBIGUITY","renderingClass":"AMBIGUITY_BLOCKED","disposition":"REVIEW_REQUIRED","policyFlags":["LEXICAL_AMBIGUITY"],"reviewNote":"The dictionary tradition includes materially distinct vocalizations/usages; context is required before authoritative rendering."},
+    {"id":"cand-amb-009","sourceText":"شور","category":"AMBIGUITY","renderingClass":"AMBIGUITY_BLOCKED","disposition":"REVIEW_REQUIRED","policyFlags":["LEXICAL_AMBIGUITY"],"reviewNote":"Persian شور has materially distinct readings, including long-vowel shūr (salty/tumult/musical mode) and consultation showr/shawr; context is required before authoritative IJMES rendering."},
     {"id":"cand-amb-010","sourceText":"راست","category":"AMBIGUITY","renderingClass":"TECHNICAL_FULL","disposition":"FINAL","canonical":"rāst","reviewNote":"Relevant senses share the same transliteration rāst."},
-    {"id":"cand-amb-011","sourceText":"روی","category":"AMBIGUITY","renderingClass":"AMBIGUITY_BLOCKED","disposition":"REVIEW_REQUIRED","policyFlags":["LEXICAL_AMBIGUITY"],"reviewNote":"The unvocalized surface can support distinct lexical/verbal readings; context is required."},
+    {"id":"cand-amb-011","sourceText":"روی","category":"AMBIGUITY","renderingClass":"AMBIGUITY_BLOCKED","disposition":"REVIEW_REQUIRED","policyFlags":["LEXICAL_AMBIGUITY"],"reviewNote":"The unvocalized surface supports distinct readings such as rūy ('face/on/zinc') and ravī (Arabic-derived rhyme term / other lexical use); context is required."},
     {"id":"cand-amb-012","sourceText":"گاو","category":"AMBIGUITY","renderingClass":"TECHNICAL_FULL","disposition":"FINAL","canonical":"gāv","reviewNote":"Semantic senses do not create a transliteration-level reading ambiguity."}
   ]
 }
