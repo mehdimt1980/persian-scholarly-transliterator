@@ -1,0 +1,33 @@
+{
+  "metadata": {
+    "appliesTo": "validation/review/adjudication.v1.json",
+    "baseVersion": "1.0.1-draft",
+    "status": "EXPERT_ADJUDICATION_CORRECTIONS_PENDING_CONSOLIDATION",
+    "adjudicator": "OpenAI GPT-5.6 Sol",
+    "adjudicatedAt": "2026-10-04",
+    "engineEvaluationPerformed": false,
+    "note": "These corrections arise from post-draft scholarly source audit. They must be consolidated into the adjudication artifact before human sign-off and gold promotion."
+  },
+  "corrections": [
+    {
+      "id": "cand-term-001",
+      "field": "canonical",
+      "from": "nūsāzī",
+      "to": "nusāzī",
+      "evidence": [
+        "Scholarly bibliography independently attests Nusāzī for نوسازی.",
+        "Persian IJMES uses short u for modern Persian o in this reading; the initial vowel is not long ū."
+      ]
+    },
+    {
+      "id": "cand-term-012",
+      "field": "canonical",
+      "from": "rushanfikrī",
+      "to": "rawshanfikrī",
+      "evidence": [
+        "Cambridge/Iranian Studies scholarly usage explicitly attests rawshanfikr for روشنفکر.",
+        "The Persian form روشن cannot be converted by mechanically replacing Iranica e/o with IJMES i/u; the established scholarly stem is rawshanfikr."
+      ]
+    }
+  ]
+}
