@@ -117,11 +117,17 @@ During initial V2 adjudication:
 
 ## 7. Reviewer Provenance & Governance Integrity
 
-- When adjudication is conducted by an AI specialist, provenance must truthfully record:
+- When adjudication is conducted by an AI specialist, provenance must record the canonical reviewer object:
   ```json
-  "reviewerType": "AI_SPECIALIST"
+  "reviewer": {
+    "name": "OpenAI GPT-5.6 Sol",
+    "type": "AI_SPECIALIST",
+    "reviewedAt": "YYYY-MM-DD"
+  }
   ```
-- No record may be described as human-reviewed until formal human sign-off is completed.
+  Specifically, `reviewer.type = "AI_SPECIALIST"`.
+- Do not claim human review.
+- The `reviewedAt` field must record the actual review date (in `YYYY-MM-DD` format) on which the adjudication was performed.
 - Human governance sign-off occurs in a subsequent phase (`validation/review/HUMAN_SIGNOFF.md`) and does not retroactively rewrite AI reviewer provenance.
 
 ---
@@ -198,9 +204,9 @@ During subsequent batch adjudication PRs, each reviewed case will transition fro
   ],
   "reviewNote": "Explanatory scholarly rationale",
   "reviewer": {
-    "name": "Specialist Reviewer",
+    "name": "OpenAI GPT-5.6 Sol",
     "type": "AI_SPECIALIST",
-    "reviewedAt": "2026-10-04"
+    "reviewedAt": "YYYY-MM-DD"
   }
 }
 ```
@@ -209,22 +215,34 @@ During subsequent batch adjudication PRs, each reviewed case will transition fro
 For non-FINAL cases:
 - Authoritative `scholarlyCanonical` must be **absent**.
 - Authoritative `renderedOutput` must be **absent**.
-- Reading and rendering evidence documenting the ambiguity or gap remain mandatory.
-- Non-authoritative candidate alternative readings may only appear in `nonAuthoritativeAlternatives`:
+- `readingEvidence` plus a clear review rationale should document why authoritative reading is blocked or unresolved.
+- `renderingEvidence` is **optional** and only appropriate when a relevant rendering-policy fact materially contributes to the review (it must not be mandatory when no scholarly canonical reading has been established).
+- Non-authoritative candidate alternative readings may appear in `nonAuthoritativeAlternatives`, strictly as **NON-GOLD**:
 ```json
 {
   "disposition": "REVIEW_REQUIRED",
   "nonAuthoritativeAlternatives": [
-    { "reading": "reading_a", "source": "Citation A" },
-    { "reading": "reading_b", "source": "Citation B" }
+    {
+      "reading": "candidate reading a",
+      "source": "Citation A"
+    },
+    {
+      "reading": "candidate reading b",
+      "source": "Citation B"
+    }
   ],
-  "readingEvidence": [...],
-  "renderingEvidence": [...],
+  "readingEvidence": [
+    {
+      "source": "Dehkhoda / Academic Lexicon",
+      "citation": "Scholarly citation documenting ambiguity",
+      "locator": "Page / headword"
+    }
+  ],
   "reviewNote": "Unvocalized Persian source supports multiple distinct lexical readings.",
   "reviewer": {
-    "name": "Specialist Reviewer",
+    "name": "OpenAI GPT-5.6 Sol",
     "type": "AI_SPECIALIST",
-    "reviewedAt": "2026-10-04"
+    "reviewedAt": "YYYY-MM-DD"
   }
 }
 ```

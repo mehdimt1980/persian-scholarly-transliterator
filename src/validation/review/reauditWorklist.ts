@@ -47,6 +47,12 @@ export interface ReauditWorklistDocument {
   cases: ReauditWorklistCase[];
 }
 
+export const EXACT_ALLOWED_ROOT_KEYS = [
+  'metadata',
+  'summary',
+  'cases'
+] as const;
+
 export const EXACT_ALLOWED_CASE_KEYS = [
   'id',
   'sourceText',
@@ -66,6 +72,35 @@ export const EXACT_ALLOWED_METADATA_KEYS = [
   'engineEvaluationPerformed',
   'humanSignoff',
   'priorAdjudicationAuthority'
+] as const;
+
+export const EXACT_ALLOWED_SUMMARY_KEYS = [
+  'total',
+  'pending',
+  'adjudicated',
+  'byBatch',
+  'byCategory'
+] as const;
+
+export const EXACT_ALLOWED_BATCH_KEYS = [
+  'A',
+  'B',
+  'C',
+  'D',
+  'E'
+] as const;
+
+export const EXACT_ALLOWED_CATEGORY_KEYS = [
+  'TERM',
+  'RELIGIOUS_TERM',
+  'PERSON',
+  'PLACE',
+  'INSTITUTION',
+  'BOOK_TITLE',
+  'COMPOUND',
+  'MORPHOLOGY',
+  'IZAFAT',
+  'AMBIGUITY'
 ] as const;
 
 export const EXPECTED_BATCH_COUNTS: Record<ReauditBatch, number> = {
@@ -121,7 +156,20 @@ export function validateReauditWorklist(
   worklist: ReauditWorklistDocument,
   acquisitionCandidates: AcquisitionCandidateMinimal[]
 ): void {
-  // 1. Metadata Invariants & Strict Key Allowlist
+  // 1. Root Document Strict Key Allowlist
+  const rootKeys = Object.keys(worklist);
+  for (const key of rootKeys) {
+    if (!EXACT_ALLOWED_ROOT_KEYS.includes(key as any)) {
+      throw new Error(`WORKLIST_DOCUMENT_CONTAINS_UNEXPECTED_KEY:${key}`);
+    }
+  }
+  for (const key of EXACT_ALLOWED_ROOT_KEYS) {
+    if (!(key in worklist)) {
+      throw new Error(`WORKLIST_DOCUMENT_MISSING_REQUIRED_KEY:${key}`);
+    }
+  }
+
+  // 2. Metadata Invariants & Strict Key Allowlist
   const metadataKeys = Object.keys(worklist.metadata);
   for (const key of metadataKeys) {
     if (!EXACT_ALLOWED_METADATA_KEYS.includes(key as any)) {
@@ -131,6 +179,45 @@ export function validateReauditWorklist(
   for (const key of EXACT_ALLOWED_METADATA_KEYS) {
     if (!(key in worklist.metadata)) {
       throw new Error(`WORKLIST_METADATA_MISSING_REQUIRED_KEY:${key}`);
+    }
+  }
+
+  // 3. Summary Strict Key Allowlist
+  const summaryKeys = Object.keys(worklist.summary);
+  for (const key of summaryKeys) {
+    if (!EXACT_ALLOWED_SUMMARY_KEYS.includes(key as any)) {
+      throw new Error(`WORKLIST_SUMMARY_CONTAINS_UNEXPECTED_KEY:${key}`);
+    }
+  }
+  for (const key of EXACT_ALLOWED_SUMMARY_KEYS) {
+    if (!(key in worklist.summary)) {
+      throw new Error(`WORKLIST_SUMMARY_MISSING_REQUIRED_KEY:${key}`);
+    }
+  }
+
+  // byBatch Strict Key Allowlist
+  const batchKeys = Object.keys(worklist.summary.byBatch);
+  for (const key of batchKeys) {
+    if (!EXACT_ALLOWED_BATCH_KEYS.includes(key as any)) {
+      throw new Error(`WORKLIST_SUMMARY_BY_BATCH_CONTAINS_UNEXPECTED_KEY:${key}`);
+    }
+  }
+  for (const key of EXACT_ALLOWED_BATCH_KEYS) {
+    if (!(key in worklist.summary.byBatch)) {
+      throw new Error(`WORKLIST_SUMMARY_BY_BATCH_MISSING_REQUIRED_KEY:${key}`);
+    }
+  }
+
+  // byCategory Strict Key Allowlist
+  const categoryKeys = Object.keys(worklist.summary.byCategory);
+  for (const key of categoryKeys) {
+    if (!EXACT_ALLOWED_CATEGORY_KEYS.includes(key as any)) {
+      throw new Error(`WORKLIST_SUMMARY_BY_CATEGORY_CONTAINS_UNEXPECTED_KEY:${key}`);
+    }
+  }
+  for (const key of EXACT_ALLOWED_CATEGORY_KEYS) {
+    if (!(key in worklist.summary.byCategory)) {
+      throw new Error(`WORKLIST_SUMMARY_BY_CATEGORY_MISSING_REQUIRED_KEY:${key}`);
     }
   }
 

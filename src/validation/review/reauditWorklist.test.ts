@@ -307,8 +307,48 @@ describe('V2 Re-Audit Worklist & Blindness Validator Suite', () => {
     );
   });
 
-  // 22. Validator source code contains no transliteration/engine execution path
-  it('22. confirms re-audit validator source code does not import or execute transliteration engine', () => {
+  // 22. Unexpected root field fails
+  it('22. throws when root document contains an unexpected field (e.g. historicalCanonicals)', () => {
+    const { worklist, acquisition } = createSyntheticWorklistFixture();
+    (worklist as any).historicalCanonicals = ['anchored'];
+
+    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
+      /WORKLIST_DOCUMENT_CONTAINS_UNEXPECTED_KEY:historicalCanonicals/
+    );
+  });
+
+  // 23. Unexpected summary field fails
+  it('23. throws when summary contains an unexpected field (e.g. oldAnswers)', () => {
+    const { worklist, acquisition } = createSyntheticWorklistFixture();
+    (worklist.summary as any).oldAnswers = { cand1: 'answer' };
+
+    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
+      /WORKLIST_SUMMARY_CONTAINS_UNEXPECTED_KEY:oldAnswers/
+    );
+  });
+
+  // 24. Unexpected byBatch key fails
+  it('24. throws when summary.byBatch contains an unexpected key', () => {
+    const { worklist, acquisition } = createSyntheticWorklistFixture();
+    (worklist.summary.byBatch as any).F = 10;
+
+    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
+      /WORKLIST_SUMMARY_BY_BATCH_CONTAINS_UNEXPECTED_KEY:F/
+    );
+  });
+
+  // 25. Unexpected byCategory key fails
+  it('25. throws when summary.byCategory contains an unexpected key', () => {
+    const { worklist, acquisition } = createSyntheticWorklistFixture();
+    (worklist.summary.byCategory as any).UNKNOWN_CAT = 5;
+
+    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
+      /WORKLIST_SUMMARY_BY_CATEGORY_CONTAINS_UNEXPECTED_KEY:UNKNOWN_CAT/
+    );
+  });
+
+  // 26. Validator source code contains no transliteration/engine execution path
+  it('26. confirms re-audit validator source code does not import or execute transliteration engine', () => {
     const validatorFilePath = path.join(__dirname, 'reauditWorklist.ts');
     const sourceCode = fs.readFileSync(validatorFilePath, 'utf8');
 
