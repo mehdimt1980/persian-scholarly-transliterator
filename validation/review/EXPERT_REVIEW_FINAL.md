@@ -138,17 +138,27 @@ For example:
 
 ## Effective machine-readable adjudication
 
-At this point the effective scholarly truth is:
+The effective scholarly truth is now consolidated in one primary artifact:
 
 `validation/review/adjudication.v1.json`
 
-plus every correction in:
+Current version:
+
+`1.0.2-draft`
+
+The file:
 
 `validation/review/adjudication-amendments.v1.json`
 
-The amendments are substantive expert corrections and are part of the final review decision.
+is retained only as the historical correction ledger. Its corrections have already been consolidated into the primary artifact and the validation CLI verifies that every historical `to` value is present.
 
-Before human governance sign-off and gold promotion, they must be mechanically consolidated into one primary adjudication artifact. Consolidation must be purely mechanical: it may not change, reinterpret, add, or remove scholarly decisions.
+The consolidated artifact still deliberately records:
+
+- `status = EXPERT_ADJUDICATED_PENDING_HUMAN_SIGNOFF`
+- `humanSignoff = null`
+- `engineEvaluationPerformed = false`
+
+so no governance state is fabricated.
 
 ## Engine-blindness declaration
 
@@ -160,6 +170,6 @@ The first engine comparison belongs to Phase 4.6C after gold freeze.
 
 ## Expert verdict
 
-**SCHOLARLY ADJUDICATION COMPLETE.**
+**SCHOLARLY ADJUDICATION COMPLETE AND CONSOLIDATED.**
 
-The 108-case corpus is ready for mechanical consolidation and human governance sign-off. It is not yet gold-frozen and must not yet be used to tune the engine.
+The 108-case corpus is ready for validation and human governance sign-off. It is not yet `HUMAN_REVIEWED`, not yet gold-frozen, and must not yet be used to tune the engine.
