@@ -2,11 +2,12 @@
   "metadata": {
     "appliesTo": "validation/review/adjudication.v1.json",
     "baseVersion": "1.0.1-draft",
-    "status": "EXPERT_ADJUDICATION_CORRECTIONS_PENDING_CONSOLIDATION",
+    "consolidatedIntoVersion": "1.0.2-draft",
+    "status": "CONSOLIDATED",
     "adjudicator": "OpenAI GPT-5.6 Sol",
     "adjudicatedAt": "2026-10-04",
     "engineEvaluationPerformed": false,
-    "note": "These corrections arise from post-draft scholarly source and IJMES-policy audit. They must be consolidated into the adjudication artifact before human sign-off and gold promotion."
+    "note": "Historical audit ledger. All corrections below were consolidated into adjudication.v1.json version 1.0.2-draft before human sign-off. This file remains as provenance for the scholarly correction history."
   },
   "corrections": [
     {
