@@ -10,7 +10,9 @@
     "test": "vitest run",
     "validate:corpus": "tsx src/validation/cli.ts",
     "validate:acquisition": "tsx src/validation/acquisition/cli.ts",
-    "acquisition:review-sheet": "tsx src/validation/acquisition/cli.ts --export-sheet"
+    "acquisition:review-sheet": "tsx src/validation/acquisition/cli.ts --export-sheet",
+    "validate:adjudication": "tsx src/validation/review/cli.ts",
+    "review:consolidate": "tsx src/validation/review/cli.ts --write"
   },
   "dependencies": {
     "next": "14.2.15",
