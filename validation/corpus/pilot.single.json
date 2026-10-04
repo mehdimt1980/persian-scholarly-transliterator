@@ -1,0 +1,743 @@
+{
+  "metadata": {
+    "id": "pilot.single",
+    "version": "pilot-v1",
+    "description": "Initial reviewed pilot validation corpus for Persian scholarly transliteration (IJMES standard).",
+    "reviewedAt": "2026-10-04",
+    "reviewer": "Scholarly Review Pair"
+  },
+  "cases": [
+    {
+      "id": "case-term-01",
+      "input": "کتاب",
+      "profile": "ijmes_full",
+      "category": "TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "kitāb"
+      },
+      "provenance": {
+        "kind": "SCHOLARLY_DICTIONARY",
+        "citation": "Steingass, Comprehensive Persian-English Dictionary",
+        "locator": "p. 1013"
+      },
+      "tags": ["seed", "noun", "basic"]
+    },
+    {
+      "id": "case-term-02",
+      "input": "قانون",
+      "profile": "ijmes_full",
+      "category": "TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "qānūn"
+      },
+      "provenance": {
+        "kind": "SCHOLARLY_DICTIONARY",
+        "citation": "Steingass, Comprehensive Persian-English Dictionary",
+        "locator": "p. 953"
+      },
+      "tags": ["seed", "legal", "constitutional"]
+    },
+    {
+      "id": "case-term-03",
+      "input": "شاه",
+      "profile": "ijmes_full",
+      "category": "TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "shāh"
+      },
+      "provenance": {
+        "kind": "SCHOLARLY_DICTIONARY",
+        "citation": "Steingass, Comprehensive Persian-English Dictionary",
+        "locator": "p. 724"
+      },
+      "tags": ["seed", "title", "monarchy"]
+    },
+    {
+      "id": "case-term-04",
+      "input": "مکتب",
+      "profile": "ijmes_full",
+      "category": "TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "maktab"
+      },
+      "provenance": {
+        "kind": "SCHOLARLY_DICTIONARY",
+        "citation": "Steingass, Comprehensive Persian-English Dictionary",
+        "locator": "p. 1298"
+      },
+      "tags": ["seed", "intellectual"]
+    },
+    {
+      "id": "case-term-05",
+      "input": "انقلاب",
+      "profile": "ijmes_full",
+      "category": "TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "inqilāb"
+      },
+      "provenance": {
+        "kind": "SCHOLARLY_DICTIONARY",
+        "citation": "Steingass, Comprehensive Persian-English Dictionary",
+        "locator": "p. 111"
+      },
+      "tags": ["seed", "political"]
+    },
+    {
+      "id": "case-term-06",
+      "input": "مردم",
+      "profile": "ijmes_full",
+      "category": "TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "mardum"
+      },
+      "provenance": {
+        "kind": "SCHOLARLY_DICTIONARY",
+        "citation": "Steingass, Comprehensive Persian-English Dictionary",
+        "locator": "p. 1216"
+      },
+      "tags": ["seed", "social"]
+    },
+    {
+      "id": "case-term-07",
+      "input": "خانه",
+      "profile": "ijmes_full",
+      "category": "TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "khāna"
+      },
+      "provenance": {
+        "kind": "SCHOLARLY_DICTIONARY",
+        "citation": "Steingass, Comprehensive Persian-English Dictionary",
+        "locator": "p. 442"
+      },
+      "tags": ["seed", "noun", "heh-final"]
+    },
+    {
+      "id": "case-term-08",
+      "input": "بزرگ",
+      "profile": "ijmes_full",
+      "category": "TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "buzurg"
+      },
+      "provenance": {
+        "kind": "ACADEMIC_SOURCE",
+        "citation": "UT Austin Persian Online, Comparative and Superlative Adjectives"
+      },
+      "tags": ["seed", "adjective"]
+    },
+    {
+      "id": "case-place-01",
+      "input": "ایران",
+      "profile": "ijmes_full",
+      "category": "PLACE",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "īrān"
+      },
+      "provenance": {
+        "kind": "ENCYCLOPEDIA",
+        "citation": "Encyclopaedia Iranica",
+        "locator": "entry 'IRAN'"
+      },
+      "tags": ["geography", "realm"]
+    },
+    {
+      "id": "case-place-02",
+      "input": "ایران",
+      "profile": "ijmes_title",
+      "category": "PLACE",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "Iran"
+      },
+      "provenance": {
+        "kind": "IJMES_GUIDE",
+        "citation": "IJMES Translation and Transliteration Guide",
+        "locator": "Diacritics omitted in English/article titles (Rule 1)"
+      },
+      "tags": ["geography", "title-capitalization", "title-diacritic-omission"]
+    },
+    {
+      "id": "case-place-03",
+      "input": "تبریز",
+      "profile": "ijmes_full",
+      "category": "PLACE",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "tabrīz"
+      },
+      "provenance": {
+        "kind": "ENCYCLOPEDIA",
+        "citation": "Encyclopaedia Iranica",
+        "locator": "entry 'TABRIZ'"
+      },
+      "tags": ["city", "azerbaijan"]
+    },
+    {
+      "id": "case-place-04",
+      "input": "تهران",
+      "profile": "ijmes_full",
+      "category": "PLACE",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "tihrān"
+      },
+      "provenance": {
+        "kind": "ENCYCLOPEDIA",
+        "citation": "Encyclopaedia Iranica",
+        "locator": "entry 'TEHRAN'"
+      },
+      "tags": ["city", "capital"]
+    },
+    {
+      "id": "case-place-05",
+      "input": "اصفهان",
+      "profile": "ijmes_full",
+      "category": "PLACE",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "iṣfahān"
+      },
+      "provenance": {
+        "kind": "ENCYCLOPEDIA",
+        "citation": "Encyclopaedia Iranica",
+        "locator": "entry 'ISFAHAN'"
+      },
+      "tags": ["city", "safavid-capital"]
+    },
+    {
+      "id": "case-inst-01",
+      "input": "مجلس",
+      "profile": "ijmes_title",
+      "category": "INSTITUTION",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "Majlis"
+      },
+      "provenance": {
+        "kind": "ENCYCLOPEDIA",
+        "citation": "Encyclopaedia Iranica",
+        "locator": "entry 'MAJLES'"
+      },
+      "tags": ["parliament", "constitutional"]
+    },
+    {
+      "id": "case-inst-02",
+      "input": "مجلس",
+      "profile": "ijmes_full",
+      "category": "INSTITUTION",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "majlis"
+      },
+      "provenance": {
+        "kind": "ENCYCLOPEDIA",
+        "citation": "Encyclopaedia Iranica",
+        "locator": "entry 'MAJLES'"
+      },
+      "tags": ["parliament", "lowercase-full"]
+    },
+    {
+      "id": "case-legal-01",
+      "input": "حکومت",
+      "profile": "ijmes_full",
+      "category": "LEGAL_TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "ḥukūmat"
+      },
+      "provenance": {
+        "kind": "SCHOLARLY_DICTIONARY",
+        "citation": "Steingass, Comprehensive Persian-English Dictionary",
+        "locator": "p. 427"
+      },
+      "tags": ["governance", "legal"]
+    },
+    {
+      "id": "case-legal-02",
+      "input": "مشروطه",
+      "profile": "ijmes_full",
+      "category": "LEGAL_TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "mashrūṭa"
+      },
+      "provenance": {
+        "kind": "ACADEMIC_SOURCE",
+        "citation": "E. G. Browne, The Persian Revolution of 1905–1909 (Cambridge, 1910)"
+      },
+      "tags": ["constitutionalism", "legal"]
+    },
+    {
+      "id": "case-legal-03",
+      "input": "مشروطیت",
+      "profile": "ijmes_full",
+      "category": "LEGAL_TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "mashrūṭīyat"
+      },
+      "provenance": {
+        "kind": "ENCYCLOPEDIA",
+        "citation": "Encyclopaedia Iranica",
+        "locator": "entry 'CONSTITUTIONAL REVOLUTION'"
+      },
+      "tags": ["constitutionalism", "abstract-noun"]
+    },
+    {
+      "id": "case-legal-04",
+      "input": "حقوق",
+      "profile": "ijmes_full",
+      "category": "LEGAL_TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "ḥuqūq"
+      },
+      "provenance": {
+        "kind": "SCHOLARLY_DICTIONARY",
+        "citation": "Steingass, Comprehensive Persian-English Dictionary",
+        "locator": "p. 426"
+      },
+      "tags": ["rights", "jurisprudence"]
+    },
+    {
+      "id": "case-rel-01",
+      "input": "شریعت",
+      "profile": "ijmes_full",
+      "category": "RELIGIOUS_TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "sharīʿat"
+      },
+      "provenance": {
+        "kind": "SCHOLARLY_DICTIONARY",
+        "citation": "Steingass, Comprehensive Persian-English Dictionary",
+        "locator": "p. 744"
+      },
+      "tags": ["law", "islamic"]
+    },
+    {
+      "id": "case-rel-02",
+      "input": "فقیه",
+      "profile": "ijmes_full",
+      "category": "RELIGIOUS_TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "faqīh"
+      },
+      "provenance": {
+        "kind": "IJMES_GUIDE",
+        "citation": "Current IJMES Translation and Transliteration Guide",
+        "locator": "Compound title example: vilāyat-i faqīh"
+      },
+      "tags": ["jurist", "ijmes-seed"]
+    },
+    {
+      "id": "case-rel-03",
+      "input": "ولایت فقیه",
+      "profile": "ijmes_full",
+      "category": "RELIGIOUS_TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "vilāyat-i faqīh"
+      },
+      "provenance": {
+        "kind": "IJMES_GUIDE",
+        "citation": "Current IJMES Translation and Transliteration Guide",
+        "locator": "Compound title example: vilāyat-i faqīh"
+      },
+      "tags": ["compound", "context-izafat"]
+    },
+    {
+      "id": "case-rel-04",
+      "input": "فقه",
+      "profile": "ijmes_full",
+      "category": "RELIGIOUS_TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "fiqh"
+      },
+      "provenance": {
+        "kind": "SCHOLARLY_DICTIONARY",
+        "citation": "Steingass, Comprehensive Persian-English Dictionary",
+        "locator": "p. 933"
+      },
+      "tags": ["jurisprudence", "islamic"]
+    },
+    {
+      "id": "case-rel-05",
+      "input": "دین",
+      "profile": "ijmes_full",
+      "category": "RELIGIOUS_TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "dīn"
+      },
+      "provenance": {
+        "kind": "SCHOLARLY_DICTIONARY",
+        "citation": "Steingass, Comprehensive Persian-English Dictionary",
+        "locator": "p. 553"
+      },
+      "tags": ["religion", "theology"]
+    },
+    {
+      "id": "case-rel-06",
+      "input": "مذهب",
+      "profile": "ijmes_full",
+      "category": "RELIGIOUS_TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "mazhab"
+      },
+      "provenance": {
+        "kind": "SCHOLARLY_DICTIONARY",
+        "citation": "Steingass, Comprehensive Persian-English Dictionary",
+        "locator": "p. 1215"
+      },
+      "tags": ["denomination", "creed"]
+    },
+    {
+      "id": "case-rel-07",
+      "input": "علما",
+      "profile": "ijmes_full",
+      "category": "RELIGIOUS_TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "ʿulamā"
+      },
+      "provenance": {
+        "kind": "SCHOLARLY_DICTIONARY",
+        "citation": "Steingass, Comprehensive Persian-English Dictionary",
+        "locator": "p. 863"
+      },
+      "tags": ["clerics", "scholars"]
+    },
+    {
+      "id": "case-rel-08",
+      "input": "مجتهد",
+      "profile": "ijmes_full",
+      "category": "RELIGIOUS_TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "mujtahid"
+      },
+      "provenance": {
+        "kind": "SCHOLARLY_DICTIONARY",
+        "citation": "Steingass, Comprehensive Persian-English Dictionary",
+        "locator": "p. 1181"
+      },
+      "tags": ["jurist", "theology"]
+    },
+    {
+      "id": "case-compound-01",
+      "input": "همکاری",
+      "profile": "ijmes_full",
+      "category": "COMPOUND",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "ham-kārī"
+      },
+      "provenance": {
+        "kind": "ACADEMIC_SOURCE",
+        "citation": "Windfuhr and Perry, The Iranian Languages (2009)",
+        "locator": "Persian compound morphology"
+      },
+      "tags": ["compound", "prefix-ham"]
+    },
+    {
+      "id": "case-compound-02",
+      "input": "الهلال",
+      "profile": "ijmes_title",
+      "category": "COMPOUND",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "al-Hilal"
+      },
+      "provenance": {
+        "kind": "IJMES_GUIDE",
+        "citation": "Current IJMES Translation and Transliteration Guide",
+        "locator": "Arabic definite article in titles (Rule 5)"
+      },
+      "tags": ["compound", "arabic-article", "title-diacritic-omission"]
+    },
+    {
+      "id": "case-morph-01",
+      "input": "کتاب‌ها",
+      "profile": "ijmes_full",
+      "category": "MORPHOLOGY",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "kitāb-hā"
+      },
+      "provenance": {
+        "kind": "ACADEMIC_SOURCE",
+        "citation": "Lambton, Persian Grammar",
+        "locator": "p. 9 (Plural in -ha)"
+      },
+      "tags": ["plural", "zwnj-suffix"]
+    },
+    {
+      "id": "case-morph-02",
+      "input": "بزرگ‌تر",
+      "profile": "ijmes_full",
+      "category": "MORPHOLOGY",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "buzurg-tar"
+      },
+      "provenance": {
+        "kind": "ACADEMIC_SOURCE",
+        "citation": "Lambton, Persian Grammar",
+        "locator": "p. 25 (Comparative adjective)"
+      },
+      "tags": ["comparative", "zwnj-suffix"]
+    },
+    {
+      "id": "case-morph-03",
+      "input": "بزرگ‌ترین",
+      "profile": "ijmes_full",
+      "category": "MORPHOLOGY",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "buzurg-tarīn"
+      },
+      "provenance": {
+        "kind": "ACADEMIC_SOURCE",
+        "citation": "Lambton, Persian Grammar",
+        "locator": "p. 25 (Superlative adjective)"
+      },
+      "tags": ["superlative", "zwnj-suffix"]
+    },
+    {
+      "id": "case-morph-04",
+      "input": "کتابم",
+      "profile": "ijmes_full",
+      "category": "MORPHOLOGY",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "kitāb-am"
+      },
+      "provenance": {
+        "kind": "ACADEMIC_SOURCE",
+        "citation": "Lambton, Persian Grammar",
+        "locator": "p. 37 (Pronominal enclitic 1sg)"
+      },
+      "tags": ["possessive", "enclitic"]
+    },
+    {
+      "id": "case-morph-05",
+      "input": "کتابت",
+      "profile": "ijmes_full",
+      "category": "MORPHOLOGY",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "kitāb-at"
+      },
+      "provenance": {
+        "kind": "ACADEMIC_SOURCE",
+        "citation": "Lambton, Persian Grammar",
+        "locator": "p. 37 (Pronominal enclitic 2sg)"
+      },
+      "tags": ["possessive", "enclitic"]
+    },
+    {
+      "id": "case-morph-06",
+      "input": "کتابش",
+      "profile": "ijmes_full",
+      "category": "MORPHOLOGY",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "kitāb-ash"
+      },
+      "provenance": {
+        "kind": "ACADEMIC_SOURCE",
+        "citation": "Lambton, Persian Grammar",
+        "locator": "p. 37 (Pronominal enclitic 3sg)"
+      },
+      "tags": ["possessive", "enclitic"]
+    },
+    {
+      "id": "case-morph-07",
+      "input": "خانه‌ها",
+      "profile": "ijmes_full",
+      "category": "MORPHOLOGY",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "khāna-hā"
+      },
+      "provenance": {
+        "kind": "ACADEMIC_SOURCE",
+        "citation": "Lambton, Persian Grammar",
+        "locator": "p. 9 (Heh-final plural)"
+      },
+      "tags": ["plural", "heh-final"]
+    },
+    {
+      "id": "case-izafat-01",
+      "input": "کتابِ تاریخ",
+      "profile": "ijmes_full",
+      "category": "IZAFAT",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "kitāb-i tārīkh"
+      },
+      "provenance": {
+        "kind": "IJMES_GUIDE",
+        "citation": "Current IJMES Translation and Transliteration Guide",
+        "locator": "Rule 4 (Izafat construction with kasra)"
+      },
+      "tags": ["izafat", "vocalized-kasra"]
+    },
+    {
+      "id": "case-izafat-02",
+      "input": "مکتبِ تبریز",
+      "profile": "ijmes_full",
+      "category": "IZAFAT",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "maktab-i tabrīz"
+      },
+      "provenance": {
+        "kind": "PROJECT_REVIEW",
+        "citation": "Dissertation proper-name school construction",
+        "locator": "Intellectual history glossary"
+      },
+      "tags": ["izafat", "vocalized-kasra"]
+    },
+    {
+      "id": "case-izafat-03",
+      "input": "کتاب‌های ایران",
+      "profile": "ijmes_full",
+      "category": "IZAFAT",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "kitāb-hā-i īrān"
+      },
+      "provenance": {
+        "kind": "ACADEMIC_SOURCE",
+        "citation": "Lambton, Persian Grammar, p. 12 (Plural host izafat)"
+      },
+      "tags": ["izafat", "plural-host"]
+    },
+    {
+      "id": "case-ambig-01",
+      "input": "کرم",
+      "profile": "ijmes_full",
+      "category": "AMBIGUITY",
+      "expected": {
+        "disposition": "REVIEW_REQUIRED",
+        "requiredIssueTypes": ["LEXICAL_AMBIGUITY"]
+      },
+      "provenance": {
+        "kind": "SCHOLARLY_DICTIONARY",
+        "citation": "Steingass, Comprehensive Persian-English Dictionary",
+        "locator": "p. 1025 (kirm worm / karam generosity)",
+        "note": "Unvocalized Persian form has multiple distinct lexical readings requiring human review."
+      },
+      "tags": ["ambiguity", "safety", "lexical"]
+    },
+    {
+      "id": "case-ambig-02",
+      "input": "درباره",
+      "profile": "ijmes_full",
+      "category": "AMBIGUITY",
+      "expected": {
+        "disposition": "REVIEW_REQUIRED",
+        "requiredIssueTypes": ["LEXICAL_AMBIGUITY"]
+      },
+      "provenance": {
+        "kind": "ACADEMIC_SOURCE",
+        "citation": "Lambton, Persian Grammar, p. 115 vs Windfuhr Persian Grammar",
+        "note": "Segmented dar bāra-yi vs joined darbāra-yi requires human editorial review."
+      },
+      "tags": ["ambiguity", "editorial-joining"]
+    },
+    {
+      "id": "case-ambig-03",
+      "input": "تجددخواهی",
+      "profile": "ijmes_full",
+      "category": "AMBIGUITY",
+      "expected": {
+        "disposition": "REVIEW_REQUIRED",
+        "requiredIssueTypes": ["LEXICAL_AMBIGUITY"]
+      },
+      "provenance": {
+        "kind": "ACADEMIC_SOURCE",
+        "citation": "Windfuhr and Perry, The Iranian Languages (2009)",
+        "note": "Hyphenated vs solid compound reading requires human editorial review."
+      },
+      "tags": ["ambiguity", "compound-joining"]
+    },
+    {
+      "id": "case-ambig-04",
+      "input": "کتاب تاریخ",
+      "profile": "ijmes_full",
+      "category": "AMBIGUITY",
+      "expected": {
+        "disposition": "REVIEW_REQUIRED",
+        "requiredIssueTypes": ["IZAFAT_CANDIDATE"]
+      },
+      "provenance": {
+        "kind": "IJMES_GUIDE",
+        "citation": "Current IJMES Translation and Transliteration Guide",
+        "locator": "Rule on unvocalized context relations",
+        "note": "Unvocalized izafat candidate requires human review/confirmation."
+      },
+      "tags": ["ambiguity", "izafat-candidate", "safety"]
+    },
+    {
+      "id": "case-unresolved-01",
+      "input": "ناشناخته‌ها",
+      "profile": "ijmes_full",
+      "category": "OTHER",
+      "expected": {
+        "disposition": "UNRESOLVED"
+      },
+      "provenance": {
+        "kind": "PROJECT_REVIEW",
+        "citation": "Unreviewed stem with plural morphology fixture",
+        "note": "Engine must not manufacture a stem reading for unreviewed vocabulary."
+      },
+      "tags": ["unresolved", "safety", "unreviewed-stem"]
+    },
+    {
+      "id": "case-mixed-01",
+      "input": "Iran and دولت",
+      "profile": "ijmes_full",
+      "category": "MIXED_SCRIPT",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "Iran and daulat"
+      },
+      "provenance": {
+        "kind": "PROJECT_REVIEW",
+        "citation": "Reviewed mixed Latin and Persian academic source title fixture"
+      },
+      "tags": ["mixed-script", "latin-passthrough"]
+    },
+    {
+      "id": "case-mixed-02",
+      "input": "1906 قانون",
+      "profile": "ijmes_full",
+      "category": "MIXED_SCRIPT",
+      "expected": {
+        "disposition": "FINAL",
+        "canonical": "1906 qānūn"
+      },
+      "provenance": {
+        "kind": "PROJECT_REVIEW",
+        "citation": "Reviewed date and legal term fixture"
+      },
+      "tags": ["mixed-script", "number-handling"]
+    }
+  ]
+}

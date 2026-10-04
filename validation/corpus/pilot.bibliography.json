@@ -1,0 +1,135 @@
+{
+  "metadata": {
+    "id": "pilot.bibliography",
+    "version": "pilot-v1",
+    "description": "Initial reviewed pilot validation corpus for batch bibliography processing and scholarly exports.",
+    "reviewedAt": "2026-10-04",
+    "reviewer": "Scholarly Review Pair"
+  },
+  "cases": [
+    {
+      "id": "case-bib-01",
+      "record": {
+        "id": "rec_persian_monograph_1",
+        "type": "BOOK",
+        "title": "تاریخِ مشروطه",
+        "authors": [
+          {
+            "literal": "سیاست"
+          }
+        ],
+        "editors": [],
+        "translators": [],
+        "year": "1995",
+        "publisher": "دولت",
+        "place": "تهران",
+        "sourceRowIndex": 1,
+        "sourceColumns": [],
+        "passthrough": {}
+      },
+      "expected": {
+        "readiness": "READY",
+        "fields": {
+          "title": {
+            "disposition": "FINAL",
+            "finalText": "Tarikh-i Mashruta"
+          },
+          "authors.0.literal": {
+            "disposition": "FINAL",
+            "finalText": "siyāsat"
+          },
+          "publisher": {
+            "disposition": "FINAL",
+            "finalText": "daulat"
+          },
+          "place": {
+            "disposition": "FINAL",
+            "finalText": "tihrān"
+          }
+        }
+      },
+      "provenance": {
+        "kind": "ACADEMIC_SOURCE",
+        "citation": "Constitutional history monograph fixture",
+        "locator": "1995 bibliography entry"
+      },
+      "tags": ["bibliography", "persian-monograph", "ready"]
+    },
+    {
+      "id": "case-bib-02",
+      "record": {
+        "id": "rec_latin_monograph_1",
+        "type": "BOOK",
+        "title": "State and Society in Iran",
+        "authors": [
+          {
+            "literal": "Homa Katouzian"
+          }
+        ],
+        "editors": [],
+        "translators": [],
+        "year": "2000",
+        "publisher": "I.B. Tauris",
+        "place": "London",
+        "sourceRowIndex": 2,
+        "sourceColumns": [],
+        "passthrough": {}
+      },
+      "expected": {
+        "readiness": "READY",
+        "fields": {
+          "title": {
+            "disposition": "PASSTHROUGH",
+            "finalText": "State and Society in Iran"
+          },
+          "authors.0.literal": {
+            "disposition": "PASSTHROUGH",
+            "finalText": "Homa Katouzian"
+          },
+          "publisher": {
+            "disposition": "PASSTHROUGH",
+            "finalText": "I.B. Tauris"
+          },
+          "place": {
+            "disposition": "PASSTHROUGH",
+            "finalText": "London"
+          }
+        }
+      },
+      "provenance": {
+        "kind": "ACADEMIC_SOURCE",
+        "citation": "Katouzian, State and Society in Iran (London: I.B. Tauris, 2000)",
+        "locator": "Front matter"
+      },
+      "tags": ["bibliography", "latin-passthrough", "ready"]
+    },
+    {
+      "id": "case-bib-03",
+      "record": {
+        "id": "rec_ambig_monograph_1",
+        "type": "BOOK",
+        "title": "کرم",
+        "authors": [],
+        "editors": [],
+        "translators": [],
+        "sourceRowIndex": 3,
+        "sourceColumns": [],
+        "passthrough": {}
+      },
+      "expected": {
+        "readiness": "REVIEW_REQUIRED",
+        "fields": {
+          "title": {
+            "disposition": "REVIEW_REQUIRED"
+          }
+        }
+      },
+      "provenance": {
+        "kind": "PROJECT_REVIEW",
+        "citation": "Ambiguous unvocalized single-word title review test",
+        "note": "Unresolved review issue blocks export"
+      },
+      "tags": ["bibliography", "review-required", "safety"]
+    }
+  ]
+}
