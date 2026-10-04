@@ -1,43 +1,55 @@
 # Phase 4.6B Governance & Benchmark Status
 
-## Governance Context & Post-PR #14 State
+## Merged Infrastructure
 
-- **Prior Merged PRs:**
-  - PR #13 (`data: adjudicate independent scholarly benchmark candidates` — commit `d953da58dd6df2a5ee4309b95716c56dcd2587ff`)
-  - PR #14 (`chore: repair Phase 4.6B post-merge governance state` — commit `c198764b37cecbeeb294868720250abf4b1c0dd8`)
-  - PR #15 (`docs(validation): separate scholarly canonical from publication rendering` — commit `c97e5a50d07540faf99111a6ea98f1c45c23ddaa`)
-  - PR #16 (`feat(validation): add separated canonical and rendering v2 contract` — commit `3e5ec809b9c910e75f563be626fa6f1197db5afd`)
-- **Open / Unmerged PRs:**
-  - PR #17 (`feat(validation): scaffold blind v2 benchmark re-audit` — branch `phase4.6b/blind-reaudit-protocol-v2`)
-- **Attempted Human Sign-Off Finding:** During initial human governance review, a foundational contract ambiguity was identified: benchmark and validation terminology conflated **Scholarly Canonical Transliteration** (diacritic-complete linguistic reading truth) with **Publication Rendering** (style-dependent diacritic stripping, Word List overrides, and title casing).
-- **Current Human Sign-Off State:** **PAUSED** (`humanSignoff = null`).
-- **Formal Contract & Infrastructure:**
-  - Contract specification: `validation/review/CANONICAL_RENDERING_CONTRACT.md` (PR #15)
-  - V2 validation schema & evaluator: `validation/V2_SCHEMA.md` and `src/validation/v2/` (PR #16)
-  - V2 blind re-audit protocol & worklist workspace: `validation/review/REAUDIT_PROTOCOL_V2.md` and `validation/review/reaudit-worklist.v2.json` (proposed on open PR #17)
+- PR #13 — initial independent scholarly adjudication.
+- PR #14 — post-merge governance/CI repair.
+- PR #15 — canonical-vs-publication-rendering contract.
+- PR #16 — separated Validation V2 canonical/rendering contract.
+- PR #17 — blind V2 re-audit protocol and 108-case worklist scaffold; merged on `main` at `7d80f508017c04c01f31f5357d402dfdb5fab207`.
 
-## Current Repository & Benchmark Status
+## Current Open Work
 
-- **Adjudication Status:** `EXPERT_ADJUDICATED_PENDING_HUMAN_SIGNOFF` (version `1.0.2-draft`, DRAFT only).
-- **V2 Re-Audit Worklist State:** `READY_FOR_BLIND_REAUDIT` (108 cases `PENDING`, 0 adjudicated; proposed on open PR #17).
-- **Gold Corpus State:** **NOT gold-frozen**. The benchmark is not promoted to authoritative release gold.
-- **Engine Evaluation State:** `engineEvaluationPerformed = false`. No evaluation of the 108-case benchmark against the transliteration engine has occurred.
-- **Phase 4.6C Status:** **BLOCKED**. Phase 4.6C (engine benchmarking) cannot proceed until the V2 systematic re-audit is conducted and approved.
-- **Runtime Integrity:** The transliteration engine, lexicon repository, morphological parser, and rendering profiles remain 100% untouched.
+- **PR #18:** `data(validation): complete blind V2 re-audit Batch A`
+- **Branch:** `phase4.6b/reaudit-batch-a-v2`
+- **Scope:** 15 `TERM` + 10 `RELIGIOUS_TERM` cases.
+- **Reviewer provenance:** OpenAI GPT-5.6 Sol / `AI_SPECIALIST`.
+- **Batch A result:** 25 `FINAL`, 0 `REVIEW_REQUIRED`, 0 `UNRESOLVED`.
+- **Remaining worklist:** 83 `PENDING`, all with `decision = null`.
 
-## Governance Invariants & Boundaries
+## Current Governance State
 
-1. Merge of PR #13 / PR #14 / PR #15 / PR #16 does **not** equal `HUMAN_REVIEWED` status.
-2. The benchmark must **not** call a publication rendering "canonical" when it is actually evaluating presentation behavior.
-3. Scholarly canonical truth must be established independently of current runtime profile limitations and historical V1 adjudication.
-4. The primary safety invariant remains $$\text{FALSE\_AUTHORITATIVE} = 0$$.
+- **Human governance sign-off:** **PAUSED** (`humanSignoff = null`).
+- **Gold corpus:** **NOT frozen**. Batch A decisions are proposed V2 scholarly ground truth pending later human governance sign-off and gold freeze.
+- **Engine evaluation:** `engineEvaluationPerformed = false`.
+- **Phase 4.6C:** **BLOCKED**.
+- **Runtime integrity:** engine, lexicon, morphology, profiles, and bibliography runtime remain untouched.
 
-## Next Substantive Governance Steps
+## Blindness and Authority Boundaries
 
-1. **Establish Canonical vs. Rendering Contract:** Formally define the separation of reading truth from presentation profiles (completed in `CANONICAL_RENDERING_CONTRACT.md` - PR #15).
-2. **Implement Validation V2 Contract:** Isolated schema, token canonical derivation, and evaluator (completed in `src/validation/v2/` - PR #16).
-3. **Scaffold Blind V2 Re-Audit Protocol & Workspace:** Establish formal protocol, blank 108-case worklist, and alignment validators (proposed on open PR #17, pending review and merge).
-4. **Conduct Systematic Benchmark Re-Audit (Batches A–E):** Re-adjudicate all 108 candidates under the blind protocol into `reaudit-worklist.v2.json`.
-5. **Regenerate Consolidated Benchmark under V2 Schema:** Ensure validation schemas compare canonical expectations against derived token canonicals and rendered expectations against profile outputs.
-6. **Execute Formal Human Governance Sign-Off:** Perform representative human review against the separated fields in `validation/review/HUMAN_SIGNOFF.md`.
-7. **Gold Promotion & Engine Benchmarking (Phase 4.6C):** Promote to gold and run engine evaluation only after human approval.
+1. Batch A decisions were established under `REAUDIT_PROTOCOL_V2.md`.
+2. Historical V1 adjudication remains `HISTORICAL_ONLY` and is not evidence for V2 decisions.
+3. Current engine output, runtime token state, lexicon behavior, and benchmark metrics are not used to decide scholarly gold.
+4. Scholarly canonical transliteration and publication rendering remain independently recorded.
+5. The primary safety invariant remains `FALSE_AUTHORITATIVE = 0`.
+
+## Re-Audit Progress
+
+| Batch | Scope | Completed | Pending |
+|---|---|---:|---:|
+| A | TERM + RELIGIOUS_TERM | 25 | 0 |
+| B | COMPOUND + MORPHOLOGY + IZAFAT | 0 | 23 |
+| C | PERSON + PLACE + INSTITUTION | 0 | 36 |
+| D | BOOK_TITLE | 0 | 12 |
+| E | AMBIGUITY | 0 | 12 |
+| **Total** |  | **25** | **83** |
+
+## Next Substantive Steps
+
+1. Review and merge PR #18 if the Batch A scholarly decisions and validator changes are accepted.
+2. Conduct Batch B blind specialist re-audit under the same evidence separation and engine-blindness rules.
+3. Continue Batches C–E.
+4. Regenerate the consolidated V2 benchmark only after all 108 cases are re-audited.
+5. Perform formal human governance sign-off.
+6. Freeze gold.
+7. Begin Phase 4.6C engine evaluation only after those gates are satisfied.
