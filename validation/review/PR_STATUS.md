@@ -9,15 +9,15 @@
 - **Attempted Human Sign-Off Finding:** During initial human governance review, a foundational contract ambiguity was identified: benchmark and validation terminology conflated **Scholarly Canonical Transliteration** (diacritic-complete linguistic reading truth) with **Publication Rendering** (style-dependent diacritic stripping, Word List overrides, and title casing).
 - **Current Human Sign-Off State:** **PAUSED** (`humanSignoff = null`).
 - **Formal Contract & Infrastructure:**
-  - Contract specification: `validation/review/CANONICAL_RENDERING_CONTRACT.md`
-  - V2 validation schema & evaluator: `validation/V2_SCHEMA.md` and `src/validation/v2/`
+  - Contract specification: `validation/review/CANONICAL_RENDERING_CONTRACT.md` (established in PR #15)
+  - V2 validation schema & evaluator: `validation/V2_SCHEMA.md` and `src/validation/v2/` (proposed on open PR #16, pending review and merge)
 
 ## Current Repository & Benchmark Status
 
 - **Adjudication Status:** `EXPERT_ADJUDICATED_PENDING_HUMAN_SIGNOFF` (version `1.0.2-draft`, DRAFT only).
 - **Gold Corpus State:** **NOT gold-frozen**. The current benchmark is not promoted to authoritative release gold.
 - **Engine Evaluation State:** `engineEvaluationPerformed = false`. No evaluation of the 108-case benchmark against the transliteration engine has occurred.
-- **Phase 4.6C Status:** **BLOCKED**. Phase 4.6C (engine benchmarking) cannot proceed until the canonical-vs-rendering contract is established, V2 infrastructure is deployed, and the benchmark is re-audited and approved.
+- **Phase 4.6C Status:** **BLOCKED**. Phase 4.6C (engine benchmarking) cannot proceed until the canonical-vs-rendering contract is established, V2 infrastructure is reviewed and merged, and the benchmark is systematically re-audited and approved.
 - **Runtime Integrity:** The transliteration engine, lexicon repository, morphological parser, and rendering profiles remain 100% untouched.
 
 ## Governance Invariants & Boundaries
@@ -30,7 +30,7 @@
 ## Next Substantive Governance Steps
 
 1. **Establish Canonical vs. Rendering Contract:** Formally define the separation of reading truth from presentation profiles (completed in `CANONICAL_RENDERING_CONTRACT.md` - PR #15).
-2. **Implement Validation V2 Contract:** Isolated schema, token canonical derivation, and evaluator (completed in `src/validation/v2/` - PR #16).
+2. **Implement Validation V2 Contract:** Isolated schema, token canonical derivation, and evaluator (proposed on open PR #16, pending review and merge).
 3. **Systematic Benchmark Re-Audit:** Re-audit affected cases in the 108-candidate set to explicitly separate `scholarlyCanonical` (full scholarly diacritics) from `renderedOutput` (IJMES publication presentation).
 4. **Regenerate Consolidated Benchmark under V2 Schema:** Ensure validation schemas compare canonical expectations against derived token canonicals and rendered expectations against profile outputs.
 5. **Execute Formal Human Governance Sign-Off:** Perform representative human review against the separated fields in `validation/review/HUMAN_SIGNOFF.md`.

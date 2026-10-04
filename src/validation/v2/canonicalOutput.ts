@@ -25,7 +25,13 @@ export function deriveScholarlyCanonicalOutput(result: TransliterationResult): s
 
   for (const token of result.tokens) {
     if (token.tokenType === 'persian-word') {
-      if (token.canonicalTransliteration === null || token.canonicalTransliteration === undefined) {
+      // Fail closed if token status is unsafe (e.g. AMBIGUOUS or UNRESOLVED) or if canonical is missing
+      if (
+        token.status === 'AMBIGUOUS' ||
+        token.status === 'UNRESOLVED' ||
+        token.canonicalTransliteration === null ||
+        token.canonicalTransliteration === undefined
+      ) {
         return null;
       }
       parts.push(token.canonicalTransliteration);

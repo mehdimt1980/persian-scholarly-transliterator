@@ -7,4 +7,3 @@ export * from './metrics';
 export * from './releaseGate';
 export * from './report';
 export * as v2 from './v2';
-export * from './v2';

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import * as validationRoot from '../index';
 import {
   ScholarlyValidationCaseV2,
   SingleValidationCorpusV2
@@ -12,12 +13,21 @@ import { deriveScholarlyCanonicalOutput } from './canonicalOutput';
 import { evaluateSingleCaseV2 } from './evaluateCase';
 import { TransliterationResult, TokenResult } from '../../domain/types';
 
+/**
+ * Validation V2 Unit Test Suite.
+ *
+ * GOVERNANCE NOTICE:
+ * All test cases and token representations in this suite use purely SYNTHETIC, NON-ADJUDICATIVE
+ * fixtures. They exist exclusively to test schema constraints, token derivation logic, and evaluation
+ * mechanics. No fixture in this file establishes or adjudicates scholarly ground truth for any real
+ * corpus candidate or person/book title awaiting Phase 4.6B re-audit.
+ */
 describe('Validation V2 Schema & Evaluator Suite', () => {
   const baseProvenance = {
     sources: [
       {
         kind: 'SCHOLARLY_DICTIONARY' as const,
-        citation: 'Synthetic Test Dictionary',
+        citation: 'Synthetic Non-Adjudicative Fixture Source',
         locator: 'p. 1'
       }
     ]
@@ -27,33 +37,33 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
   it('1. accepts a valid FINAL case with separate canonical + rendered expectations', () => {
     const validCase: ScholarlyValidationCaseV2 = {
       id: 'synth-case-01',
-      input: 'کتاب',
+      input: 'تست',
       profile: 'ijmes_full',
       category: 'TERM',
       expected: {
         disposition: 'FINAL',
-        scholarlyCanonical: 'kitāb',
-        renderedOutput: 'kitāb'
+        scholarlyCanonical: 'tast',
+        renderedOutput: 'tast'
       },
       provenance: baseProvenance
     };
 
     expect(() => validateSingleCaseV2(validCase)).not.toThrow();
     const parsed = validateSingleCaseV2(validCase);
-    expect(parsed.expected.scholarlyCanonical).toBe('kitāb');
-    expect(parsed.expected.renderedOutput).toBe('kitāb');
+    expect(parsed.expected.scholarlyCanonical).toBe('tast');
+    expect(parsed.expected.renderedOutput).toBe('tast');
   });
 
   // 2. V2 schema rejects FINAL without scholarly canonical expectation.
   it('2. rejects FINAL without scholarly canonical expectation', () => {
     const invalidCase = {
       id: 'synth-case-02',
-      input: 'کتاب',
+      input: 'تست',
       profile: 'ijmes_full',
       category: 'TERM',
       expected: {
         disposition: 'FINAL',
-        renderedOutput: 'kitāb'
+        renderedOutput: 'tast'
       },
       provenance: baseProvenance
     };
@@ -67,12 +77,12 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
   it('3. rejects FINAL without rendered expectation', () => {
     const invalidCase = {
       id: 'synth-case-03',
-      input: 'کتاب',
+      input: 'تست',
       profile: 'ijmes_full',
       category: 'TERM',
       expected: {
         disposition: 'FINAL',
-        scholarlyCanonical: 'kitāb'
+        scholarlyCanonical: 'tast'
       },
       provenance: baseProvenance
     };
@@ -86,14 +96,14 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
   it('4. rejects both scholarlyCanonical and allowedScholarlyCanonicals simultaneously', () => {
     const invalidCase = {
       id: 'synth-case-04',
-      input: 'کتاب',
+      input: 'تست',
       profile: 'ijmes_full',
       category: 'TERM',
       expected: {
         disposition: 'FINAL',
-        scholarlyCanonical: 'kitāb',
-        allowedScholarlyCanonicals: ['kitāb', 'ketāb'],
-        renderedOutput: 'kitāb'
+        scholarlyCanonical: 'tast',
+        allowedScholarlyCanonicals: ['tast', 'test'],
+        renderedOutput: 'tast'
       },
       provenance: baseProvenance
     };
@@ -107,14 +117,14 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
   it('5. rejects both renderedOutput and allowedRenderedOutputs simultaneously', () => {
     const invalidCase = {
       id: 'synth-case-05',
-      input: 'کتاب',
+      input: 'تست',
       profile: 'ijmes_full',
       category: 'TERM',
       expected: {
         disposition: 'FINAL',
-        scholarlyCanonical: 'kitāb',
-        renderedOutput: 'kitāb',
-        allowedRenderedOutputs: ['kitāb', 'Kitab']
+        scholarlyCanonical: 'tast',
+        renderedOutput: 'tast',
+        allowedRenderedOutputs: ['tast', 'Tast']
       },
       provenance: baseProvenance
     };
@@ -128,13 +138,13 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
   it('6. rejects Persian/Arabic script in expected Latin outputs', () => {
     const invalidCaseCanonical = {
       id: 'synth-case-06a',
-      input: 'کتاب',
+      input: 'تست',
       profile: 'ijmes_full',
       category: 'TERM',
       expected: {
         disposition: 'FINAL',
-        scholarlyCanonical: 'کتاب',
-        renderedOutput: 'kitāb'
+        scholarlyCanonical: 'تست',
+        renderedOutput: 'tast'
       },
       provenance: baseProvenance
     };
@@ -145,13 +155,13 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
 
     const invalidCaseRendered = {
       id: 'synth-case-06b',
-      input: 'کتاب',
+      input: 'تست',
       profile: 'ijmes_full',
       category: 'TERM',
       expected: {
         disposition: 'FINAL',
-        scholarlyCanonical: 'kitāb',
-        renderedOutput: 'کتاب'
+        scholarlyCanonical: 'tast',
+        renderedOutput: 'تست'
       },
       provenance: baseProvenance
     };
@@ -165,13 +175,13 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
   it('7. rejects leading/trailing whitespace in expected outputs', () => {
     const invalidCaseWhitespace = {
       id: 'synth-case-07',
-      input: 'کتاب',
+      input: 'تست',
       profile: 'ijmes_full',
       category: 'TERM',
       expected: {
         disposition: 'FINAL',
-        scholarlyCanonical: ' kitāb',
-        renderedOutput: 'kitāb '
+        scholarlyCanonical: ' tast',
+        renderedOutput: 'tast '
       },
       provenance: baseProvenance
     };
@@ -185,12 +195,12 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
   it('8. rejects authoritative canonical/rendered gold fields in REVIEW_REQUIRED', () => {
     const invalidCaseReviewCanonical = {
       id: 'synth-case-08a',
-      input: 'کرم',
+      input: 'چندمعنا',
       profile: 'ijmes_full',
       category: 'AMBIGUITY',
       expected: {
         disposition: 'REVIEW_REQUIRED',
-        scholarlyCanonical: 'karm',
+        scholarlyCanonical: 'chand-maʿnā',
         requiredIssueTypes: ['LEXICAL_AMBIGUITY']
       },
       provenance: baseProvenance
@@ -202,12 +212,12 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
 
     const invalidCaseReviewRendered = {
       id: 'synth-case-08b',
-      input: 'کرم',
+      input: 'چندمعنا',
       profile: 'ijmes_full',
       category: 'AMBIGUITY',
       expected: {
         disposition: 'REVIEW_REQUIRED',
-        renderedOutput: 'karm',
+        renderedOutput: 'chand-maʿnā',
         requiredIssueTypes: ['LEXICAL_AMBIGUITY']
       },
       provenance: baseProvenance
@@ -222,12 +232,12 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
   it('9. rejects authoritative canonical/rendered gold fields in UNRESOLVED', () => {
     const invalidCaseUnresolved = {
       id: 'synth-case-09',
-      input: 'ناشناخته',
+      input: 'واژه_ناشناس',
       profile: 'ijmes_full',
       category: 'OTHER',
       expected: {
         disposition: 'UNRESOLVED',
-        scholarlyCanonical: 'nāshinākhtah'
+        scholarlyCanonical: 'vāzhah-i nāshinās'
       },
       provenance: baseProvenance
     };
@@ -240,19 +250,19 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
   // 10. Canonical derivation preserves scholarly token canonical values independently of title/profile rendering.
   it('10. canonical derivation preserves scholarly token canonical values independently of title/profile rendering', () => {
     const syntheticResult: TransliterationResult = {
-      originalInput: 'صادق هدایت',
-      normalizedInput: 'صادق هدایت',
+      originalInput: 'واژه یک',
+      normalizedInput: 'واژه یک',
       normalizationChanges: [],
       profile: 'ijmes_title',
-      output: 'Sadeq Hedayat',
+      output: 'Vazheh Yek',
       copyable: true,
       status: 'DETERMINISTIC',
       tokens: [
         {
-          normalizedSurface: 'صادق',
+          normalizedSurface: 'واژه',
           tokenType: 'persian-word',
-          canonicalTransliteration: 'ṣādiq',
-          rendered: 'Sadeq',
+          canonicalTransliteration: 'vāzhah',
+          rendered: 'Vazheh',
           status: 'DETERMINISTIC',
           appliedRules: [],
           lexicalSources: [],
@@ -262,8 +272,8 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
           normalizedEnd: 4,
           automatic: {
             status: 'DETERMINISTIC',
-            canonicalTransliteration: 'ṣādiq',
-            rendered: 'Sadeq',
+            canonicalTransliteration: 'vāzhah',
+            rendered: 'Vazheh',
             appliedRules: [],
             lexicalSources: [],
             warnings: [],
@@ -293,21 +303,21 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
           }
         },
         {
-          normalizedSurface: 'هدایت',
+          normalizedSurface: 'یک',
           tokenType: 'persian-word',
-          canonicalTransliteration: 'hidāyat',
-          rendered: 'Hedayat',
+          canonicalTransliteration: 'yak',
+          rendered: 'Yek',
           status: 'DETERMINISTIC',
           appliedRules: [],
           lexicalSources: [],
           warnings: [],
           alternatives: [],
           normalizedStart: 5,
-          normalizedEnd: 10,
+          normalizedEnd: 7,
           automatic: {
             status: 'DETERMINISTIC',
-            canonicalTransliteration: 'hidāyat',
-            rendered: 'Hedayat',
+            canonicalTransliteration: 'yak',
+            rendered: 'Yek',
             appliedRules: [],
             lexicalSources: [],
             warnings: [],
@@ -326,39 +336,39 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
     };
 
     const derivedCanonical = deriveScholarlyCanonicalOutput(syntheticResult);
-    expect(derivedCanonical).toBe('ṣādiq hidāyat');
-    expect(syntheticResult.output).toBe('Sadeq Hedayat');
+    expect(derivedCanonical).toBe('vāzhah yak');
+    expect(syntheticResult.output).toBe('Vazheh Yek');
   });
 
   // 11. Canonical and rendered BOTH match: CORRECT_AUTHORITATIVE.
   it('11. returns CORRECT_AUTHORITATIVE when both canonical and rendered match', () => {
     const testCase: ScholarlyValidationCaseV2 = {
       id: 'case-synth-11',
-      input: 'صادق هدایت',
+      input: 'واژه یک',
       profile: 'ijmes_title',
-      category: 'PERSON',
+      category: 'TERM',
       expected: {
         disposition: 'FINAL',
-        scholarlyCanonical: 'ṣādiq hidāyat',
-        renderedOutput: 'Sadeq Hedayat'
+        scholarlyCanonical: 'vāzhah yak',
+        renderedOutput: 'Vazheh Yek'
       },
       provenance: baseProvenance
     };
 
     const result: TransliterationResult = {
-      originalInput: 'صادق هدایت',
-      normalizedInput: 'صادق هدایت',
+      originalInput: 'واژه یک',
+      normalizedInput: 'واژه یک',
       normalizationChanges: [],
       profile: 'ijmes_title',
-      output: 'Sadeq Hedayat',
+      output: 'Vazheh Yek',
       copyable: true,
       status: 'DETERMINISTIC',
       tokens: [
         {
-          normalizedSurface: 'صادق',
+          normalizedSurface: 'واژه',
           tokenType: 'persian-word',
-          canonicalTransliteration: 'ṣādiq',
-          rendered: 'Sadeq',
+          canonicalTransliteration: 'vāzhah',
+          rendered: 'Vazheh',
           status: 'DETERMINISTIC',
           appliedRules: [],
           lexicalSources: [],
@@ -368,8 +378,8 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
           normalizedEnd: 4,
           automatic: {
             status: 'DETERMINISTIC',
-            canonicalTransliteration: 'ṣādiq',
-            rendered: 'Sadeq',
+            canonicalTransliteration: 'vāzhah',
+            rendered: 'Vazheh',
             appliedRules: [],
             lexicalSources: [],
             warnings: [],
@@ -399,21 +409,21 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
           }
         },
         {
-          normalizedSurface: 'هدایت',
+          normalizedSurface: 'یک',
           tokenType: 'persian-word',
-          canonicalTransliteration: 'hidāyat',
-          rendered: 'Hedayat',
+          canonicalTransliteration: 'yak',
+          rendered: 'Yek',
           status: 'DETERMINISTIC',
           appliedRules: [],
           lexicalSources: [],
           warnings: [],
           alternatives: [],
           normalizedStart: 5,
-          normalizedEnd: 10,
+          normalizedEnd: 7,
           automatic: {
             status: 'DETERMINISTIC',
-            canonicalTransliteration: 'hidāyat',
-            rendered: 'Hedayat',
+            canonicalTransliteration: 'yak',
+            rendered: 'Yek',
             appliedRules: [],
             lexicalSources: [],
             warnings: [],
@@ -442,31 +452,31 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
   it('12. returns FALSE_AUTHORITATIVE with CANONICAL_MISMATCH when rendered matches but canonical is wrong', () => {
     const testCase: ScholarlyValidationCaseV2 = {
       id: 'case-synth-12',
-      input: 'صادق هدایت',
+      input: 'واژه یک',
       profile: 'ijmes_title',
-      category: 'PERSON',
+      category: 'TERM',
       expected: {
         disposition: 'FINAL',
-        scholarlyCanonical: 'ṣādiq hidāyat', // expected
-        renderedOutput: 'Sadeq Hedayat'
+        scholarlyCanonical: 'vāzhah yak',
+        renderedOutput: 'Vazheh Yek'
       },
       provenance: baseProvenance
     };
 
     const result: TransliterationResult = {
-      originalInput: 'صادق هدایت',
-      normalizedInput: 'صادق هدایت',
+      originalInput: 'واژه یک',
+      normalizedInput: 'واژه یک',
       normalizationChanges: [],
       profile: 'ijmes_title',
-      output: 'Sadeq Hedayat',
+      output: 'Vazheh Yek',
       copyable: true,
       status: 'DETERMINISTIC',
       tokens: [
         {
-          normalizedSurface: 'صادق',
+          normalizedSurface: 'واژه',
           tokenType: 'persian-word',
-          canonicalTransliteration: 'sādiq', // erroneous canonical (s instead of ṣ)
-          rendered: 'Sadeq',
+          canonicalTransliteration: 'vazhah', // erroneous canonical (short a instead of ā)
+          rendered: 'Vazheh',
           status: 'DETERMINISTIC',
           appliedRules: [],
           lexicalSources: [],
@@ -476,8 +486,8 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
           normalizedEnd: 4,
           automatic: {
             status: 'DETERMINISTIC',
-            canonicalTransliteration: 'sādiq',
-            rendered: 'Sadeq',
+            canonicalTransliteration: 'vazhah',
+            rendered: 'Vazheh',
             appliedRules: [],
             lexicalSources: [],
             warnings: [],
@@ -507,21 +517,21 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
           }
         },
         {
-          normalizedSurface: 'هدایت',
+          normalizedSurface: 'یک',
           tokenType: 'persian-word',
-          canonicalTransliteration: 'hidāyat',
-          rendered: 'Hedayat',
+          canonicalTransliteration: 'yak',
+          rendered: 'Yek',
           status: 'DETERMINISTIC',
           appliedRules: [],
           lexicalSources: [],
           warnings: [],
           alternatives: [],
           normalizedStart: 5,
-          normalizedEnd: 10,
+          normalizedEnd: 7,
           automatic: {
             status: 'DETERMINISTIC',
-            canonicalTransliteration: 'hidāyat',
-            rendered: 'Hedayat',
+            canonicalTransliteration: 'yak',
+            rendered: 'Yek',
             appliedRules: [],
             lexicalSources: [],
             warnings: [],
@@ -551,31 +561,31 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
   it('13. returns FALSE_AUTHORITATIVE with RENDERING_MISMATCH when canonical matches but rendered is wrong', () => {
     const testCase: ScholarlyValidationCaseV2 = {
       id: 'case-synth-13',
-      input: 'صادق هدایت',
+      input: 'واژه یک',
       profile: 'ijmes_title',
-      category: 'PERSON',
+      category: 'TERM',
       expected: {
         disposition: 'FINAL',
-        scholarlyCanonical: 'ṣādiq hidāyat',
-        renderedOutput: 'Sadeq Hedayat'
+        scholarlyCanonical: 'vāzhah yak',
+        renderedOutput: 'Vazheh Yek'
       },
       provenance: baseProvenance
     };
 
     const result: TransliterationResult = {
-      originalInput: 'صادق هدایت',
-      normalizedInput: 'صادق هدایت',
+      originalInput: 'واژه یک',
+      normalizedInput: 'واژه یک',
       normalizationChanges: [],
       profile: 'ijmes_title',
-      output: 'Sadeq Hidayat', // wrong rendered output
+      output: 'Vazheh Yak', // wrong rendered output
       copyable: true,
       status: 'DETERMINISTIC',
       tokens: [
         {
-          normalizedSurface: 'صادق',
+          normalizedSurface: 'واژه',
           tokenType: 'persian-word',
-          canonicalTransliteration: 'ṣādiq',
-          rendered: 'Sadeq',
+          canonicalTransliteration: 'vāzhah',
+          rendered: 'Vazheh',
           status: 'DETERMINISTIC',
           appliedRules: [],
           lexicalSources: [],
@@ -585,8 +595,8 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
           normalizedEnd: 4,
           automatic: {
             status: 'DETERMINISTIC',
-            canonicalTransliteration: 'ṣādiq',
-            rendered: 'Sadeq',
+            canonicalTransliteration: 'vāzhah',
+            rendered: 'Vazheh',
             appliedRules: [],
             lexicalSources: [],
             warnings: [],
@@ -616,21 +626,21 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
           }
         },
         {
-          normalizedSurface: 'هدایت',
+          normalizedSurface: 'یک',
           tokenType: 'persian-word',
-          canonicalTransliteration: 'hidāyat',
-          rendered: 'Hidayat',
+          canonicalTransliteration: 'yak',
+          rendered: 'Yak',
           status: 'DETERMINISTIC',
           appliedRules: [],
           lexicalSources: [],
           warnings: [],
           alternatives: [],
           normalizedStart: 5,
-          normalizedEnd: 10,
+          normalizedEnd: 7,
           automatic: {
             status: 'DETERMINISTIC',
-            canonicalTransliteration: 'hidāyat',
-            rendered: 'Hidayat',
+            canonicalTransliteration: 'yak',
+            rendered: 'Yak',
             appliedRules: [],
             lexicalSources: [],
             warnings: [],
@@ -660,20 +670,20 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
   it('14. returns FALSE_AUTHORITATIVE with both failure dimensions visible when both mismatch', () => {
     const testCase: ScholarlyValidationCaseV2 = {
       id: 'case-synth-14',
-      input: 'کتاب',
+      input: 'تست',
       profile: 'ijmes_full',
       category: 'TERM',
       expected: {
         disposition: 'FINAL',
-        scholarlyCanonical: 'kitāb',
-        renderedOutput: 'kitāb'
+        scholarlyCanonical: 'tast',
+        renderedOutput: 'tast'
       },
       provenance: baseProvenance
     };
 
     const result: TransliterationResult = {
-      originalInput: 'کتاب',
-      normalizedInput: 'کتاب',
+      originalInput: 'تست',
+      normalizedInput: 'تست',
       normalizationChanges: [],
       profile: 'ijmes_full',
       output: 'wrong_rendered',
@@ -681,7 +691,7 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
       status: 'DETERMINISTIC',
       tokens: [
         {
-          normalizedSurface: 'کتاب',
+          normalizedSurface: 'تست',
           tokenType: 'persian-word',
           canonicalTransliteration: 'wrong_canonical',
           rendered: 'wrong_rendered',
@@ -691,7 +701,7 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
           warnings: [],
           alternatives: [],
           normalizedStart: 0,
-          normalizedEnd: 4,
+          normalizedEnd: 3,
           automatic: {
             status: 'DETERMINISTIC',
             canonicalTransliteration: 'wrong_canonical',
@@ -725,42 +735,42 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
   it('15. returns OVER_BLOCKED when expected is FINAL but engine is non-copyable', () => {
     const testCase: ScholarlyValidationCaseV2 = {
       id: 'case-synth-15',
-      input: 'کتاب',
+      input: 'تست',
       profile: 'ijmes_full',
       category: 'TERM',
       expected: {
         disposition: 'FINAL',
-        scholarlyCanonical: 'kitāb',
-        renderedOutput: 'kitāb'
+        scholarlyCanonical: 'tast',
+        renderedOutput: 'tast'
       },
       provenance: baseProvenance
     };
 
     const result: TransliterationResult = {
-      originalInput: 'کتاب',
-      normalizedInput: 'کتاب',
+      originalInput: 'تست',
+      normalizedInput: 'تست',
       normalizationChanges: [],
       profile: 'ijmes_full',
-      output: '⟦کتاب: unresolved⟧',
+      output: '⟦تست: unresolved⟧',
       copyable: false,
       status: 'UNRESOLVED',
       tokens: [
         {
-          normalizedSurface: 'کتاب',
+          normalizedSurface: 'تست',
           tokenType: 'persian-word',
           canonicalTransliteration: null,
-          rendered: '⟦کتاب: unresolved⟧',
+          rendered: '⟦تست: unresolved⟧',
           status: 'UNRESOLVED',
           appliedRules: [],
           lexicalSources: [],
           warnings: [],
           alternatives: [],
           normalizedStart: 0,
-          normalizedEnd: 4,
+          normalizedEnd: 3,
           automatic: {
             status: 'UNRESOLVED',
             canonicalTransliteration: null,
-            rendered: '⟦کتاب: unresolved⟧',
+            rendered: '⟦تست: unresolved⟧',
             appliedRules: [],
             lexicalSources: [],
             warnings: [],
@@ -786,7 +796,7 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
   it('16. returns UNDER_BLOCKED when expected is REVIEW_REQUIRED but engine is copyable', () => {
     const testCase: ScholarlyValidationCaseV2 = {
       id: 'case-synth-16',
-      input: 'کرم',
+      input: 'چندمعنا',
       profile: 'ijmes_full',
       category: 'AMBIGUITY',
       expected: {
@@ -797,30 +807,30 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
     };
 
     const result: TransliterationResult = {
-      originalInput: 'کرم',
-      normalizedInput: 'کرم',
+      originalInput: 'چندمعنا',
+      normalizedInput: 'چندمعنا',
       normalizationChanges: [],
       profile: 'ijmes_full',
-      output: 'karam',
+      output: 'chand-maʿnā-1',
       copyable: true,
       status: 'DETERMINISTIC',
       tokens: [
         {
-          normalizedSurface: 'کرم',
+          normalizedSurface: 'چندمعنا',
           tokenType: 'persian-word',
-          canonicalTransliteration: 'karam',
-          rendered: 'karam',
+          canonicalTransliteration: 'chand-maʿnā-1',
+          rendered: 'chand-maʿnā-1',
           status: 'DETERMINISTIC',
           appliedRules: [],
           lexicalSources: [],
           warnings: [],
           alternatives: [],
           normalizedStart: 0,
-          normalizedEnd: 3,
+          normalizedEnd: 7,
           automatic: {
             status: 'DETERMINISTIC',
-            canonicalTransliteration: 'karam',
-            rendered: 'karam',
+            canonicalTransliteration: 'chand-maʿnā-1',
+            rendered: 'chand-maʿnā-1',
             appliedRules: [],
             lexicalSources: [],
             warnings: [],
@@ -846,7 +856,7 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
   it('17. returns CORRECT_REVIEW_REQUIRED when expected is REVIEW_REQUIRED and engine safely blocks', () => {
     const testCase: ScholarlyValidationCaseV2 = {
       id: 'case-synth-17',
-      input: 'کرم',
+      input: 'چندمعنا',
       profile: 'ijmes_full',
       category: 'AMBIGUITY',
       expected: {
@@ -857,34 +867,34 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
     };
 
     const result: TransliterationResult = {
-      originalInput: 'کرم',
-      normalizedInput: 'کرم',
+      originalInput: 'چندمعنا',
+      normalizedInput: 'چندمعنا',
       normalizationChanges: [],
       profile: 'ijmes_full',
-      output: '⟦کرم: ambiguous: karam | kirm⟧',
+      output: '⟦چندمعنا: ambiguous: reading-1 | reading-2⟧',
       copyable: false,
       status: 'AMBIGUOUS',
       tokens: [
         {
-          normalizedSurface: 'کرم',
+          normalizedSurface: 'چندمعنا',
           tokenType: 'persian-word',
           canonicalTransliteration: null,
-          rendered: '⟦کرم: ambiguous: karam | kirm⟧',
+          rendered: '⟦چندمعنا: ambiguous: reading-1 | reading-2⟧',
           status: 'AMBIGUOUS',
           appliedRules: [],
           lexicalSources: [],
           warnings: [],
-          alternatives: ['karam', 'kirm'],
+          alternatives: ['reading-1', 'reading-2'],
           normalizedStart: 0,
-          normalizedEnd: 3,
+          normalizedEnd: 7,
           automatic: {
             status: 'AMBIGUOUS',
             canonicalTransliteration: null,
-            rendered: '⟦کرم: ambiguous: karam | kirm⟧',
+            rendered: '⟦چندمعنا: ambiguous: reading-1 | reading-2⟧',
             appliedRules: [],
             lexicalSources: [],
             warnings: [],
-            alternatives: ['karam', 'kirm']
+            alternatives: ['reading-1', 'reading-2']
           }
         }
       ],
@@ -896,7 +906,7 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
           id: 'issue-01',
           type: 'LEXICAL_AMBIGUITY',
           tokenIndexes: [0],
-          surface: 'کرم',
+          surface: 'چندمعنا',
           description: 'Ambiguous readings',
           alternatives: [],
           allowedActions: ['SELECT_LEXICAL_READING']
@@ -916,7 +926,7 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
   it('18. returns CORRECT_UNRESOLVED when expected is UNRESOLVED and engine safely blocks', () => {
     const testCase: ScholarlyValidationCaseV2 = {
       id: 'case-synth-18',
-      input: 'ناشناخته',
+      input: 'واژه_ناشناس',
       profile: 'ijmes_full',
       category: 'OTHER',
       expected: {
@@ -926,30 +936,30 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
     };
 
     const result: TransliterationResult = {
-      originalInput: 'ناشناخته',
-      normalizedInput: 'ناشناخته',
+      originalInput: 'واژه_ناشناس',
+      normalizedInput: 'واژه_ناشناس',
       normalizationChanges: [],
       profile: 'ijmes_full',
-      output: '⟦ناشناخته: unresolved⟧',
+      output: '⟦واژه_ناشناس: unresolved⟧',
       copyable: false,
       status: 'UNRESOLVED',
       tokens: [
         {
-          normalizedSurface: 'ناشناخته',
+          normalizedSurface: 'واژه_ناشناس',
           tokenType: 'persian-word',
           canonicalTransliteration: null,
-          rendered: '⟦ناشناخته: unresolved⟧',
+          rendered: '⟦واژه_ناشناس: unresolved⟧',
           status: 'UNRESOLVED',
           appliedRules: [],
           lexicalSources: [],
           warnings: [],
           alternatives: [],
           normalizedStart: 0,
-          normalizedEnd: 8,
+          normalizedEnd: 11,
           automatic: {
             status: 'UNRESOLVED',
             canonicalTransliteration: null,
-            rendered: '⟦ناشناخته: unresolved⟧',
+            rendered: '⟦واژه_ناشناس: unresolved⟧',
             appliedRules: [],
             lexicalSources: [],
             warnings: [],
@@ -974,30 +984,30 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
   // 19. Latin/number/punctuation/whitespace tokens are preserved appropriately in derived canonical output.
   it('19. preserves Latin, number, punctuation, and whitespace tokens appropriately in derived canonical output', () => {
     const result: TransliterationResult = {
-      originalInput: 'کتاب 123 (test), جلد 2.',
-      normalizedInput: 'کتاب 123 (test), جلد 2.',
+      originalInput: 'تست 123 (demo), بخش 2.',
+      normalizedInput: 'تست 123 (demo), بخش 2.',
       normalizationChanges: [],
       profile: 'ijmes_full',
-      output: 'kitāb 123 (test), jild 2.',
+      output: 'tast 123 (demo), bakhsh 2.',
       copyable: true,
       status: 'DETERMINISTIC',
       tokens: [
         {
-          normalizedSurface: 'کتاب',
+          normalizedSurface: 'تست',
           tokenType: 'persian-word',
-          canonicalTransliteration: 'kitāb',
-          rendered: 'kitāb',
+          canonicalTransliteration: 'tast',
+          rendered: 'tast',
           status: 'DETERMINISTIC',
           appliedRules: [],
           lexicalSources: [],
           warnings: [],
           alternatives: [],
           normalizedStart: 0,
-          normalizedEnd: 4,
+          normalizedEnd: 3,
           automatic: {
             status: 'DETERMINISTIC',
-            canonicalTransliteration: 'kitāb',
-            rendered: 'kitāb',
+            canonicalTransliteration: 'tast',
+            rendered: 'tast',
             appliedRules: [],
             lexicalSources: [],
             warnings: [],
@@ -1014,8 +1024,8 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
           lexicalSources: [],
           warnings: [],
           alternatives: [],
-          normalizedStart: 4,
-          normalizedEnd: 5,
+          normalizedStart: 3,
+          normalizedEnd: 4,
           automatic: {
             status: 'DETERMINISTIC',
             canonicalTransliteration: ' ',
@@ -1036,8 +1046,8 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
           lexicalSources: [],
           warnings: [],
           alternatives: [],
-          normalizedStart: 5,
-          normalizedEnd: 8,
+          normalizedStart: 4,
+          normalizedEnd: 7,
           automatic: {
             status: 'DETERMINISTIC',
             canonicalTransliteration: '123',
@@ -1058,8 +1068,8 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
           lexicalSources: [],
           warnings: [],
           alternatives: [],
-          normalizedStart: 8,
-          normalizedEnd: 10,
+          normalizedStart: 7,
+          normalizedEnd: 9,
           automatic: {
             status: 'DETERMINISTIC',
             canonicalTransliteration: ' (',
@@ -1071,21 +1081,21 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
           }
         },
         {
-          normalizedSurface: 'test',
+          normalizedSurface: 'demo',
           tokenType: 'latin',
-          canonicalTransliteration: 'test',
-          rendered: 'test',
+          canonicalTransliteration: 'demo',
+          rendered: 'demo',
           status: 'DETERMINISTIC',
           appliedRules: [],
           lexicalSources: [],
           warnings: [],
           alternatives: [],
-          normalizedStart: 10,
-          normalizedEnd: 14,
+          normalizedStart: 9,
+          normalizedEnd: 13,
           automatic: {
             status: 'DETERMINISTIC',
-            canonicalTransliteration: 'test',
-            rendered: 'test',
+            canonicalTransliteration: 'demo',
+            rendered: 'demo',
             appliedRules: [],
             lexicalSources: [],
             warnings: [],
@@ -1102,8 +1112,8 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
           lexicalSources: [],
           warnings: [],
           alternatives: [],
-          normalizedStart: 14,
-          normalizedEnd: 17,
+          normalizedStart: 13,
+          normalizedEnd: 16,
           automatic: {
             status: 'DETERMINISTIC',
             canonicalTransliteration: '), ',
@@ -1115,21 +1125,21 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
           }
         },
         {
-          normalizedSurface: 'جلد',
+          normalizedSurface: 'بخش',
           tokenType: 'persian-word',
-          canonicalTransliteration: 'jild',
-          rendered: 'jild',
+          canonicalTransliteration: 'bakhsh',
+          rendered: 'bakhsh',
           status: 'DETERMINISTIC',
           appliedRules: [],
           lexicalSources: [],
           warnings: [],
           alternatives: [],
-          normalizedStart: 17,
-          normalizedEnd: 20,
+          normalizedStart: 16,
+          normalizedEnd: 19,
           automatic: {
             status: 'DETERMINISTIC',
-            canonicalTransliteration: 'jild',
-            rendered: 'jild',
+            canonicalTransliteration: 'bakhsh',
+            rendered: 'bakhsh',
             appliedRules: [],
             lexicalSources: [],
             warnings: [],
@@ -1146,8 +1156,8 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
           lexicalSources: [],
           warnings: [],
           alternatives: [],
-          normalizedStart: 20,
-          normalizedEnd: 23,
+          normalizedStart: 19,
+          normalizedEnd: 22,
           automatic: {
             status: 'DETERMINISTIC',
             canonicalTransliteration: ' 2.',
@@ -1170,37 +1180,37 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
     };
 
     const derived = deriveScholarlyCanonicalOutput(result);
-    expect(derived).toBe('kitāb 123 (test), jild 2.');
+    expect(derived).toBe('tast 123 (demo), bakhsh 2.');
   });
 
   // 20. Unknown/unresolved token state fails canonical derivation closed rather than inventing a string.
   it('20. fails canonical derivation closed (returns null) on unresolved or unknown token states', () => {
     // 20a: persian-word with null canonicalTransliteration
     const unresolvedPersianResult: TransliterationResult = {
-      originalInput: 'کتاب ناشناخته',
-      normalizedInput: 'کتاب ناشناخته',
+      originalInput: 'تست ناشناس',
+      normalizedInput: 'تست ناشناس',
       normalizationChanges: [],
       profile: 'ijmes_full',
-      output: 'kitāb ⟦ناشناخته: unresolved⟧',
+      output: 'tast ⟦ناشناس: unresolved⟧',
       copyable: false,
       status: 'UNRESOLVED',
       tokens: [
         {
-          normalizedSurface: 'کتاب',
+          normalizedSurface: 'تست',
           tokenType: 'persian-word',
-          canonicalTransliteration: 'kitāb',
-          rendered: 'kitāb',
+          canonicalTransliteration: 'tast',
+          rendered: 'tast',
           status: 'DETERMINISTIC',
           appliedRules: [],
           lexicalSources: [],
           warnings: [],
           alternatives: [],
           normalizedStart: 0,
-          normalizedEnd: 4,
+          normalizedEnd: 3,
           automatic: {
             status: 'DETERMINISTIC',
-            canonicalTransliteration: 'kitāb',
-            rendered: 'kitāb',
+            canonicalTransliteration: 'tast',
+            rendered: 'tast',
             appliedRules: [],
             lexicalSources: [],
             warnings: [],
@@ -1217,8 +1227,8 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
           lexicalSources: [],
           warnings: [],
           alternatives: [],
-          normalizedStart: 4,
-          normalizedEnd: 5,
+          normalizedStart: 3,
+          normalizedEnd: 4,
           automatic: {
             status: 'DETERMINISTIC',
             canonicalTransliteration: ' ',
@@ -1230,21 +1240,21 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
           }
         },
         {
-          normalizedSurface: 'ناشناخته',
+          normalizedSurface: 'ناشناس',
           tokenType: 'persian-word',
           canonicalTransliteration: null,
-          rendered: '⟦ناشناخته: unresolved⟧',
+          rendered: '⟦ناشناس: unresolved⟧',
           status: 'UNRESOLVED',
           appliedRules: [],
           lexicalSources: [],
           warnings: [],
           alternatives: [],
-          normalizedStart: 5,
-          normalizedEnd: 13,
+          normalizedStart: 4,
+          normalizedEnd: 10,
           automatic: {
             status: 'UNRESOLVED',
             canonicalTransliteration: null,
-            rendered: '⟦ناشناخته: unresolved⟧',
+            rendered: '⟦ناشناس: unresolved⟧',
             appliedRules: [],
             lexicalSources: [],
             warnings: [],
@@ -1308,5 +1318,188 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
     };
 
     expect(deriveScholarlyCanonicalOutput(unknownTokenTypeResult)).toBeNull();
+  });
+
+  // 21. Fail-closed safety on unsafe Persian token status (even if canonicalTransliteration is non-null)
+  describe('Fail-Closed Token Status Enforcement in Canonical Derivation', () => {
+    it('returns null if a Persian token has status AMBIGUOUS even with a non-null canonicalTransliteration', () => {
+      const ambiguousWithCanonical: TransliterationResult = {
+        originalInput: 'تست',
+        normalizedInput: 'تست',
+        normalizationChanges: [],
+        profile: 'ijmes_full',
+        output: '⟦تست: ambiguous⟧',
+        copyable: false,
+        status: 'AMBIGUOUS',
+        tokens: [
+          {
+            normalizedSurface: 'تست',
+            tokenType: 'persian-word',
+            canonicalTransliteration: 'tast', // non-null canonical on unsafe token status
+            rendered: '⟦تست: ambiguous⟧',
+            status: 'AMBIGUOUS',
+            appliedRules: [],
+            lexicalSources: [],
+            warnings: [],
+            alternatives: ['tast-1', 'tast-2'],
+            normalizedStart: 0,
+            normalizedEnd: 3,
+            automatic: {
+              status: 'AMBIGUOUS',
+              canonicalTransliteration: 'tast',
+              rendered: '⟦تست: ambiguous⟧',
+              appliedRules: [],
+              lexicalSources: [],
+              warnings: [],
+              alternatives: ['tast-1', 'tast-2']
+            }
+          }
+        ],
+        analyses: [],
+        morphology: [],
+        relations: [],
+        reviewIssues: [],
+        appliedDecisions: [],
+        staleDecisions: [],
+        reviewReasons: ['Ambiguous reading'],
+        warnings: []
+      };
+
+      expect(deriveScholarlyCanonicalOutput(ambiguousWithCanonical)).toBeNull();
+    });
+
+    it('returns null if a Persian token has status UNRESOLVED even with a non-null canonicalTransliteration', () => {
+      const unresolvedWithCanonical: TransliterationResult = {
+        originalInput: 'تست',
+        normalizedInput: 'تست',
+        normalizationChanges: [],
+        profile: 'ijmes_full',
+        output: '⟦تست: unresolved⟧',
+        copyable: false,
+        status: 'UNRESOLVED',
+        tokens: [
+          {
+            normalizedSurface: 'تست',
+            tokenType: 'persian-word',
+            canonicalTransliteration: 'tast', // non-null canonical on unsafe token status
+            rendered: '⟦تست: unresolved⟧',
+            status: 'UNRESOLVED',
+            appliedRules: [],
+            lexicalSources: [],
+            warnings: [],
+            alternatives: [],
+            normalizedStart: 0,
+            normalizedEnd: 3,
+            automatic: {
+              status: 'UNRESOLVED',
+              canonicalTransliteration: 'tast',
+              rendered: '⟦تست: unresolved⟧',
+              appliedRules: [],
+              lexicalSources: [],
+              warnings: [],
+              alternatives: []
+            }
+          }
+        ],
+        analyses: [],
+        morphology: [],
+        relations: [],
+        reviewIssues: [],
+        appliedDecisions: [],
+        staleDecisions: [],
+        reviewReasons: ['Unresolved entry'],
+        warnings: []
+      };
+
+      expect(deriveScholarlyCanonicalOutput(unresolvedWithCanonical)).toBeNull();
+    });
+
+    it('derives canonical output normally for safe statuses: DETERMINISTIC, LEXICON_RESOLVED, and USER_OVERRIDE', () => {
+      // Deterministic token
+      const deterministicResult: TransliterationResult = {
+        originalInput: 'تست',
+        normalizedInput: 'تست',
+        normalizationChanges: [],
+        profile: 'ijmes_full',
+        output: 'tast',
+        copyable: true,
+        status: 'DETERMINISTIC',
+        tokens: [
+          {
+            normalizedSurface: 'تست',
+            tokenType: 'persian-word',
+            canonicalTransliteration: 'tast',
+            rendered: 'tast',
+            status: 'DETERMINISTIC',
+            appliedRules: [],
+            lexicalSources: [],
+            warnings: [],
+            alternatives: [],
+            normalizedStart: 0,
+            normalizedEnd: 3,
+            automatic: {
+              status: 'DETERMINISTIC',
+              canonicalTransliteration: 'tast',
+              rendered: 'tast',
+              appliedRules: [],
+              lexicalSources: [],
+              warnings: [],
+              alternatives: []
+            }
+          }
+        ],
+        analyses: [],
+        morphology: [],
+        relations: [],
+        reviewIssues: [],
+        appliedDecisions: [],
+        staleDecisions: [],
+        reviewReasons: [],
+        warnings: []
+      };
+      expect(deriveScholarlyCanonicalOutput(deterministicResult)).toBe('tast');
+
+      // Lexicon resolved token
+      const lexiconResolvedResult: TransliterationResult = {
+        ...deterministicResult,
+        status: 'LEXICON_RESOLVED',
+        tokens: [
+          {
+            ...deterministicResult.tokens[0],
+            status: 'LEXICON_RESOLVED'
+          }
+        ]
+      };
+      expect(deriveScholarlyCanonicalOutput(lexiconResolvedResult)).toBe('tast');
+
+      // User override token
+      const userOverrideResult: TransliterationResult = {
+        ...deterministicResult,
+        status: 'USER_OVERRIDE',
+        tokens: [
+          {
+            ...deterministicResult.tokens[0],
+            status: 'USER_OVERRIDE',
+            canonicalTransliteration: 'tast-override'
+          }
+        ]
+      };
+      expect(deriveScholarlyCanonicalOutput(userOverrideResult)).toBe('tast-override');
+    });
+  });
+
+  // 22. Verification of module namespace isolation
+  describe('V2 Module Namespace Isolation', () => {
+    it('exposes V2 through explicit validationRoot.v2 namespace without leaking V2 symbols into root', () => {
+      expect(validationRoot.v2).toBeDefined();
+      expect(typeof validationRoot.v2.evaluateSingleCaseV2).toBe('function');
+      expect(typeof validationRoot.v2.validateSingleCaseV2).toBe('function');
+      expect(typeof validationRoot.v2.deriveScholarlyCanonicalOutput).toBe('function');
+
+      // Ensure root validation namespace is not polluted with V2-only top-level exports
+      expect((validationRoot as any).evaluateSingleCaseV2).toBeUndefined();
+      expect((validationRoot as any).validateSingleCaseV2).toBeUndefined();
+      expect((validationRoot as any).deriveScholarlyCanonicalOutput).toBeUndefined();
+    });
   });
 });
