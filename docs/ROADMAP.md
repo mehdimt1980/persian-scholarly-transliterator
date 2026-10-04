@@ -6,9 +6,12 @@
 4. **Phase 3 — complete:** human-gated assisted candidate resolver (advisory language model suggestions behind strict zero-authority boundaries and manual selection).
 5. **Phase 4 — complete:** source-preserving batch bibliography processing, canonical record schemas, field-level policies, field-scoped review and assistance, source-preserving CSV, final scholarly CSV, scholarly RIS, and scholarly BibTeX exports.
 6. **Phase 4.5 — complete:** real-world scholarly corpus validation framework, gold corpus schema, safety and coverage metrics, release gates, regression conversion, and failure triage methodology.
-7. **Phase 4.6A — current:** independent external scholarly benchmark candidate acquisition, source provenance recording, zero-authority candidate staging (`PENDING_HUMAN_REVIEW`), deduplication, overlap auditing, and human review-sheet export.
-8. **Phase 4.6B — future:** human scholarly review, adjudication, and gold-corpus promotion (`HUMAN_REVIEWED`).
-9. **Phase 4.6C — future:** blind evaluation, safety/coverage measurement, and failure triage.
-10. **Phase 5 — future:** extensible citation style formatting (CSL-compatible models, Chicago/APA scholarly notes, and bibliographic formatting).
+7. **Phase 4.6A — complete:** independent external scholarly benchmark acquisition and strict provenance verification; 108 retained candidates frozen before engine evaluation.
+8. **Phase 4.6B — current:** specialist scholarly adjudication of the 108-case external benchmark, IJMES policy alignment, ambiguity disposition, and preparation for explicit human sign-off. The current draft is `EXPERT_ADJUDICATED_PENDING_HUMAN_SIGNOFF`; it must not be represented as `HUMAN_REVIEWED` before an actual human sign-off.
+9. **Phase 4.6C — future:** blind engine evaluation against the signed-off gold corpus, safety/coverage measurement, and failure triage.
+10. **Phase 4.6D — future if required by 4.6C:** evidence-backed remediation of coverage or policy gaps discovered by the frozen benchmark; no benchmark-driven data mutation.
+11. **Release hardening — future before RC:** dependency/security remediation, release-gate cleanup (including replacing the legacy `REAL_DISSERTATION` corpus-tier name), and release documentation.
+12. **v1.0.0-rc1 — future:** only after signed-off independent benchmark evaluation satisfies safety gates and agreed usefulness/coverage thresholds.
+13. **Phase 5 — future:** extensible citation style formatting (CSL-compatible models, Chicago/APA scholarly notes, and bibliographic formatting).
 
-Phase 4.6A is corpus acquisition only. It modifies no transliteration behavior, no lexicon entries, and no evaluation metrics. Phase 5 remains future work.
+Phase 4.6B performs scholarly review only and does not evaluate or tune the transliteration engine. Phase 5 remains deferred until the transliterator itself reaches release-candidate quality.

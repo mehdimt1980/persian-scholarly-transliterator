@@ -1,0 +1,139 @@
+{
+  "metadata": {
+    "appliesTo": "validation/review/adjudication.v1.json",
+    "baseVersion": "1.0.1-draft",
+    "consolidatedIntoVersion": "1.0.2-draft",
+    "status": "CONSOLIDATED",
+    "adjudicator": "OpenAI GPT-5.6 Sol",
+    "adjudicatedAt": "2026-10-04",
+    "engineEvaluationPerformed": false,
+    "note": "Historical audit ledger. All corrections below were consolidated into adjudication.v1.json version 1.0.2-draft before human sign-off. This file remains as provenance for the scholarly correction history."
+  },
+  "corrections": [
+    {
+      "id": "cand-term-001",
+      "field": "canonical",
+      "from": "nūsāzī",
+      "to": "nawsāzī",
+      "evidence": [
+        "Current IJMES chart renders Persian diphthong waw as au/aw rather than treating نو as long ū.",
+        "Cambridge scholarly indexing independently attests bāzsāzī yā nawsāzī; other scholarly Persian usage attests naw-sāzi."
+      ]
+    },
+    {
+      "id": "cand-term-012",
+      "field": "canonical",
+      "from": "rushanfikrī",
+      "to": "rawshanfikrī",
+      "evidence": [
+        "Scholarly Persian usage explicitly attests rawshanfikr for روشنفکر.",
+        "The stem is not derived by mechanically replacing modern Persian o/e with u/i; written و here represents the diphthong reflected as aw in full scholarly transliteration."
+      ]
+    },
+    {
+      "id": "cand-pers-004",
+      "field": "canonical",
+      "from": "Mohammad-Taqi Bahar",
+      "to": "Malek al-Shoʿara Bahar",
+      "evidence": [
+        "Gold output must transliterate the supplied sourceText ملک‌الشعرای بهار rather than substitute the person's different personal name محمدتقی بهار.",
+        "Cambridge scholarly bibliography independently uses Malek al-Shoʿara Bahar; IJMES proper-name policy removes ordinary diacritics while retaining ʿayn."
+      ]
+    },
+    {
+      "id": "cand-inst-003",
+      "field": "canonical",
+      "from": "Kitabkhana-i Milli-i Iran",
+      "to": "Kitabkhana-yi Milli-yi Iran",
+      "evidence": [
+        "Post-vocalic Persian izafat is conventionally rendered -yi in IJMES-derived scholarly practice.",
+        "Both khāna and millī are vowel-final hosts in this construction."
+      ]
+    },
+    {
+      "id": "cand-book-001",
+      "field": "canonical",
+      "from": "Tarikh-i Bidari-i Iraniyan",
+      "to": "Tarikh-i Bidari-yi Iraniyan",
+      "evidence": [
+        "Bīdārī is vowel-final, so the following Persian izafat is rendered -yi.",
+        "Published IJMES/Cambridge Persian bibliographic practice uses post-vocalic -yi, including title patterns such as Tarjuma-ha-yi and Nām-hā-yi."
+      ]
+    },
+    {
+      "id": "cand-book-005",
+      "field": "canonical",
+      "from": "Safarnama-i Nasir-i Khusraw",
+      "to": "Safarnama-yi Nasir-i Khusraw",
+      "evidence": [
+        "Safarnāma ends in the Persian final vowel -a; its izafat before Nāṣir is post-vocalic and is rendered -yi in scholarly IJMES practice."
+      ]
+    },
+    {
+      "id": "cand-mrp-002",
+      "field": "canonical",
+      "from": "nāma-hā-i",
+      "to": "nāma-hā-yi",
+      "evidence": [
+        "The written sequence های explicitly contains the post-vocalic yā linker after plural -hā.",
+        "Contemporary IJMES articles use forms such as tarjuma-hā-yi and nizhād-hā-yi."
+      ]
+    },
+    {
+      "id": "cand-mrp-010",
+      "field": "canonical",
+      "from": "guzārish-hā-i",
+      "to": "guzārish-hā-yi",
+      "evidence": [
+        "The written plural+izafat sequence های is post-vocalic and is rendered -hā-yi in scholarly IJMES practice."
+      ]
+    },
+    {
+      "id": "cand-izf-004",
+      "field": "canonical",
+      "from": "khāna-i pidarī",
+      "to": "khāna-yi pidarī",
+      "evidence": [
+        "Khāna is vowel-final; Persian izafat after a vowel is rendered -yi in scholarly IJMES-derived usage.",
+        "Cambridge Persian scholarship explicitly uses khāna-yi in comparable constructions."
+      ]
+    },
+    {
+      "id": "cand-amb-003",
+      "field": "allowedCanonicals",
+      "from": null,
+      "to": ["sar", "sirr"],
+      "evidence": [
+        "Unvocalized سر can represent native Persian sar 'head' or Arabic-derived sirr 'secret' when vocalization/shadda is omitted.",
+        "These remain materially distinct under IJMES and therefore require context."
+      ]
+    },
+    {
+      "id": "cand-amb-003",
+      "field": "reviewNote",
+      "from": "The unvocalized form supports materially different native readings (including sar and sur); context is required before an authoritative transliteration.",
+      "to": "The unvocalized form supports materially different readings, including Persian sar ('head') and Arabic-derived sirr ('secret') when vocalization/shadda is omitted; context is required before authoritative transliteration.",
+      "evidence": [
+        "Dictionary evidence distinguishes sar from sirr; the earlier reference to sur was not sufficiently supported."
+      ]
+    },
+    {
+      "id": "cand-amb-009",
+      "field": "allowedCanonicals",
+      "from": null,
+      "to": ["shūr", "shawr"],
+      "evidence": [
+        "شور supports a long-vowel Persian reading shūr and a distinct consultation-related reading represented with the aw diphthong; context is required."
+      ]
+    },
+    {
+      "id": "cand-amb-011",
+      "field": "allowedCanonicals",
+      "from": null,
+      "to": ["rūy", "ravī"],
+      "evidence": [
+        "Unvocalized روی can support rūy ('face/on/zinc') and a distinct verbal/lexical ravī reading; the forms remain distinct under IJMES."
+      ]
+    }
+  ]
+}

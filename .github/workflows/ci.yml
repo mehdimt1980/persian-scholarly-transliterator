@@ -30,6 +30,9 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: Validate scholarly adjudication
+        run: npm run validate:adjudication
+
       - name: Typecheck
         run: npm run typecheck
 
