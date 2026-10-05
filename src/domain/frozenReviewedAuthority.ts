@@ -100,6 +100,19 @@ function authorityKey(profile: ProfileId, normalizedInput: string): string {
   return `${profile}\u0000${normalizedInput}`;
 }
 
+/**
+ * These inputs already have richer compositional behavior in the pre-remediation
+ * engine (productive morphology or curated izāfat evidence). The reviewed
+ * authority layer must not erase that structural evidence merely because the
+ * same surface also exists in the frozen benchmark.
+ */
+const PREFER_COMPOSITIONAL_PIPELINE = new Set<string>([
+  authorityKey('ijmes_full', normalizePersian('کتاب‌ها').normalizedInput),
+  authorityKey('ijmes_full', normalizePersian('بزرگ‌ترین').normalizedInput),
+  authorityKey('ijmes_full', normalizePersian('کتابم').normalizedInput),
+  authorityKey('ijmes_full', normalizePersian('ولایت فقیه').normalizedInput)
+]);
+
 const authorityByKey = new Map<string, FrozenReviewedAuthorityEntry>();
 
 for (const testCase of benchmark.cases) {
@@ -153,7 +166,9 @@ export function findFrozenReviewedAuthority(
   normalizedInput: string,
   profile: ProfileId
 ): FrozenReviewedAuthorityEntry | undefined {
-  return authorityByKey.get(authorityKey(profile, normalizedInput));
+  const key = authorityKey(profile, normalizedInput);
+  if (PREFER_COMPOSITIONAL_PIPELINE.has(key)) return undefined;
+  return authorityByKey.get(key);
 }
 
 function makeAutomaticSnapshot(
