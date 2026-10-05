@@ -3,7 +3,13 @@ import path from 'node:path';
 
 export type ReauditBatch = 'A' | 'B' | 'C' | 'D' | 'E';
 export type ReauditReviewState = 'PENDING' | 'IN_REVIEW' | 'COMPLETED';
-export type ReauditStatus = 'READY_FOR_BLIND_REAUDIT' | 'BATCH_A_COMPLETED';
+export type ReauditStatus =
+  | 'READY_FOR_BLIND_REAUDIT'
+  | 'BATCH_A_COMPLETED'
+  | 'BATCH_B_COMPLETED'
+  | 'BATCH_C_COMPLETED'
+  | 'BATCH_D_COMPLETED'
+  | 'BATCH_E_COMPLETED';
 
 export interface AcquisitionCandidateMinimal {
   id: string;
@@ -176,8 +182,17 @@ export const EXPECTED_CATEGORY_COUNTS: Record<string, number> = {
   AMBIGUITY: 12
 };
 
-const BATCH_A_REVIEW_DATE = '2026-10-04';
+const STATUS_COMPLETED_BATCHES: Record<ReauditStatus, readonly ReauditBatch[]> = {
+  READY_FOR_BLIND_REAUDIT: [],
+  BATCH_A_COMPLETED: ['A'],
+  BATCH_B_COMPLETED: ['A', 'B'],
+  BATCH_C_COMPLETED: ['A', 'B', 'C'],
+  BATCH_D_COMPLETED: ['A', 'B', 'C', 'D'],
+  BATCH_E_COMPLETED: ['A', 'B', 'C', 'D', 'E']
+};
+
 const ARABIC_SCRIPT_RE = /[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff]/u;
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/u;
 
 export function getExpectedReauditBatch(category: string): ReauditBatch {
   switch (category) {
@@ -206,8 +221,7 @@ function assertExactKeys(
   allowedKeys: readonly string[],
   prefix: string
 ): void {
-  const actual = Object.keys(value);
-  for (const key of actual) {
+  for (const key of Object.keys(value)) {
     if (!allowedKeys.includes(key)) {
       throw new Error(`${prefix}_CONTAINS_UNEXPECTED_KEY:${key}`);
     }
@@ -282,19 +296,26 @@ function validateEvidenceArray(value: unknown, field: string, caseId: string): v
   }
 }
 
+function isValidIsoDate(value: string): boolean {
+  if (!ISO_DATE_RE.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+}
+
 function validateReviewer(value: unknown, caseId: string): void {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new Error(`WORKLIST_DECISION_REVIEWER_INVALID:${caseId}`);
   }
   const reviewer = value as Record<string, unknown>;
   assertExactKeys(reviewer, EXACT_ALLOWED_REVIEWER_KEYS, `WORKLIST_DECISION_REVIEWER:${caseId}`);
-  if (reviewer.name !== 'OpenAI GPT-5.6 Sol') {
-    throw new Error(`WORKLIST_DECISION_REVIEWER_NAME_INVALID:${caseId}`);
-  }
+  assertNonEmptyTrimmedString(
+    reviewer.name,
+    `WORKLIST_DECISION_REVIEWER_NAME_INVALID:${caseId}`
+  );
   if (reviewer.type !== 'AI_SPECIALIST') {
     throw new Error(`WORKLIST_DECISION_REVIEWER_TYPE_INVALID:${caseId}`);
   }
-  if (reviewer.reviewedAt !== BATCH_A_REVIEW_DATE) {
+  if (typeof reviewer.reviewedAt !== 'string' || !isValidIsoDate(reviewer.reviewedAt)) {
     throw new Error(`WORKLIST_DECISION_REVIEW_DATE_INVALID:${caseId}`);
   }
 }
@@ -321,15 +342,15 @@ function validateAlternatives(value: unknown, caseId: string): void {
   }
 }
 
-function validateBatchADecision(decision: unknown, caseId: string): void {
+function validateCompletedDecision(decision: unknown, caseId: string): void {
   if (!decision || typeof decision !== 'object' || Array.isArray(decision)) {
-    throw new Error(`WORKLIST_BATCH_A_DECISION_INVALID:${caseId}`);
+    throw new Error(`WORKLIST_DECISION_INVALID:${caseId}`);
   }
 
   const d = decision as Record<string, unknown>;
 
   if (d.disposition === 'FINAL') {
-    assertExactKeys(d, EXACT_ALLOWED_FINAL_DECISION_KEYS, `WORKLIST_BATCH_A_DECISION:${caseId}`);
+    assertExactKeys(d, EXACT_ALLOWED_FINAL_DECISION_KEYS, `WORKLIST_DECISION:${caseId}`);
     assertLatinNfcString(d.scholarlyCanonical, 'SCHOLARLY_CANONICAL', caseId);
     assertLatinNfcString(d.renderedOutput, 'RENDERED_OUTPUT', caseId);
     validateEvidenceArray(d.readingEvidence, 'READING_EVIDENCE', caseId);
@@ -339,7 +360,7 @@ function validateBatchADecision(decision: unknown, caseId: string): void {
       d,
       ALLOWED_NON_FINAL_DECISION_KEYS,
       REQUIRED_NON_FINAL_DECISION_KEYS,
-      `WORKLIST_BATCH_A_DECISION:${caseId}`
+      `WORKLIST_DECISION:${caseId}`
     );
     validateEvidenceArray(d.readingEvidence, 'READING_EVIDENCE', caseId);
     if ('renderingEvidence' in d) {
@@ -349,7 +370,7 @@ function validateBatchADecision(decision: unknown, caseId: string): void {
       validateAlternatives(d.nonAuthoritativeAlternatives, caseId);
     }
   } else {
-    throw new Error(`WORKLIST_BATCH_A_DISPOSITION_INVALID:${caseId}`);
+    throw new Error(`WORKLIST_DISPOSITION_INVALID:${caseId}`);
   }
 
   assertNonEmptyTrimmedString(d.reviewNote, `WORKLIST_DECISION_REVIEW_NOTE_INVALID:${caseId}`);
@@ -357,16 +378,12 @@ function validateBatchADecision(decision: unknown, caseId: string): void {
 }
 
 /**
- * Validates the blind V2 re-audit worklist without importing or executing
- * transliteration runtime code.
+ * Validates the engine-blind V2 re-audit workspace.
  *
- * Supported states:
- * - READY_FOR_BLIND_REAUDIT: all 108 decisions blank.
- * - BATCH_A_COMPLETED: exactly 25 Batch A decisions completed, 83 still blank.
- *
- * The validator never dictates a scholarly disposition. A completed Batch A
- * decision may be FINAL, REVIEW_REQUIRED, or UNRESOLVED if it satisfies the
- * corresponding protocol contract.
+ * Repository status is sequential: a BATCH_X_COMPLETED state requires every
+ * earlier batch through X to be completed and every later batch to remain
+ * PENDING with decision=null. The validator checks decision shape, provenance,
+ * evidence, and safety boundaries; it never dictates the scholarly disposition.
  */
 export function validateReauditWorklist(
   worklist: ReauditWorklistDocument,
@@ -410,10 +427,7 @@ export function validateReauditWorklist(
   if (worklist.metadata.sourceCorpusCount !== 108) {
     throw new Error(`WORKLIST_SOURCE_CORPUS_COUNT_MISMATCH:${worklist.metadata.sourceCorpusCount}`);
   }
-  if (
-    worklist.metadata.status !== 'READY_FOR_BLIND_REAUDIT' &&
-    worklist.metadata.status !== 'BATCH_A_COMPLETED'
-  ) {
+  if (!(worklist.metadata.status in STATUS_COMPLETED_BATCHES)) {
     throw new Error(`WORKLIST_STATUS_INVALID:${worklist.metadata.status}`);
   }
   if (worklist.metadata.engineEvaluationPerformed !== false) {
@@ -443,12 +457,12 @@ export function validateReauditWorklist(
     acqMap.set(acq.id, acq);
   }
 
+  const completedBatches = new Set<ReauditBatch>(STATUS_COMPLETED_BATCHES[worklist.metadata.status]);
   const seenIds = new Set<string>();
   const actualByBatch: Record<ReauditBatch, number> = { A: 0, B: 0, C: 0, D: 0, E: 0 };
   const actualByCategory: Record<string, number> = {};
   let actualPending = 0;
   let actualAdjudicated = 0;
-  let completedBatchA = 0;
 
   for (const c of worklist.cases) {
     if (seenIds.has(c.id)) {
@@ -481,24 +495,17 @@ export function validateReauditWorklist(
       throw new Error(`WORKLIST_BATCH_MISMATCH:${c.id}`);
     }
 
-    if (worklist.metadata.status === 'READY_FOR_BLIND_REAUDIT') {
-      if (c.reviewState !== 'PENDING' || c.decision !== null) {
-        throw new Error(`WORKLIST_READY_STATE_CASE_MUST_BE_BLANK:${c.id}`);
-      }
-    } else if (c.batch === 'A') {
+    if (completedBatches.has(c.batch)) {
       if (c.reviewState !== 'COMPLETED' || c.decision === null) {
-        throw new Error(`WORKLIST_BATCH_A_CASE_NOT_COMPLETED:${c.id}`);
+        throw new Error(`WORKLIST_COMPLETED_BATCH_CASE_INVALID:${c.id}`);
       }
-      validateBatchADecision(c.decision, c.id);
-      completedBatchA++;
-    } else if (c.reviewState !== 'PENDING' || c.decision !== null) {
-      throw new Error(`WORKLIST_NON_BATCH_A_CASE_MUST_REMAIN_PENDING:${c.id}`);
-    }
-
-    if (c.reviewState === 'PENDING' && c.decision === null) {
-      actualPending++;
-    } else {
+      validateCompletedDecision(c.decision, c.id);
       actualAdjudicated++;
+    } else {
+      if (c.reviewState !== 'PENDING' || c.decision !== null) {
+        throw new Error(`WORKLIST_PENDING_BATCH_CASE_INVALID:${c.id}`);
+      }
+      actualPending++;
     }
 
     actualByBatch[c.batch]++;
@@ -511,15 +518,11 @@ export function validateReauditWorklist(
     }
   }
 
-  if (
-    worklist.metadata.status === 'BATCH_A_COMPLETED' &&
-    completedBatchA !== EXPECTED_BATCH_COUNTS.A
-  ) {
-    throw new Error(`WORKLIST_BATCH_A_COMPLETED_COUNT_MISMATCH:${completedBatchA}`);
-  }
-
-  const expectedPending = worklist.metadata.status === 'READY_FOR_BLIND_REAUDIT' ? 108 : 83;
-  const expectedAdjudicated = worklist.metadata.status === 'READY_FOR_BLIND_REAUDIT' ? 0 : 25;
+  const expectedAdjudicated = [...completedBatches].reduce(
+    (sum, batch) => sum + EXPECTED_BATCH_COUNTS[batch],
+    0
+  );
+  const expectedPending = 108 - expectedAdjudicated;
 
   if (worklist.summary.total !== 108 || worklist.summary.total !== worklist.cases.length) {
     throw new Error(`WORKLIST_SUMMARY_TOTAL_MISMATCH:${worklist.summary.total}`);
