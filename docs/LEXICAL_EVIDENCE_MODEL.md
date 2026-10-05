@@ -1,4 +1,4 @@
-# Lexical Evidence Model & Acquisition Architecture
+# Lexical Evidence Model & Acquisition Architecture (Phase 5A)
 
 ## 1. Objective & Core Scholarly Invariant
 
@@ -35,23 +35,27 @@ Raw External Record (MARC 21, XML, JSON-LD, RDF, API payload)
       │
       ▼ (Source Adapter / Connector)
 Source-Neutral Lexical Evidence (`LexicalEvidence`)
-  - Retains exact Persian script form
+  - Retains exact raw Persian script form without normalization loss
   - Retains exact observed external romanization
   - Explicit romanization scheme (`ALA_LC`, `IJMES`, `IRANICA`, `ISO`, `DMG`, `LOCAL`, `UNKNOWN`)
   - Full structured provenance (source ID, record ID, field, URI, retrieval timestamp)
-  - Append-only / immutable historical observation
+  - Append-only / immutable historical observation (altered re-ingestion fails closed)
       │
-      ▼ (Synthesis & Conflict Detection)
+      ▼ (Candidate Synthesis & Scheme-Aware Conflict Detection)
 Lexical Candidate (`LexicalCandidate`)
-  - Aggregates 1+ supporting evidence records
-  - Explicit conflict detection across differing observations
+  - Validates that all supporting evidence normalizes to candidate Persian identity
+  - Scheme-aware conflict detection:
+      * Same-scheme disagreements -> `CONFLICT_WITHIN_SCHEME` (sets `REVIEW_REQUIRED`)
+      * Cross-scheme differences -> `VARIANT_ACROSS_SCHEMES` (remains `UNREVIEWED`)
   - Lifecycle state: `UNREVIEWED` | `REVIEW_REQUIRED` | `ACCEPTED` | `REJECTED`
   - Still 100% NON-AUTHORITATIVE
       │
-      ▼ (Future Specialist Human Adjudication)
-Human Governance Sign-Off & Promotion
+      ▼ (Specialist Human Adjudication)
+Human Governance Adjudication Record (`CandidateAdjudicationRecord`)
+  - `ACCEPTED` candidates require `adjudication.disposition === 'ACCEPTED'`
+  - `REJECTED` candidates require `adjudication.disposition === 'REJECTED'`
       │
-      ▼
+      ▼ (Future Explicit Promotion - Phase 5E)
 Authoritative Scholarly Lexicon (`LexiconRepository`)
   - IJMES canonical transliteration
   - Deterministic runtime transliteration
@@ -65,7 +69,7 @@ Authoritative Scholarly Lexicon (`LexiconRepository`)
 
 Defined in `src/domain/evidence/types.ts`:
 
-- `id`: Deterministic identifier generated from source ID, record ID, field, Persian form, and romanization.
+- `id`: Deterministic identifier generated from exact raw observation fields (`sourceId`, `sourceRecordId`, `sourceField`, `persianForm`, `observedRomanization`, `romanizationScheme`) using null-byte delimiters.
 - `sourceType`: `'LIBRARY_CATALOG' | 'AUTHORITY_FILE' | 'SCHOLARLY_DICTIONARY' | 'ENCYCLOPEDIA' | 'BIBLIOGRAPHIC_RECORD' | 'ACADEMIC_GRAMMAR' | 'OTHER'`.
 - `sourceRecordId`: Identifier in external system (e.g. LCCN, VIAF ID, GND ID).
 - `sourceUri`: Canonical URL/URI.
@@ -78,57 +82,52 @@ Defined in `src/domain/evidence/types.ts`:
 - `provenance`: Complete retrieval metadata (`sourceId`, `sourceTitle`, `sourceOrganization`, `retrievalMethod`, `retrievedAt`, `extractorVersion`).
 - `status`: `'OBSERVED' | 'SUPERSEDED' | 'INVALIDATED'`.
 
-### B. Romanization Scheme Distinction
+### B. Append-Only Immutability
 
-An external romanization scheme (such as Library of Congress `ALA_LC`) is never treated as project `IJMES` canonical form:
+In `LexicalEvidenceRepository`:
+- Previously unseen evidence records are added and indexed.
+- Re-adding an exact identical evidence record is an idempotent no-op.
+- Attempting to add an existing evidence ID with altered content fails closed by throwing `EvidenceImmutabilityViolationError`.
+
+### C. Scheme-Aware Conflict Detection vs Cross-Scheme Variants
+
+Different transliteration schemes legitimately produce different romanized strings:
 
 ```text
-Library of Congress observation:
-  Persian: مشروطه
-  Observed: Mashrūṭah (ALA-LC with -ah for tāʾ marbūṭa)
-
-IJMES canonical policy:
-  Persian: مشروطه
-  Canonical: mashrūṭih (IJMES with -ih)
+Persian: قاجار
+  - IJMES: Qājār
+  - LOCAL: Qajar
+  - ALA_LC: Qājār
+  - DMG: Ḳādschār
 ```
 
-The domain model records `Mashrūṭah` under `romanizationScheme: 'ALA_LC'`, ensuring adapters and candidate synthesizers cannot silently confuse external conventions with canonical scholarly rules.
+- **Cross-Scheme Differences**: Coexist as `VARIANT_ACROSS_SCHEMES` and do **not** falsely mark a candidate as `REVIEW_REQUIRED`.
+- **Same-Scheme Disagreements**: Two observations within the same standard (e.g., two IJMES records disagreeing on vocalization) are classified as `CONFLICT_WITHIN_SCHEME` and automatically mark the candidate as `REVIEW_REQUIRED`.
 
-### C. Lexical Candidates (`LexicalCandidate`)
+### D. Persian Identity Validation
 
-Defined in `src/domain/evidence/types.ts`:
+`synthesizeCandidateFromEvidence(persianForm, evidenceList)` strictly validates Persian identity:
+- Candidate Persian form is normalized with `normalizePersian()`.
+- Every supporting evidence record must normalize to the exact same form.
+- Any mismatch fails closed immediately, preventing unrelated evidence attachment.
 
-- `id`: Deterministic candidate identifier.
-- `persianForm`: Base Persian script form.
-- `normalizedForm`: Standard normalized Persian for indexing without mutating the raw evidence.
-- `proposedCanonical`: Proposed transliteration (advisory only).
-- `proposedProfile`: Target transliteration profile (`ijmes_full` | `ijmes_title`).
-- `entityType`: Lexical classification.
-- `evidenceIds`: Array of supporting `LexicalEvidence.id`s.
-- `conflicts`: Explicit list of `ConflictingObservation`s detected among evidence records.
-- `status`: Lifecycle state (`UNREVIEWED`, `REVIEW_REQUIRED`, `ACCEPTED`, `REJECTED`).
-- `derivationProvenance`: Strategy and metadata describing candidate construction.
+### E. Candidate Lifecycle & Human Adjudication Semantics
 
-### D. Source Connector Boundary (`LexicalEvidenceSource`)
+In `src/domain/evidence/candidate.ts`:
+- Candidates with status `ACCEPTED` must contain `adjudication` with `disposition === 'ACCEPTED'`.
+- Candidates with status `REJECTED` must contain `adjudication` with `disposition === 'REJECTED'`.
+- Candidates with status `UNREVIEWED` or `REVIEW_REQUIRED` cannot carry a completed adjudication record.
+
+### F. Source Connector Boundary (`LexicalEvidenceSource`)
 
 Defined in `src/domain/evidence/connector.ts`:
 
 Connectors are source-neutral contracts defining `fetch(query)` and `extractEvidence(record)`. Connectors ingest raw external payloads (e.g., MARC21 records or JSON-LD) and produce `LexicalEvidence` objects. Connectors have **zero dependency on or access to** `LexiconRepository`.
 
-### E. Storage Semantics (`LexicalEvidenceRepository`)
+### G. Structural Separation (Non-Authoritative Boundary)
 
-Defined in `src/domain/evidence/repository.ts`:
-
-- Append-only historical observation storage.
-- Multiple conflicting observations for the same Persian form coexist without overwriting.
-- Deterministic serialization and deserialization.
-- `assertNonAuthoritative()` method asserting non-authoritative boundary.
-- Full integrity validation guarding against broken evidence references.
-
----
-
-## 4. Invariant Protection & Zero Scholarly-Output Changes
-
-1. **No Automatic Lexicon Mutation**: Creating or loading evidence or candidates cannot mutate `LexiconRepository` or alter `transliterate()` outputs.
-2. **Zero AI Authority**: External language models and advisory assistants have no authority to promote evidence or candidates.
-3. **Reproducibility**: All evidence and candidate IDs are deterministic and reproducible.
+The separation between external evidence and the authoritative transliterator is enforced structurally:
+1. `LexicalEvidenceRepository` contains evidence and candidate proposals only; it has no mutation path to `LexiconRepository`.
+2. `LexicalCandidate` objects are non-authoritative proposals and are never consulted by `transliterate()`.
+3. External connectors produce `LexicalEvidence` records only.
+4. Promotion into `LexiconRepository` requires explicit future Phase 5E human adjudication tools.

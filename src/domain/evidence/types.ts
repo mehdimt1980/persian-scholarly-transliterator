@@ -125,6 +125,11 @@ export type LexicalCandidateStatus =
   | 'REJECTED';
 
 /**
+ * Classification of observation relationship across evidence records.
+ */
+export type ConflictKind = 'CONFLICT_WITHIN_SCHEME' | 'VARIANT_ACROSS_SCHEMES';
+
+/**
  * Record of a conflicting observation aggregated across evidence records.
  */
 export interface ConflictingObservation {
@@ -132,6 +137,7 @@ export interface ConflictingObservation {
   persianForm: string;
   observedRomanization: string | null;
   romanizationScheme: RomanizationScheme;
+  conflictKind: ConflictKind;
   conflictReason: string;
 }
 

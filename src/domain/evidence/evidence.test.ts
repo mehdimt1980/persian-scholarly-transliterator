@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { transliterate } from '../engine';
 import { DEFAULT_LEXICON_REPOSITORY } from '../../data/lexicon';
 import {
+  CandidateLifecycleError,
   EvidenceExtractionError,
+  EvidenceImmutabilityViolationError,
   generateCandidateId,
   generateEvidenceId,
   LexicalCandidate,
@@ -11,11 +13,12 @@ import {
   LexicalEvidenceSource,
   RawSourceRecord,
   RomanizationScheme,
-  synthesizeCandidateFromEvidence
+  synthesizeCandidateFromEvidence,
+  validateCandidateLifecycle
 } from './index';
 
 describe('Lexical Evidence & Candidate Architecture', () => {
-  describe('A. Evidence preserves source observation', () => {
+  describe('A. Evidence preserves source observation & identity consistency', () => {
     it('preserves exact Persian script form and observed external romanization without mutation', () => {
       const rawPersian = 'مشروطه‌خواهي'; // Contains non-standard Persian ye/zwnj
       const rawRomanization = 'Mashrūṭah-khvāhī';
@@ -54,6 +57,39 @@ describe('Lexical Evidence & Candidate Architecture', () => {
       expect(evidence.sourceField).toBe('650$a');
       expect(evidence.provenance.sourceOrganization).toBe('Library of Congress');
     });
+
+    it('generates distinct deterministic evidence IDs for materially different raw observations without collision', () => {
+      const id1 = generateEvidenceId({
+        sourceId: 'LOC',
+        sourceRecordId: 'rec-1',
+        sourceField: '100$a',
+        persianForm: 'شاه',
+        observedRomanization: 'Shāh',
+        romanizationScheme: 'ALA_LC'
+      });
+
+      const id2 = generateEvidenceId({
+        sourceId: 'LOC',
+        sourceRecordId: 'rec-1',
+        sourceField: '100$a',
+        persianForm: 'شاه',
+        observedRomanization: 'Shah',
+        romanizationScheme: 'ALA_LC'
+      });
+
+      const id3 = generateEvidenceId({
+        sourceId: 'LOC',
+        sourceRecordId: 'rec-2',
+        sourceField: '100$a',
+        persianForm: 'شاه',
+        observedRomanization: 'Shāh',
+        romanizationScheme: 'ALA_LC'
+      });
+
+      expect(id1).not.toBe(id2);
+      expect(id1).not.toBe(id3);
+      expect(id2).not.toBe(id3);
+    });
   });
 
   describe('B. Scheme is separate from canonical authority', () => {
@@ -87,8 +123,8 @@ describe('Lexical Evidence & Candidate Architecture', () => {
     });
   });
 
-  describe('C. Multiple observations coexist', () => {
-    it('allows multiple external sources to provide conflicting romanizations for the same Persian form without overwriting', () => {
+  describe('C. Multiple observations coexist & append-only immutability', () => {
+    it('allows multiple external sources to provide different romanizations for the same Persian form without overwriting', () => {
       const repo = new LexicalEvidenceRepository();
 
       const sourceA: LexicalEvidence = {
@@ -178,63 +214,81 @@ describe('Lexical Evidence & Candidate Architecture', () => {
       expect(qajarEvidence.map((e) => e.observedRomanization).sort()).toEqual(['Qajar', 'Qājār', 'Ḳādschār'].sort());
       expect(qajarEvidence.map((e) => e.romanizationScheme).sort()).toEqual(['DMG', 'IJMES', 'LOCAL'].sort());
     });
-  });
 
-  describe('D. Candidate references evidence', () => {
-    it('synthesizes candidate with references to supporting evidence and flags conflicting observations', () => {
-      const evi1: LexicalEvidence = {
-        id: 'evi-1',
+    it('treats exact re-ingestion of the same evidence record as an idempotent no-op', () => {
+      const repo = new LexicalEvidenceRepository();
+      const evidence: LexicalEvidence = {
+        id: 'evi-idempotent-test',
         sourceType: 'LIBRARY_CATALOG',
-        sourceRecordId: 'r-1',
+        sourceRecordId: 'rec-100',
         sourceUri: null,
         sourceField: '100$a',
-        persianForm: 'حافظ',
-        observedRomanization: 'Ḥāfiẓ',
-        romanizationScheme: 'ALA_LC',
+        persianForm: 'فردوسی',
+        observedRomanization: 'Firdawsī',
+        romanizationScheme: 'IJMES',
         entityType: 'PERSON',
         context: null,
-        provenance: { sourceId: 'LOC', retrievalMethod: 'API', retrievedAt: '2026-10-05T00:00:00Z' },
+        provenance: {
+          sourceId: 'IRANICA',
+          retrievalMethod: 'API',
+          retrievedAt: '2026-10-05T00:00:00Z'
+        },
         status: 'OBSERVED'
       };
 
-      const evi2: LexicalEvidence = {
-        id: 'evi-2',
-        sourceType: 'SCHOLARLY_DICTIONARY',
-        sourceRecordId: 'r-2',
-        sourceUri: null,
-        sourceField: 'entry',
-        persianForm: 'حافظ',
-        observedRomanization: 'Ḥāfez',
-        romanizationScheme: 'LOCAL',
-        entityType: 'PERSON',
-        context: null,
-        provenance: { sourceId: 'STEINGASS', retrievalMethod: 'MANUAL', retrievedAt: '2026-10-05T00:00:00Z' },
-        status: 'OBSERVED'
-      };
+      repo.addEvidence(evidence);
+      expect(repo.getEvidenceCount()).toBe(1);
 
-      const candidate = synthesizeCandidateFromEvidence('حافظ', [evi1, evi2], {
-        entityType: 'PERSON',
-        proposedCanonical: null,
-        notes: 'Disagreement between classical / library Ḥāfiẓ and contemporary scholarly Ḥāfez'
-      });
-
-      expect(candidate.persianForm).toBe('حافظ');
-      expect(candidate.normalizedForm).toBe('حافظ');
-      expect(candidate.evidenceIds).toEqual(['evi-1', 'evi-2']);
-      expect(candidate.status).toBe('REVIEW_REQUIRED');
-      expect(candidate.conflicts.length).toBe(2);
-      expect(candidate.derivationProvenance.strategy).toBe('MULTI_EVIDENCE_SYNTHESIS');
+      // Re-add exact identical evidence
+      expect(() => repo.addEvidence({ ...evidence })).not.toThrow();
+      expect(repo.getEvidenceCount()).toBe(1);
     });
 
-    it('synthesizes candidate as UNREVIEWED when all observations agree', () => {
+    it('fails closed when attempting to re-add an existing evidence ID with altered content', () => {
+      const repo = new LexicalEvidenceRepository();
+      const originalEvidence: LexicalEvidence = {
+        id: 'evi-immutability-test',
+        sourceType: 'LIBRARY_CATALOG',
+        sourceRecordId: 'rec-200',
+        sourceUri: null,
+        sourceField: '100$a',
+        persianForm: 'سعدی',
+        observedRomanization: 'Saʿdī',
+        romanizationScheme: 'IJMES',
+        entityType: 'PERSON',
+        context: null,
+        provenance: {
+          sourceId: 'IRANICA',
+          retrievalMethod: 'API',
+          retrievedAt: '2026-10-05T00:00:00Z'
+        },
+        status: 'OBSERVED'
+      };
+
+      repo.addEvidence(originalEvidence);
+
+      const alteredEvidence: LexicalEvidence = {
+        ...originalEvidence,
+        observedRomanization: 'Saadi' // altered observation
+      };
+
+      expect(() => repo.addEvidence(alteredEvidence)).toThrow(EvidenceImmutabilityViolationError);
+      // Original record in repository remains completely unchanged
+      expect(repo.getEvidenceById('evi-immutability-test')?.observedRomanization).toBe('Saʿdī');
+    });
+  });
+
+  describe('D. Candidate references evidence & scheme-aware conflict detection', () => {
+    it('does NOT mark cross-scheme romanization differences as a review-required conflict', () => {
+      // Different schemes legitimately produce different strings (e.g. IJMES vs LOCAL)
       const evi1: LexicalEvidence = {
-        id: 'evi-a',
+        id: 'evi-qajar-ijmes',
         sourceType: 'ENCYCLOPEDIA',
         sourceRecordId: 'e-1',
         sourceUri: null,
-        sourceField: 'headword',
-        persianForm: 'فردوسی',
-        observedRomanization: 'Firdawsī',
+        sourceField: 'entry',
+        persianForm: 'قاجار',
+        observedRomanization: 'Qājār',
         romanizationScheme: 'IJMES',
         entityType: 'PERSON',
         context: null,
@@ -242,22 +296,166 @@ describe('Lexical Evidence & Candidate Architecture', () => {
         status: 'OBSERVED'
       };
 
-      const candidate = synthesizeCandidateFromEvidence('فردوسی', [evi1]);
-      expect(candidate.evidenceIds).toEqual(['evi-a']);
+      const evi2: LexicalEvidence = {
+        id: 'evi-qajar-local',
+        sourceType: 'LIBRARY_CATALOG',
+        sourceRecordId: 'c-1',
+        sourceUri: null,
+        sourceField: '100$a',
+        persianForm: 'قاجار',
+        observedRomanization: 'Qajar',
+        romanizationScheme: 'LOCAL',
+        entityType: 'PERSON',
+        context: null,
+        provenance: { sourceId: 'LOC', retrievalMethod: 'API', retrievedAt: '2026-10-05T00:00:00Z' },
+        status: 'OBSERVED'
+      };
+
+      const candidate = synthesizeCandidateFromEvidence('قاجار', [evi1, evi2]);
+
+      expect(candidate.evidenceIds).toEqual(['evi-qajar-ijmes', 'evi-qajar-local']);
+      // Cross-scheme variation coexists as VARIANT_ACROSS_SCHEMES and does NOT block review as conflict
       expect(candidate.status).toBe('UNREVIEWED');
-      expect(candidate.conflicts.length).toBe(0);
-      expect(candidate.derivationProvenance.strategy).toBe('SINGLE_EVIDENCE');
+      expect(candidate.conflicts.length).toBe(2);
+      expect(candidate.conflicts[0].conflictKind).toBe('VARIANT_ACROSS_SCHEMES');
+      expect(candidate.conflicts[1].conflictKind).toBe('VARIANT_ACROSS_SCHEMES');
+    });
+
+    it('DOES mark disagreement within the same romanization scheme as a REVIEW_REQUIRED conflict', () => {
+      // Two sources both claiming IJMES but giving conflicting transliterations
+      const evi1: LexicalEvidence = {
+        id: 'evi-ijmes-1',
+        sourceType: 'ENCYCLOPEDIA',
+        sourceRecordId: 'e-1',
+        sourceUri: null,
+        sourceField: 'headword',
+        persianForm: 'حافظ',
+        observedRomanization: 'Ḥāfiẓ',
+        romanizationScheme: 'IJMES',
+        entityType: 'PERSON',
+        context: null,
+        provenance: { sourceId: 'SOURCE_1', retrievalMethod: 'API', retrievedAt: '2026-10-05T00:00:00Z' },
+        status: 'OBSERVED'
+      };
+
+      const evi2: LexicalEvidence = {
+        id: 'evi-ijmes-2',
+        sourceType: 'SCHOLARLY_DICTIONARY',
+        sourceRecordId: 'd-1',
+        sourceUri: null,
+        sourceField: 'entry',
+        persianForm: 'حافظ',
+        observedRomanization: 'Ḥāfiz', // Disagreement within IJMES
+        romanizationScheme: 'IJMES',
+        entityType: 'PERSON',
+        context: null,
+        provenance: { sourceId: 'SOURCE_2', retrievalMethod: 'API', retrievedAt: '2026-10-05T00:00:00Z' },
+        status: 'OBSERVED'
+      };
+
+      const candidate = synthesizeCandidateFromEvidence('حافظ', [evi1, evi2]);
+
+      expect(candidate.status).toBe('REVIEW_REQUIRED');
+      expect(candidate.conflicts.length).toBe(2);
+      expect(candidate.conflicts[0].conflictKind).toBe('CONFLICT_WITHIN_SCHEME');
+      expect(candidate.conflicts[1].conflictKind).toBe('CONFLICT_WITHIN_SCHEME');
+    });
+
+    it('rejects candidate synthesis when evidence Persian form does not match candidate Persian form', () => {
+      const unrelatedEvidence: LexicalEvidence = {
+        id: 'evi-ferdowsi',
+        sourceType: 'LIBRARY_CATALOG',
+        sourceRecordId: 'f-1',
+        sourceUri: null,
+        sourceField: '100$a',
+        persianForm: 'فردوسی',
+        observedRomanization: 'Firdawsī',
+        romanizationScheme: 'IJMES',
+        entityType: 'PERSON',
+        context: null,
+        provenance: { sourceId: 'LOC', retrievalMethod: 'API', retrievedAt: '2026-10-05T00:00:00Z' },
+        status: 'OBSERVED'
+      };
+
+      expect(() => synthesizeCandidateFromEvidence('حافظ', [unrelatedEvidence])).toThrowError(
+        /Cannot attach evidence "evi-ferdowsi" .* to candidate "حافظ"/
+      );
     });
   });
 
-  describe('E. Candidate is non-authoritative', () => {
-    it('does not alter deterministic transliteration outputs or pollute the authoritative lexicon repository', () => {
+  describe('E. Candidate adjudication lifecycle & non-authoritative boundary', () => {
+    it('enforces that ACCEPTED candidates must carry an adjudication record with disposition ACCEPTED', () => {
+      const invalidCandidate: LexicalCandidate = {
+        id: 'cand-invalid-accepted',
+        persianForm: 'حافظ',
+        normalizedForm: 'حافظ',
+        proposedCanonical: 'ḥāfiẓ',
+        entityType: 'PERSON',
+        evidenceIds: ['evi-1'],
+        conflicts: [],
+        status: 'ACCEPTED', // Missing adjudication!
+        derivationProvenance: {
+          derivedAt: '2026-10-05T00:00:00Z',
+          strategy: 'SINGLE_EVIDENCE'
+        }
+      };
+
+      expect(() => validateCandidateLifecycle(invalidCandidate)).toThrow(CandidateLifecycleError);
+
+      const conflictingDispositionCandidate: LexicalCandidate = {
+        ...invalidCandidate,
+        adjudication: {
+          decidedAt: '2026-10-05T12:00:00Z',
+          adjudicator: 'specialist-1',
+          disposition: 'REJECTED' // Mismatched disposition!
+        }
+      };
+
+      expect(() => validateCandidateLifecycle(conflictingDispositionCandidate)).toThrow(CandidateLifecycleError);
+
+      const validAcceptedCandidate: LexicalCandidate = {
+        ...invalidCandidate,
+        adjudication: {
+          decidedAt: '2026-10-05T12:00:00Z',
+          adjudicator: 'specialist-1',
+          disposition: 'ACCEPTED'
+        }
+      };
+
+      expect(() => validateCandidateLifecycle(validAcceptedCandidate)).not.toThrow();
+    });
+
+    it('enforces that UNREVIEWED and REVIEW_REQUIRED candidates cannot carry a completed adjudication record', () => {
+      const invalidUnreviewedCandidate: LexicalCandidate = {
+        id: 'cand-invalid-unreviewed',
+        persianForm: 'سعدی',
+        normalizedForm: 'سعدی',
+        proposedCanonical: 'saʿdī',
+        entityType: 'PERSON',
+        evidenceIds: ['evi-1'],
+        conflicts: [],
+        status: 'UNREVIEWED',
+        adjudication: {
+          decidedAt: '2026-10-05T12:00:00Z',
+          adjudicator: 'specialist-1',
+          disposition: 'ACCEPTED'
+        },
+        derivationProvenance: {
+          derivedAt: '2026-10-05T00:00:00Z',
+          strategy: 'SINGLE_EVIDENCE'
+        }
+      };
+
+      expect(() => validateCandidateLifecycle(invalidUnreviewedCandidate)).toThrow(CandidateLifecycleError);
+    });
+
+    it('does not alter deterministic transliteration outputs or mutate the authoritative lexicon repository', () => {
       const input = 'حافظ شیرازی';
 
       // 1. Run transliteration before creating evidence or candidate
       const beforeResult = transliterate(input);
 
-      // 2. Create evidence and candidate in evidence repository
+      // 2. Create evidence and an adjudicated candidate in evidence repository
       const repo = new LexicalEvidenceRepository();
       const evidence: LexicalEvidence = {
         id: 'evi-override-test',
@@ -282,7 +480,13 @@ describe('Lexical Evidence & Candidate Architecture', () => {
         entityType: 'PERSON',
         evidenceIds: [evidence.id],
         conflicts: [],
-        status: 'ACCEPTED', // Even if candidate status is marked ACCEPTED in review, it is still not in the authoritative lexicon
+        status: 'ACCEPTED',
+        adjudication: {
+          decidedAt: '2026-10-05T12:00:00Z',
+          adjudicator: 'specialist-1',
+          disposition: 'ACCEPTED',
+          notes: 'Adjudicated for test'
+        },
         derivationProvenance: {
           derivedAt: '2026-10-05T00:00:00Z',
           strategy: 'MANUAL_DRAFT'
@@ -291,9 +495,6 @@ describe('Lexical Evidence & Candidate Architecture', () => {
 
       repo.addEvidence(evidence);
       repo.addCandidate(candidate);
-
-      // Verify the evidence repository asserts its non-authoritative invariant
-      expect(repo.assertNonAuthoritative()).toBe(true);
 
       // 3. Run transliteration after creating evidence repository
       const afterResult = transliterate(input);

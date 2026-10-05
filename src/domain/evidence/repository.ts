@@ -1,3 +1,4 @@
+import { validateCandidateLifecycle } from './candidate';
 import {
   LexicalCandidate,
   LexicalCandidateStatus,
@@ -29,11 +30,24 @@ export class EvidenceIntegrityError extends Error {
   }
 }
 
+export class EvidenceImmutabilityViolationError extends Error {
+  public readonly evidenceId: string;
+
+  constructor(evidenceId: string) {
+    super(
+      `Evidence record with ID "${evidenceId}" already exists with different observation data. Lexical evidence records are immutable historical observations and cannot be altered or overwritten.`
+    );
+    this.name = 'EvidenceImmutabilityViolationError';
+    this.evidenceId = evidenceId;
+  }
+}
+
 /**
  * Storage and index management for external lexical evidence and candidates.
  *
  * Core architectural invariants:
- *   1. External evidence records are append-only historical observations.
+ *   1. External evidence records are strictly append-only and immutable historical observations.
+ *      Attempting to overwrite existing evidence with different content fails closed.
  *   2. Multiple external sources providing conflicting observations for the same
  *      Persian form comfortably coexist without overwriting each other.
  *   3. This repository contains zero authoritative lexicon entries and has NO
@@ -57,13 +71,6 @@ export class LexicalEvidenceRepository {
     }
   }
 
-  /**
-   * Explicit invariant guard: confirming this store is purely evidentiary and non-authoritative.
-   */
-  public assertNonAuthoritative(): true {
-    return true;
-  }
-
   // --- Evidence Operations ---
 
   public addEvidence(evidence: LexicalEvidence): void {
@@ -77,22 +84,29 @@ export class LexicalEvidenceRepository {
       throw new Error(`Evidence "${evidence.id}" must specify provenance.sourceId.`);
     }
 
-    // Preserve or replace exact observation by ID; do not mutate other observations
+    const existing = this.evidenceById.get(evidence.id);
+    if (existing) {
+      // Idempotent re-ingestion check: identical content succeeds as no-op; altered content fails closed
+      if (JSON.stringify(existing) === JSON.stringify(evidence)) {
+        return;
+      }
+      throw new EvidenceImmutabilityViolationError(evidence.id);
+    }
+
+    // Append-only insertion
     this.evidenceById.set(evidence.id, evidence);
 
     // Index by Persian form
     const pKey = evidence.persianForm.trim();
     const existingP = this.evidenceByPersian.get(pKey) ?? [];
-    const filteredP = existingP.filter((e) => e.id !== evidence.id);
-    filteredP.push(evidence);
-    this.evidenceByPersian.set(pKey, filteredP);
+    existingP.push(evidence);
+    this.evidenceByPersian.set(pKey, existingP);
 
     // Index by Source ID
     const sKey = evidence.provenance.sourceId.trim();
     const existingS = this.evidenceBySource.get(sKey) ?? [];
-    const filteredS = existingS.filter((e) => e.id !== evidence.id);
-    filteredS.push(evidence);
-    this.evidenceBySource.set(sKey, filteredS);
+    existingS.push(evidence);
+    this.evidenceBySource.set(sKey, existingS);
   }
 
   public addEvidenceBatch(evidenceList: LexicalEvidence[]): void {
@@ -133,6 +147,8 @@ export class LexicalEvidenceRepository {
     if (!candidate.evidenceIds || candidate.evidenceIds.length === 0) {
       throw new Error(`Candidate "${candidate.id}" must reference at least one supporting evidence ID.`);
     }
+
+    validateCandidateLifecycle(candidate);
 
     this.candidatesById.set(candidate.id, candidate);
 
@@ -193,6 +209,12 @@ export class LexicalEvidenceRepository {
     const errors: string[] = [];
 
     for (const [candId, candidate] of this.candidatesById.entries()) {
+      try {
+        validateCandidateLifecycle(candidate);
+      } catch (err: any) {
+        errors.push(err.message);
+      }
+
       for (const eid of candidate.evidenceIds) {
         if (!this.evidenceById.has(eid)) {
           errors.push(`Candidate "${candId}" references non-existent evidence ID "${eid}".`);

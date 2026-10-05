@@ -8,8 +8,73 @@ import {
   LexicalEvidence
 } from './types';
 
+export class CandidateLifecycleError extends Error {
+  public readonly candidateId: string;
+  public readonly status: LexicalCandidateStatus;
+
+  constructor(candidateId: string, status: LexicalCandidateStatus, message: string) {
+    super(`[Candidate ${candidateId} (${status})] Lifecycle violation: ${message}`);
+    this.name = 'CandidateLifecycleError';
+    this.candidateId = candidateId;
+    this.status = status;
+  }
+}
+
+/**
+ * Validate that candidate status is strictly consistent with its human adjudication record.
+ *
+ * Invariants:
+ *   - ACCEPTED requires adjudication.disposition === 'ACCEPTED'
+ *   - REJECTED requires adjudication.disposition === 'REJECTED'
+ *   - UNREVIEWED and REVIEW_REQUIRED must not carry an adjudication record
+ */
+export function validateCandidateLifecycle(candidate: LexicalCandidate): void {
+  if (candidate.status === 'ACCEPTED') {
+    if (!candidate.adjudication) {
+      throw new CandidateLifecycleError(
+        candidate.id,
+        candidate.status,
+        'Candidate with status ACCEPTED must contain a completed adjudication record.'
+      );
+    }
+    if (candidate.adjudication.disposition !== 'ACCEPTED') {
+      throw new CandidateLifecycleError(
+        candidate.id,
+        candidate.status,
+        `Candidate with status ACCEPTED cannot have adjudication disposition '${candidate.adjudication.disposition}'.`
+      );
+    }
+  } else if (candidate.status === 'REJECTED') {
+    if (!candidate.adjudication) {
+      throw new CandidateLifecycleError(
+        candidate.id,
+        candidate.status,
+        'Candidate with status REJECTED must contain a completed adjudication record.'
+      );
+    }
+    if (candidate.adjudication.disposition !== 'REJECTED') {
+      throw new CandidateLifecycleError(
+        candidate.id,
+        candidate.status,
+        `Candidate with status REJECTED cannot have adjudication disposition '${candidate.adjudication.disposition}'.`
+      );
+    }
+  } else if (candidate.status === 'UNREVIEWED' || candidate.status === 'REVIEW_REQUIRED') {
+    if (candidate.adjudication) {
+      throw new CandidateLifecycleError(
+        candidate.id,
+        candidate.status,
+        `Candidate with status ${candidate.status} cannot carry a completed adjudication record.`
+      );
+    }
+  }
+}
+
 /**
  * Generate a deterministic identifier for a lexical evidence record.
+ *
+ * Preserves exact raw observation inputs without lossy trimming or silent mutation.
+ * Uses null-byte delimiters to prevent cross-field concatenation collisions.
  */
 export function generateEvidenceId(params: {
   sourceId: string;
@@ -20,19 +85,20 @@ export function generateEvidenceId(params: {
   romanizationScheme: string;
 }): string {
   const hash = crypto.createHash('sha256');
-  hash.update(params.sourceId.trim());
-  hash.update('|');
-  hash.update(params.sourceRecordId ? params.sourceRecordId.trim() : '');
-  hash.update('|');
-  hash.update(params.sourceField ? params.sourceField.trim() : '');
-  hash.update('|');
-  hash.update(params.persianForm.trim());
-  hash.update('|');
-  hash.update(params.observedRomanization ? params.observedRomanization.trim() : '');
-  hash.update('|');
-  hash.update(params.romanizationScheme.trim());
+  hash.update(params.sourceId);
+  hash.update('\0');
+  hash.update(params.sourceRecordId ?? '');
+  hash.update('\0');
+  hash.update(params.sourceField ?? '');
+  hash.update('\0');
+  hash.update(params.persianForm);
+  hash.update('\0');
+  hash.update(params.observedRomanization ?? '');
+  hash.update('\0');
+  hash.update(params.romanizationScheme);
   const digest = hash.digest('hex').slice(0, 16);
-  return `evi-${params.sourceId.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${digest}`;
+  const cleanSourceId = params.sourceId.toLowerCase().replace(/[^a-z0-9]/g, '-');
+  return `evi-${cleanSourceId}-${digest}`;
 }
 
 /**
@@ -40,10 +106,10 @@ export function generateEvidenceId(params: {
  */
 export function generateCandidateId(persianForm: string, evidenceIds: string[]): string {
   const hash = crypto.createHash('sha256');
-  hash.update(persianForm.trim());
+  hash.update(persianForm);
   const sortedIds = [...evidenceIds].sort();
   for (const id of sortedIds) {
-    hash.update('|');
+    hash.update('\0');
     hash.update(id);
   }
   const digest = hash.digest('hex').slice(0, 16);
@@ -61,48 +127,97 @@ export interface CandidateSynthesisOptions {
 /**
  * Synthesize a LexicalCandidate from one or more LexicalEvidence records.
  *
- * Core invariant:
- *   Constructing a candidate aggregates external observations and flags conflicts,
- *   but DOES NOT grant authoritative status. The candidate status starts as
- *   UNREVIEWED (or REVIEW_REQUIRED if conflicting romanizations are observed).
+ * Core invariants:
+ *   1. Persian identity validation: Every supporting evidence record must normalize
+ *      to the exact same Persian form as the candidate. Unrelated evidence is rejected fail-closed.
+ *   2. Scheme-aware conflict detection:
+ *      - Direct conflicts are detected only within the SAME romanization scheme.
+ *      - Differing observations across DIFFERENT schemes coexist as external variants.
+ *   3. Non-authoritative: The resulting candidate starts as UNREVIEWED (or REVIEW_REQUIRED
+ *      if same-scheme conflicts exist) and is NEVER authoritative.
  */
 export function synthesizeCandidateFromEvidence(
   persianForm: string,
   evidenceList: LexicalEvidence[],
   options?: CandidateSynthesisOptions
 ): LexicalCandidate {
+  if (!persianForm || persianForm.trim() === '') {
+    throw new Error('Cannot synthesize candidate with empty persianForm.');
+  }
   if (!evidenceList || evidenceList.length === 0) {
     throw new Error(`Cannot synthesize candidate for "${persianForm}" without supporting evidence.`);
   }
 
-  const normalized = normalizePersian(persianForm).normalizedInput;
-  const evidenceIds = evidenceList.map((e) => e.id);
+  const candidateNormalized = normalizePersian(persianForm).normalizedInput;
 
-  // Detect conflicting observations
-  const conflicts: ConflictingObservation[] = [];
-  const romanizations = new Map<string, LexicalEvidence[]>();
-
+  // 1. Validate Persian Identity for all supporting evidence
   for (const evi of evidenceList) {
-    const romKey = evi.observedRomanization ? evi.observedRomanization.trim() : '__NO_ROMANIZATION__';
-    const group = romanizations.get(romKey) ?? [];
-    group.push(evi);
-    romanizations.set(romKey, group);
+    const evidenceNormalized = normalizePersian(evi.persianForm).normalizedInput;
+    if (evidenceNormalized !== candidateNormalized) {
+      throw new Error(
+        `Cannot attach evidence "${evi.id}" (Persian: "${evi.persianForm}", normalized: "${evidenceNormalized}") to candidate "${persianForm}" (normalized: "${candidateNormalized}"): Persian forms do not match.`
+      );
+    }
   }
 
-  // If there are multiple distinct non-null romanizations observed across evidence, record conflicts
-  const distinctRomanizations = [...romanizations.keys()].filter((k) => k !== '__NO_ROMANIZATION__');
-  if (distinctRomanizations.length > 1) {
-    for (const evi of evidenceList) {
-      if (evi.observedRomanization) {
-        conflicts.push({
-          evidenceId: evi.id,
-          persianForm: evi.persianForm,
-          observedRomanization: evi.observedRomanization,
-          romanizationScheme: evi.romanizationScheme,
-          conflictReason: `Disagrees with alternative external romanization(s): ${distinctRomanizations
-            .filter((r) => r !== evi.observedRomanization)
-            .join(', ')}`
-        });
+  const evidenceIds = evidenceList.map((e) => e.id);
+
+  // 2. Scheme-Aware Conflict & Variant Analysis
+  const conflicts: ConflictingObservation[] = [];
+
+  // Group evidence by romanization scheme
+  const schemeGroups = new Map<string, LexicalEvidence[]>();
+  for (const evi of evidenceList) {
+    const scheme = evi.romanizationScheme;
+    const group = schemeGroups.get(scheme) ?? [];
+    group.push(evi);
+    schemeGroups.set(scheme, group);
+  }
+
+  let hasSameSchemeConflict = false;
+
+  // A. Check for direct conflicts WITHIN each scheme
+  for (const [scheme, evis] of schemeGroups.entries()) {
+    const distinctRomanizations = Array.from(
+      new Set(evis.map((e) => e.observedRomanization).filter((r): r is string => r !== null && r !== ''))
+    );
+
+    if (distinctRomanizations.length > 1) {
+      hasSameSchemeConflict = true;
+      for (const evi of evis) {
+        if (evi.observedRomanization) {
+          conflicts.push({
+            evidenceId: evi.id,
+            persianForm: evi.persianForm,
+            observedRomanization: evi.observedRomanization,
+            romanizationScheme: evi.romanizationScheme,
+            conflictKind: 'CONFLICT_WITHIN_SCHEME',
+            conflictReason: `Disagrees with alternative observation(s) under the same scheme (${scheme}): ${distinctRomanizations
+              .filter((r) => r !== evi.observedRomanization)
+              .join(', ')}`
+          });
+        }
+      }
+    }
+  }
+
+  // B. Record cross-scheme variations for informational completeness without triggering false conflict
+  if (schemeGroups.size > 1) {
+    const allDistinctRomanizations = Array.from(
+      new Set(evidenceList.map((e) => e.observedRomanization).filter((r): r is string => r !== null && r !== ''))
+    );
+    if (allDistinctRomanizations.length > 1 && !hasSameSchemeConflict) {
+      for (const evi of evidenceList) {
+        if (evi.observedRomanization) {
+          conflicts.push({
+            evidenceId: evi.id,
+            persianForm: evi.persianForm,
+            observedRomanization: evi.observedRomanization,
+            romanizationScheme: evi.romanizationScheme,
+            conflictKind: 'VARIANT_ACROSS_SCHEMES',
+            conflictReason: `Cross-scheme variant alongside other schemes (${Array.from(schemeGroups.keys()).join(', ')})`
+          });
+        }
       }
     }
   }
@@ -110,14 +225,15 @@ export function synthesizeCandidateFromEvidence(
   const defaultEntityType: LexicalEntityType = evidenceList[0].entityType ?? 'WORD';
   const resolvedEntityType: LexicalEntityType = options?.entityType ?? defaultEntityType;
 
-  const status: LexicalCandidateStatus = conflicts.length > 0 ? 'REVIEW_REQUIRED' : 'UNREVIEWED';
+  // Only same-scheme disagreements require review blocking
+  const status: LexicalCandidateStatus = hasSameSchemeConflict ? 'REVIEW_REQUIRED' : 'UNREVIEWED';
 
   const candidateId = generateCandidateId(persianForm, evidenceIds);
 
-  return {
+  const candidate: LexicalCandidate = {
     id: candidateId,
     persianForm,
-    normalizedForm: normalized,
+    normalizedForm: candidateNormalized,
     proposedCanonical: options?.proposedCanonical ?? null,
     proposedProfile: options?.proposedProfile,
     entityType: resolvedEntityType,
@@ -131,4 +247,7 @@ export function synthesizeCandidateFromEvidence(
     },
     notes: options?.notes
   };
+
+  validateCandidateLifecycle(candidate);
+  return candidate;
 }
