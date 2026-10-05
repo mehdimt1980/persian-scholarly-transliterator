@@ -94,6 +94,76 @@ describe('phrase assistance server boundary', () => {
     expect(providerCalled).toBe(false);
   });
 
+  it('rejects unexpected nested review-decision metadata rather than trusting client provenance', async () => {
+    let providerCalled = false;
+    const provider = new FakePhraseResolverProvider(() => {
+      providerCalled = true;
+      return {
+        disposition: 'REVIEW_REQUIRED',
+        scholarlyCanonical: null,
+        renderedOutput: null,
+        confidence: null,
+        basis: 'MODEL_INFERENCE',
+        rationale: 'Should never be called.',
+        assumptions: ['Should never be called.'],
+        tokenReadings: [],
+        warnings: []
+      };
+    });
+
+    const response = await handlePhraseAssistRequest(
+      jsonRequest({
+        input: 'واژه دیگر',
+        profile: 'ijmes_title',
+        reviewDecisions: [
+          {
+            issueId: 'synthetic',
+            action: 'MANUAL_CANONICAL_OVERRIDE',
+            manualCanonicalTransliteration: 'synthetic',
+            assistance: { provider: 'client-injected' }
+          }
+        ]
+      }),
+      provider
+    );
+
+    expect(response.status).toBe(400);
+    expect(providerCalled).toBe(false);
+  });
+
+  it('bounds phrase size before provider execution', async () => {
+    let providerCalled = false;
+    const provider = new FakePhraseResolverProvider(() => {
+      providerCalled = true;
+      return {
+        disposition: 'REVIEW_REQUIRED',
+        scholarlyCanonical: null,
+        renderedOutput: null,
+        confidence: null,
+        basis: 'MODEL_INFERENCE',
+        rationale: 'Should never be called.',
+        assumptions: ['Should never be called.'],
+        tokenReadings: [],
+        warnings: []
+      };
+    });
+
+    const tooManyPersianWords = Array.from({ length: 65 }, () => 'واژه').join(' ');
+    const response = await handlePhraseAssistRequest(
+      jsonRequest({
+        input: tooManyPersianWords,
+        profile: 'ijmes_title',
+        reviewDecisions: []
+      }),
+      provider
+    );
+
+    expect(response.status).toBe(413);
+    const payload = await response.json();
+    expect(payload.error).toBe('PHRASE_TOO_LARGE');
+    expect(providerCalled).toBe(false);
+  });
+
   it('does not call AI when deterministic output is already authoritative and copyable', async () => {
     let providerCalled = false;
     const provider = new FakePhraseResolverProvider(() => {
