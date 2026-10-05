@@ -19,6 +19,7 @@
 - PR #28 — post-baseline deterministic reviewed-authority remediation; merge commit `5cd6ba47c8cbd57ff2e948ace26b451df52c8134`.
 - PR #29 — authority-independent release portability / anti-overreach gate; merge commit `fc18a486f5ad78a229a59d7e2cf56da28e123023`.
 - PR #31 — Next.js 16 Active LTS security/toolchain migration and permanent high/critical audit gate; merge commit `f914cfc03b4ea010b05f8f865f3b0b27e173b8d8`.
+- PR #32 — `v0.2.0` package/version, README milestone, and evidence-backed release notes; merge commit `2ba4acfcb0165e416dfea5c7407d028f97e83ddc`.
 
 ## Closed without merge
 
@@ -56,11 +57,7 @@ This remains the independent pre-remediation measurement and is not rewritten af
 
 After PR #28, the human-approved 108-case artifact is a frozen **regression suite**, not an unseen post-remediation benchmark.
 
-Hard gate:
-
-`npm run validate:v2-regression`
-
-Required/current result:
+Current hard-gate result:
 
 - 103/103 `CORRECT_AUTHORITATIVE`
 - 5/5 `CORRECT_REVIEW_REQUIRED`
@@ -82,40 +79,27 @@ This supports a narrow portability / non-leakage claim and is not presented as a
 
 ## Release security state
 
-PR #31 migrated the release line to:
+The `v0.2.0` release line uses:
 
 - Next.js `16.3.8`;
 - React / React DOM `19.3.0`;
 - Vitest `4.1.11`;
 - development-only oxlint `1.86.0`;
-- legacy `eslint` / `eslint-config-next` chain removed.
+- no legacy `eslint` / `eslint-config-next` dependency chain.
 
-CI permanently enforces:
+CI permanently enforces `npm audit --audit-level=high`.
 
-`npm audit --audit-level=high`
+## v0.2.0 repository release state
 
-Post-merge CI on `main` passed the complete validation/security/build suite.
+Repository-internal release gates are complete for version `0.2.0`:
 
-## Current release gate — PR #32
+- package and lockfile are synchronized at `0.2.0`;
+- release notes are committed at `docs/RELEASE_v0.2.0.md`;
+- PR #32 exact-head CI passed the complete validation/security/build suite;
+- post-merge CI run `37303893764` on merge commit `2ba4acfcb0165e416dfea5c7407d028f97e83ddc` also passed the complete suite;
+- frozen scholarly gold was not modified during release preparation.
 
-PR #32 (`release/v0.2.0`) prepares release `v0.2.0`.
-
-Release-preparation scope:
-
-- package/application version `0.2.0`;
-- README milestone and claim boundaries;
-- `docs/RELEASE_v0.2.0.md` evidence-backed release notes;
-- this governance status update.
-
-The release-preparation PR does not modify frozen scholarly gold or transliteration semantics.
-
-## Remaining release gates
-
-1. PR #32 exact final HEAD must pass the complete CI suite, including high/critical dependency audit, scholarly integrity/regression/portability gates, typecheck, lint, and production build.
-2. Merge PR #32 only after that exact-head CI succeeds.
-3. Verify post-merge CI on the release merge commit in `main`.
-4. Create tag `v0.2.0` and GitHub Release `v0.2.0` pointing to that exact verified release commit.
-5. Preserve the release notes' claim boundary: post-remediation frozen regression is not an unseen accuracy benchmark, and portability evidence is narrow anti-overreach evidence.
+The Git tag and GitHub Release `v0.2.0` must point to a final `main` commit that preserves this verified repository state. Creating the tag/release is release metadata, not permission to alter scholarly gold or relax any gate.
 
 Primary safety invariants remain:
 
@@ -123,3 +107,4 @@ Primary safety invariants remain:
 - `UNDER_BLOCKED = 0`
 - frozen gold is not changed to improve engine metrics
 - genuine ambiguity remains review-required rather than guessed
+- post-remediation regression is not represented as an unseen accuracy benchmark
