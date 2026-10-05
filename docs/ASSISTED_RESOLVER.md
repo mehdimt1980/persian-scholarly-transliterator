@@ -1,45 +1,81 @@
-# Assisted Candidate Resolver (Phase 3)
+# Assisted Resolvers
 
-The **Assisted Candidate Resolver** provides human scholars with external language model suggestions for unresolved review issues (`ReviewIssue`) while preserving strict deterministic authority boundaries.
+The assistance layer provides human scholars with external language-model suggestions while preserving strict deterministic authority boundaries. It now has two complementary surfaces:
+
+1. the original **issue-level Assisted Candidate Resolver**, which helps with one `ReviewIssue` at a time;
+2. the **Automatic Context-Aware Phrase Resolver**, which analyzes the complete current phrase when deterministic analysis remains blocked.
+
+Neither surface grants automatic scholarly authority.
 
 ---
 
 ## 1. Zero-Authority Architecture
 
-The fundamental principle of the assisted resolver is that **AI suggestions have zero automatic authority**.
+The fundamental principle is that **AI suggestions have zero automatic authority**.
+
+### Issue-level path
 
 ```text
 Deterministic Analysis
   ↓
 ReviewIssue Detected
   ↓
-User Requests Assistance (Manual Trigger)
+User Requests Assistance
   ↓
 OpenAI Responses API (Structured Output)
   ↓
-Structural Schema Guarantee (Zod Discriminated Union)
-  ↓
-Domain Authority Validation (validateProviderResolution)
+Structural + Domain Validation
   ↓
 AssistedResolution (Advisory Only)
   ↓
-Scholar Reviews and Selects Candidate
+Scholar Selects Candidate
   ↓
-ReviewDecision Created (Provenance: user-decision)
+ReviewDecision (user-decision provenance)
   ↓
-Transliteration Engine Recomputes State (USER_OVERRIDE)
+Engine Recomputes State
 ```
 
-### Invariants:
-1. **Fetching Suggestions Never Alters State:** Requesting or receiving suggestions does not mutate canonical output, token status, copyability, izāfat relations, morphology trees, or the reviewed lexicon.
-2. **Human Selection is Mandatory:** An AI suggestion only becomes effective when a human scholar clicks "Use this suggestion", converting it into a typed Phase 2C `ReviewDecision`.
-3. **Epistemic Provenance:** Accepted suggestions retain `assistance` metadata (`suggestionId`, `provider`, `model`, `promptVersion`), but the rule authority remains strictly `user-decision`.
+### Phrase-level path
+
+```text
+Deterministic Analysis
+  ↓
+Multiple-token phrase remains non-copyable
+  ↓
+Context-Aware Phrase Resolver
+  ↓
+Whole-phrase proposal
+  ├─ scholarlyCanonical
+  ├─ renderedOutput
+  ├─ tokenReadings
+  ├─ confidence / rationale
+  └─ assumptions / warnings
+  ↓
+PROPOSAL IS STILL NON-AUTHORITATIVE
+  ↓
+Human Accept / Edit / Reject
+  ↓
+AcceptedPhraseDecision
+  ├─ HUMAN_ACCEPTED_AI_SUGGESTION
+  └─ HUMAN_EDITED_AI_SUGGESTION
+  ↓
+Session output becomes user-authorized and copyable
+```
+
+### Invariants
+
+1. **Fetching suggestions never alters deterministic state.** Requesting or receiving AI output does not mutate the engine, reviewed lexicon, morphology rules, frozen gold, token status, or runtime authority data.
+2. **Human acceptance is mandatory.** Model confidence never converts a proposal into an authoritative result.
+3. **Canonical and rendering remain separate.** Phrase assistance returns scholarly canonical transliteration and selected-profile rendering as distinct fields.
+4. **Ambiguity may remain blocked.** A model can return `REVIEW_REQUIRED` with no canonical or rendered output rather than forcing a reading.
+5. **Accepted phrase decisions are session/user decisions, not new reviewed authority.** They do not automatically persist into the reviewed lexicon or frozen authority layer.
+6. **Deterministic diagnostics remain visible.** Accepting a phrase-level proposal changes the selected/copyable UI output but does not erase the underlying unresolved issues shown for audit.
 
 ---
 
-## 2. Issue-Type Constrained Suggestions
+## 2. Issue-Level Assisted Candidate Resolver
 
-The resolver operates under strict candidate schemas constrained by the target issue's allowed action space:
+The original resolver operates under strict candidate schemas constrained by the target issue's allowed action space:
 
 | ReviewIssue Type | Allowed Suggestion Kind | Scope / Constraints |
 |---|---|---|
@@ -51,50 +87,176 @@ The resolver operates under strict candidate schemas constrained by the target i
 | `IZAFAT_CANDIDATE` | `IZAFAT_DECISION` | Ranks `ACCEPT_IZAFAT` or `REJECT_IZAFAT`. Human must confirm before `-i` renders. |
 | `MORPHOLOGY_AMBIGUITY` | `MORPHOLOGY_BRANCH` | Ranks `WHOLE_WORD` vs `PRODUCTIVE_SEGMENTATION`. Post-decision review loop handles remaining lexical ambiguity. |
 
----
-
-## 3. OpenAI Responses API & Structured Output
-
-The adapter communicates with OpenAI using the modern **Responses API**:
-
-- **Method:** `openai.responses.create(...)`
-- **Output Guarantee:** Structured Outputs via `zodTextFormat(rawProviderResponseSchema, 'assisted_resolution')` with strict discriminated unions.
-- **Privacy & Statelessness:** Explicit `store: false` to ensure queries are session-scoped and not persisted in OpenAI server-side threads.
-- **Domain Semantic Validation:** Layered immediately after JSON schema parsing to enforce exact issue IDs, evidence reference authorization, candidate consistency, Unicode safety, rank uniqueness, and duplicate semantic candidate rejection.
+The issue-level route remains available for granular scholarly inspection even when the phrase resolver is enabled.
 
 ---
 
-## 4. Structured Evidence Catalog & Data Minimization
+## 3. Automatic Context-Aware Phrase Resolver
 
-When an assistance request is constructed:
-- **Bounded Local Context:** Only the target issue token and a localized window of up to ±4 meaningful (non-whitespace) surrounding tokens are sent. Unrelated document paragraphs are excluded.
-- **Structured Orthographic Evidence:** Explicit vowel marks (kasra, fatḥa, ḍamma), unsupported combining marks, ZWNJ boundaries, and izāfat markers are sent as structured typed payloads from `TokenAnalysis`.
-- **Evidence Catalog:** All admissible evidence references are assigned stable typed IDs (`context:local-window`, `rule:...`, `orthography:...`, `reading:...`, `source:...`, `relation:...`, `morphology:...`). The model must either cite allowed IDs or declare `MODEL_INFERENCE` with empty evidence references.
-- **Prompt Injection Defense:** Source text is strictly delimited as untrusted linguistic data. The model has no tools, no web browsing, and no code execution permissions.
+The phrase resolver is intended for the long tail where token-by-token deterministic processing is safe but too conservative for good user experience.
+
+### Trigger
+
+In the single-transliteration workspace, automatic phrase assistance is eligible when:
+
+- deterministic output is not copyable;
+- at least one current `ReviewIssue` exists;
+- the source contains at least two Persian-word tokens;
+- OpenAI assistance is configured.
+
+The UI waits approximately 900 ms after the input state stabilizes before requesting phrase assistance. A user can also trigger/re-trigger the phrase resolver explicitly.
+
+Single-token unresolved inputs continue to use the granular review workflow by default, though phrase assistance can still be requested manually from the phrase panel when applicable.
+
+### Context sent to the provider
+
+The server recomputes the full `TransliterationResult` from `input`, `profile`, and typed human review decisions. The browser cannot inject token status, review issues, morphology, or relation evidence.
+
+The phrase request includes:
+
+- original and normalized current phrase;
+- profile and context kind (`BOOK_OR_ARTICLE_TITLE` or `GENERAL_SCHOLARLY_TEXT`);
+- deterministic status, copyability, and diagnostic output;
+- structured token state;
+- current review issues and allowed actions;
+- morphology evidence;
+- phrase relations such as izāfat candidates/confirmations.
+
+Unlike the issue-level resolver's bounded ±4-token window, the phrase resolver intentionally receives the **complete current phrase**, because phrase-level grammar and title structure are the feature's unit of analysis. It does not receive unrelated document paragraphs.
+
+### Required model behavior
+
+The prompt requires the model to:
+
+- analyze the phrase as a whole rather than independently guessing each unknown token;
+- distinguish `scholarlyCanonical` from `renderedOutput`;
+- transliterate rather than translate;
+- preserve deterministic evidence as constraints;
+- avoid invented citations or claims of external lookup;
+- return `REVIEW_REQUIRED` instead of forcing materially uncertain readings;
+- omit chain-of-thought and provide only concise scholarly rationale.
+
+### Output contract
+
+A complete advisory proposal is:
+
+```text
+PROPOSED
+scholarlyCanonical = <full scholarly transliteration>
+renderedOutput      = <selected profile rendering>
+confidence          = advisory model score
+rationale           = concise explanation
+tokenReadings       = explanatory phrase-token mappings
+assumptions         = unresolved assumptions disclosed to the user
+```
+
+A safely blocked result is:
+
+```text
+REVIEW_REQUIRED
+scholarlyCanonical = null
+renderedOutput      = null
+assumptions/warnings explain the blocking ambiguity
+```
+
+All provider payloads pass strict Zod structural validation plus domain checks before reaching the UI. Persian/Arabic script is rejected from Latin transliteration fields.
 
 ---
 
-## 5. Server Configuration & Model Requirement
+## 4. Human Acceptance, Editing, Rejection, and Provenance
 
-The domain is decoupled from network APIs via the `AssistedResolverProvider` interface.
+For a `PROPOSED` phrase resolution the user can:
 
-### Environment Variables:
+- **Accept resolution** — records `HUMAN_ACCEPTED_AI_SUGGESTION`;
+- **Edit before accepting** — validates both fields and records `HUMAN_EDITED_AI_SUGGESTION`;
+- **Reject** — discards the current proposal and leaves deterministic review state unchanged.
+
+Accepted phrase-decision metadata records:
+
+- provider;
+- model;
+- prompt version;
+- deterministic request fingerprint;
+- model confidence;
+- accepted timestamp;
+- canonical and rendered values selected by the user.
+
+An accepted phrase decision is currently session-scoped. It does **not** write to the reviewed lexicon, frozen scholarly gold, or persistent runtime authority data.
+
+---
+
+## 5. Stale-State Protection
+
+Both assisted surfaces are fingerprint-bound to deterministic input state.
+
+For phrase assistance, the fingerprint covers the source text, profile/context, deterministic status/output, token evidence, current review issues, morphology, relations, prompt version, provider, and model.
+
+If the source, profile, deterministic evidence, or current review state changes:
+
+- the proposal is no longer applicable;
+- a previously accepted phrase decision is revoked from the selected output;
+- a fresh phrase resolution is required.
+
+This prevents a model proposal for one analysis state from being silently reused on another.
+
+---
+
+## 6. OpenAI Responses API & Structured Output
+
+Both OpenAI adapters use the server-side Responses API:
+
+- `openai.responses.create(...)`;
+- strict structured output using `zodTextFormat(...)`;
+- `store: false`;
+- no browser-side API key;
+- no model tool access in the resolver prompts;
+- refusal, timeout, invalid JSON, and invalid domain payloads fail closed.
+
+The phrase route is:
+
+```text
+POST /api/assist/phrase
+```
+
+Availability metadata is exposed without secrets at:
+
+```text
+GET /api/assist/status
+```
+
+The existing issue route remains:
+
+```text
+POST /api/assist
+```
+
+---
+
+## 7. Server Configuration & Deployment
+
+The same environment variables configure both assisted surfaces:
+
 ```bash
 OPENAI_API_KEY=sk-...
-ASSISTED_RESOLVER_MODEL=gpt-4o-2024-08-06
+ASSISTED_RESOLVER_MODEL=<configured-model-id>
 ASSISTED_RESOLVER_TIMEOUT_MS=15000
 ```
 
-Both `OPENAI_API_KEY` and `ASSISTED_RESOLVER_MODEL` must be explicitly configured. There is no silent default model. If either is missing:
-- Deterministic transliteration and human review function completely normally.
-- The assistance API returns `503 ASSISTANCE_UNAVAILABLE`.
-- The UI displays an advisory message that assistance is unavailable.
+Both `OPENAI_API_KEY` and `ASSISTED_RESOLVER_MODEL` must be explicitly configured. There is no silent default model.
+
+If either is missing:
+
+- deterministic transliteration continues normally;
+- manual human review continues normally;
+- `/api/assist` and `/api/assist/phrase` fail closed with assistance-unavailable behavior;
+- the phrase panel tells the user that AI is implemented but not connected.
+
+For deployment, keep `OPENAI_API_KEY` server-side only. Do not expose it through `NEXT_PUBLIC_*` variables or client code.
 
 ---
 
-## 6. Stale Suggestion Invalidation
+## 8. Scope Boundary
 
-Suggestions are tied to deterministic, input-scoped issue fingerprints (`computeRequestFingerprint`). If the underlying source text, profile, or candidate set changes:
-- Stored suggestions transition to an explicit `stale` state in the UI.
-- The "Use this suggestion" button is disabled.
-- The scholar must explicitly re-request assistance for the updated context.
+The first phrase-resolver integration is wired into the **single transliteration workspace**, which is the interaction shown when a user types or pastes a phrase/title. The phrase API and domain contracts are reusable, but bibliography-batch fields continue to use the existing issue-level field-scoped assistance in this version.
+
+This separation is intentional: batch persistence/export semantics should be extended only after phrase-level acceptance is given an explicit record-level persistence contract.
