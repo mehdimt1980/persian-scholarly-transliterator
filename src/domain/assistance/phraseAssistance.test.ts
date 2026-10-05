@@ -7,9 +7,25 @@ import {
   createAcceptedPhraseDecision,
   validatePhraseProviderResolution
 } from './index';
+import type { PhraseResolverRequest } from './phraseTypes';
 
 function unresolvedPhrase() {
   return transliterate('واژه دیگر', 'ijmes_title');
+}
+
+function syntheticReadings(request: PhraseResolverRequest) {
+  let unresolvedCounter = 0;
+  return request.tokenEvidence
+    .filter((token) => token.tokenType === 'persian-word')
+    .map((token) => {
+      unresolvedCounter += 1;
+      return {
+        tokenIndex: token.index,
+        surface: token.surface,
+        canonical: token.canonicalTransliteration ?? `synthetic-${unresolvedCounter}`,
+        note: 'Synthetic mechanics-only token reading.'
+      };
+    });
 }
 
 describe('context-aware phrase assistance', () => {
@@ -36,11 +52,7 @@ describe('context-aware phrase assistance', () => {
       basis: 'CONTEXTUAL_INFERENCE' as const,
       rationale: 'Synthetic mechanics-only phrase proposal.',
       assumptions: ['Synthetic test assumption.'],
-      tokenReadings: request.tokenEvidence.slice(0, 2).map((token, index) => ({
-        surface: token.surface,
-        canonical: index === 0 ? 'alpha' : 'beta',
-        note: 'Synthetic mechanics-only token reading.'
-      })),
+      tokenReadings: syntheticReadings(request),
       warnings: []
     };
 
@@ -64,7 +76,7 @@ describe('context-aware phrase assistance', () => {
         basis: 'MODEL_INFERENCE',
         rationale: 'Synthetic invalid proposal.',
         assumptions: [],
-        tokenReadings: [],
+        tokenReadings: syntheticReadings(request),
         warnings: []
       },
       request,
@@ -100,8 +112,42 @@ describe('context-aware phrase assistance', () => {
     expect(validation.resolution?.renderedOutput).toBeNull();
   });
 
-  it('rejects token-reading surfaces not present in the authoritative request', () => {
+  it('binds token readings to authoritative token indexes rather than surface alone', () => {
+    const request = buildPhraseResolverRequest(transliterate('واژه واژه', 'ijmes_title'));
+    const readings = syntheticReadings(request);
+
+    expect(readings).toHaveLength(2);
+    expect(readings[0].surface).toBe(readings[1].surface);
+    expect(readings[0].tokenIndex).not.toBe(readings[1].tokenIndex);
+
+    const validation = validatePhraseProviderResolution(
+      {
+        disposition: 'PROPOSED',
+        scholarlyCanonical: 'alpha alpha',
+        renderedOutput: 'Alpha Alpha',
+        confidence: 0.7,
+        basis: 'MODEL_INFERENCE',
+        rationale: 'Synthetic repeated-token mechanics test.',
+        assumptions: [],
+        tokenReadings: readings,
+        warnings: []
+      },
+      request,
+      'fake-provider',
+      'fake-model'
+    );
+
+    expect(validation.valid).toBe(true);
+  });
+
+  it('rejects token-reading indexes or surfaces that do not match authoritative tokens', () => {
     const request = buildPhraseResolverRequest(unresolvedPhrase());
+    const readings = syntheticReadings(request);
+    readings[0] = {
+      ...readings[0],
+      surface: 'غایب'
+    };
+
     const validation = validatePhraseProviderResolution(
       {
         disposition: 'PROPOSED',
@@ -111,13 +157,7 @@ describe('context-aware phrase assistance', () => {
         basis: 'MODEL_INFERENCE',
         rationale: 'Synthetic invalid token mapping.',
         assumptions: [],
-        tokenReadings: [
-          {
-            surface: 'غایب',
-            canonical: 'gamma',
-            note: 'Not present in request.'
-          }
-        ],
+        tokenReadings: readings,
         warnings: []
       },
       request,
@@ -126,7 +166,64 @@ describe('context-aware phrase assistance', () => {
     );
 
     expect(validation.valid).toBe(false);
-    expect(validation.errors.join(' ')).toContain('not present in the authoritative request');
+    expect(validation.errors.join(' ')).toContain('does not match authoritative token');
+  });
+
+  it('requires a PROPOSED resolution to explain every Persian-word token', () => {
+    const request = buildPhraseResolverRequest(unresolvedPhrase());
+    const validation = validatePhraseProviderResolution(
+      {
+        disposition: 'PROPOSED',
+        scholarlyCanonical: 'alpha beta',
+        renderedOutput: 'Alpha Beta',
+        confidence: 0.7,
+        basis: 'MODEL_INFERENCE',
+        rationale: 'Synthetic incomplete token mapping.',
+        assumptions: [],
+        tokenReadings: syntheticReadings(request).slice(0, 1),
+        warnings: []
+      },
+      request,
+      'fake-provider',
+      'fake-model'
+    );
+
+    expect(validation.valid).toBe(false);
+    expect(validation.errors.join(' ')).toContain('must explain every Persian-word token');
+  });
+
+  it('does not allow phrase assistance to contradict deterministic canonical token evidence', () => {
+    const request = buildPhraseResolverRequest(transliterate('کتاب‌ها واژه', 'ijmes_full'));
+    const readings = syntheticReadings(request);
+    const resolvedIndex = readings.findIndex((reading) => {
+      const token = request.tokenEvidence.find((item) => item.index === reading.tokenIndex);
+      return Boolean(token?.canonicalTransliteration);
+    });
+    expect(resolvedIndex).toBeGreaterThanOrEqual(0);
+    readings[resolvedIndex] = {
+      ...readings[resolvedIndex],
+      canonical: 'contradiction'
+    };
+
+    const validation = validatePhraseProviderResolution(
+      {
+        disposition: 'PROPOSED',
+        scholarlyCanonical: 'synthetic phrase',
+        renderedOutput: 'synthetic phrase',
+        confidence: 0.6,
+        basis: 'MIXED',
+        rationale: 'Synthetic deterministic-conflict test.',
+        assumptions: [],
+        tokenReadings: readings,
+        warnings: []
+      },
+      request,
+      'fake-provider',
+      'fake-model'
+    );
+
+    expect(validation.valid).toBe(false);
+    expect(validation.errors.join(' ')).toContain('conflicts with deterministic canonical evidence');
   });
 
   it('creates explicit human acceptance provenance and invalidates it when the request changes', () => {
@@ -141,7 +238,7 @@ describe('context-aware phrase assistance', () => {
         basis: 'MIXED',
         rationale: 'Synthetic proposal for acceptance mechanics.',
         assumptions: [],
-        tokenReadings: [],
+        tokenReadings: syntheticReadings(request),
         warnings: []
       },
       request,
@@ -180,7 +277,7 @@ describe('context-aware phrase assistance', () => {
         basis: 'MODEL_INFERENCE',
         rationale: 'Synthetic proposal.',
         assumptions: [],
-        tokenReadings: [],
+        tokenReadings: syntheticReadings(request),
         warnings: []
       },
       request,
