@@ -81,6 +81,7 @@ export interface PhraseResolverRequest {
 }
 
 export interface PhraseTokenReadingProposal {
+  tokenIndex: number;
   surface: string;
   canonical: string;
   note: string;
