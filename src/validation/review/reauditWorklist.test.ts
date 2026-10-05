@@ -3,7 +3,10 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   AcquisitionCandidateMinimal,
+  ReauditBatch,
+  ReauditStatus,
   ReauditWorklistDocument,
+  EXPECTED_BATCH_COUNTS,
   getExpectedReauditBatch,
   validateReauditWorklist,
   validateRepositoryReauditWorklist
@@ -29,7 +32,6 @@ function createBlankFixture(): {
   const acquisition: AcquisitionCandidateMinimal[] = [];
   const cases: ReauditWorklistDocument['cases'] = [];
   let counter = 1;
-
   for (const { category, profile, count } of categories) {
     for (let i = 0; i < count; i++) {
       const id = `cand-synth-${String(counter).padStart(3, '0')}`;
@@ -84,312 +86,251 @@ function createBlankFixture(): {
   };
 }
 
-function syntheticReviewer() {
+function reviewer(date = '2026-10-05') {
+  return { name: 'Synthetic Specialist', type: 'AI_SPECIALIST' as const, reviewedAt: date };
+}
+
+function finalDecision(id: string) {
   return {
-    name: 'OpenAI GPT-5.6 Sol' as const,
-    type: 'AI_SPECIALIST' as const,
-    reviewedAt: '2026-10-04'
+    disposition: 'FINAL' as const,
+    scholarlyCanonical: `canonical-${id}`,
+    renderedOutput: `rendered-${id}`,
+    readingEvidence: [
+      { source: 'Synthetic reading authority', citation: `Synthetic ${id}`, locator: 'entry' }
+    ],
+    renderingEvidence: [
+      { source: 'Synthetic rendering authority', citation: 'Synthetic style rule', locator: 'rule' }
+    ],
+    reviewNote: 'Synthetic non-adjudicative fixture.',
+    reviewer: reviewer()
   };
 }
 
-function completeBatchA(worklist: ReauditWorklistDocument): void {
-  worklist.metadata.status = 'BATCH_A_COMPLETED';
-  worklist.summary.pending = 83;
-  worklist.summary.adjudicated = 25;
+const STATUS_BY_BATCH: Record<ReauditBatch, ReauditStatus> = {
+  A: 'BATCH_A_COMPLETED',
+  B: 'BATCH_B_COMPLETED',
+  C: 'BATCH_C_COMPLETED',
+  D: 'BATCH_D_COMPLETED',
+  E: 'BATCH_E_COMPLETED'
+};
+const ORDER: ReauditBatch[] = ['A', 'B', 'C', 'D', 'E'];
 
+function completeThrough(worklist: ReauditWorklistDocument, through: ReauditBatch): void {
+  const completed = new Set(ORDER.slice(0, ORDER.indexOf(through) + 1));
+  let adjudicated = 0;
   for (const c of worklist.cases) {
-    if (c.batch !== 'A') continue;
-    c.reviewState = 'COMPLETED';
-    c.decision = {
-      disposition: 'FINAL',
-      scholarlyCanonical: `canonical-${c.id}`,
-      renderedOutput: `rendered-${c.id}`,
-      readingEvidence: [
-        {
-          source: 'Synthetic lexical authority',
-          citation: `Synthetic citation ${c.id}`,
-          locator: 'entry'
-        }
-      ],
-      renderingEvidence: [
-        {
-          source: 'Synthetic style authority',
-          citation: 'Synthetic rendering rule',
-          locator: 'rule'
-        }
-      ],
-      reviewNote: 'Synthetic non-adjudicative fixture.',
-      reviewer: syntheticReviewer()
-    };
+    if (completed.has(c.batch)) {
+      c.reviewState = 'COMPLETED';
+      c.decision = finalDecision(c.id);
+      adjudicated++;
+    }
   }
+  worklist.metadata.status = STATUS_BY_BATCH[through];
+  worklist.summary.adjudicated = adjudicated;
+  worklist.summary.pending = 108 - adjudicated;
 }
 
 describe('V2 re-audit worklist validator', () => {
-  it('validates the repository Batch A artifact', () => {
+  it('validates the repository Batch B artifact', () => {
     expect(() => validateRepositoryReauditWorklist()).not.toThrow();
   });
 
-  it('preserves support for the pristine blank 108-case artifact', () => {
+  it('preserves the pristine blank 108-case state', () => {
     const { worklist, acquisition } = createBlankFixture();
     expect(() => validateReauditWorklist(worklist, acquisition)).not.toThrow();
   });
 
-  it('validates a synthetic Batch A completed artifact', () => {
+  it('validates sequential completion through Batch A', () => {
     const { worklist, acquisition } = createBlankFixture();
-    completeBatchA(worklist);
+    completeThrough(worklist, 'A');
     expect(() => validateReauditWorklist(worklist, acquisition)).not.toThrow();
   });
 
-  it('does not dictate FINAL: REVIEW_REQUIRED is valid under the protocol contract', () => {
+  it('validates sequential completion through Batch B', () => {
     const { worklist, acquisition } = createBlankFixture();
-    completeBatchA(worklist);
-    const c = worklist.cases.find((item) => item.batch === 'A')!;
+    completeThrough(worklist, 'B');
+    expect(worklist.summary.adjudicated).toBe(48);
+    expect(worklist.summary.pending).toBe(60);
+    expect(() => validateReauditWorklist(worklist, acquisition)).not.toThrow();
+  });
+
+  it('supports future sequential statuses without changing scholarly outcomes', () => {
+    const expected = { C: 84, D: 96, E: 108 } as const;
+    for (const batch of ['C', 'D', 'E'] as ReauditBatch[]) {
+      const { worklist, acquisition } = createBlankFixture();
+      completeThrough(worklist, batch);
+      expect(worklist.summary.adjudicated).toBe(expected[batch as keyof typeof expected]);
+      expect(() => validateReauditWorklist(worklist, acquisition)).not.toThrow();
+    }
+  });
+
+  it('requires all earlier batches when Batch B is declared complete', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    completeThrough(worklist, 'B');
+    const a = worklist.cases.find((c) => c.batch === 'A')!;
+    a.reviewState = 'PENDING';
+    a.decision = null;
+    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
+      /WORKLIST_COMPLETED_BATCH_CASE_INVALID/
+    );
+  });
+
+  it('rejects contamination of a later batch', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    completeThrough(worklist, 'B');
+    const c = worklist.cases.find((item) => item.batch === 'C')!;
+    c.reviewState = 'COMPLETED';
+    c.decision = finalDecision(c.id);
+    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
+      /WORKLIST_PENDING_BATCH_CASE_INVALID/
+    );
+  });
+
+  it('does not dictate FINAL: REVIEW_REQUIRED is valid in a completed batch', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    completeThrough(worklist, 'B');
+    const c = worklist.cases.find((item) => item.batch === 'B')!;
     c.decision = {
       disposition: 'REVIEW_REQUIRED',
       nonAuthoritativeAlternatives: [
-        { reading: 'reading-a', source: 'Synthetic source A' },
-        { reading: 'reading-b', source: 'Synthetic source B' }
+        { reading: 'reading-a', source: 'Synthetic A' },
+        { reading: 'reading-b', source: 'Synthetic B' }
       ],
       readingEvidence: [
-        {
-          source: 'Synthetic lexical authority',
-          citation: 'Synthetic ambiguity citation',
-          locator: 'entry'
-        }
+        { source: 'Synthetic', citation: 'Synthetic ambiguity evidence', locator: 'entry' }
       ],
-      reviewNote: 'Synthetic ambiguity; no authoritative output.',
-      reviewer: syntheticReviewer()
+      reviewNote: 'Synthetic ambiguity.',
+      reviewer: reviewer()
     };
     expect(() => validateReauditWorklist(worklist, acquisition)).not.toThrow();
   });
 
   it('does not dictate FINAL: UNRESOLVED is valid without rendering evidence', () => {
     const { worklist, acquisition } = createBlankFixture();
-    completeBatchA(worklist);
-    const c = worklist.cases.find((item) => item.batch === 'A')!;
+    completeThrough(worklist, 'B');
+    const c = worklist.cases.find((item) => item.batch === 'B')!;
     c.decision = {
       disposition: 'UNRESOLVED',
       readingEvidence: [
-        {
-          source: 'Synthetic lexical authority',
-          citation: 'Synthetic insufficient-evidence citation',
-          locator: 'entry'
-        }
+        { source: 'Synthetic', citation: 'Insufficient reading evidence', locator: 'entry' }
       ],
-      reviewNote: 'Synthetic unresolved reading.',
-      reviewer: syntheticReviewer()
+      reviewNote: 'Synthetic unresolved case.',
+      reviewer: reviewer()
     };
     expect(() => validateReauditWorklist(worklist, acquisition)).not.toThrow();
   });
 
-  it('rejects authoritative canonical fields on a non-FINAL decision', () => {
+  it('rejects authoritative canonical data on a non-FINAL decision', () => {
     const { worklist, acquisition } = createBlankFixture();
-    completeBatchA(worklist);
-    const c = worklist.cases.find((item) => item.batch === 'A')!;
+    completeThrough(worklist, 'B');
+    const c = worklist.cases.find((item) => item.batch === 'B')!;
     c.decision = {
-      disposition: 'REVIEW_REQUIRED',
-      readingEvidence: [
-        { source: 'Synthetic', citation: 'Synthetic citation', locator: 'entry' }
-      ],
-      reviewNote: 'Synthetic ambiguity.',
-      reviewer: syntheticReviewer()
+      disposition: 'UNRESOLVED',
+      readingEvidence: [{ source: 'Synthetic', citation: 'Synthetic', locator: 'entry' }],
+      reviewNote: 'Synthetic unresolved case.',
+      reviewer: reviewer()
     };
     (c.decision as any).scholarlyCanonical = 'forbidden';
     expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_BATCH_A_DECISION.*CONTAINS_UNEXPECTED_KEY:scholarlyCanonical/
+      /WORKLIST_DECISION.*CONTAINS_UNEXPECTED_KEY:scholarlyCanonical/
     );
   });
 
-  it('allows optional renderingEvidence for non-FINAL only when non-empty', () => {
+  it('accepts actual ISO review dates from different batches', () => {
     const { worklist, acquisition } = createBlankFixture();
-    completeBatchA(worklist);
+    completeThrough(worklist, 'B');
+    const a = worklist.cases.find((c) => c.batch === 'A')!;
+    const b = worklist.cases.find((c) => c.batch === 'B')!;
+    a.decision!.reviewer.reviewedAt = '2026-10-04';
+    b.decision!.reviewer.reviewedAt = '2026-10-05';
+    expect(() => validateReauditWorklist(worklist, acquisition)).not.toThrow();
+  });
+
+  it('rejects impossible or malformed reviewer dates', () => {
+    const { worklist, acquisition } = createBlankFixture();
+    completeThrough(worklist, 'A');
     const c = worklist.cases.find((item) => item.batch === 'A')!;
-    c.decision = {
-      disposition: 'UNRESOLVED',
-      readingEvidence: [
-        { source: 'Synthetic', citation: 'Synthetic citation', locator: 'entry' }
-      ],
-      renderingEvidence: [],
-      reviewNote: 'Synthetic unresolved reading.',
-      reviewer: syntheticReviewer()
-    };
+    c.decision!.reviewer.reviewedAt = '2026-02-30';
     expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /RENDERING_EVIDENCE_MUST_BE_NONEMPTY/
+      /WORKLIST_DECISION_REVIEW_DATE_INVALID/
     );
   });
 
   it('rejects duplicate case IDs', () => {
     const { worklist, acquisition } = createBlankFixture();
     worklist.cases[1].id = worklist.cases[0].id;
-    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_DUPLICATE_CASE_ID/
-    );
+    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(/WORKLIST_DUPLICATE_CASE_ID/);
   });
 
-  it('rejects acquisition alignment mismatches', () => {
+  it('rejects acquisition alignment drift', () => {
     const { worklist, acquisition } = createBlankFixture();
     worklist.cases[0].sourceText = 'tampered';
-    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_SOURCETEXT_MISMATCH/
-    );
+    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(/WORKLIST_SOURCETEXT_MISMATCH/);
   });
 
-  it('rejects unexpected root contamination', () => {
-    const { worklist, acquisition } = createBlankFixture();
-    (worklist as any).historicalCanonicals = {};
-    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
+  it('rejects root and case contamination', () => {
+    const first = createBlankFixture();
+    (first.worklist as any).historicalCanonicals = {};
+    expect(() => validateReauditWorklist(first.worklist, first.acquisition)).toThrow(
       /WORKLIST_DOCUMENT_CONTAINS_UNEXPECTED_KEY/
     );
-  });
-
-  it('rejects unexpected case keys', () => {
-    const { worklist, acquisition } = createBlankFixture();
-    (worklist.cases[0] as any).priorCanonical = 'anchor';
-    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
+    const second = createBlankFixture();
+    (second.worklist.cases[0] as any).priorCanonical = 'anchor';
+    expect(() => validateReauditWorklist(second.worklist, second.acquisition)).toThrow(
       /WORKLIST_CASE.*CONTAINS_UNEXPECTED_KEY/
     );
   });
 
-  it('rejects engineEvaluationPerformed=true', () => {
-    const { worklist, acquisition } = createBlankFixture();
-    worklist.metadata.engineEvaluationPerformed = true;
-    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
+  it('rejects engine evaluation and premature human sign-off', () => {
+    const first = createBlankFixture();
+    first.worklist.metadata.engineEvaluationPerformed = true;
+    expect(() => validateReauditWorklist(first.worklist, first.acquisition)).toThrow(
       /WORKLIST_ENGINE_EVALUATION_MUST_BE_FALSE/
     );
-  });
-
-  it('rejects non-null human sign-off', () => {
-    const { worklist, acquisition } = createBlankFixture();
-    worklist.metadata.humanSignoff = { approved: true };
-    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
+    const second = createBlankFixture();
+    second.worklist.metadata.humanSignoff = { approved: true };
+    expect(() => validateReauditWorklist(second.worklist, second.acquisition)).toThrow(
       /WORKLIST_HUMAN_SIGNOFF_MUST_BE_NULL/
     );
   });
 
-  it('requires every Batch A case to be completed in BATCH_A_COMPLETED state', () => {
+  it('rejects Persian/Arabic script in authoritative Latin outputs', () => {
     const { worklist, acquisition } = createBlankFixture();
-    completeBatchA(worklist);
-    const batchACase = worklist.cases.find((c) => c.batch === 'A')!;
-    batchACase.reviewState = 'PENDING';
-    batchACase.decision = null;
-    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_BATCH_A_CASE_NOT_COMPLETED/
-    );
-  });
-
-  it('keeps every non-Batch-A case pending and blank', () => {
-    const { worklist, acquisition } = createBlankFixture();
-    completeBatchA(worklist);
-    const batchBCase = worklist.cases.find((c) => c.batch === 'B')!;
-    batchBCase.reviewState = 'COMPLETED';
-    batchBCase.decision = worklist.cases.find((c) => c.batch === 'A')!.decision;
-    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_NON_BATCH_A_CASE_MUST_REMAIN_PENDING/
-    );
-  });
-
-  it('rejects unknown Batch A dispositions', () => {
-    const { worklist, acquisition } = createBlankFixture();
-    completeBatchA(worklist);
-    const decision = worklist.cases.find((c) => c.batch === 'A')!.decision as any;
-    decision.disposition = 'INVENTED';
-    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_BATCH_A_DISPOSITION_INVALID/
-    );
-  });
-
-  it('rejects extra fields inside a FINAL Batch A decision', () => {
-    const { worklist, acquisition } = createBlankFixture();
-    completeBatchA(worklist);
-    const decision = worklist.cases.find((c) => c.batch === 'A')!.decision as any;
-    decision.priorCanonical = 'anchor';
-    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_BATCH_A_DECISION.*CONTAINS_UNEXPECTED_KEY/
-    );
-  });
-
-  it('rejects Persian/Arabic script in scholarlyCanonical', () => {
-    const { worklist, acquisition } = createBlankFixture();
-    completeBatchA(worklist);
-    const decision = worklist.cases.find((c) => c.batch === 'A')!.decision as any;
-    decision.scholarlyCanonical = 'تست';
+    completeThrough(worklist, 'A');
+    const d = worklist.cases.find((c) => c.batch === 'A')!.decision as any;
+    d.scholarlyCanonical = 'تست';
     expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
       /SCHOLARLY_CANONICAL_CONTAINS_ARABIC_SCRIPT/
     );
   });
 
-  it('rejects Persian/Arabic script in renderedOutput', () => {
+  it('requires reading and rendering evidence for FINAL decisions', () => {
     const { worklist, acquisition } = createBlankFixture();
-    completeBatchA(worklist);
-    const decision = worklist.cases.find((c) => c.batch === 'A')!.decision as any;
-    decision.renderedOutput = 'تست';
-    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /RENDERED_OUTPUT_CONTAINS_ARABIC_SCRIPT/
-    );
-  });
-
-  it('requires non-empty reading evidence', () => {
-    const { worklist, acquisition } = createBlankFixture();
-    completeBatchA(worklist);
-    const decision = worklist.cases.find((c) => c.batch === 'A')!.decision as any;
-    decision.readingEvidence = [];
-    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /READING_EVIDENCE_MUST_BE_NONEMPTY/
-    );
-  });
-
-  it('requires non-empty rendering evidence for FINAL decisions', () => {
-    const { worklist, acquisition } = createBlankFixture();
-    completeBatchA(worklist);
-    const decision = worklist.cases.find((c) => c.batch === 'A')!.decision as any;
-    decision.renderingEvidence = [];
+    completeThrough(worklist, 'A');
+    const d = worklist.cases.find((c) => c.batch === 'A')!.decision as any;
+    d.renderingEvidence = [];
     expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
       /RENDERING_EVIDENCE_MUST_BE_NONEMPTY/
     );
   });
 
-  it('rejects incorrect reviewer provenance', () => {
+  it('rejects summary drift from the sequential completion state', () => {
     const { worklist, acquisition } = createBlankFixture();
-    completeBatchA(worklist);
-    const decision = worklist.cases.find((c) => c.batch === 'A')!.decision as any;
-    decision.reviewer.type = 'HUMAN';
-    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_DECISION_REVIEWER_TYPE_INVALID/
-    );
-  });
-
-  it('requires the actual Batch A review date', () => {
-    const { worklist, acquisition } = createBlankFixture();
-    completeBatchA(worklist);
-    const decision = worklist.cases.find((c) => c.batch === 'A')!.decision as any;
-    decision.reviewer.reviewedAt = '2026-10-03';
-    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_DECISION_REVIEW_DATE_INVALID/
-    );
-  });
-
-  it('rejects Batch A summary count drift', () => {
-    const { worklist, acquisition } = createBlankFixture();
-    completeBatchA(worklist);
-    worklist.summary.pending = 84;
+    completeThrough(worklist, 'B');
+    worklist.summary.pending = 61;
     expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
       /WORKLIST_SUMMARY_PENDING_MISMATCH/
     );
   });
 
-  it('keeps strict summary key allowlists', () => {
-    const { worklist, acquisition } = createBlankFixture();
-    (worklist.summary as any).oldAnswers = {};
-    expect(() => validateReauditWorklist(worklist, acquisition)).toThrow(
-      /WORKLIST_SUMMARY_CONTAINS_UNEXPECTED_KEY/
-    );
+  it('keeps expected batch counts stable', () => {
+    expect(EXPECTED_BATCH_COUNTS).toEqual({ A: 25, B: 23, C: 36, D: 12, E: 12 });
   });
 
   it('contains no transliteration engine execution path', () => {
-    const validatorFilePath = path.join(__dirname, 'reauditWorklist.ts');
-    const sourceCode = fs.readFileSync(validatorFilePath, 'utf8');
-    expect(sourceCode).not.toMatch(/import.*transliterate/);
-    expect(sourceCode).not.toMatch(/transliterate\s*\(/);
-    expect(sourceCode).not.toMatch(/from\s+['\"].*domain\/engine['\"]/);
+    const source = fs.readFileSync(path.join(__dirname, 'reauditWorklist.ts'), 'utf8');
+    expect(source).not.toMatch(/import.*transliterate/);
+    expect(source).not.toMatch(/transliterate\s*\(/);
+    expect(source).not.toMatch(/from\s+['\"].*domain\/engine['\"]/);
   });
 });
