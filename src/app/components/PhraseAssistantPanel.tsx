@@ -58,7 +58,13 @@ export default function PhraseAssistantPanel({
       result.profile,
       result.status,
       result.reviewIssues.map((issue) => issue.id).sort().join(','),
-      reviewDecisions.map((decision) => `${decision.issueId}:${decision.action}`).sort().join(',')
+      reviewDecisions.map((decision) => [
+        decision.issueId,
+        decision.action,
+        decision.selectedAlternativeId ?? '',
+        decision.manualCanonicalTransliteration ?? '',
+        decision.note ?? ''
+      ].join(':')).sort().join(',')
     ].join('::'),
     [result.normalizedInput, result.profile, result.status, result.reviewIssues, reviewDecisions]
   );
@@ -108,7 +114,13 @@ export default function PhraseAssistantPanel({
         body: JSON.stringify({
           input: result.originalInput,
           profile: result.profile,
-          reviewDecisions
+          reviewDecisions: reviewDecisions.map((decision) => ({
+            issueId: decision.issueId,
+            action: decision.action,
+            selectedAlternativeId: decision.selectedAlternativeId,
+            manualCanonicalTransliteration: decision.manualCanonicalTransliteration,
+            note: decision.note
+          }))
         })
       });
 
