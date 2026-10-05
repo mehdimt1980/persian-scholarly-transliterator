@@ -4,15 +4,15 @@
     "artifactType": "BLIND_REAUDIT_WORKLIST",
     "sourceCorpus": "validation/acquisition/external-candidates.v1.json",
     "sourceCorpusCount": 108,
-    "status": "BATCH_D_COMPLETED",
+    "status": "BATCH_E_COMPLETED",
     "engineEvaluationPerformed": false,
     "humanSignoff": null,
     "priorAdjudicationAuthority": "HISTORICAL_ONLY"
   },
   "summary": {
     "total": 108,
-    "pending": 12,
-    "adjudicated": 96,
+    "pending": 0,
+    "adjudicated": 108,
     "byBatch": {
       "A": 25,
       "B": 23,
@@ -3583,8 +3583,40 @@
       "category": "AMBIGUITY",
       "profile": "ijmes_full",
       "batch": "E",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "REVIEW_REQUIRED",
+        "nonAuthoritativeAlternatives": [
+          {
+            "reading": "mihr",
+            "source": "Steingass p. 1353"
+          },
+          {
+            "reading": "muhr",
+            "source": "Steingass p. 1353"
+          }
+        ],
+        "readingEvidence": [
+          {
+            "source": "Steingass",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 1353",
+            "locator": "p. 1353; مهر"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide and Persian Transliteration Chart (Cambridge University Press)",
+            "locator": "Persian i/u, consonant mappings, and written-form transliteration rules"
+          }
+        ],
+        "reviewNote": "The unvocalized source supports materially distinct readings: mihr (love/sun/Mithra-related senses) and muhr (seal/stamp). Context is required; no single authoritative canonical is safe.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-amb-002",
@@ -3592,8 +3624,32 @@
       "category": "AMBIGUITY",
       "profile": "ijmes_full",
       "batch": "E",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "shīr",
+        "renderedOutput": "shīr",
+        "readingEvidence": [
+          {
+            "source": "Steingass",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 773",
+            "locator": "p. 773; شیر"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide and Persian Transliteration Chart (Cambridge University Press)",
+            "locator": "Persian i/u, consonant mappings, and written-form transliteration rules"
+          }
+        ],
+        "reviewNote": "Steingass attests semantic/historical pronunciation distinctions (including lion vs milk), but under the project IJMES Persian system the material benchmark output collapses to shīr; no transliteration-level choice remains.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-amb-003",
@@ -3601,8 +3657,40 @@
       "category": "AMBIGUITY",
       "profile": "ijmes_full",
       "batch": "E",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "REVIEW_REQUIRED",
+        "nonAuthoritativeAlternatives": [
+          {
+            "reading": "sar",
+            "source": "Steingass p. 671"
+          },
+          {
+            "reading": "sirr",
+            "source": "Steingass p. 671"
+          }
+        ],
+        "readingEvidence": [
+          {
+            "source": "Steingass",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 671",
+            "locator": "p. 671; سر"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide and Persian Transliteration Chart (Cambridge University Press)",
+            "locator": "Persian i/u, consonant mappings, and written-form transliteration rules"
+          }
+        ],
+        "reviewNote": "The same Persian surface can represent native Persian sar (head/top) or Arabic-derived sirr (secret). These remain materially distinct in IJMES, so context is required.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-amb-004",
@@ -3610,8 +3698,32 @@
       "category": "AMBIGUITY",
       "profile": "ijmes_full",
       "batch": "E",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "bād",
+        "renderedOutput": "bād",
+        "readingEvidence": [
+          {
+            "source": "Steingass",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 138",
+            "locator": "p. 138; باد"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide and Persian Transliteration Chart (Cambridge University Press)",
+            "locator": "Persian i/u, consonant mappings, and written-form transliteration rules"
+          }
+        ],
+        "reviewNote": "Distinct senses/grammatical uses share the same scholarly transliteration bād; semantic ambiguity does not create a transliteration-level ambiguity.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-amb-005",
@@ -3619,8 +3731,32 @@
       "category": "AMBIGUITY",
       "profile": "ijmes_full",
       "batch": "E",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "bār",
+        "renderedOutput": "bār",
+        "readingEvidence": [
+          {
+            "source": "Steingass",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 142",
+            "locator": "p. 142; بار"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide and Persian Transliteration Chart (Cambridge University Press)",
+            "locator": "Persian i/u, consonant mappings, and written-form transliteration rules"
+          }
+        ],
+        "reviewNote": "The attested senses share the same scholarly transliteration bār; no output-level ambiguity remains.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-amb-006",
@@ -3628,8 +3764,32 @@
       "category": "AMBIGUITY",
       "profile": "ijmes_full",
       "batch": "E",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "dād",
+        "renderedOutput": "dād",
+        "readingEvidence": [
+          {
+            "source": "Steingass",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 496",
+            "locator": "p. 496; داد"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide and Persian Transliteration Chart (Cambridge University Press)",
+            "locator": "Persian i/u, consonant mappings, and written-form transliteration rules"
+          }
+        ],
+        "reviewNote": "Noun and verbal/past-stem readings represented by this surface converge on dād in the benchmark transliteration system.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-amb-007",
@@ -3637,8 +3797,40 @@
       "category": "AMBIGUITY",
       "profile": "ijmes_full",
       "batch": "E",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "REVIEW_REQUIRED",
+        "nonAuthoritativeAlternatives": [
+          {
+            "reading": "gul",
+            "source": "Steingass p. 1092"
+          },
+          {
+            "reading": "gil",
+            "source": "Steingass p. 1092"
+          }
+        ],
+        "readingEvidence": [
+          {
+            "source": "Steingass",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 1092",
+            "locator": "p. 1092; گل"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide and Persian Transliteration Chart (Cambridge University Press)",
+            "locator": "Persian i/u, consonant mappings, and written-form transliteration rules"
+          }
+        ],
+        "reviewNote": "The unvocalized surface represents at least gul (flower/rose) and gil (clay/mud). IJMES preserves the u/i distinction, so context is required.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-amb-008",
@@ -3646,8 +3838,32 @@
       "category": "AMBIGUITY",
       "profile": "ijmes_full",
       "batch": "E",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "gūsh",
+        "renderedOutput": "gūsh",
+        "readingEvidence": [
+          {
+            "source": "Steingass",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 1105",
+            "locator": "p. 1105; گوش"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide and Persian Transliteration Chart (Cambridge University Press)",
+            "locator": "Persian i/u, consonant mappings, and written-form transliteration rules"
+          }
+        ],
+        "reviewNote": "Attested senses represented by this surface retain the same scholarly reading gūsh; no transliteration-level ambiguity remains.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-amb-009",
@@ -3655,8 +3871,40 @@
       "category": "AMBIGUITY",
       "profile": "ijmes_full",
       "batch": "E",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "REVIEW_REQUIRED",
+        "nonAuthoritativeAlternatives": [
+          {
+            "reading": "shūr",
+            "source": "Steingass p. 764"
+          },
+          {
+            "reading": "shawr",
+            "source": "Steingass p. 764"
+          }
+        ],
+        "readingEvidence": [
+          {
+            "source": "Steingass",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 764",
+            "locator": "p. 764; شور"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide and Persian Transliteration Chart (Cambridge University Press)",
+            "locator": "Persian i/u, consonant mappings, and written-form transliteration rules"
+          }
+        ],
+        "reviewNote": "The surface can represent Persian shūr (salty/excitement/modal-system senses) and the distinct counsel/consultation reading represented as shawr under the project IJMES written-diphthong policy. Context is required.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-amb-010",
@@ -3664,8 +3912,32 @@
       "category": "AMBIGUITY",
       "profile": "ijmes_full",
       "batch": "E",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "rāst",
+        "renderedOutput": "rāst",
+        "readingEvidence": [
+          {
+            "source": "Steingass",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 563",
+            "locator": "p. 563; راست"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide and Persian Transliteration Chart (Cambridge University Press)",
+            "locator": "Persian i/u, consonant mappings, and written-form transliteration rules"
+          }
+        ],
+        "reviewNote": "Directional, adjectival, truth-related, and modal senses share the same scholarly reading rāst; semantic breadth alone does not require review.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-amb-011",
@@ -3673,8 +3945,40 @@
       "category": "AMBIGUITY",
       "profile": "ijmes_full",
       "batch": "E",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "REVIEW_REQUIRED",
+        "nonAuthoritativeAlternatives": [
+          {
+            "reading": "rūy",
+            "source": "Steingass p. 598"
+          },
+          {
+            "reading": "ravī",
+            "source": "Steingass p. 598"
+          }
+        ],
+        "readingEvidence": [
+          {
+            "source": "Steingass",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 598",
+            "locator": "p. 598; روی"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide and Persian Transliteration Chart (Cambridge University Press)",
+            "locator": "Persian i/u, consonant mappings, and written-form transliteration rules"
+          }
+        ],
+        "reviewNote": "The unvocalized surface supports rūy (face/on/zinc and related native readings) and Arabic-derived ravī (rhyme-letter/related reading). These remain materially distinct in IJMES, so context is required.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-amb-012",
@@ -3682,8 +3986,32 @@
       "category": "AMBIGUITY",
       "profile": "ijmes_full",
       "batch": "E",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "gāv",
+        "renderedOutput": "gāv",
+        "readingEvidence": [
+          {
+            "source": "Steingass",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 1078",
+            "locator": "p. 1078; گاو"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide and Persian Transliteration Chart (Cambridge University Press)",
+            "locator": "Persian i/u, consonant mappings, and written-form transliteration rules"
+          }
+        ],
+        "reviewNote": "The attested lexical senses share the scholarly reading gāv; no transliteration-level ambiguity remains.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     }
   ]
 }
