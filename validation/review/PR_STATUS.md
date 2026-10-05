@@ -1,4 +1,4 @@
-# Phase 4.6 Governance & Benchmark Status
+# Phase 4.6 Governance, Remediation & Release Status
 
 ## Completed and merged
 
@@ -16,6 +16,13 @@
 - PR #24 — V2 human-governance sign-off readiness packet.
 - PR #25 — explicit human governance `APPROVE` and external-manifest gold freeze; merge commit `4d50f30d52eb6e878058c2d7fcb2c282a291fcbc`.
 - PR #26 — independent pre-remediation Phase 4.6C frozen baseline; merge commit `b644c2a1c0159545d16838db061015f7a16c0390`.
+- PR #28 — post-baseline deterministic reviewed-authority remediation; merge commit `5cd6ba47c8cbd57ff2e948ace26b451df52c8134`.
+- PR #29 — authority-independent release portability / anti-overreach gate; merge commit `fc18a486f5ad78a229a59d7e2cf56da28e123023`.
+
+## Closed without merge
+
+- PR #27 — narrow lexical-ambiguity remediation; superseded by the broader merged PR #28.
+- PR #30 — temporary framework-upgrade experiment; superseded by the clean security branch/PR #31.
 
 ## Frozen scholarly gold
 
@@ -30,7 +37,7 @@ Frozen gold is immutable for runtime remediation.
 
 ## Independent Phase 4.6C baseline — completed before remediation
 
-PR #26 measured the current engine against the frozen benchmark before any benchmark-derived runtime authority was introduced.
+PR #26 measured the engine against frozen gold before benchmark-derived reviewed authority was introduced.
 
 | Classification | Count |
 |---|---:|
@@ -42,56 +49,71 @@ PR #26 measured the current engine against the frozen benchmark before any bench
 | `ISSUE_TYPE_MISMATCH` | 5 |
 | `INVALID_GOLD_CASE` | 0 |
 
-- authoritative exact-match rate: `5 / 103 = 4.85%`
-- safe-behavior rate: `103 / 108 = 95.37%`
-- canonical mismatches among authoritative outputs: 0
-- rendering mismatches among authoritative outputs: 0
-- dominant gap: over-blocked coverage / generic `UNKNOWN_TOKEN`
-- historical measurement artifact: `validation/review/phase4.6c-baseline.v1.json`
+This remains the independent pre-remediation measurement. It must not be rewritten after remediation.
 
-The five issue-type mismatches are exactly the frozen `REVIEW_REQUIRED` ambiguity cases; they were safely blocked but surfaced `UNKNOWN_TOKEN` instead of `LEXICAL_AMBIGUITY`.
+## Post-remediation frozen regression — current
 
-## Current open work — PR #28
+After PR #28, the human-approved 108-case artifact is a frozen **regression suite**, not an unseen post-remediation benchmark.
 
-PR #28 (`phase4.6c/reviewed-authority-promotion`) is a **post-baseline remediation** change.
-
-It proposes a deterministic reviewed-authority layer sourced from the already human-approved frozen V2 decisions.
-
-Authority boundary:
-
-1. exact normalized Persian input + exact profile only;
-2. no fuzzy, substring, prefix, edit-distance, or semantic matching;
-3. FINAL entries return the frozen scholarly canonical and publication rendering independently;
-4. the five frozen ambiguity entries remain non-copyable `LEXICAL_AMBIGUITY` cases;
-5. custom `LexiconRepository` execution bypasses the frozen authority layer;
-6. misses continue through the previous fail-closed compositional pipeline.
-
-No frozen-gold file or scholarly answer is modified by PR #28.
-
-## Evaluation semantics after PR #28
-
-The 108-case benchmark was independent for the PR #26 baseline.
-
-If reviewed decisions are promoted into runtime authority, that same 108-case artifact becomes a **frozen regression suite**, not an unseen post-remediation accuracy set. This distinction must remain explicit in release claims.
-
-PR #28 adds the hard regression command:
+Hard gate:
 
 `npm run validate:v2-regression`
 
-It requires 103/103 authoritative exact matches, 5/5 correctly blocked review-required cases, and zero false-authoritative / under-blocked / mismatch classifications.
+Required result:
+
+- 103/103 `CORRECT_AUTHORITATIVE`
+- 5/5 `CORRECT_REVIEW_REQUIRED`
+- `FALSE_AUTHORITATIVE = 0`
+- `OVER_BLOCKED = 0`
+- `UNDER_BLOCKED = 0`
+- `ISSUE_TYPE_MISMATCH = 0`
+- `INVALID_GOLD_CASE = 0`
+
+## Independent anti-overreach evidence — merged
+
+PR #29 adds `npm run validate:portability` over 13 cases with zero exact-key overlap with frozen reviewed authority:
+
+- 8 compositional positives;
+- 5 fail-closed negatives;
+- frozen-authority overlap = 0.
+
+This supports a narrow portability / non-leakage claim and is not presented as a broad unseen scholarly accuracy benchmark.
+
+## Current release hardening — PR #31
+
+PR #31 (`security/next16-active-lts-clean`) is the clean dependency/security migration from the current `main` baseline.
+
+Validated migration target:
+
+- Next.js `16.3.8` (Active LTS security release)
+- React / React DOM `19.3.0`
+- Vitest `4.1.11`
+- `oxlint` `1.86.0` as development-only lint tooling
+- legacy `eslint` / `eslint-config-next` chain removed
+
+The migration has already passed, on a reproducible GitHub Actions runner:
+
+- full unit tests;
+- frozen V2 regression;
+- release portability gate;
+- existing pilot corpus;
+- typecheck;
+- lint;
+- production build;
+- `npm audit --audit-level=high`.
+
+PR #31 also makes the high/critical dependency audit a permanent CI gate.
 
 ## Remaining release gates
 
-1. Review PR #28 exact diff and exact-head CI; merge only if full regression and existing pilot gates pass.
+1. Review and merge PR #31 only if final exact-head CI is green and the temporary regeneration workflow is absent from the final diff.
 2. Verify post-merge CI on `main`.
-3. Add **independent anti-overreach / held-out evidence** that is not the promoted 108-case authority set.
-4. Confirm near misses, wrong profiles, unrelated unknown Persian, and custom-lexicon paths remain fail-closed/isolated.
-5. Resolve dependency/security findings before release, including the currently warned Next.js version and npm audit findings.
-6. Rerun all frozen regressions, pilot validation, held-out checks, typecheck, lint, and production build.
-7. Complete release documentation/versioning and create the release only after those gates pass.
+3. Finalize release documentation and package/application versioning.
+4. Create the release/tag only after the release commit itself passes the complete CI/security suite.
 
 Primary safety invariants remain:
 
 - `FALSE_AUTHORITATIVE = 0`
 - `UNDER_BLOCKED = 0`
-- frozen gold is not changed to improve engine metrics.
+- frozen gold is not changed to improve engine metrics
+- post-remediation regression is not represented as an unseen benchmark
