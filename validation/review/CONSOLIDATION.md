@@ -1,46 +1,38 @@
 # Adjudication Consolidation
 
-Phase 4.6B scholarly truth is now consolidated in:
+## Current Validation V2 benchmark
 
-`validation/review/adjudication.v1.json`
+The current Phase 4.6B scholarly re-audit is consolidated in:
 
-Current artifact version:
+`validation/corpus/phase4.6b-external-benchmark.v2.json`
 
-`1.0.2-draft`
+It is generated deterministically from:
 
-The historical correction trail remains in:
-
-`validation/review/adjudication-amendments.v1.json`
-
-That file is now marked `CONSOLIDATED`; it is audit provenance, not a second executable layer of gold truth.
+`validation/review/reaudit-worklist.v2.json`
 
 Use:
 
 ```bash
-npm run validate:adjudication
+npm run validate:v2-benchmark
 ```
 
-to fail closed unless all of the following are true:
+to fail closed unless the committed V2 artifact is an exact deterministic projection of the completed re-audit worklist and all V2 schema/governance invariants hold.
 
-- the adjudication artifact contains exactly 108 unique cases;
-- dispositions remain 103 `FINAL`, 5 `REVIEW_REQUIRED`, 0 `UNRESOLVED`;
-- every `FINAL` case has exactly one canonical and no `allowedCanonicals`;
-- every `REVIEW_REQUIRED` case has no single canonical and at least two recorded alternatives;
-- the five expected ambiguity IDs are the only `REVIEW_REQUIRED` cases;
-- adjudication IDs, Persian `sourceText`, and categories match the frozen Phase 4.6A acquisition corpus;
-- every historical amendment's `to` value is present in the consolidated artifact;
-- amendment metadata points to the current adjudication version;
-- `engineEvaluationPerformed` remains false;
-- human sign-off has not been fabricated prematurely.
-
-Expected disposition counts:
+Current V2 state:
 
 - total: 108
-- FINAL: 103
-- REVIEW_REQUIRED: 5
-- UNRESOLVED: 0
+- `FINAL`: 103
+- `REVIEW_REQUIRED`: 5
+- `UNRESOLVED`: 0
+- pending: 0
+- corpus tier: `EXTERNAL_BENCHMARK`
+- review status: `AI_SPECIALIST_REVIEWED_PENDING_HUMAN`
+- `humanSignoff = null`
+- gold: **not frozen**
+- `engineEvaluationPerformed = false`
+- Phase 4.6C: **blocked**
 
-Expected REVIEW_REQUIRED case IDs:
+The five `REVIEW_REQUIRED` cases remain:
 
 - `cand-amb-001`
 - `cand-amb-003`
@@ -48,6 +40,35 @@ Expected REVIEW_REQUIRED case IDs:
 - `cand-amb-009`
 - `cand-amb-011`
 
-There is intentionally no command that rewrites or reapplies the historical amendment ledger. Any future scholarly correction after human sign-off must use an explicit corpus-correction process with new provenance rather than silently mutating the frozen gold artifact.
+For those cases the V2 corpus contains no authoritative `scholarlyCanonical` or `renderedOutput` field. Candidate readings remain non-gold review context only in the specialist worklist.
 
-The engine must not be evaluated against this corpus before gold freeze. Explicit human governance sign-off is still required before promotion to a release-authoritative benchmark.
+For every `FINAL` case, Validation V2 independently records:
+
+1. `scholarlyCanonical` — source-faithful, diacritic-preserving scholarly transliteration;
+2. `renderedOutput` — publication/profile presentation.
+
+The consolidation process does not call the transliteration engine, consult runtime output, or alter scholarly decisions to improve metrics.
+
+## Historical Validation V1 adjudication
+
+The earlier artifact remains available for audit history at:
+
+`validation/review/adjudication.v1.json`
+
+Historical version:
+
+`1.0.2-draft`
+
+Its correction trail remains in:
+
+`validation/review/adjudication-amendments.v1.json`
+
+The amendment ledger is `CONSOLIDATED` and retained as provenance only. The historical V1 path is explicitly `HISTORICAL_ONLY` for the Phase 4.6B V2 benchmark because V1 could conflate scholarly canonical transliteration with publication rendering.
+
+`npm run validate:adjudication` therefore remains a historical-integrity check; it does **not** promote V1 values over the re-audited V2 benchmark.
+
+## Next governance gate
+
+Explicit human governance sign-off is still required. Only after that approval may the V2 benchmark be promoted from draft/pending-human status, frozen as scholarly gold, and used for blind Phase 4.6C engine evaluation.
+
+Any later scholarly correction to frozen gold must use an explicit corpus-correction process with new provenance. Gold must never be silently rewritten to improve engine metrics.
