@@ -1,126 +1,83 @@
-# Phase 4.6B — Human Sign-Off Checklist
+# Phase 4.6B — Human Governance Sign-Off
 
-> [!WARNING]
-> **HUMAN GOVERNANCE SIGN-OFF PAUSED**
+> [!IMPORTANT]
+> **READY FOR HUMAN GOVERNANCE REVIEW — NOT YET APPROVED**
 >
-> Formal human governance sign-off on Phase 4.6B is currently **PAUSED**.
+> The canonical-vs-rendering contract repair, 108-case blind V2 specialist re-audit, and deterministic V2 consolidation are complete. The earlier pause condition has therefore been resolved.
 >
-> During attempted human review, a material contract ambiguity was identified between **Scholarly Canonical Transliteration** (linguistic/scholarly reading truth preserving all diacritics) and **Publication Rendering** (style-dependent presentation such as proper-name diacritic removal, title capitalization, and IJMES Word List forms).
->
-> Sign-off may resume only after:
-> 1. The validation contract is formally updated (see `CANONICAL_RENDERING_CONTRACT.md`);
-> 2. Affected benchmark cases are systematically re-audited to separate canonical gold from rendering gold;
-> 3. The consolidated benchmark artifact is regenerated/updated;
-> 4. A fresh representative human review is performed against the separated fields.
->
-> All checklist items below remain unapproved drafts pending completion of the contract repair and re-audit.
+> This document is intentionally **unsigned**. `humanSignoff` remains `null`, the benchmark remains `2.0.0-draft`, gold is not frozen, and Phase 4.6C remains blocked until an explicitly named human reviewer records a decision.
 
 ## Purpose
 
-This checklist is the final human approval layer over the specialist adjudication in:
+This is the human governance layer over the consolidated Validation V2 benchmark:
 
-- `validation/review/adjudication.v1.json`
-- `validation/review/adjudication-amendments.v1.json`
-- `validation/review/REVIEW_POLICY.md`
-- `validation/review/REVIEW_SUMMARY.md`
-- `validation/review/ADJUDICATION_AUDIT.md`
+- `validation/corpus/phase4.6b-external-benchmark.v2.json`
+- `validation/review/reaudit-worklist.v2.json`
+- `validation/review/CONSOLIDATED_V2_BENCHMARK.md`
+- `validation/review/SIGNOFF_PACKET_V2.md`
+- `validation/review/CANONICAL_RENDERING_CONTRACT.md`
+- `validation/V2_SCHEMA.md`
 
-Primary case-by-case adjudication was performed by OpenAI GPT-5.6 Sol acting as a specialist reviewer. Human sign-off does **not** retroactively make the AI the human reviewer; provenance must continue to state both roles truthfully.
+Primary case-by-case adjudication was performed by OpenAI GPT-5.6 Sol with reviewer type `AI_SPECIALIST`. Human sign-off does **not** relabel those case-level decisions as human-authored. It approves the governance basis, representative/high-risk decisions, preserved ambiguity, provenance model, and readiness to freeze the benchmark.
 
-Do not sign until all recorded amendments have been consolidated into the final adjudication artifact and the checklist has been checked against that consolidated artifact.
+## What approval means
 
-## Policy assertions to approve
+By selecting `APPROVE`, the human reviewer confirms that they have reviewed the policy and representative/high-risk material in `SIGNOFF_PACKET_V2.md` and accept the consolidated V2 benchmark as the scholarly gold candidate to be frozen in the next explicit promotion step.
 
-- [ ] I approve Cambridge IJMES as the rendering-policy authority for this benchmark.
-- [ ] I approve the separation of reading/identity evidence (e.g. Iranica, dictionaries, authority files) from IJMES rendering authority.
-- [ ] I approve Persian `i/u`, IJMES diphthong handling, consonant-final izafat `-i`, and post-vocalic/linker `-yi` as applied in this review.
-- [ ] I approve IJMES Word List forms taking precedence where explicitly prescribed (e.g. `zakat`, `ʿAshuraʾ`).
-- [ ] I approve no-diacritic presentation for personal names, place names, and organizations, with established English spellings used where appropriate.
-- [ ] I approve IJMES no-diacritic title presentation with ʿayn/hamza retained and English capitalization conventions.
-- [ ] I approve source-faithfulness: adjudication must transliterate the supplied Persian source string rather than silently substitute a different personal/place/title name.
-- [ ] I approve `REVIEW_REQUIRED` as a correct gold outcome where the Persian surface alone cannot safely determine one reading.
-- [ ] I confirm that gold truth must not be altered later merely to improve engine metrics.
+Approval does **not** mean:
 
-## Representative case spot-checks
+- the human reviewer personally re-adjudicated every one of the 108 cases;
+- AI specialist provenance may be removed or rewritten;
+- current engine behavior has been validated against the benchmark;
+- runtime gaps may be repaired by changing gold;
+- the five `REVIEW_REQUIRED` cases may be forced into single readings;
+- Phase 4.6C has already run.
 
-The purpose of these samples is to expose each major policy decision, not to conceal the full corpus behind a small subset.
+## Governance assertions to review
 
-### Technical terms
+- [ ] I approve the separation between **scholarly canonical transliteration** and **publication rendering**.
+- [ ] I approve reading/identity evidence as distinct from IJMES rendering-policy evidence.
+- [ ] I approve Cambridge IJMES as the publication-rendering authority used by this benchmark.
+- [ ] I approve the applied Persian transliteration conventions, including Persian `i/u`, scholarly consonantal distinctions, written diphthong handling where applicable, consonant-final izāfat `-i`, and post-vocalic/linker `-yi`.
+- [ ] I approve source-faithfulness: the exact supplied Persian surface is adjudicated rather than silently replaced by an alias, translation, or expanded identity.
+- [ ] I approve the rule that IJMES Word List or established English-facing forms belong to the **rendering layer** and do not overwrite scholarly canonical truth.
+- [ ] I approve `REVIEW_REQUIRED` as a successful gold outcome when an unvocalized Persian surface supports materially different readings.
+- [ ] I approve the invariant that gold may not later be changed merely to improve engine metrics.
+- [ ] I approve preservation of AI specialist reviewer provenance after human governance approval.
 
-- [ ] `نوسازی` → `nawsāzī`
-- [ ] `مشروطه‌خواهی` → `mashrūṭih-khwāhī`
-- [ ] `روشنفکری` → `rawshanfikrī`
-- [ ] `کارگزاری` → `kārguzārī`
+## Benchmark integrity assertions
 
-### Religious terms / Word List
+- [ ] I confirm the benchmark contains 108 cases: 103 `FINAL`, 5 `REVIEW_REQUIRED`, 0 `UNRESOLVED`.
+- [ ] I confirm all 108 specialist reviews are complete and 0 cases remain pending.
+- [ ] I confirm the five `REVIEW_REQUIRED` IDs are exactly `cand-amb-001`, `cand-amb-003`, `cand-amb-007`, `cand-amb-009`, and `cand-amb-011`.
+- [ ] I confirm non-final cases contain no authoritative `scholarlyCanonical` or `renderedOutput`.
+- [ ] I confirm the consolidated artifact is deterministically generated from the completed worklist and guarded by `npm run validate:v2-benchmark`.
+- [ ] I confirm historical V1 adjudication remains `HISTORICAL_ONLY` and is not the authority for V2 scholarly truth.
+- [ ] I confirm `engineEvaluationPerformed = false` and that the benchmark was established before Phase 4.6C engine evaluation.
 
-- [ ] `اجتهاد` → `ijtihād`
-- [ ] `ولایت فقیه` → `vilāyat-i faqīh`
-- [ ] `زکات` → `zakat`
-- [ ] `عاشورا` → `ʿAshuraʾ`
+## Representative/high-risk review
 
-### Personal names
+Review the full table and rationale in `SIGNOFF_PACKET_V2.md`, with particular attention to:
 
-- [ ] `صادق هدایت` → `Sadeq Hedayat`
-- [ ] `ملک‌الشعرای بهار` → `Malek al-Shoʿara Bahar`
-- [ ] `جلال آل‌احمد` → `Jalal Al-e Ahmad`
-- [ ] `پروین اعتصامی` → `Parvin E'tesami`
-- [ ] `سهراب سپهری` → `Sohrab Sepehri`
+- scholarly canonical vs publication rendering for `زکات` and `عاشورا`;
+- `Ṣādiq Hidāyat` vs `Sadeq Hedayat`;
+- explicit Persian izāfat in `Malik al-Shuʿarā-yi Bahār`;
+- source-faithful place canonicals vs accepted English renderings (`Takht-i Jamshīd` → `Persepolis`, `Pāsārgād` → `Pasargadae`);
+- title morphology and izāfat (`Safarnāma-yi Nāṣir-i Khusraw`, `Chashm-hā-yash`);
+- the five deliberately unresolved homographs.
 
-### Places
-
-- [ ] `آذربایجان` → `Azerbaijan`
-- [ ] `تخت جمشید` → `Persepolis`
-- [ ] `پاسارگاد` → `Pasargadae`
-
-### Organizations
-
-- [ ] `کتابخانه ملی ایران` → `Kitabkhana-yi Milli-yi Iran`
-- [ ] `مجلس شورای ملی` → `Majlis-i Shura-yi Milli`
-- [ ] `دارالفنون` → `Dar al-Funun`
-
-### Book titles
-
-- [ ] `تاریخ بیداری ایرانیان` → `Tarikh-i Bidari-yi Iraniyan`
-- [ ] `سیاست‌نامه` → `Siyasat-nama`
-- [ ] `سفرنامه ناصرخسرو` → `Safarnama-yi Nasir-i Khusraw`
-- [ ] `سووشون` → `Suvashun`
-- [ ] `چشم‌هایش` → `Chashmhayash`
-- [ ] `زمستان` → `Zimistan`
-
-### Morphology
-
-- [ ] `کتاب‌ها` → `kitāb-hā`
-- [ ] `نامه‌های` → `nāma-hā-yi`
-- [ ] `خانه‌ات` → `khāna-at`
-- [ ] `دیدگاه‌هایشان` → `dīdgāh-hā-yi-shān`
-- [ ] `گزارش‌های` → `guzārish-hā-yi`
-
-### Izafat
-
-- [ ] `تاریخ ادبیات` → `tārīkh-i adabīyāt`
-- [ ] `خانه پدری` → `khāna-yi pidarī`
-- [ ] `صدای باران` → `ṣidā-yi bārān`
-- [ ] `دیوان حافظ` → `dīvān-i ḥāfiẓ`
-
-### Ambiguity behavior
-
-- [ ] `مهر` → `REVIEW_REQUIRED` (`mihr` / `muhr`)
-- [ ] `سر` → `REVIEW_REQUIRED` (`sar` / `sirr`)
-- [ ] `گل` → `REVIEW_REQUIRED` (`gul` / `gil`)
-- [ ] `شور` → `REVIEW_REQUIRED` (`shūr` / `shawr`)
-- [ ] `روی` → `REVIEW_REQUIRED` (`rūy` / `ravī`)
-- [ ] `شیر` → `FINAL: shīr` because the relevant readings collapse to the same material IJMES output
+- [ ] I have reviewed the representative/high-risk packet and do not see a material scholarly or governance blocker to gold freeze.
 
 ## Runtime-gap acknowledgment
 
-- [ ] I understand that the present engine cannot yet faithfully express the adjudicated PERSON/PLACE/INSTITUTION IJMES presentation policy because the runtime exposes only `ijmes_full` and `ijmes_title`.
-- [ ] I approve fixing that runtime policy before treating Phase 4.6C as a product-quality benchmark result.
-- [ ] I understand that fixing the runtime must not rewrite the gold corpus.
+The current benchmark intentionally describes scholarly truth independently from current engine capability. In particular, V2 may require publication rendering behavior for PERSON/PLACE/INSTITUTION cases that the present runtime profile model does not yet faithfully express.
+
+- [ ] I understand that Phase 4.6C may expose runtime/profile gaps even when the benchmark is correct.
+- [ ] I approve fixing runtime behavior after frozen-benchmark evaluation rather than rewriting benchmark truth to match current implementation.
 
 ## Sign-off declaration
 
-Leave blank until explicit approval.
+**Leave this section blank until the reviewer explicitly decides.**
 
 **Human reviewer:**
 
@@ -132,4 +89,4 @@ Leave blank until explicit approval.
 
 **Notes:**
 
-Upon `APPROVE`, promotion tooling may record the corpus as human-approved while retaining transparent provenance that the primary case-by-case adjudication was AI-specialist-assisted and then explicitly approved by the named human reviewer.
+After an explicit `APPROVE`, a separate promotion/freeze change must record human governance approval while retaining permanent AI-specialist case provenance. Only after that freeze may Phase 4.6C execute against the frozen benchmark.
