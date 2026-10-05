@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { containsArabicScript } from '../../domain/bibliography/scriptDetection';
 import {
-  CorpusMetadataSchema,
   ReviewIssueTypeSchema,
   ScholarlyCategorySchema,
   ValidationExpectedDispositionSchema,
@@ -76,7 +75,6 @@ export const ScholarlyValidationCaseV2Schema = z.object({
     data.expected.allowedRenderedOutputs.length > 0;
 
   if (isFinal) {
-    // 1. Scholarly Canonical expectation validation
     if (!hasCanonical && !hasAllowedCanonical) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -125,7 +123,6 @@ export const ScholarlyValidationCaseV2Schema = z.object({
       }
     }
 
-    // 2. Rendered output expectation validation
     if (!hasRendered && !hasAllowedRendered) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -174,7 +171,6 @@ export const ScholarlyValidationCaseV2Schema = z.object({
       }
     }
   } else {
-    // Non-FINAL dispositions (REVIEW_REQUIRED, UNRESOLVED) must NOT specify authoritative outputs
     if (hasCanonical) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -206,9 +202,64 @@ export const ScholarlyValidationCaseV2Schema = z.object({
   }
 });
 
+export const ValidationV2CorpusMetadataSchema = z.object({
+  id: z.string().min(1),
+  version: z.string().min(1),
+  description: z.string().min(1),
+  tier: z.enum(['PILOT', 'REAL_DISSERTATION', 'EXTERNAL_BENCHMARK']),
+  reviewStatus: z.enum([
+    'SOURCE_BACKED_FIXTURE',
+    'AI_SPECIALIST_REVIEWED_PENDING_HUMAN',
+    'HUMAN_REVIEWED'
+  ]),
+  reviewer: z.string().optional(),
+  reviewedAt: z.string().optional(),
+  reviewNote: z.string().optional()
+}).superRefine((data, ctx) => {
+  if (data.reviewStatus === 'HUMAN_REVIEWED') {
+    if (!data.reviewer || data.reviewer.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Corpus reviewStatus is HUMAN_REVIEWED but reviewer field is missing or empty.',
+        path: ['reviewer']
+      });
+    }
+    if (!data.reviewedAt || data.reviewedAt.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Corpus reviewStatus is HUMAN_REVIEWED but reviewedAt field is missing or empty.',
+        path: ['reviewedAt']
+      });
+    }
+  }
+
+  if (data.reviewStatus === 'AI_SPECIALIST_REVIEWED_PENDING_HUMAN') {
+    if (!data.reviewer || data.reviewer.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Corpus reviewStatus is AI_SPECIALIST_REVIEWED_PENDING_HUMAN but reviewer field is missing or empty.',
+        path: ['reviewer']
+      });
+    } else if (!data.reviewer.includes('AI_SPECIALIST')) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'AI-specialist-reviewed corpus reviewer must explicitly identify AI_SPECIALIST provenance.',
+        path: ['reviewer']
+      });
+    }
+    if (!data.reviewedAt || data.reviewedAt.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Corpus reviewStatus is AI_SPECIALIST_REVIEWED_PENDING_HUMAN but reviewedAt field is missing or empty.',
+        path: ['reviewedAt']
+      });
+    }
+  }
+});
+
 export const SingleValidationCorpusV2Schema = z.object({
   schemaVersion: z.literal(2),
-  metadata: CorpusMetadataSchema,
+  metadata: ValidationV2CorpusMetadataSchema,
   cases: z.array(ScholarlyValidationCaseV2Schema)
 }).superRefine((data, ctx) => {
   const seenIds = new Set<string>();
@@ -222,23 +273,6 @@ export const SingleValidationCorpusV2Schema = z.object({
     }
     seenIds.add(c.id);
   });
-
-  if (data.metadata.reviewStatus === 'HUMAN_REVIEWED') {
-    if (!data.metadata.reviewer || data.metadata.reviewer.trim().length === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Corpus reviewStatus is HUMAN_REVIEWED but reviewer field is missing or empty.',
-        path: ['metadata', 'reviewer']
-      });
-    }
-    if (!data.metadata.reviewedAt || data.metadata.reviewedAt.trim().length === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Corpus reviewStatus is HUMAN_REVIEWED but reviewedAt field is missing or empty.',
-        path: ['metadata', 'reviewedAt']
-      });
-    }
-  }
 });
 
 export function validateSingleCaseV2(data: unknown): ScholarlyValidationCaseV2 {

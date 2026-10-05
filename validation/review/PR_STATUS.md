@@ -2,7 +2,7 @@
 
 ## Merged Infrastructure and Re-Audit Work
 
-- PR #13 — initial independent scholarly adjudication.
+- PR #13 — initial independent scholarly adjudication (historical V1 path).
 - PR #14 — post-merge governance/CI repair.
 - PR #15 — canonical-vs-publication-rendering contract.
 - PR #16 — separated Validation V2 canonical/rendering contract.
@@ -11,34 +11,45 @@
 - PR #19 — Batch B (`COMPOUND` + `MORPHOLOGY` + `IZAFAT`) blind V2 re-audit; merged at `56531245ad5fa34f313295a5eaf3625ff3e83270`.
 - PR #20 — Batch C (`PERSON` + `PLACE` + `INSTITUTION`) blind V2 re-audit; merged at `455ccba868012961a9da541d435d8b3932eaadae`.
 - PR #21 — Batch D (`BOOK_TITLE`) blind V2 re-audit; merged at `0ad66006bb408aaa28feab4610008bd9b65a7993`.
+- PR #22 — Batch E (`AMBIGUITY`) blind V2 re-audit; merged at `158cb930f15593680d1aa12e97d93dc19c5a768f`.
 
-## Current Open Work
+## Current Open Work — V2 Consolidation
 
-- **Batch E branch:** `phase4.6b/reaudit-batch-e-v2`.
-- **Scope:** 12 `AMBIGUITY` cases.
-- **Reviewer provenance:** OpenAI GPT-5.6 Sol / `AI_SPECIALIST`.
-- **Batch E result:** 7 `FINAL`, 5 `REVIEW_REQUIRED`, 0 `UNRESOLVED`.
-- **Completed V2 re-audit:** 108 adjudicated / 0 `PENDING`.
-- **Whole-worklist disposition:** 103 `FINAL`, 5 `REVIEW_REQUIRED`, 0 `UNRESOLVED`.
+- **Branch:** `phase4.6b/consolidate-v2-benchmark`.
+- **Source of truth:** completed `validation/review/reaudit-worklist.v2.json`.
+- **Generated V2 artifact:** `validation/corpus/phase4.6b-external-benchmark.v2.json`.
+- **Generation model:** deterministic builder from the completed worklist; committed artifact must byte-equivalently deserialize to the builder output.
+- **Validation command:** `npm run validate:v2-benchmark`.
+- **Whole benchmark:** 108 cases = 103 `FINAL`, 5 `REVIEW_REQUIRED`, 0 `UNRESOLVED`.
+- **Pending cases:** 0.
 
 ## Current Governance State
 
-- **Human governance sign-off:** **PAUSED** (`humanSignoff = null`).
-- **Gold corpus:** **NOT frozen**. The full 108-case V2 scholarly re-audit is substantively complete, but these decisions remain proposed scholarly ground truth until consolidation and explicit human governance approval.
+- **Specialist review:** complete under OpenAI GPT-5.6 Sol / `AI_SPECIALIST` provenance.
+- **Human governance sign-off:** **NOT YET PERFORMED** (`humanSignoff = null`).
+- **V2 metadata status:** `AI_SPECIALIST_REVIEWED_PENDING_HUMAN`.
+- **Corpus tier:** `EXTERNAL_BENCHMARK`; it is intentionally distinct from `REAL_DISSERTATION` and cannot itself establish release-candidate readiness.
+- **Gold corpus:** **NOT frozen**.
 - **Engine evaluation:** `engineEvaluationPerformed = false`.
-- **Phase 4.6C:** **BLOCKED**.
-- **Runtime integrity:** engine, lexicon, morphology, profiles, and bibliography runtime remain untouched by the re-audit.
+- **Phase 4.6C:** **BLOCKED** until human sign-off and gold freeze.
+- **Runtime integrity:** engine, lexicon, morphology, profiles, and bibliography runtime remain untouched by scholarly consolidation.
 
 ## Blindness and Authority Boundaries
 
-1. Batches A–E were established under `REAUDIT_PROTOCOL_V2.md`.
-2. Historical V1 adjudication remains `HISTORICAL_ONLY` and is not evidence for V2 decisions.
-3. Current engine output, runtime token state, lexicon behavior, and benchmark metrics were not used to decide scholarly ground truth.
-4. Scholarly canonical transliteration and publication rendering remain independently recorded.
-5. The primary safety invariant remains `FALSE_AUTHORITATIVE = 0`.
-6. Five genuinely ambiguous unvocalized forms remain `REVIEW_REQUIRED` rather than being forced into authoritative single readings.
+1. Batches A–E were established under `REAUDIT_PROTOCOL_V2.md` without using current engine outputs as scholarly evidence.
+2. Historical `adjudication.v1.json` remains `HISTORICAL_ONLY`; it is not an evidence source for the V2 benchmark.
+3. Consolidation copies the completed V2 decisions into the separated schema; it does not re-adjudicate or silently normalize scholarly strings.
+4. Every `FINAL` case carries independently explicit `scholarlyCanonical` and `renderedOutput` expectations.
+5. `REVIEW_REQUIRED` cases carry no authoritative canonical or rendered outputs.
+6. The five blocked ambiguity IDs remain exactly:
+   - `cand-amb-001`
+   - `cand-amb-003`
+   - `cand-amb-007`
+   - `cand-amb-009`
+   - `cand-amb-011`
+7. The primary safety invariant remains `FALSE_AUTHORITATIVE = 0`.
 
-## Re-Audit Progress After Batch E
+## Completed Re-Audit
 
 | Batch | Scope | Completed | Pending |
 |---|---|---:|---:|
@@ -51,10 +62,9 @@
 
 ## Remaining Release Gates
 
-1. Review/merge Batch E.
-2. Consolidate the completed 108-case worklist into the final V2 benchmark artifact and validate canonical/rendering/provenance consistency.
-3. Perform formal human governance sign-off.
-4. Freeze scholarly gold.
-5. Execute blind Phase 4.6C engine evaluation against the frozen V2 benchmark.
-6. Apply targeted remediation only where the frozen evaluation proves a gap; do not rewrite gold to improve metrics.
-7. Rerun the frozen benchmark and complete final regression/release documentation/versioning gates.
+1. Review/merge the V2 consolidation PR after exact-head CI passes.
+2. Perform formal human governance sign-off over policy, representative/high-risk cases, ambiguity preservation, provenance, and consolidation integrity.
+3. Promote the consolidated artifact from draft/pending-human status and freeze scholarly gold.
+4. Execute blind Phase 4.6C engine evaluation against that frozen V2 benchmark.
+5. Apply targeted remediation only where the frozen evaluation proves a gap; never rewrite gold to improve metrics.
+6. Rerun the frozen benchmark and complete final regression, release documentation, and versioning gates.
