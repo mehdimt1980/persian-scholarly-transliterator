@@ -189,6 +189,121 @@ export const LEXICON: LexicalEntry[] = [
     ]
   },
   {
+  id: 'lex:mihr-muhr',
+  surface: 'مهر',
+  normalized: 'مهر',
+  category: 'noun',
+  readings: [
+    {
+      id: 'read:mihr:1',
+      canonical: 'mihr',
+      confidence: 0.5,
+      source: 'Steingass, Comprehensive Persian-English Dictionary (1892), p. 1353; reviewed lexical ambiguity',
+      sources: [{ type: 'SCHOLARLY_DICTIONARY', citation: 'Steingass, Comprehensive Persian-English Dictionary (1892), p. 1353', reference: 'مهر: materially distinct mihr / muhr readings' }]
+    },
+    {
+      id: 'read:muhr:1',
+      canonical: 'muhr',
+      confidence: 0.5,
+      source: 'Steingass, Comprehensive Persian-English Dictionary (1892), p. 1353; reviewed lexical ambiguity',
+      sources: [{ type: 'SCHOLARLY_DICTIONARY', citation: 'Steingass, Comprehensive Persian-English Dictionary (1892), p. 1353', reference: 'مهر: materially distinct mihr / muhr readings' }]
+    }
+  ],
+  notes: 'Reviewed ambiguity: unvocalized مهر does not authorize a single reading without context.'
+},
+{
+  id: 'lex:sar-sirr',
+  surface: 'سر',
+  normalized: 'سر',
+  category: 'noun',
+  readings: [
+    {
+      id: 'read:sar:1',
+      canonical: 'sar',
+      confidence: 0.5,
+      source: 'Steingass, Comprehensive Persian-English Dictionary (1892), p. 671; reviewed lexical ambiguity',
+      sources: [{ type: 'SCHOLARLY_DICTIONARY', citation: 'Steingass, Comprehensive Persian-English Dictionary (1892), p. 671', reference: 'سر: materially distinct sar / sirr readings' }]
+    },
+    {
+      id: 'read:sirr:1',
+      canonical: 'sirr',
+      confidence: 0.5,
+      source: 'Steingass, Comprehensive Persian-English Dictionary (1892), p. 671; reviewed lexical ambiguity',
+      sources: [{ type: 'SCHOLARLY_DICTIONARY', citation: 'Steingass, Comprehensive Persian-English Dictionary (1892), p. 671', reference: 'سر: materially distinct sar / sirr readings' }]
+    }
+  ],
+  notes: 'Reviewed ambiguity: unvocalized سر does not authorize a single reading without context.'
+},
+{
+  id: 'lex:gul-gil',
+  surface: 'گل',
+  normalized: 'گل',
+  category: 'noun',
+  readings: [
+    {
+      id: 'read:gul:1',
+      canonical: 'gul',
+      confidence: 0.5,
+      source: 'Steingass, Comprehensive Persian-English Dictionary (1892), p. 1092; reviewed lexical ambiguity',
+      sources: [{ type: 'SCHOLARLY_DICTIONARY', citation: 'Steingass, Comprehensive Persian-English Dictionary (1892), p. 1092', reference: 'گل: materially distinct gul / gil readings' }]
+    },
+    {
+      id: 'read:gil:1',
+      canonical: 'gil',
+      confidence: 0.5,
+      source: 'Steingass, Comprehensive Persian-English Dictionary (1892), p. 1092; reviewed lexical ambiguity',
+      sources: [{ type: 'SCHOLARLY_DICTIONARY', citation: 'Steingass, Comprehensive Persian-English Dictionary (1892), p. 1092', reference: 'گل: materially distinct gul / gil readings' }]
+    }
+  ],
+  notes: 'Reviewed ambiguity: unvocalized گل does not authorize a single reading without context.'
+},
+{
+  id: 'lex:shur-shawr',
+  surface: 'شور',
+  normalized: 'شور',
+  category: 'noun',
+  readings: [
+    {
+      id: 'read:shur:1',
+      canonical: 'shūr',
+      confidence: 0.5,
+      source: 'Steingass, Comprehensive Persian-English Dictionary (1892), p. 764; reviewed lexical ambiguity',
+      sources: [{ type: 'SCHOLARLY_DICTIONARY', citation: 'Steingass, Comprehensive Persian-English Dictionary (1892), p. 764', reference: 'شور: materially distinct shūr / shawr readings' }]
+    },
+    {
+      id: 'read:shawr:1',
+      canonical: 'shawr',
+      confidence: 0.5,
+      source: 'Steingass, Comprehensive Persian-English Dictionary (1892), p. 764; reviewed lexical ambiguity',
+      sources: [{ type: 'SCHOLARLY_DICTIONARY', citation: 'Steingass, Comprehensive Persian-English Dictionary (1892), p. 764', reference: 'شور: materially distinct shūr / shawr readings' }]
+    }
+  ],
+  notes: 'Reviewed ambiguity: unvocalized شور does not authorize a single reading without context.'
+},
+{
+  id: 'lex:ruy-ravi',
+  surface: 'روی',
+  normalized: 'روی',
+  category: 'noun',
+  readings: [
+    {
+      id: 'read:ruy:1',
+      canonical: 'rūy',
+      confidence: 0.5,
+      source: 'Steingass, Comprehensive Persian-English Dictionary (1892), p. 598; reviewed lexical ambiguity',
+      sources: [{ type: 'SCHOLARLY_DICTIONARY', citation: 'Steingass, Comprehensive Persian-English Dictionary (1892), p. 598', reference: 'روی: materially distinct rūy / ravī readings' }]
+    },
+    {
+      id: 'read:ravi:1',
+      canonical: 'ravī',
+      confidence: 0.5,
+      source: 'Steingass, Comprehensive Persian-English Dictionary (1892), p. 598; reviewed lexical ambiguity',
+      sources: [{ type: 'SCHOLARLY_DICTIONARY', citation: 'Steingass, Comprehensive Persian-English Dictionary (1892), p. 598', reference: 'روی: materially distinct rūy / ravī readings' }]
+    }
+  ],
+  notes: 'Reviewed ambiguity: unvocalized روی does not authorize a single reading without context.'
+},
+  {
     id: 'lex:amr',
     surface: 'امر',
     normalized: 'امر',
