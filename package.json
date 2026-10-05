@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "lint": "next lint",
+    "lint": "oxlint src",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "validate:corpus": "tsx src/validation/cli.ts",
@@ -21,20 +21,19 @@
     "validate:portability": "tsx src/validation/release/releasePortabilityCli.ts"
   },
   "dependencies": {
-    "next": "14.2.15",
+    "next": "16.3.8",
     "openai": "^4.104.0",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
+    "oxlint": "1.86.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
     "zod": "3.23.8"
   },
   "devDependencies": {
     "@types/node": "20.16.10",
-    "@types/react": "18.3.3",
-    "@types/react-dom": "18.3.0",
-    "eslint": "8.57.1",
-    "eslint-config-next": "14.2.15",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
     "tsx": "^4.23.15",
     "typescript": "5.6.2",
-    "vitest": "2.1.2"
+    "vitest": "4.1.11"
   }
 }
