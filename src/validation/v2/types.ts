@@ -52,11 +52,28 @@ export interface ScholarlyValidationCaseV2 {
 }
 
 /**
+ * Validation V2 adds governance states needed by the external benchmark without
+ * widening legacy V1 release-gate types. The benchmark cannot masquerade as a
+ * real dissertation corpus or as human-reviewed gold before explicit sign-off.
+ */
+export type ValidationV2CorpusTier = CorpusMetadata['tier'] | 'EXTERNAL_BENCHMARK';
+
+export type ValidationV2CorpusReviewStatus =
+  | CorpusMetadata['reviewStatus']
+  | 'AI_SPECIALIST_REVIEWED_PENDING_HUMAN';
+
+export interface ValidationV2CorpusMetadata
+  extends Omit<CorpusMetadata, 'tier' | 'reviewStatus'> {
+  tier: ValidationV2CorpusTier;
+  reviewStatus: ValidationV2CorpusReviewStatus;
+}
+
+/**
  * Versioned single validation corpus under the V2 schema.
  */
 export interface SingleValidationCorpusV2 {
   schemaVersion: 2;
-  metadata: CorpusMetadata;
+  metadata: ValidationV2CorpusMetadata;
   cases: ScholarlyValidationCaseV2[];
 }
 

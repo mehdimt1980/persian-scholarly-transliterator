@@ -39,6 +39,9 @@ jobs:
       - name: Validate V2 re-audit worklist
         run: npm run validate:reaudit-worklist
 
+      - name: Validate consolidated V2 benchmark
+        run: npm run validate:v2-benchmark
+
       - name: Validate existing validation corpus
         run: npm run validate:corpus
 

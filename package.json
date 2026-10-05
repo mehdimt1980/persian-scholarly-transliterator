@@ -12,7 +12,9 @@
     "validate:acquisition": "tsx src/validation/acquisition/cli.ts",
     "acquisition:review-sheet": "tsx src/validation/acquisition/cli.ts --export-sheet",
     "validate:adjudication": "tsx src/validation/review/cli.ts",
-    "validate:reaudit-worklist": "tsx src/validation/review/reauditWorklistCli.ts"
+    "validate:reaudit-worklist": "tsx src/validation/review/reauditWorklistCli.ts",
+    "build:v2-benchmark": "tsx src/validation/review/consolidateV2BenchmarkCli.ts --write",
+    "validate:v2-benchmark": "tsx src/validation/review/consolidateV2BenchmarkCli.ts"
   },
   "dependencies": {
     "next": "14.2.15",
