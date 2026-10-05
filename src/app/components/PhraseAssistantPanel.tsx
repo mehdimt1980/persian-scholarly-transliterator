@@ -177,6 +177,16 @@ export default function PhraseAssistantPanel({
     onAcceptedDecision(null);
   }
 
+  function toggleEditing() {
+    if (editing) {
+      setCanonicalDraft(resolution?.scholarlyCanonical ?? '');
+      setRenderedDraft(resolution?.renderedOutput ?? '');
+      setEditing(false);
+      return;
+    }
+    setEditing(true);
+  }
+
   if (!eligible && !acceptedApplicable) return null;
 
   if (acceptedDecision && acceptedApplicable) {
@@ -310,7 +320,7 @@ export default function PhraseAssistantPanel({
           {resolution.tokenReadings.length > 0 && (
             <div className={styles.tokenGrid}>
               {resolution.tokenReadings.map((reading) => (
-                <div key={reading.surface} className={styles.tokenChip}>
+                <div key={`${reading.tokenIndex}:${reading.surface}`} className={styles.tokenChip}>
                   <bdi dir="rtl">{reading.surface}</bdi>
                   <span>→</span>
                   <strong>{reading.canonical}</strong>
@@ -333,7 +343,7 @@ export default function PhraseAssistantPanel({
             <button className={styles.primaryButton} onClick={acceptResolution}>
               {editing ? 'Accept edited resolution' : 'Accept resolution'}
             </button>
-            <button className={styles.secondaryButton} onClick={() => setEditing((value) => !value)}>
+            <button className={styles.secondaryButton} onClick={toggleEditing}>
               {editing ? 'Cancel edit' : 'Edit before accepting'}
             </button>
             <button className={styles.rejectButton} onClick={rejectResolution}>Reject</button>
