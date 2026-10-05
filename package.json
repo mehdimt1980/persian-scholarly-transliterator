@@ -17,7 +17,8 @@
     "validate:v2-benchmark": "tsx src/validation/review/consolidateV2BenchmarkCli.ts",
     "validate:gold-freeze": "tsx src/validation/review/goldFreezeV2Cli.ts",
     "evaluate:v2-frozen": "tsx src/validation/v2/phase46CBaselineCli.ts",
-    "validate:v2-regression": "tsx src/validation/v2/frozenRegressionCli.ts"
+    "validate:v2-regression": "tsx src/validation/v2/frozenRegressionCli.ts",
+    "validate:portability": "tsx src/validation/release/releasePortabilityCli.ts"
   },
   "dependencies": {
     "next": "14.2.15",

@@ -51,6 +51,9 @@ jobs:
       - name: Validate frozen V2 post-remediation regression
         run: npm run validate:v2-regression
 
+      - name: Validate release portability and anti-overreach
+        run: npm run validate:portability
+
       - name: Validate existing validation corpus
         run: npm run validate:corpus
 
