@@ -18,11 +18,12 @@
 - PR #26 — independent pre-remediation Phase 4.6C frozen baseline; merge commit `b644c2a1c0159545d16838db061015f7a16c0390`.
 - PR #28 — post-baseline deterministic reviewed-authority remediation; merge commit `5cd6ba47c8cbd57ff2e948ace26b451df52c8134`.
 - PR #29 — authority-independent release portability / anti-overreach gate; merge commit `fc18a486f5ad78a229a59d7e2cf56da28e123023`.
+- PR #31 — Next.js 16 Active LTS security/toolchain migration and permanent high/critical audit gate; merge commit `f914cfc03b4ea010b05f8f865f3b0b27e173b8d8`.
 
 ## Closed without merge
 
 - PR #27 — narrow lexical-ambiguity remediation; superseded by the broader merged PR #28.
-- PR #30 — temporary framework-upgrade experiment; superseded by the clean security branch/PR #31.
+- PR #30 — temporary framework-upgrade experiment; superseded by the clean merged PR #31.
 
 ## Frozen scholarly gold
 
@@ -49,9 +50,9 @@ PR #26 measured the engine against frozen gold before benchmark-derived reviewed
 | `ISSUE_TYPE_MISMATCH` | 5 |
 | `INVALID_GOLD_CASE` | 0 |
 
-This remains the independent pre-remediation measurement. It must not be rewritten after remediation.
+This remains the independent pre-remediation measurement and is not rewritten after remediation.
 
-## Post-remediation frozen regression — current
+## Post-remediation frozen regression
 
 After PR #28, the human-approved 108-case artifact is a frozen **regression suite**, not an unseen post-remediation benchmark.
 
@@ -59,7 +60,7 @@ Hard gate:
 
 `npm run validate:v2-regression`
 
-Required result:
+Required/current result:
 
 - 103/103 `CORRECT_AUTHORITATIVE`
 - 5/5 `CORRECT_REVIEW_REQUIRED`
@@ -69,7 +70,7 @@ Required result:
 - `ISSUE_TYPE_MISMATCH = 0`
 - `INVALID_GOLD_CASE = 0`
 
-## Independent anti-overreach evidence — merged
+## Authority-independent anti-overreach evidence
 
 PR #29 adds `npm run validate:portability` over 13 cases with zero exact-key overlap with frozen reviewed authority:
 
@@ -79,41 +80,46 @@ PR #29 adds `npm run validate:portability` over 13 cases with zero exact-key ove
 
 This supports a narrow portability / non-leakage claim and is not presented as a broad unseen scholarly accuracy benchmark.
 
-## Current release hardening — PR #31
+## Release security state
 
-PR #31 (`security/next16-active-lts-clean`) is the clean dependency/security migration from the current `main` baseline.
+PR #31 migrated the release line to:
 
-Validated migration target:
+- Next.js `16.3.8`;
+- React / React DOM `19.3.0`;
+- Vitest `4.1.11`;
+- development-only oxlint `1.86.0`;
+- legacy `eslint` / `eslint-config-next` chain removed.
 
-- Next.js `16.3.8` (Active LTS security release)
-- React / React DOM `19.3.0`
-- Vitest `4.1.11`
-- `oxlint` `1.86.0` as development-only lint tooling
-- legacy `eslint` / `eslint-config-next` chain removed
+CI permanently enforces:
 
-The migration has already passed, on a reproducible GitHub Actions runner:
+`npm audit --audit-level=high`
 
-- full unit tests;
-- frozen V2 regression;
-- release portability gate;
-- existing pilot corpus;
-- typecheck;
-- lint;
-- production build;
-- `npm audit --audit-level=high`.
+Post-merge CI on `main` passed the complete validation/security/build suite.
 
-PR #31 also makes the high/critical dependency audit a permanent CI gate.
+## Current release gate — PR #32
+
+PR #32 (`release/v0.2.0`) prepares release `v0.2.0`.
+
+Release-preparation scope:
+
+- package/application version `0.2.0`;
+- README milestone and claim boundaries;
+- `docs/RELEASE_v0.2.0.md` evidence-backed release notes;
+- this governance status update.
+
+The release-preparation PR does not modify frozen scholarly gold or transliteration semantics.
 
 ## Remaining release gates
 
-1. Review and merge PR #31 only if final exact-head CI is green and the temporary regeneration workflow is absent from the final diff.
-2. Verify post-merge CI on `main`.
-3. Finalize release documentation and package/application versioning.
-4. Create the release/tag only after the release commit itself passes the complete CI/security suite.
+1. PR #32 exact final HEAD must pass the complete CI suite, including high/critical dependency audit, scholarly integrity/regression/portability gates, typecheck, lint, and production build.
+2. Merge PR #32 only after that exact-head CI succeeds.
+3. Verify post-merge CI on the release merge commit in `main`.
+4. Create tag `v0.2.0` and GitHub Release `v0.2.0` pointing to that exact verified release commit.
+5. Preserve the release notes' claim boundary: post-remediation frozen regression is not an unseen accuracy benchmark, and portability evidence is narrow anti-overreach evidence.
 
 Primary safety invariants remain:
 
 - `FALSE_AUTHORITATIVE = 0`
 - `UNDER_BLOCKED = 0`
 - frozen gold is not changed to improve engine metrics
-- post-remediation regression is not represented as an unseen benchmark
+- genuine ambiguity remains review-required rather than guessed
