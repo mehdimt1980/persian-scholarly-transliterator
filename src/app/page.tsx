@@ -9,8 +9,8 @@ import {
   AssistedResolution,
   buildResolverRequest,
   candidateToReviewDecision,
-  checkAcceptedPhraseApplicability,
-  computeRequestFingerprint
+  computeRequestFingerprint,
+  resolveSelectedTransliteration
 } from '../domain/assistance';
 import {
   importBibliographyFromCsv,
@@ -66,12 +66,12 @@ export default function Home() {
   const [acceptedPhraseDecision, setAcceptedPhraseDecision] = useState<AcceptedPhraseDecision | null>(null);
 
   const result = useMemo(() => transliterate(input, profile, decisions), [input, profile, decisions]);
-  const activePhraseDecision = acceptedPhraseDecision && checkAcceptedPhraseApplicability(acceptedPhraseDecision, result).applicable
-    ? acceptedPhraseDecision
-    : null;
-  const selectedOutput = activePhraseDecision?.renderedOutput ?? result.output;
-  const selectedCopyable = Boolean(activePhraseDecision) || result.copyable;
-  const selectedStatus = activePhraseDecision ? 'USER_OVERRIDE' : result.status;
+  const {
+    activePhraseDecision,
+    primary: selectedOutput,
+    copyable: selectedCopyable,
+    status: selectedStatus
+  } = resolveSelectedTransliteration(result, acceptedPhraseDecision);
 
   function applyDecision(newDecision: ReviewDecision) {
     setDecisions((prev) => {

@@ -1,7 +1,10 @@
 import type { TransliterationResult } from '../types';
 import { validateManualTransliteration } from '../review/validation';
 import { buildPhraseResolverRequest } from './buildPhraseResolverRequest';
-import { computePhraseRequestFingerprint } from './phraseIdentity';
+import {
+  checkAcceptedPhraseApplicability,
+  computePhraseRequestFingerprint
+} from './phraseIdentity';
 import type {
   AcceptedPhraseDecision,
   PhraseResolution
@@ -59,5 +62,31 @@ export function createAcceptedPhraseDecision(
     requestFingerprint: resolution.requestFingerprint,
     modelConfidence: resolution.confidence,
     acceptedAt
+  };
+}
+
+export interface SelectedTransliteration {
+  activePhraseDecision: AcceptedPhraseDecision | null;
+  primary: string;
+  profileRendering: string | null;
+  copyable: boolean;
+  status: TransliterationResult['status'];
+}
+
+export function resolveSelectedTransliteration(
+  result: TransliterationResult,
+  acceptedPhraseDecision: AcceptedPhraseDecision | null
+): SelectedTransliteration {
+  const activePhraseDecision =
+    acceptedPhraseDecision && checkAcceptedPhraseApplicability(acceptedPhraseDecision, result).applicable
+      ? acceptedPhraseDecision
+      : null;
+
+  return {
+    activePhraseDecision,
+    primary: activePhraseDecision?.scholarlyCanonical ?? result.output,
+    profileRendering: activePhraseDecision?.renderedOutput ?? null,
+    copyable: Boolean(activePhraseDecision) || result.copyable,
+    status: activePhraseDecision ? 'USER_OVERRIDE' : result.status
   };
 }
