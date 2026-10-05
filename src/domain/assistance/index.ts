@@ -3,3 +3,8 @@ export * from './suggestionIdentity';
 export * from './buildResolverRequest';
 export * from './validateSuggestions';
 export * from './candidateToReviewDecision';
+export * from './phraseTypes';
+export * from './buildPhraseResolverRequest';
+export * from './phraseIdentity';
+export * from './validatePhraseResolution';
+export * from './phraseDecision';
