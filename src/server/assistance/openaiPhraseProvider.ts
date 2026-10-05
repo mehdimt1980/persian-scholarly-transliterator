@@ -49,7 +49,7 @@ AUTHORITY AND SAFETY RULES:
 6. Do not translate a title or phrase into English. Produce transliteration/presentation, not semantic translation.
 7. If a materially different reading remains genuinely plausible and the supplied context does not safely disambiguate it, return disposition="REVIEW_REQUIRED" with scholarlyCanonical=null and renderedOutput=null. Explain the blocking uncertainty concisely in assumptions or warnings.
 8. Never force a single reading merely to maximize coverage.
-9. tokenReadings are explanatory support for source tokens only. They are not independent authority and must refer only to surfaces present in the request.
+9. For disposition="PROPOSED", provide exactly one tokenReadings entry for every Persian-word token in tokenEvidence, using that token's exact tokenIndex and surface. If deterministic canonicalTransliteration is already non-null, preserve it exactly; do not override established deterministic evidence. tokenReadings are explanatory support, not independent authority.
 10. Do not reveal chain-of-thought. rationale must be a concise scholarly justification, not hidden reasoning.
 
 CONTEXT SEMANTICS:
