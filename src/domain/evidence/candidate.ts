@@ -5,8 +5,25 @@ import {
   LexicalCandidate,
   LexicalCandidateStatus,
   LexicalEntityType,
-  LexicalEvidence
+  LexicalEvidence,
+  RomanizationScheme
 } from './types';
+
+/**
+ * Standard explicitly-defined romanization schemes where two records claiming
+ * the same scheme can be meaningfully compared for direct conflicting readings.
+ *
+ * UNKNOWN (unidentified scheme) and LOCAL (source-specific/unstandardized)
+ * do not establish a shared transliteration contract across observations,
+ * and therefore do not produce direct same-scheme conflicts.
+ */
+export const COMPARABLE_SCHEMES = new Set<RomanizationScheme>([
+  'ALA_LC',
+  'IJMES',
+  'IRANICA',
+  'ISO',
+  'DMG'
+]);
 
 export class CandidateLifecycleError extends Error {
   public readonly candidateId: string;
@@ -131,8 +148,10 @@ export interface CandidateSynthesisOptions {
  *   1. Persian identity validation: Every supporting evidence record must normalize
  *      to the exact same Persian form as the candidate. Unrelated evidence is rejected fail-closed.
  *   2. Scheme-aware conflict detection:
- *      - Direct conflicts are detected only within the SAME romanization scheme.
- *      - Differing observations across DIFFERENT schemes coexist as external variants.
+ *      - Direct conflicts are detected only within the SAME explicitly comparable romanization scheme.
+ *      - UNKNOWN and generic LOCAL observations do not produce direct same-scheme conflicts.
+ *      - Differing observations across DIFFERENT schemes coexist independently as VARIANT_ACROSS_SCHEMES.
+ *      - Both conflict dimensions (same-scheme conflicts and cross-scheme variants) are retained independently.
  *   3. Non-authoritative: The resulting candidate starts as UNREVIEWED (or REVIEW_REQUIRED
  *      if same-scheme conflicts exist) and is NEVER authoritative.
  */
@@ -166,7 +185,7 @@ export function synthesizeCandidateFromEvidence(
   const conflicts: ConflictingObservation[] = [];
 
   // Group evidence by romanization scheme
-  const schemeGroups = new Map<string, LexicalEvidence[]>();
+  const schemeGroups = new Map<RomanizationScheme, LexicalEvidence[]>();
   for (const evi of evidenceList) {
     const scheme = evi.romanizationScheme;
     const group = schemeGroups.get(scheme) ?? [];
@@ -176,8 +195,13 @@ export function synthesizeCandidateFromEvidence(
 
   let hasSameSchemeConflict = false;
 
-  // A. Check for direct conflicts WITHIN each scheme
+  // A. Check for direct conflicts WITHIN explicitly comparable schemes
   for (const [scheme, evis] of schemeGroups.entries()) {
+    if (!COMPARABLE_SCHEMES.has(scheme)) {
+      // UNKNOWN or generic LOCAL are not comparable standards and do not produce direct same-scheme conflict
+      continue;
+    }
+
     const distinctRomanizations = Array.from(
       new Set(evis.map((e) => e.observedRomanization).filter((r): r is string => r !== null && r !== ''))
     );
@@ -192,7 +216,7 @@ export function synthesizeCandidateFromEvidence(
             observedRomanization: evi.observedRomanization,
             romanizationScheme: evi.romanizationScheme,
             conflictKind: 'CONFLICT_WITHIN_SCHEME',
-            conflictReason: `Disagrees with alternative observation(s) under the same scheme (${scheme}): ${distinctRomanizations
+            conflictReason: `Disagrees with alternative observation(s) under the same comparable scheme (${scheme}): ${distinctRomanizations
               .filter((r) => r !== evi.observedRomanization)
               .join(', ')}`
           });
@@ -201,23 +225,23 @@ export function synthesizeCandidateFromEvidence(
     }
   }
 
-  // B. Record cross-scheme variations for informational completeness without triggering false conflict
-  if (schemeGroups.size > 1) {
-    const allDistinctRomanizations = Array.from(
-      new Set(evidenceList.map((e) => e.observedRomanization).filter((r): r is string => r !== null && r !== ''))
-    );
-    if (allDistinctRomanizations.length > 1 && !hasSameSchemeConflict) {
-      for (const evi of evidenceList) {
-        if (evi.observedRomanization) {
-          conflicts.push({
-            evidenceId: evi.id,
-            persianForm: evi.persianForm,
-            observedRomanization: evi.observedRomanization,
-            romanizationScheme: evi.romanizationScheme,
-            conflictKind: 'VARIANT_ACROSS_SCHEMES',
-            conflictReason: `Cross-scheme variant alongside other schemes (${Array.from(schemeGroups.keys()).join(', ')})`
-          });
-        }
+  // B. Check for cross-scheme variations independently (retaining both dimensions)
+  const allDistinctRomanizations = Array.from(
+    new Set(evidenceList.map((e) => e.observedRomanization).filter((r): r is string => r !== null && r !== ''))
+  );
+
+  // If there are multiple distinct romanizations across different schemes or non-comparable schemes, record them
+  if (allDistinctRomanizations.length > 1 && (schemeGroups.size > 1 || !hasSameSchemeConflict)) {
+    for (const evi of evidenceList) {
+      if (evi.observedRomanization) {
+        conflicts.push({
+          evidenceId: evi.id,
+          persianForm: evi.persianForm,
+          observedRomanization: evi.observedRomanization,
+          romanizationScheme: evi.romanizationScheme,
+          conflictKind: 'VARIANT_ACROSS_SCHEMES',
+          conflictReason: `External variant across observations (${Array.from(schemeGroups.keys()).join(', ')})`
+        });
       }
     }
   }
@@ -225,7 +249,7 @@ export function synthesizeCandidateFromEvidence(
   const defaultEntityType: LexicalEntityType = evidenceList[0].entityType ?? 'WORD';
   const resolvedEntityType: LexicalEntityType = options?.entityType ?? defaultEntityType;
 
-  // Only same-scheme disagreements require review blocking
+  // Only actual comparable same-scheme disagreements require review blocking
   const status: LexicalCandidateStatus = hasSameSchemeConflict ? 'REVIEW_REQUIRED' : 'UNREVIEWED';
 
   const candidateId = generateCandidateId(persianForm, evidenceIds);

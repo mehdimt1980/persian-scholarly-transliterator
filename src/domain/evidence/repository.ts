@@ -43,14 +43,58 @@ export class EvidenceImmutabilityViolationError extends Error {
 }
 
 /**
+ * Defensive deep clone helper ensuring complete isolation of stored repository records
+ * from caller-owned mutable object references.
+ */
+export function deepClone<T>(obj: T): T {
+  if (typeof structuredClone === 'function') {
+    return structuredClone(obj);
+  }
+  return JSON.parse(JSON.stringify(obj));
+}
+
+/**
+ * Deterministic equality comparison for LexicalEvidence records.
+ * Independent of object key order and handles optional/undefined fields deterministically.
+ */
+export function isExactSameEvidence(a: LexicalEvidence, b: LexicalEvidence): boolean {
+  if (a.id !== b.id) return false;
+  if (a.sourceType !== b.sourceType) return false;
+  if (a.sourceRecordId !== b.sourceRecordId) return false;
+  if (a.sourceUri !== b.sourceUri) return false;
+  if (a.sourceField !== b.sourceField) return false;
+  if (a.persianForm !== b.persianForm) return false;
+  if (a.observedRomanization !== b.observedRomanization) return false;
+  if (a.romanizationScheme !== b.romanizationScheme) return false;
+  if (a.entityType !== b.entityType) return false;
+  if (a.context !== b.context) return false;
+  if (a.status !== b.status) return false;
+
+  const pa = a.provenance;
+  const pb = b.provenance;
+  if (pa.sourceId !== pb.sourceId) return false;
+  if ((pa.sourceTitle ?? null) !== (pb.sourceTitle ?? null)) return false;
+  if ((pa.sourceOrganization ?? null) !== (pb.sourceOrganization ?? null)) return false;
+  if (pa.retrievalMethod !== pb.retrievalMethod) return false;
+  if (pa.retrievedAt !== pb.retrievedAt) return false;
+  if ((pa.extractorVersion ?? null) !== (pb.extractorVersion ?? null)) return false;
+  if ((pa.notes ?? null) !== (pb.notes ?? null)) return false;
+
+  return true;
+}
+
+/**
  * Storage and index management for external lexical evidence and candidates.
  *
  * Core architectural invariants:
  *   1. External evidence records are strictly append-only and immutable historical observations.
- *      Attempting to overwrite existing evidence with different content fails closed.
- *   2. Multiple external sources providing conflicting observations for the same
- *      Persian form comfortably coexist without overwriting each other.
- *   3. This repository contains zero authoritative lexicon entries and has NO
+ *      Defensive cloning on ingress and egress ensures caller mutations cannot affect stored records.
+ *   2. Re-adding an identical evidence record is an idempotent no-op. Attempting to add an
+ *      existing evidence ID with altered content fails closed with EvidenceImmutabilityViolationError.
+ *   3. Candidates require all referenced evidence IDs to exist at insertion time (fail-closed).
+ *   4. Candidate lifecycle states (ACCEPTED / REJECTED) are strictly validated and protected from
+ *      unauthorized reference mutations.
+ *   5. This repository contains zero authoritative lexicon entries and has NO
  *      direct mutation path into LexiconRepository.
  */
 export class LexicalEvidenceRepository {
@@ -84,28 +128,30 @@ export class LexicalEvidenceRepository {
       throw new Error(`Evidence "${evidence.id}" must specify provenance.sourceId.`);
     }
 
-    const existing = this.evidenceById.get(evidence.id);
+    const snapshot = deepClone(evidence);
+
+    const existing = this.evidenceById.get(snapshot.id);
     if (existing) {
       // Idempotent re-ingestion check: identical content succeeds as no-op; altered content fails closed
-      if (JSON.stringify(existing) === JSON.stringify(evidence)) {
+      if (isExactSameEvidence(existing, snapshot)) {
         return;
       }
-      throw new EvidenceImmutabilityViolationError(evidence.id);
+      throw new EvidenceImmutabilityViolationError(snapshot.id);
     }
 
-    // Append-only insertion
-    this.evidenceById.set(evidence.id, evidence);
+    // Append-only insertion of defensive snapshot
+    this.evidenceById.set(snapshot.id, snapshot);
 
     // Index by Persian form
-    const pKey = evidence.persianForm.trim();
+    const pKey = snapshot.persianForm.trim();
     const existingP = this.evidenceByPersian.get(pKey) ?? [];
-    existingP.push(evidence);
+    existingP.push(snapshot);
     this.evidenceByPersian.set(pKey, existingP);
 
     // Index by Source ID
-    const sKey = evidence.provenance.sourceId.trim();
+    const sKey = snapshot.provenance.sourceId.trim();
     const existingS = this.evidenceBySource.get(sKey) ?? [];
-    existingS.push(evidence);
+    existingS.push(snapshot);
     this.evidenceBySource.set(sKey, existingS);
   }
 
@@ -116,19 +162,22 @@ export class LexicalEvidenceRepository {
   }
 
   public getEvidenceById(id: string): LexicalEvidence | undefined {
-    return this.evidenceById.get(id);
+    const evi = this.evidenceById.get(id);
+    return evi ? deepClone(evi) : undefined;
   }
 
   public getEvidenceByPersianForm(persianForm: string): LexicalEvidence[] {
-    return [...(this.evidenceByPersian.get(persianForm.trim()) ?? [])];
+    const list = this.evidenceByPersian.get(persianForm.trim()) ?? [];
+    return deepClone(list);
   }
 
   public getEvidenceBySource(sourceId: string): LexicalEvidence[] {
-    return [...(this.evidenceBySource.get(sourceId.trim()) ?? [])];
+    const list = this.evidenceBySource.get(sourceId.trim()) ?? [];
+    return deepClone(list);
   }
 
   public getAllEvidence(): LexicalEvidence[] {
-    return Array.from(this.evidenceById.values());
+    return deepClone(Array.from(this.evidenceById.values()));
   }
 
   public getEvidenceCount(): number {
@@ -148,15 +197,25 @@ export class LexicalEvidenceRepository {
       throw new Error(`Candidate "${candidate.id}" must reference at least one supporting evidence ID.`);
     }
 
-    validateCandidateLifecycle(candidate);
+    const snapshot = deepClone(candidate);
 
-    this.candidatesById.set(candidate.id, candidate);
+    // 1. Fail closed immediately on any missing evidence reference
+    for (const eid of snapshot.evidenceIds) {
+      if (!this.evidenceById.has(eid)) {
+        throw new Error(`Candidate "${snapshot.id}" references non-existent evidence ID "${eid}".`);
+      }
+    }
+
+    // 2. Validate lifecycle rules on defensive snapshot
+    validateCandidateLifecycle(snapshot);
+
+    this.candidatesById.set(snapshot.id, snapshot);
 
     // Index by Persian form
-    const pKey = candidate.persianForm.trim();
+    const pKey = snapshot.persianForm.trim();
     const existingP = this.candidatesByPersian.get(pKey) ?? [];
-    const filteredP = existingP.filter((c) => c.id !== candidate.id);
-    filteredP.push(candidate);
+    const filteredP = existingP.filter((c) => c.id !== snapshot.id);
+    filteredP.push(snapshot);
     this.candidatesByPersian.set(pKey, filteredP);
 
     // Index by Status
@@ -170,19 +229,22 @@ export class LexicalEvidenceRepository {
   }
 
   public getCandidateById(id: string): LexicalCandidate | undefined {
-    return this.candidatesById.get(id);
+    const cand = this.candidatesById.get(id);
+    return cand ? deepClone(cand) : undefined;
   }
 
   public getCandidatesByPersianForm(persianForm: string): LexicalCandidate[] {
-    return [...(this.candidatesByPersian.get(persianForm.trim()) ?? [])];
+    const list = this.candidatesByPersian.get(persianForm.trim()) ?? [];
+    return deepClone(list);
   }
 
   public getCandidatesByStatus(status: LexicalCandidateStatus): LexicalCandidate[] {
-    return [...(this.candidatesByStatus.get(status) ?? [])];
+    const list = this.candidatesByStatus.get(status) ?? [];
+    return deepClone(list);
   }
 
   public getAllCandidates(): LexicalCandidate[] {
-    return Array.from(this.candidatesById.values());
+    return deepClone(Array.from(this.candidatesById.values()));
   }
 
   public getCandidateCount(): number {
@@ -198,7 +260,7 @@ export class LexicalEvidenceRepository {
     const results: LexicalEvidence[] = [];
     for (const eid of candidate.evidenceIds) {
       const evi = this.evidenceById.get(eid);
-      if (evi) results.push(evi);
+      if (evi) results.push(deepClone(evi));
     }
     return results;
   }
