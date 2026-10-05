@@ -1097,8 +1097,8 @@
       "reviewState": "COMPLETED",
       "decision": {
         "disposition": "FINAL",
-        "scholarlyCanonical": "Malik al-Shuʿarāʾ Bahār",
-        "renderedOutput": "Malek al-Shoʿaraʾ Bahar",
+        "scholarlyCanonical": "Malik al-Shuʿarā-yi Bahār",
+        "renderedOutput": "Malek al-Shoʿara Bahar",
         "readingEvidence": [
           {
             "source": "VIAF",
@@ -1108,7 +1108,12 @@
           {
             "source": "Iranica",
             "citation": "BAHĀR, MOḤAMMAD-TAQĪ",
-            "locator": "Malek-al-Šoʿarāʾ Bahār"
+            "locator": "Malek-al-Šoʿarāʾ Bahār as established name/title evidence"
+          },
+          {
+            "source": "CiNii",
+            "citation": "Dīvān-i ashʿār-i Malik al-Shuʿarā-yi Bahār",
+            "locator": "explicit Persian izafat transcription -yi in the supplied surface pattern"
           }
         ],
         "renderingEvidence": [
@@ -1118,7 +1123,7 @@
             "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
           }
         ],
-        "reviewNote": "The exact supplied honorific/name surface is preserved rather than silently substituted with Muhammad-Taqi Bahar.",
+        "reviewNote": "The exact supplied string contains explicit Persian yeh marking izafat in الشعرای; canonical therefore preserves -yi: Malik al-Shuʿarā-yi Bahār. Publication rendering follows the established English-facing Malek al-Shoʿara Bahar form without ordinary diacritics.",
         "reviewer": {
           "name": "OpenAI GPT-5.6 Sol",
           "type": "AI_SPECIALIST",
