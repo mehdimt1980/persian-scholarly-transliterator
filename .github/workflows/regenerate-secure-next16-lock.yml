@@ -31,9 +31,11 @@ jobs:
           react@19.3.0
           react-dom@19.3.0
           vitest@4.1.11
-          oxlint@1.86.0
           @types/react@latest
           @types/react-dom@latest
+
+      - name: Install development-only linter
+        run: npm install --save-dev --save-exact oxlint@1.86.0
 
       - name: Remove vulnerable legacy lint toolchain
         run: |
@@ -74,5 +76,5 @@ jobs:
             echo "No dependency changes to commit."
             exit 0
           fi
-          git commit -m "chore(security): upgrade to patched Next.js Active LTS"
+          git commit -m "chore(security): keep release tooling development-only"
           git push origin HEAD:security/next16-active-lts-clean
