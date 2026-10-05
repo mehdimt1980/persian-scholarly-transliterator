@@ -1,1 +1,2282 @@
-{"metadata":{"schemaVersion":2,"artifactType":"BLIND_REAUDIT_WORKLIST","sourceCorpus":"validation/acquisition/external-candidates.v1.json","sourceCorpusCount":108,"status":"BATCH_A_COMPLETED","engineEvaluationPerformed":false,"humanSignoff":null,"priorAdjudicationAuthority":"HISTORICAL_ONLY"},"summary":{"total":108,"pending":83,"adjudicated":25,"byBatch":{"A":25,"B":23,"C":36,"D":12,"E":12},"byCategory":{"TERM":15,"RELIGIOUS_TERM":10,"PERSON":18,"PLACE":12,"INSTITUTION":6,"BOOK_TITLE":12,"COMPOUND":5,"MORPHOLOGY":10,"IZAFAT":8,"AMBIGUITY":12}},"cases":[{"id":"cand-term-001","sourceText":"نوسازی","category":"TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"nawsāzī","renderedOutput":"nawsāzī","readingEvidence":[{"source":"Dehkhoda","citation":"Loghatnameh-ye Dehkhoda (1998), entry نوسازی","locator":"entry نوسازی"},{"source":"Iranica","citation":"CITIES iv. Modern Urbanization and Modernization in Persia","locator":"article headword"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Translation and Transliteration Guide (Cambridge University Press)","locator":"technical terms fully transliterated; Persian i/u; transliteration chart"}],"reviewNote":"Source-faithful Persian reading; نو is represented with the written diphthong aw.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-term-002","sourceText":"بازرگانی","category":"TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"bāzargānī","renderedOutput":"bāzargānī","readingEvidence":[{"source":"Dehkhoda","citation":"Loghatnameh-ye Dehkhoda (1998), entry بازرگانی","locator":"entry بازرگانی"},{"source":"Iranica","citation":"COMMERCE vi. In the Pahlavi Period","locator":"article headword"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Translation and Transliteration Guide (Cambridge University Press)","locator":"technical terms fully transliterated; Persian i/u; transliteration chart"}],"reviewNote":"Verified reading; technical-full rendering preserves the scholarly canonical form.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-term-003","sourceText":"خودکامگی","category":"TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"khudkāmigī","renderedOutput":"khudkāmigī","readingEvidence":[{"source":"Dehkhoda","citation":"Loghatnameh-ye Dehkhoda (1998), entry خودکامگی","locator":"entry خودکامگی"},{"source":"Iranica","citation":"AUTOCRACY","locator":"article headword"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Translation and Transliteration Guide (Cambridge University Press)","locator":"technical terms fully transliterated; Persian i/u; transliteration chart"}],"reviewNote":"Source-faithful khud- plus derived khudkāmigī under IJMES Persian i/u.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-term-004","sourceText":"مشروطه‌خواهی","category":"TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"mashrūṭih-khwāhī","renderedOutput":"mashrūṭih-khwāhī","readingEvidence":[{"source":"Dehkhoda","citation":"Loghatnameh-ye Dehkhoda (1998), entry مشروطه‌خواهی","locator":"entry مشروطه‌خواهی"},{"source":"Iranica","citation":"CONSTITUTIONAL REVOLUTION i. Overview","locator":"article headword"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Translation and Transliteration Guide (Cambridge University Press)","locator":"Persian tāʾ marbūṭa = ih; Persian i/u"}],"reviewNote":"Persian final ه is rendered -ih; the ZWNJ compound boundary is hyphenated.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-term-005","sourceText":"دیوان‌سالاری","category":"TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"dīvān-sālārī","renderedOutput":"dīvān-sālārī","readingEvidence":[{"source":"Dehkhoda","citation":"Loghatnameh-ye Dehkhoda (1998), entry دیوان‌سالاری","locator":"entry دیوان‌سالاری"},{"source":"Iranica","citation":"BUREAUCRACY in Modern Iran","locator":"article headword"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Translation and Transliteration Guide (Cambridge University Press)","locator":"technical terms fully transliterated; Persian i/u; transliteration chart"}],"reviewNote":"The ZWNJ compound boundary is retained as a scholarly hyphen.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-term-006","sourceText":"شاهنشاهی","category":"TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"shāhanshāhī","renderedOutput":"shāhanshāhī","readingEvidence":[{"source":"Dehkhoda","citation":"Loghatnameh-ye Dehkhoda (1998), entry شاهنشاهی","locator":"entry شاهنشاهی"},{"source":"Iranica","citation":"ŠĀHANŠĀH","locator":"article headword"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Translation and Transliteration Guide (Cambridge University Press)","locator":"technical terms fully transliterated; Persian i/u; transliteration chart"}],"reviewNote":"Reading evidence supports shāhanshāh; the derived form is shāhanshāhī.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-term-007","sourceText":"تجدد","category":"TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"tajaddud","renderedOutput":"tajaddud","readingEvidence":[{"source":"Dehkhoda","citation":"Loghatnameh-ye Dehkhoda (1998), entry تجدد","locator":"entry تجدد"},{"source":"Iranica","citation":"TAJADDOD","locator":"opening sentence"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Translation and Transliteration Guide (Cambridge University Press)","locator":"technical terms fully transliterated; Persian i/u; transliteration chart"}],"reviewNote":"Iranica e/o is not copied; IJMES Persian short-vowel policy yields tajaddud.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-term-008","sourceText":"شهروندی","category":"TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"shahrvandī","renderedOutput":"shahrvandī","readingEvidence":[{"source":"Dehkhoda","citation":"Loghatnameh-ye Dehkhoda (1998), entry شهروندی","locator":"entry شهروندی"},{"source":"Iranica","citation":"CITIZENSHIP in Modern Persia","locator":"article headword"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Translation and Transliteration Guide (Cambridge University Press)","locator":"technical terms fully transliterated; Persian i/u; transliteration chart"}],"reviewNote":"Verified reading; technical-full rendering preserves the scholarly canonical form.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-term-009","sourceText":"استعمار","category":"TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"istiʿmār","renderedOutput":"istiʿmār","readingEvidence":[{"source":"Dehkhoda","citation":"Loghatnameh-ye Dehkhoda (1998), entry استعمار","locator":"entry استعمار"},{"source":"Iranica","citation":"COLONIALISM in Iran","locator":"article headword"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Translation and Transliteration Guide (Cambridge University Press)","locator":"technical terms fully transliterated; Persian i/u; transliteration chart"}],"reviewNote":"Arabic-derived Persian term retains ʿayn and long ā.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-term-010","sourceText":"جهان‌بینی","category":"TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"jahān-bīnī","renderedOutput":"jahān-bīnī","readingEvidence":[{"source":"Steingass","citation":"Steingass, Comprehensive Persian-English Dictionary (1892), p. 380","locator":"p. 380"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Translation and Transliteration Guide (Cambridge University Press)","locator":"technical terms fully transliterated; Persian i/u; transliteration chart"}],"reviewNote":"Source-faithful transliteration is used rather than English translation.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-term-011","sourceText":"دادگستری","category":"TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"dādgustarī","renderedOutput":"dādgustarī","readingEvidence":[{"source":"Dehkhoda","citation":"Loghatnameh-ye Dehkhoda (1998), entry دادگستری","locator":"entry دادگستری"},{"source":"Iranica","citation":"JUDICIAL SYSTEM iv. Modern","locator":"article headword"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Translation and Transliteration Guide (Cambridge University Press)","locator":"technical terms fully transliterated; Persian i/u; transliteration chart"}],"reviewNote":"IJMES Persian u is used in gustar rather than another system’s o.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-term-012","sourceText":"روشنفکری","category":"TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"rawshanfikrī","renderedOutput":"rawshanfikrī","readingEvidence":[{"source":"Dehkhoda","citation":"Loghatnameh-ye Dehkhoda (1998), entry روشنفکری","locator":"entry روشنفکری"},{"source":"Iranica","citation":"INTELLECTUALS in Modern Persia","locator":"article headword"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Translation and Transliteration Guide (Cambridge University Press)","locator":"technical terms fully transliterated; Persian i/u; transliteration chart"}],"reviewNote":"The written diphthong in روشن is represented as aw.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-term-013","sourceText":"کارگزاری","category":"TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"kārguzārī","renderedOutput":"kārguzārī","readingEvidence":[{"source":"Dehkhoda","citation":"Loghatnameh-ye Dehkhoda (1998), entry کارگزاری","locator":"entry کارگزاری"},{"source":"Iranica","citation":"KĀRGOZĀR","locator":"article headword; observed form kārgozārī"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Translation and Transliteration Guide (Cambridge University Press)","locator":"technical terms fully transliterated; Persian i/u; transliteration chart"}],"reviewNote":"Iranica reading evidence is converted to IJMES Persian u: kārguzārī.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-term-014","sourceText":"کشورمندی","category":"TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"kishvarmandī","renderedOutput":"kishvarmandī","readingEvidence":[{"source":"Steingass","citation":"Steingass, Comprehensive Persian-English Dictionary (1892), p. 1032","locator":"p. 1032"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Translation and Transliteration Guide (Cambridge University Press)","locator":"technical terms fully transliterated; Persian i/u; transliteration chart"}],"reviewNote":"IJMES Persian i/u policy yields kishvarmandī.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-term-015","sourceText":"میهن‌پرستی","category":"TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"mihan-parastī","renderedOutput":"mihan-parastī","readingEvidence":[{"source":"Dehkhoda","citation":"Loghatnameh-ye Dehkhoda (1998), entry میهن‌پرستی","locator":"entry میهن‌پرستی"},{"source":"Iranica","citation":"IRANIAN IDENTITY iv. 19th-20th Centuries","locator":"discussion of mihan-parasti"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Translation and Transliteration Guide (Cambridge University Press)","locator":"technical terms fully transliterated; Persian i/u; transliteration chart"}],"reviewNote":"Independent reading evidence supports Iranian Persian mihan; the ZWNJ compound boundary is retained.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-rel-001","sourceText":"اجتهاد","category":"RELIGIOUS_TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"ijtihād","renderedOutput":"ijtihād","readingEvidence":[{"source":"Dehkhoda","citation":"Loghatnameh-ye Dehkhoda (1998), entry اجتهاد","locator":"entry اجتهاد"},{"source":"Iranica","citation":"EJTEHĀD","locator":"article headword; observed form ejtehād"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Word List (Cambridge University Press)","locator":"Word List: ijtihād"}],"reviewNote":"IJMES Word List confirms ijtihād.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-rel-002","sourceText":"تقلید","category":"RELIGIOUS_TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"taqlīd","renderedOutput":"taqlīd","readingEvidence":[{"source":"Dehkhoda","citation":"Loghatnameh-ye Dehkhoda (1998), entry تقلید","locator":"entry تقلید"},{"source":"Iranica","citation":"TAQLĪD","locator":"article headword; observed form taqlīd"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Translation and Transliteration Guide (Cambridge University Press)","locator":"technical terms fully transliterated; Persian i/u; transliteration chart"}],"reviewNote":"Reading is established independently; no publication exception applies.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-rel-003","sourceText":"ولایت فقیه","category":"RELIGIOUS_TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"vilāyat-i faqīh","renderedOutput":"vilāyat-i faqīh","readingEvidence":[{"source":"Dehkhoda","citation":"Loghatnameh-ye Dehkhoda (1998), entry ولایت فقیه","locator":"entry ولایت فقیه"},{"source":"Iranica","citation":"VELĀYAT-E FAQĪH","locator":"article headword; observed form velāyat-e faqīh"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Word List (Cambridge University Press)","locator":"Word List: vilāyat-i faqīh (Persian)"}],"reviewNote":"IJMES Word List confirms vilāyat-i faqīh and Persian izāfat -i.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-rel-004","sourceText":"امر به معروف","category":"RELIGIOUS_TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"amr bih maʿrūf","renderedOutput":"amr bih maʿrūf","readingEvidence":[{"source":"Dehkhoda","citation":"Loghatnameh-ye Dehkhoda (1998), entry امر به معروف","locator":"entry امر به معروف"},{"source":"Iranica","citation":"AMR BE MAʿRŪF","locator":"article headword; Persian phrase amr be maʿrūf"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Translation and Transliteration Guide (Cambridge University Press)","locator":"technical terms fully transliterated; Persian i/u; transliteration chart"}],"reviewNote":"Exact Persian surface is retained; به is represented as bih, not expanded into an Arabic formula.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-rel-005","sourceText":"اهل بیت","category":"RELIGIOUS_TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"ahl-i bayt","renderedOutput":"ahl-i bayt","readingEvidence":[{"source":"Dehkhoda","citation":"Loghatnameh-ye Dehkhoda (1998), entry اهل بیت","locator":"entry اهل بیت"},{"source":"Iranica","citation":"AHL-E BAYT","locator":"article headword; observed form ahl-e bayt"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Translation and Transliteration Guide (Cambridge University Press)","locator":"Persian izafat = -i; Persian i/u"}],"reviewNote":"Iranica -e linker is converted to IJMES Persian izāfat -i.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-rel-006","sourceText":"خمس","category":"RELIGIOUS_TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"khums","renderedOutput":"khums","readingEvidence":[{"source":"Dehkhoda","citation":"Loghatnameh-ye Dehkhoda (1998), entry خمس","locator":"entry خمس"},{"source":"Iranica","citation":"ḴOMS","locator":"article headword; observed form ḵoms"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Translation and Transliteration Guide (Cambridge University Press)","locator":"technical terms fully transliterated; Persian i/u; transliteration chart"}],"reviewNote":"Iranica ḵ/o is converted to IJMES kh/u: khums.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-rel-007","sourceText":"زکات","category":"RELIGIOUS_TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"zakāt","renderedOutput":"zakat","readingEvidence":[{"source":"Dehkhoda","citation":"Loghatnameh-ye Dehkhoda (1998), entry زکات","locator":"entry زکات"},{"source":"Iranica","citation":"ZAKĀT","locator":"article headword; observed form zakāt"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Word List (Cambridge University Press)","locator":"Word List: zakat"}],"reviewNote":"Canonical preserves long ā; IJMES Word List rendering is zakat.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-rel-008","sourceText":"عاشورا","category":"RELIGIOUS_TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"ʿāshūrā","renderedOutput":"ʿAshuraʾ","readingEvidence":[{"source":"Dehkhoda","citation":"Loghatnameh-ye Dehkhoda (1998), entry عاشورا","locator":"entry عاشورا"},{"source":"Iranica","citation":"ʿĀŠŪRĀʾ","locator":"article headword; identity and historical usage"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Word List (Cambridge University Press)","locator":"Word List: ʿAshuraʾ"}],"reviewNote":"Persian source has no final hamza; canonical is ʿāshūrā, while IJMES Word List renders ʿAshuraʾ.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-rel-009","sourceText":"دارالتقریب","category":"RELIGIOUS_TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"dār al-taqrīb","renderedOutput":"dār al-taqrīb","readingEvidence":[{"source":"Dehkhoda","citation":"Loghatnameh-ye Dehkhoda (1998), entry دارالتقریب","locator":"entry دارالتقریب"},{"source":"Iranica","citation":"DĀR AL-TAQRĪB","locator":"article headword; observed form dār al-taqrīb"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Translation and Transliteration Guide (Cambridge University Press)","locator":"definite article al- lowercase; technical terms fully transliterated"}],"reviewNote":"The exact source phrase is retained; al- remains lowercase.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-rel-010","sourceText":"حسینیه","category":"RELIGIOUS_TERM","profile":"ijmes_full","batch":"A","reviewState":"COMPLETED","decision":{"disposition":"FINAL","scholarlyCanonical":"ḥusayniyyih","renderedOutput":"ḥusayniyyih","readingEvidence":[{"source":"Dehkhoda","citation":"Loghatnameh-ye Dehkhoda (1998), entry حسینیه","locator":"entry حسینیه"},{"source":"Iranica","citation":"ḤOSAYNĪYA","locator":"article headword; observed form ḥosaynīya"}],"renderingEvidence":[{"source":"IJMES","citation":"IJMES Translation and Transliteration Guide (Cambridge University Press)","locator":"Persian nisba = -iyyih; Persian i/u"}],"reviewNote":"IJMES Persian nisba rule gives -iyyih; Iranica e/o is not copied.","reviewer":{"name":"OpenAI GPT-5.6 Sol","type":"AI_SPECIALIST","reviewedAt":"2026-10-04"}}},{"id":"cand-pers-001","sourceText":"محمدعلی جمال‌زاده","category":"PERSON","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-pers-002","sourceText":"صادق هدایت","category":"PERSON","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-pers-003","sourceText":"علی‌اکبر دهخدا","category":"PERSON","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-pers-004","sourceText":"ملک‌الشعرای بهار","category":"PERSON","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-pers-005","sourceText":"جلال آل‌احمد","category":"PERSON","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-pers-006","sourceText":"سیمین دانشور","category":"PERSON","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-pers-007","sourceText":"نیما یوشیج","category":"PERSON","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-pers-008","sourceText":"غلامحسین ساعدی","category":"PERSON","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-pers-009","sourceText":"پروین اعتصامی","category":"PERSON","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-pers-010","sourceText":"بدیع‌الزمان فروزانفر","category":"PERSON","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-pers-011","sourceText":"عبدالحسین زرین‌کوب","category":"PERSON","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-pers-012","sourceText":"مجتبی مینوی","category":"PERSON","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-pers-013","sourceText":"احمد کسروی","category":"PERSON","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-pers-014","sourceText":"ایرج افشار","category":"PERSON","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-pers-015","sourceText":"هوشنگ ابتهاج","category":"PERSON","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-pers-016","sourceText":"سهراب سپهری","category":"PERSON","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-pers-017","sourceText":"مهدی اخوان ثالث","category":"PERSON","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-pers-018","sourceText":"فروغ فرخزاد","category":"PERSON","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-plc-001","sourceText":"مازندران","category":"PLACE","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-plc-002","sourceText":"خوزستان","category":"PLACE","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-plc-003","sourceText":"آذربایجان","category":"PLACE","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-plc-004","sourceText":"سیستان و بلوچستان","category":"PLACE","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-plc-005","sourceText":"کرمانشاه","category":"PLACE","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-plc-006","sourceText":"نیشابور","category":"PLACE","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-plc-007","sourceText":"تخت جمشید","category":"PLACE","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-plc-008","sourceText":"پاسارگاد","category":"PLACE","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-plc-009","sourceText":"دماوند","category":"PLACE","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-plc-010","sourceText":"زاگرس","category":"PLACE","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-plc-011","sourceText":"زاینده‌رود","category":"PLACE","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-plc-012","sourceText":"هرمزگان","category":"PLACE","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-inst-001","sourceText":"فرهنگستان زبان و ادب فارسی","category":"INSTITUTION","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-inst-002","sourceText":"دانشگاه تهران","category":"INSTITUTION","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-inst-003","sourceText":"کتابخانه ملی ایران","category":"INSTITUTION","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-inst-004","sourceText":"مجلس شورای ملی","category":"INSTITUTION","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-inst-005","sourceText":"دارالفنون","category":"INSTITUTION","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-inst-006","sourceText":"انجمن آثار ملی","category":"INSTITUTION","profile":"ijmes_full","batch":"C","reviewState":"PENDING","decision":null},{"id":"cand-book-001","sourceText":"تاریخ بیداری ایرانیان","category":"BOOK_TITLE","profile":"ijmes_title","batch":"D","reviewState":"PENDING","decision":null},{"id":"cand-book-002","sourceText":"سیاست‌نامه","category":"BOOK_TITLE","profile":"ijmes_title","batch":"D","reviewState":"PENDING","decision":null},{"id":"cand-book-003","sourceText":"قابوس‌نامه","category":"BOOK_TITLE","profile":"ijmes_title","batch":"D","reviewState":"PENDING","decision":null},{"id":"cand-book-004","sourceText":"مرزبان‌نامه","category":"BOOK_TITLE","profile":"ijmes_title","batch":"D","reviewState":"PENDING","decision":null},{"id":"cand-book-005","sourceText":"سفرنامه ناصرخسرو","category":"BOOK_TITLE","profile":"ijmes_title","batch":"D","reviewState":"PENDING","decision":null},{"id":"cand-book-006","sourceText":"کلیله و دمنه","category":"BOOK_TITLE","profile":"ijmes_title","batch":"D","reviewState":"PENDING","decision":null},{"id":"cand-book-007","sourceText":"گلستان","category":"BOOK_TITLE","profile":"ijmes_title","batch":"D","reviewState":"PENDING","decision":null},{"id":"cand-book-008","sourceText":"بوستان","category":"BOOK_TITLE","profile":"ijmes_title","batch":"D","reviewState":"PENDING","decision":null},{"id":"cand-book-009","sourceText":"سووشون","category":"BOOK_TITLE","profile":"ijmes_title","batch":"D","reviewState":"PENDING","decision":null},{"id":"cand-book-010","sourceText":"چشم‌هایش","category":"BOOK_TITLE","profile":"ijmes_title","batch":"D","reviewState":"PENDING","decision":null},{"id":"cand-book-011","sourceText":"حاجی آقا","category":"BOOK_TITLE","profile":"ijmes_title","batch":"D","reviewState":"PENDING","decision":null},{"id":"cand-book-012","sourceText":"زمستان","category":"BOOK_TITLE","profile":"ijmes_title","batch":"D","reviewState":"PENDING","decision":null},{"id":"cand-cmp-001","sourceText":"جهانگرد","category":"COMPOUND","profile":"ijmes_full","batch":"B","reviewState":"PENDING","decision":null},{"id":"cand-cmp-002","sourceText":"سخن‌سنج","category":"COMPOUND","profile":"ijmes_full","batch":"B","reviewState":"PENDING","decision":null},{"id":"cand-cmp-003","sourceText":"دانش‌پژوه","category":"COMPOUND","profile":"ijmes_full","batch":"B","reviewState":"PENDING","decision":null},{"id":"cand-cmp-004","sourceText":"نامه‌نگار","category":"COMPOUND","profile":"ijmes_full","batch":"B","reviewState":"PENDING","decision":null},{"id":"cand-cmp-005","sourceText":"دست‌نویس","category":"COMPOUND","profile":"ijmes_full","batch":"B","reviewState":"PENDING","decision":null},{"id":"cand-mrp-001","sourceText":"کتاب‌ها","category":"MORPHOLOGY","profile":"ijmes_full","batch":"B","reviewState":"PENDING","decision":null},{"id":"cand-mrp-002","sourceText":"نامه‌های","category":"MORPHOLOGY","profile":"ijmes_full","batch":"B","reviewState":"PENDING","decision":null},{"id":"cand-mrp-003","sourceText":"خردمندتر","category":"MORPHOLOGY","profile":"ijmes_full","batch":"B","reviewState":"PENDING","decision":null},{"id":"cand-mrp-004","sourceText":"بزرگ‌ترین","category":"MORPHOLOGY","profile":"ijmes_full","batch":"B","reviewState":"PENDING","decision":null},{"id":"cand-mrp-005","sourceText":"کتابم","category":"MORPHOLOGY","profile":"ijmes_full","batch":"B","reviewState":"PENDING","decision":null},{"id":"cand-mrp-006","sourceText":"خانه‌ات","category":"MORPHOLOGY","profile":"ijmes_full","batch":"B","reviewState":"PENDING","decision":null},{"id":"cand-mrp-007","sourceText":"قلمش","category":"MORPHOLOGY","profile":"ijmes_full","batch":"B","reviewState":"PENDING","decision":null},{"id":"cand-mrp-008","sourceText":"دیدگاه‌هایشان","category":"MORPHOLOGY","profile":"ijmes_full","batch":"B","reviewState":"PENDING","decision":null},{"id":"cand-mrp-009","sourceText":"دانشمندان","category":"MORPHOLOGY","profile":"ijmes_full","batch":"B","reviewState":"PENDING","decision":null},{"id":"cand-mrp-010","sourceText":"گزارش‌های","category":"MORPHOLOGY","profile":"ijmes_full","batch":"B","reviewState":"PENDING","decision":null},{"id":"cand-izf-001","sourceText":"تاریخ ادبیات","category":"IZAFAT","profile":"ijmes_full","batch":"B","reviewState":"PENDING","decision":null},{"id":"cand-izf-002","sourceText":"زبان مادری","category":"IZAFAT","profile":"ijmes_full","batch":"B","reviewState":"PENDING","decision":null},{"id":"cand-izf-003","sourceText":"حقوق بشر","category":"IZAFAT","profile":"ijmes_full","batch":"B","reviewState":"PENDING","decision":null},{"id":"cand-izf-004","sourceText":"خانه پدری","category":"IZAFAT","profile":"ijmes_full","batch":"B","reviewState":"PENDING","decision":null},{"id":"cand-izf-005","sourceText":"صدای باران","category":"IZAFAT","profile":"ijmes_full","batch":"B","reviewState":"PENDING","decision":null},{"id":"cand-izf-006","sourceText":"نسیم صبح","category":"IZAFAT","profile":"ijmes_full","batch":"B","reviewState":"PENDING","decision":null},{"id":"cand-izf-007","sourceText":"دیوان حافظ","category":"IZAFAT","profile":"ijmes_full","batch":"B","reviewState":"PENDING","decision":null},{"id":"cand-izf-008","sourceText":"درخت دانش","category":"IZAFAT","profile":"ijmes_full","batch":"B","reviewState":"PENDING","decision":null},{"id":"cand-amb-001","sourceText":"مهر","category":"AMBIGUITY","profile":"ijmes_full","batch":"E","reviewState":"PENDING","decision":null},{"id":"cand-amb-002","sourceText":"شیر","category":"AMBIGUITY","profile":"ijmes_full","batch":"E","reviewState":"PENDING","decision":null},{"id":"cand-amb-003","sourceText":"سر","category":"AMBIGUITY","profile":"ijmes_full","batch":"E","reviewState":"PENDING","decision":null},{"id":"cand-amb-004","sourceText":"باد","category":"AMBIGUITY","profile":"ijmes_full","batch":"E","reviewState":"PENDING","decision":null},{"id":"cand-amb-005","sourceText":"بار","category":"AMBIGUITY","profile":"ijmes_full","batch":"E","reviewState":"PENDING","decision":null},{"id":"cand-amb-006","sourceText":"داد","category":"AMBIGUITY","profile":"ijmes_full","batch":"E","reviewState":"PENDING","decision":null},{"id":"cand-amb-007","sourceText":"گل","category":"AMBIGUITY","profile":"ijmes_full","batch":"E","reviewState":"PENDING","decision":null},{"id":"cand-amb-008","sourceText":"گوش","category":"AMBIGUITY","profile":"ijmes_full","batch":"E","reviewState":"PENDING","decision":null},{"id":"cand-amb-009","sourceText":"شور","category":"AMBIGUITY","profile":"ijmes_full","batch":"E","reviewState":"PENDING","decision":null},{"id":"cand-amb-010","sourceText":"راست","category":"AMBIGUITY","profile":"ijmes_full","batch":"E","reviewState":"PENDING","decision":null},{"id":"cand-amb-011","sourceText":"روی","category":"AMBIGUITY","profile":"ijmes_full","batch":"E","reviewState":"PENDING","decision":null},{"id":"cand-amb-012","sourceText":"گاو","category":"AMBIGUITY","profile":"ijmes_full","batch":"E","reviewState":"PENDING","decision":null}]}
+{
+  "metadata": {
+    "schemaVersion": 2,
+    "artifactType": "BLIND_REAUDIT_WORKLIST",
+    "sourceCorpus": "validation/acquisition/external-candidates.v1.json",
+    "sourceCorpusCount": 108,
+    "status": "BATCH_B_COMPLETED",
+    "engineEvaluationPerformed": false,
+    "humanSignoff": null,
+    "priorAdjudicationAuthority": "HISTORICAL_ONLY"
+  },
+  "summary": {
+    "total": 108,
+    "pending": 60,
+    "adjudicated": 48,
+    "byBatch": {
+      "A": 25,
+      "B": 23,
+      "C": 36,
+      "D": 12,
+      "E": 12
+    },
+    "byCategory": {
+      "TERM": 15,
+      "RELIGIOUS_TERM": 10,
+      "PERSON": 18,
+      "PLACE": 12,
+      "INSTITUTION": 6,
+      "BOOK_TITLE": 12,
+      "COMPOUND": 5,
+      "MORPHOLOGY": 10,
+      "IZAFAT": 8,
+      "AMBIGUITY": 12
+    }
+  },
+  "cases": [
+    {
+      "id": "cand-term-001",
+      "sourceText": "نوسازی",
+      "category": "TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "nawsāzī",
+        "renderedOutput": "nawsāzī",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry نوسازی",
+            "locator": "entry نوسازی"
+          },
+          {
+            "source": "Iranica",
+            "citation": "CITIES iv. Modern Urbanization and Modernization in Persia",
+            "locator": "article headword"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart"
+          }
+        ],
+        "reviewNote": "Source-faithful Persian reading; نو is represented with the written diphthong aw.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-term-002",
+      "sourceText": "بازرگانی",
+      "category": "TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "bāzargānī",
+        "renderedOutput": "bāzargānī",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry بازرگانی",
+            "locator": "entry بازرگانی"
+          },
+          {
+            "source": "Iranica",
+            "citation": "COMMERCE vi. In the Pahlavi Period",
+            "locator": "article headword"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart"
+          }
+        ],
+        "reviewNote": "Verified reading; technical-full rendering preserves the scholarly canonical form.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-term-003",
+      "sourceText": "خودکامگی",
+      "category": "TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "khudkāmigī",
+        "renderedOutput": "khudkāmigī",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry خودکامگی",
+            "locator": "entry خودکامگی"
+          },
+          {
+            "source": "Iranica",
+            "citation": "AUTOCRACY",
+            "locator": "article headword"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart"
+          }
+        ],
+        "reviewNote": "Source-faithful khud- plus derived khudkāmigī under IJMES Persian i/u.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-term-004",
+      "sourceText": "مشروطه‌خواهی",
+      "category": "TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "mashrūṭih-khwāhī",
+        "renderedOutput": "mashrūṭih-khwāhī",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry مشروطه‌خواهی",
+            "locator": "entry مشروطه‌خواهی"
+          },
+          {
+            "source": "Iranica",
+            "citation": "CONSTITUTIONAL REVOLUTION i. Overview",
+            "locator": "article headword"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian tāʾ marbūṭa = ih; Persian i/u"
+          }
+        ],
+        "reviewNote": "Persian final ه is rendered -ih; the ZWNJ compound boundary is hyphenated.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-term-005",
+      "sourceText": "دیوان‌سالاری",
+      "category": "TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "dīvān-sālārī",
+        "renderedOutput": "dīvān-sālārī",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry دیوان‌سالاری",
+            "locator": "entry دیوان‌سالاری"
+          },
+          {
+            "source": "Iranica",
+            "citation": "BUREAUCRACY in Modern Iran",
+            "locator": "article headword"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart"
+          }
+        ],
+        "reviewNote": "The ZWNJ compound boundary is retained as a scholarly hyphen.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-term-006",
+      "sourceText": "شاهنشاهی",
+      "category": "TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "shāhanshāhī",
+        "renderedOutput": "shāhanshāhī",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry شاهنشاهی",
+            "locator": "entry شاهنشاهی"
+          },
+          {
+            "source": "Iranica",
+            "citation": "ŠĀHANŠĀH",
+            "locator": "article headword"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart"
+          }
+        ],
+        "reviewNote": "Reading evidence supports shāhanshāh; the derived form is shāhanshāhī.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-term-007",
+      "sourceText": "تجدد",
+      "category": "TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "tajaddud",
+        "renderedOutput": "tajaddud",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry تجدد",
+            "locator": "entry تجدد"
+          },
+          {
+            "source": "Iranica",
+            "citation": "TAJADDOD",
+            "locator": "opening sentence"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart"
+          }
+        ],
+        "reviewNote": "Iranica e/o is not copied; IJMES Persian short-vowel policy yields tajaddud.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-term-008",
+      "sourceText": "شهروندی",
+      "category": "TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "shahrvandī",
+        "renderedOutput": "shahrvandī",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry شهروندی",
+            "locator": "entry شهروندی"
+          },
+          {
+            "source": "Iranica",
+            "citation": "CITIZENSHIP in Modern Persia",
+            "locator": "article headword"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart"
+          }
+        ],
+        "reviewNote": "Verified reading; technical-full rendering preserves the scholarly canonical form.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-term-009",
+      "sourceText": "استعمار",
+      "category": "TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "istiʿmār",
+        "renderedOutput": "istiʿmār",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry استعمار",
+            "locator": "entry استعمار"
+          },
+          {
+            "source": "Iranica",
+            "citation": "COLONIALISM in Iran",
+            "locator": "article headword"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart"
+          }
+        ],
+        "reviewNote": "Arabic-derived Persian term retains ʿayn and long ā.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-term-010",
+      "sourceText": "جهان‌بینی",
+      "category": "TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "jahān-bīnī",
+        "renderedOutput": "jahān-bīnī",
+        "readingEvidence": [
+          {
+            "source": "Steingass",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 380",
+            "locator": "p. 380"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart"
+          }
+        ],
+        "reviewNote": "Source-faithful transliteration is used rather than English translation.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-term-011",
+      "sourceText": "دادگستری",
+      "category": "TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "dādgustarī",
+        "renderedOutput": "dādgustarī",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry دادگستری",
+            "locator": "entry دادگستری"
+          },
+          {
+            "source": "Iranica",
+            "citation": "JUDICIAL SYSTEM iv. Modern",
+            "locator": "article headword"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart"
+          }
+        ],
+        "reviewNote": "IJMES Persian u is used in gustar rather than another system’s o.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-term-012",
+      "sourceText": "روشنفکری",
+      "category": "TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "rawshanfikrī",
+        "renderedOutput": "rawshanfikrī",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry روشنفکری",
+            "locator": "entry روشنفکری"
+          },
+          {
+            "source": "Iranica",
+            "citation": "INTELLECTUALS in Modern Persia",
+            "locator": "article headword"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart"
+          }
+        ],
+        "reviewNote": "The written diphthong in روشن is represented as aw.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-term-013",
+      "sourceText": "کارگزاری",
+      "category": "TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "kārguzārī",
+        "renderedOutput": "kārguzārī",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry کارگزاری",
+            "locator": "entry کارگزاری"
+          },
+          {
+            "source": "Iranica",
+            "citation": "KĀRGOZĀR",
+            "locator": "article headword; observed form kārgozārī"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart"
+          }
+        ],
+        "reviewNote": "Iranica reading evidence is converted to IJMES Persian u: kārguzārī.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-term-014",
+      "sourceText": "کشورمندی",
+      "category": "TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "kishvarmandī",
+        "renderedOutput": "kishvarmandī",
+        "readingEvidence": [
+          {
+            "source": "Steingass",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 1032",
+            "locator": "p. 1032"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart"
+          }
+        ],
+        "reviewNote": "IJMES Persian i/u policy yields kishvarmandī.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-term-015",
+      "sourceText": "میهن‌پرستی",
+      "category": "TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "mihan-parastī",
+        "renderedOutput": "mihan-parastī",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry میهن‌پرستی",
+            "locator": "entry میهن‌پرستی"
+          },
+          {
+            "source": "Iranica",
+            "citation": "IRANIAN IDENTITY iv. 19th-20th Centuries",
+            "locator": "discussion of mihan-parasti"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart"
+          }
+        ],
+        "reviewNote": "Independent reading evidence supports Iranian Persian mihan; the ZWNJ compound boundary is retained.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-rel-001",
+      "sourceText": "اجتهاد",
+      "category": "RELIGIOUS_TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "ijtihād",
+        "renderedOutput": "ijtihād",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry اجتهاد",
+            "locator": "entry اجتهاد"
+          },
+          {
+            "source": "Iranica",
+            "citation": "EJTEHĀD",
+            "locator": "article headword; observed form ejtehād"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Word List (Cambridge University Press)",
+            "locator": "Word List: ijtihād"
+          }
+        ],
+        "reviewNote": "IJMES Word List confirms ijtihād.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-rel-002",
+      "sourceText": "تقلید",
+      "category": "RELIGIOUS_TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "taqlīd",
+        "renderedOutput": "taqlīd",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry تقلید",
+            "locator": "entry تقلید"
+          },
+          {
+            "source": "Iranica",
+            "citation": "TAQLĪD",
+            "locator": "article headword; observed form taqlīd"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart"
+          }
+        ],
+        "reviewNote": "Reading is established independently; no publication exception applies.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-rel-003",
+      "sourceText": "ولایت فقیه",
+      "category": "RELIGIOUS_TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "vilāyat-i faqīh",
+        "renderedOutput": "vilāyat-i faqīh",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry ولایت فقیه",
+            "locator": "entry ولایت فقیه"
+          },
+          {
+            "source": "Iranica",
+            "citation": "VELĀYAT-E FAQĪH",
+            "locator": "article headword; observed form velāyat-e faqīh"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Word List (Cambridge University Press)",
+            "locator": "Word List: vilāyat-i faqīh (Persian)"
+          }
+        ],
+        "reviewNote": "IJMES Word List confirms vilāyat-i faqīh and Persian izāfat -i.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-rel-004",
+      "sourceText": "امر به معروف",
+      "category": "RELIGIOUS_TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "amr bih maʿrūf",
+        "renderedOutput": "amr bih maʿrūf",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry امر به معروف",
+            "locator": "entry امر به معروف"
+          },
+          {
+            "source": "Iranica",
+            "citation": "AMR BE MAʿRŪF",
+            "locator": "article headword; Persian phrase amr be maʿrūf"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart"
+          }
+        ],
+        "reviewNote": "Exact Persian surface is retained; به is represented as bih, not expanded into an Arabic formula.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-rel-005",
+      "sourceText": "اهل بیت",
+      "category": "RELIGIOUS_TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "ahl-i bayt",
+        "renderedOutput": "ahl-i bayt",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry اهل بیت",
+            "locator": "entry اهل بیت"
+          },
+          {
+            "source": "Iranica",
+            "citation": "AHL-E BAYT",
+            "locator": "article headword; observed form ahl-e bayt"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian izafat = -i; Persian i/u"
+          }
+        ],
+        "reviewNote": "Iranica -e linker is converted to IJMES Persian izāfat -i.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-rel-006",
+      "sourceText": "خمس",
+      "category": "RELIGIOUS_TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "khums",
+        "renderedOutput": "khums",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry خمس",
+            "locator": "entry خمس"
+          },
+          {
+            "source": "Iranica",
+            "citation": "ḴOMS",
+            "locator": "article headword; observed form ḵoms"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart"
+          }
+        ],
+        "reviewNote": "Iranica ḵ/o is converted to IJMES kh/u: khums.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-rel-007",
+      "sourceText": "زکات",
+      "category": "RELIGIOUS_TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "zakāt",
+        "renderedOutput": "zakat",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry زکات",
+            "locator": "entry زکات"
+          },
+          {
+            "source": "Iranica",
+            "citation": "ZAKĀT",
+            "locator": "article headword; observed form zakāt"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Word List (Cambridge University Press)",
+            "locator": "Word List: zakat"
+          }
+        ],
+        "reviewNote": "Canonical preserves long ā; IJMES Word List rendering is zakat.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-rel-008",
+      "sourceText": "عاشورا",
+      "category": "RELIGIOUS_TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "ʿāshūrā",
+        "renderedOutput": "ʿAshuraʾ",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry عاشورا",
+            "locator": "entry عاشورا"
+          },
+          {
+            "source": "Iranica",
+            "citation": "ʿĀŠŪRĀʾ",
+            "locator": "article headword; identity and historical usage"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Word List (Cambridge University Press)",
+            "locator": "Word List: ʿAshuraʾ"
+          }
+        ],
+        "reviewNote": "Persian source has no final hamza; canonical is ʿāshūrā, while IJMES Word List renders ʿAshuraʾ.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-rel-009",
+      "sourceText": "دارالتقریب",
+      "category": "RELIGIOUS_TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "dār al-taqrīb",
+        "renderedOutput": "dār al-taqrīb",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry دارالتقریب",
+            "locator": "entry دارالتقریب"
+          },
+          {
+            "source": "Iranica",
+            "citation": "DĀR AL-TAQRĪB",
+            "locator": "article headword; observed form dār al-taqrīb"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "definite article al- lowercase; technical terms fully transliterated"
+          }
+        ],
+        "reviewNote": "The exact source phrase is retained; al- remains lowercase.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-rel-010",
+      "sourceText": "حسینیه",
+      "category": "RELIGIOUS_TERM",
+      "profile": "ijmes_full",
+      "batch": "A",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "ḥusayniyyih",
+        "renderedOutput": "ḥusayniyyih",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry حسینیه",
+            "locator": "entry حسینیه"
+          },
+          {
+            "source": "Iranica",
+            "citation": "ḤOSAYNĪYA",
+            "locator": "article headword; observed form ḥosaynīya"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian nisba = -iyyih; Persian i/u"
+          }
+        ],
+        "reviewNote": "IJMES Persian nisba rule gives -iyyih; Iranica e/o is not copied.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-04"
+        }
+      }
+    },
+    {
+      "id": "cand-pers-001",
+      "sourceText": "محمدعلی جمال‌زاده",
+      "category": "PERSON",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-pers-002",
+      "sourceText": "صادق هدایت",
+      "category": "PERSON",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-pers-003",
+      "sourceText": "علی‌اکبر دهخدا",
+      "category": "PERSON",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-pers-004",
+      "sourceText": "ملک‌الشعرای بهار",
+      "category": "PERSON",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-pers-005",
+      "sourceText": "جلال آل‌احمد",
+      "category": "PERSON",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-pers-006",
+      "sourceText": "سیمین دانشور",
+      "category": "PERSON",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-pers-007",
+      "sourceText": "نیما یوشیج",
+      "category": "PERSON",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-pers-008",
+      "sourceText": "غلامحسین ساعدی",
+      "category": "PERSON",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-pers-009",
+      "sourceText": "پروین اعتصامی",
+      "category": "PERSON",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-pers-010",
+      "sourceText": "بدیع‌الزمان فروزانفر",
+      "category": "PERSON",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-pers-011",
+      "sourceText": "عبدالحسین زرین‌کوب",
+      "category": "PERSON",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-pers-012",
+      "sourceText": "مجتبی مینوی",
+      "category": "PERSON",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-pers-013",
+      "sourceText": "احمد کسروی",
+      "category": "PERSON",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-pers-014",
+      "sourceText": "ایرج افشار",
+      "category": "PERSON",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-pers-015",
+      "sourceText": "هوشنگ ابتهاج",
+      "category": "PERSON",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-pers-016",
+      "sourceText": "سهراب سپهری",
+      "category": "PERSON",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-pers-017",
+      "sourceText": "مهدی اخوان ثالث",
+      "category": "PERSON",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-pers-018",
+      "sourceText": "فروغ فرخزاد",
+      "category": "PERSON",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-plc-001",
+      "sourceText": "مازندران",
+      "category": "PLACE",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-plc-002",
+      "sourceText": "خوزستان",
+      "category": "PLACE",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-plc-003",
+      "sourceText": "آذربایجان",
+      "category": "PLACE",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-plc-004",
+      "sourceText": "سیستان و بلوچستان",
+      "category": "PLACE",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-plc-005",
+      "sourceText": "کرمانشاه",
+      "category": "PLACE",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-plc-006",
+      "sourceText": "نیشابور",
+      "category": "PLACE",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-plc-007",
+      "sourceText": "تخت جمشید",
+      "category": "PLACE",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-plc-008",
+      "sourceText": "پاسارگاد",
+      "category": "PLACE",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-plc-009",
+      "sourceText": "دماوند",
+      "category": "PLACE",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-plc-010",
+      "sourceText": "زاگرس",
+      "category": "PLACE",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-plc-011",
+      "sourceText": "زاینده‌رود",
+      "category": "PLACE",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-plc-012",
+      "sourceText": "هرمزگان",
+      "category": "PLACE",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-inst-001",
+      "sourceText": "فرهنگستان زبان و ادب فارسی",
+      "category": "INSTITUTION",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-inst-002",
+      "sourceText": "دانشگاه تهران",
+      "category": "INSTITUTION",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-inst-003",
+      "sourceText": "کتابخانه ملی ایران",
+      "category": "INSTITUTION",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-inst-004",
+      "sourceText": "مجلس شورای ملی",
+      "category": "INSTITUTION",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-inst-005",
+      "sourceText": "دارالفنون",
+      "category": "INSTITUTION",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-inst-006",
+      "sourceText": "انجمن آثار ملی",
+      "category": "INSTITUTION",
+      "profile": "ijmes_full",
+      "batch": "C",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-book-001",
+      "sourceText": "تاریخ بیداری ایرانیان",
+      "category": "BOOK_TITLE",
+      "profile": "ijmes_title",
+      "batch": "D",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-book-002",
+      "sourceText": "سیاست‌نامه",
+      "category": "BOOK_TITLE",
+      "profile": "ijmes_title",
+      "batch": "D",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-book-003",
+      "sourceText": "قابوس‌نامه",
+      "category": "BOOK_TITLE",
+      "profile": "ijmes_title",
+      "batch": "D",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-book-004",
+      "sourceText": "مرزبان‌نامه",
+      "category": "BOOK_TITLE",
+      "profile": "ijmes_title",
+      "batch": "D",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-book-005",
+      "sourceText": "سفرنامه ناصرخسرو",
+      "category": "BOOK_TITLE",
+      "profile": "ijmes_title",
+      "batch": "D",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-book-006",
+      "sourceText": "کلیله و دمنه",
+      "category": "BOOK_TITLE",
+      "profile": "ijmes_title",
+      "batch": "D",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-book-007",
+      "sourceText": "گلستان",
+      "category": "BOOK_TITLE",
+      "profile": "ijmes_title",
+      "batch": "D",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-book-008",
+      "sourceText": "بوستان",
+      "category": "BOOK_TITLE",
+      "profile": "ijmes_title",
+      "batch": "D",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-book-009",
+      "sourceText": "سووشون",
+      "category": "BOOK_TITLE",
+      "profile": "ijmes_title",
+      "batch": "D",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-book-010",
+      "sourceText": "چشم‌هایش",
+      "category": "BOOK_TITLE",
+      "profile": "ijmes_title",
+      "batch": "D",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-book-011",
+      "sourceText": "حاجی آقا",
+      "category": "BOOK_TITLE",
+      "profile": "ijmes_title",
+      "batch": "D",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-book-012",
+      "sourceText": "زمستان",
+      "category": "BOOK_TITLE",
+      "profile": "ijmes_title",
+      "batch": "D",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-cmp-001",
+      "sourceText": "جهانگرد",
+      "category": "COMPOUND",
+      "profile": "ijmes_full",
+      "batch": "B",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "jahān-gard",
+        "renderedOutput": "jahān-gard",
+        "readingEvidence": [
+          {
+            "source": "Steingass",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 380",
+            "locator": "p. 380; جهانگرد"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule"
+          }
+        ],
+        "reviewNote": "Compound structure jahān + gard is preserved with the project canonical boundary hyphen.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
+    },
+    {
+      "id": "cand-cmp-002",
+      "sourceText": "سخن‌سنج",
+      "category": "COMPOUND",
+      "profile": "ijmes_full",
+      "batch": "B",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "sukhan-sanj",
+        "renderedOutput": "sukhan-sanj",
+        "readingEvidence": [
+          {
+            "source": "Steingass",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 687",
+            "locator": "p. 687; سخن‌سنج"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule"
+          }
+        ],
+        "reviewNote": "Compound structure sukhan + sanj is preserved with the project canonical boundary hyphen.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
+    },
+    {
+      "id": "cand-cmp-003",
+      "sourceText": "دانش‌پژوه",
+      "category": "COMPOUND",
+      "profile": "ijmes_full",
+      "batch": "B",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "dānish-pazhūh",
+        "renderedOutput": "dānish-pazhūh",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry دانش‌پژوه",
+            "locator": "entry دانش‌پژوه"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule"
+          }
+        ],
+        "reviewNote": "The ZWNJ-marked compound boundary is represented explicitly as dānish-pazhūh.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
+    },
+    {
+      "id": "cand-cmp-004",
+      "sourceText": "نامه‌نگار",
+      "category": "COMPOUND",
+      "profile": "ijmes_full",
+      "batch": "B",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "nāma-nigār",
+        "renderedOutput": "nāma-nigār",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry نامه‌نگار",
+            "locator": "entry نامه‌نگار"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule"
+          }
+        ],
+        "reviewNote": "The vowel-final first stem and compound structure are represented as nāma-nigār.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
+    },
+    {
+      "id": "cand-cmp-005",
+      "sourceText": "دست‌نویس",
+      "category": "COMPOUND",
+      "profile": "ijmes_full",
+      "batch": "B",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "dast-nivīs",
+        "renderedOutput": "dast-nivīs",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry دست‌نویس",
+            "locator": "entry دست‌نویس"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule"
+          }
+        ],
+        "reviewNote": "The ZWNJ-marked compound is represented with an explicit canonical stem boundary.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
+    },
+    {
+      "id": "cand-mrp-001",
+      "sourceText": "کتاب‌ها",
+      "category": "MORPHOLOGY",
+      "profile": "ijmes_full",
+      "batch": "B",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "kitāb-hā",
+        "renderedOutput": "kitāb-hā",
+        "readingEvidence": [
+          {
+            "source": "Lazard",
+            "citation": "Lazard, A Grammar of Contemporary Persian (1992), p. 45",
+            "locator": "p. 45; plural -hā"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule"
+          }
+        ],
+        "reviewNote": "Productive plural -hā is represented with an explicit morphological boundary.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
+    },
+    {
+      "id": "cand-mrp-002",
+      "sourceText": "نامه‌های",
+      "category": "MORPHOLOGY",
+      "profile": "ijmes_full",
+      "batch": "B",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "nāma-hā-yi",
+        "renderedOutput": "nāma-hā-yi",
+        "readingEvidence": [
+          {
+            "source": "Lazard",
+            "citation": "Lazard, A Grammar of Contemporary Persian (1992), p. 47",
+            "locator": "p. 47; plural/linker morphology"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule"
+          }
+        ],
+        "reviewNote": "Plural -hā plus post-vocalic linker -yi is represented explicitly.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
+    },
+    {
+      "id": "cand-mrp-003",
+      "sourceText": "خردمندتر",
+      "category": "MORPHOLOGY",
+      "profile": "ijmes_full",
+      "batch": "B",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "khiradmand-tar",
+        "renderedOutput": "khiradmand-tar",
+        "readingEvidence": [
+          {
+            "source": "Lazard",
+            "citation": "Lazard, A Grammar of Contemporary Persian (1992), p. 62",
+            "locator": "p. 62; comparative -tar"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule"
+          }
+        ],
+        "reviewNote": "Comparative -tar remains a distinct productive morphological segment; IJMES Persian i gives khiradmand.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
+    },
+    {
+      "id": "cand-mrp-004",
+      "sourceText": "بزرگ‌ترین",
+      "category": "MORPHOLOGY",
+      "profile": "ijmes_full",
+      "batch": "B",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "buzurg-tarīn",
+        "renderedOutput": "buzurg-tarīn",
+        "readingEvidence": [
+          {
+            "source": "Lazard",
+            "citation": "Lazard, A Grammar of Contemporary Persian (1992), p. 63",
+            "locator": "p. 63; superlative -tarīn"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule"
+          }
+        ],
+        "reviewNote": "Superlative -tarīn remains explicit; IJMES Persian u gives buzurg.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
+    },
+    {
+      "id": "cand-mrp-005",
+      "sourceText": "کتابم",
+      "category": "MORPHOLOGY",
+      "profile": "ijmes_full",
+      "batch": "B",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "kitāb-am",
+        "renderedOutput": "kitāb-am",
+        "readingEvidence": [
+          {
+            "source": "Windfuhr",
+            "citation": "Windfuhr, Persian Grammar: History and State of Its Study (1979), p. 34",
+            "locator": "p. 34; possessive enclitic"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule"
+          }
+        ],
+        "reviewNote": "First-person singular possessive enclitic -am is morphologically explicit.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
+    },
+    {
+      "id": "cand-mrp-006",
+      "sourceText": "خانه‌ات",
+      "category": "MORPHOLOGY",
+      "profile": "ijmes_full",
+      "batch": "B",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "khāna-at",
+        "renderedOutput": "khāna-at",
+        "readingEvidence": [
+          {
+            "source": "Windfuhr",
+            "citation": "Windfuhr, Persian Grammar (1979), p. 35",
+            "locator": "p. 35; possessive enclitic"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule"
+          }
+        ],
+        "reviewNote": "Vowel-final khāna plus second-person singular enclitic is represented khāna-at.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
+    },
+    {
+      "id": "cand-mrp-007",
+      "sourceText": "قلمش",
+      "category": "MORPHOLOGY",
+      "profile": "ijmes_full",
+      "batch": "B",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "qalam-ash",
+        "renderedOutput": "qalam-ash",
+        "readingEvidence": [
+          {
+            "source": "Windfuhr",
+            "citation": "Windfuhr, Persian Grammar (1979), p. 35",
+            "locator": "p. 35; possessive enclitic"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule"
+          }
+        ],
+        "reviewNote": "Third-person singular possessive enclitic -ash is morphologically explicit.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
+    },
+    {
+      "id": "cand-mrp-008",
+      "sourceText": "دیدگاه‌هایشان",
+      "category": "MORPHOLOGY",
+      "profile": "ijmes_full",
+      "batch": "B",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "dīdgāh-hā-yi-shān",
+        "renderedOutput": "dīdgāh-hā-yi-shān",
+        "readingEvidence": [
+          {
+            "source": "Lazard",
+            "citation": "Lazard, A Grammar of Contemporary Persian (1992), p. 78",
+            "locator": "p. 78; plural/linker/enclitic chain"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule"
+          }
+        ],
+        "reviewNote": "The productive chain plural -hā + linker -yi + possessive -shān is represented segment by segment.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
+    },
+    {
+      "id": "cand-mrp-009",
+      "sourceText": "دانشمندان",
+      "category": "MORPHOLOGY",
+      "profile": "ijmes_full",
+      "batch": "B",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "dānishmand-ān",
+        "renderedOutput": "dānishmand-ān",
+        "readingEvidence": [
+          {
+            "source": "Lazard",
+            "citation": "Lazard, A Grammar of Contemporary Persian (1992), p. 46",
+            "locator": "p. 46; plural -ān"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule"
+          }
+        ],
+        "reviewNote": "Productive human plural -ān is represented with an explicit morphological boundary.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
+    },
+    {
+      "id": "cand-mrp-010",
+      "sourceText": "گزارش‌های",
+      "category": "MORPHOLOGY",
+      "profile": "ijmes_full",
+      "batch": "B",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "guzārish-hā-yi",
+        "renderedOutput": "guzārish-hā-yi",
+        "readingEvidence": [
+          {
+            "source": "Lazard",
+            "citation": "Lazard, A Grammar of Contemporary Persian (1992), p. 50",
+            "locator": "p. 50; plural/linker morphology"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule"
+          }
+        ],
+        "reviewNote": "Plural -hā followed by the explicit linker -yi is preserved; IJMES Persian u gives guzārish.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
+    },
+    {
+      "id": "cand-izf-001",
+      "sourceText": "تاریخ ادبیات",
+      "category": "IZAFAT",
+      "profile": "ijmes_full",
+      "batch": "B",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "tārīkh-i adabīyāt",
+        "renderedOutput": "tārīkh-i adabīyāt",
+        "readingEvidence": [
+          {
+            "source": "Thackston + IJMES",
+            "citation": "Thackston, An Introduction to Persian (1993), p. 18; Cambridge IJMES Guide, izafat rule",
+            "locator": "p. 18; IJMES izafat rule"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule"
+          }
+        ],
+        "reviewNote": "Consonant-final host takes Persian izāfat -i.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
+    },
+    {
+      "id": "cand-izf-002",
+      "sourceText": "زبان مادری",
+      "category": "IZAFAT",
+      "profile": "ijmes_full",
+      "batch": "B",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "zabān-i mādarī",
+        "renderedOutput": "zabān-i mādarī",
+        "readingEvidence": [
+          {
+            "source": "Thackston",
+            "citation": "Thackston, An Introduction to Persian (1993), p. 19",
+            "locator": "p. 19; izafat"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule"
+          }
+        ],
+        "reviewNote": "Consonant-final zabān takes izāfat -i.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
+    },
+    {
+      "id": "cand-izf-003",
+      "sourceText": "حقوق بشر",
+      "category": "IZAFAT",
+      "profile": "ijmes_full",
+      "batch": "B",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "ḥuqūq-i bashar",
+        "renderedOutput": "ḥuqūq-i bashar",
+        "readingEvidence": [
+          {
+            "source": "Thackston",
+            "citation": "Thackston, An Introduction to Persian (1993), p. 21",
+            "locator": "p. 21; izafat"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule"
+          }
+        ],
+        "reviewNote": "Consonant-final ḥuqūq takes izāfat -i; technical scholarly consonantal diacritics are preserved.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
+    },
+    {
+      "id": "cand-izf-004",
+      "sourceText": "خانه پدری",
+      "category": "IZAFAT",
+      "profile": "ijmes_full",
+      "batch": "B",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "khāna-yi pidarī",
+        "renderedOutput": "khāna-yi pidarī",
+        "readingEvidence": [
+          {
+            "source": "Thackston",
+            "citation": "Thackston, An Introduction to Persian (1993), p. 22",
+            "locator": "p. 22; vowel-final izafat"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule"
+          }
+        ],
+        "reviewNote": "Vowel-final khāna takes the project explicit post-vocalic linker -yi.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
+    },
+    {
+      "id": "cand-izf-005",
+      "sourceText": "صدای باران",
+      "category": "IZAFAT",
+      "profile": "ijmes_full",
+      "batch": "B",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "ṣidā-yi bārān",
+        "renderedOutput": "ṣidā-yi bārān",
+        "readingEvidence": [
+          {
+            "source": "Thackston",
+            "citation": "Thackston, An Introduction to Persian (1993), p. 23",
+            "locator": "p. 23; vowel-final izafat"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule"
+          }
+        ],
+        "reviewNote": "Vowel-final ṣidā takes explicit post-vocalic -yi.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
+    },
+    {
+      "id": "cand-izf-006",
+      "sourceText": "نسیم صبح",
+      "category": "IZAFAT",
+      "profile": "ijmes_full",
+      "batch": "B",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "nasīm-i ṣubḥ",
+        "renderedOutput": "nasīm-i ṣubḥ",
+        "readingEvidence": [
+          {
+            "source": "Thackston",
+            "citation": "Thackston, An Introduction to Persian (1993), p. 24",
+            "locator": "p. 24; izafat"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule"
+          }
+        ],
+        "reviewNote": "Consonant-final nasīm takes -i; the technical scholarly layer preserves ṣubḥ.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
+    },
+    {
+      "id": "cand-izf-007",
+      "sourceText": "دیوان حافظ",
+      "category": "IZAFAT",
+      "profile": "ijmes_full",
+      "batch": "B",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "dīvān-i ḥāfiẓ",
+        "renderedOutput": "dīvān-i ḥāfiẓ",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry دیوان حافظ",
+            "locator": "entry دیوان حافظ"
+          },
+          {
+            "source": "Iranica",
+            "citation": "HAFEZ i. An Overview",
+            "locator": "Dīvān-e Ḥāfeẓ reading/identity evidence"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule"
+          }
+        ],
+        "reviewNote": "Iranica -e is converted to IJMES Persian izāfat -i; the technical layer preserves ḥ/ẓ.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
+    },
+    {
+      "id": "cand-izf-008",
+      "sourceText": "درخت دانش",
+      "category": "IZAFAT",
+      "profile": "ijmes_full",
+      "batch": "B",
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "dirakht-i dānish",
+        "renderedOutput": "dirakht-i dānish",
+        "readingEvidence": [
+          {
+            "source": "Thackston",
+            "citation": "Thackston, An Introduction to Persian (1993), p. 25",
+            "locator": "p. 25; izafat"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule"
+          }
+        ],
+        "reviewNote": "Consonant-final dirakht takes Persian izāfat -i; dānish preserves IJMES Persian i.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
+    },
+    {
+      "id": "cand-amb-001",
+      "sourceText": "مهر",
+      "category": "AMBIGUITY",
+      "profile": "ijmes_full",
+      "batch": "E",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-amb-002",
+      "sourceText": "شیر",
+      "category": "AMBIGUITY",
+      "profile": "ijmes_full",
+      "batch": "E",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-amb-003",
+      "sourceText": "سر",
+      "category": "AMBIGUITY",
+      "profile": "ijmes_full",
+      "batch": "E",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-amb-004",
+      "sourceText": "باد",
+      "category": "AMBIGUITY",
+      "profile": "ijmes_full",
+      "batch": "E",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-amb-005",
+      "sourceText": "بار",
+      "category": "AMBIGUITY",
+      "profile": "ijmes_full",
+      "batch": "E",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-amb-006",
+      "sourceText": "داد",
+      "category": "AMBIGUITY",
+      "profile": "ijmes_full",
+      "batch": "E",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-amb-007",
+      "sourceText": "گل",
+      "category": "AMBIGUITY",
+      "profile": "ijmes_full",
+      "batch": "E",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-amb-008",
+      "sourceText": "گوش",
+      "category": "AMBIGUITY",
+      "profile": "ijmes_full",
+      "batch": "E",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-amb-009",
+      "sourceText": "شور",
+      "category": "AMBIGUITY",
+      "profile": "ijmes_full",
+      "batch": "E",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-amb-010",
+      "sourceText": "راست",
+      "category": "AMBIGUITY",
+      "profile": "ijmes_full",
+      "batch": "E",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-amb-011",
+      "sourceText": "روی",
+      "category": "AMBIGUITY",
+      "profile": "ijmes_full",
+      "batch": "E",
+      "reviewState": "PENDING",
+      "decision": null
+    },
+    {
+      "id": "cand-amb-012",
+      "sourceText": "گاو",
+      "category": "AMBIGUITY",
+      "profile": "ijmes_full",
+      "batch": "E",
+      "reviewState": "PENDING",
+      "decision": null
+    }
+  ]
+}
