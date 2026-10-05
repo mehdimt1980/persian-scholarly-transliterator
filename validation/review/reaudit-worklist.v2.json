@@ -4,15 +4,15 @@
     "artifactType": "BLIND_REAUDIT_WORKLIST",
     "sourceCorpus": "validation/acquisition/external-candidates.v1.json",
     "sourceCorpusCount": 108,
-    "status": "BATCH_C_COMPLETED",
+    "status": "BATCH_D_COMPLETED",
     "engineEvaluationPerformed": false,
     "humanSignoff": null,
     "priorAdjudicationAuthority": "HISTORICAL_ONLY"
   },
   "summary": {
     "total": 108,
-    "pending": 24,
-    "adjudicated": 84,
+    "pending": 12,
+    "adjudicated": 96,
     "byBatch": {
       "A": 25,
       "B": 23,
@@ -2353,8 +2353,37 @@
       "category": "BOOK_TITLE",
       "profile": "ijmes_title",
       "batch": "D",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Tārīkh-i Bīdārī-yi Īrānīyān",
+        "renderedOutput": "Tarikh-i Bidari-yi Iraniyan",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry تاریخ بیداری ایرانیان",
+            "locator": "entry تاریخ بیداری ایرانیان"
+          },
+          {
+            "source": "Iranica",
+            "citation": "TĀRĪḴ-E BĪDĀRĪ-E ĪRĀNĪĀN",
+            "locator": "Tārīḵ-e Bīdārī-e Īrānīān"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "book/article titles: IJMES spelling and English capitalization, no ordinary diacritics, preserve ayn/hamza; Persian i/u and izafat rules"
+          }
+        ],
+        "reviewNote": "Iranica supplies reading evidence; IJMES converts ḵ/e to kh/i and the vowel-final Bīdārī host takes explicit -yi.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-book-002",
@@ -2362,8 +2391,37 @@
       "category": "BOOK_TITLE",
       "profile": "ijmes_title",
       "batch": "D",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Siyāsat-nāma",
+        "renderedOutput": "Siyasat-nama",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry سیاست‌نامه",
+            "locator": "entry سیاست‌نامه"
+          },
+          {
+            "source": "Iranica",
+            "citation": "SIĀSAT-NĀMA",
+            "locator": "Sīāsat-nāma reading/title evidence"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "book/article titles: IJMES spelling and English capitalization, no ordinary diacritics, preserve ayn/hamza; Persian i/u and izafat rules"
+          }
+        ],
+        "reviewNote": "The established Persian reading is siyāsat; the compound title boundary is retained and title rendering removes ordinary diacritics.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-book-003",
@@ -2371,8 +2429,37 @@
       "category": "BOOK_TITLE",
       "profile": "ijmes_title",
       "batch": "D",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Qābūs-nāma",
+        "renderedOutput": "Qabus-nama",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry قابوس‌نامه",
+            "locator": "entry قابوس‌نامه"
+          },
+          {
+            "source": "Iranica",
+            "citation": "QĀBUS-NĀMA",
+            "locator": "Qābūs-nāma"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "book/article titles: IJMES spelling and English capitalization, no ordinary diacritics, preserve ayn/hamza; Persian i/u and izafat rules"
+          }
+        ],
+        "reviewNote": "Full scholarly vowels are preserved canonically; title rendering removes ordinary diacritics.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-book-004",
@@ -2380,8 +2467,37 @@
       "category": "BOOK_TITLE",
       "profile": "ijmes_title",
       "batch": "D",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Marzbān-nāma",
+        "renderedOutput": "Marzban-nama",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry مرزبان‌نامه",
+            "locator": "entry مرزبان‌نامه"
+          },
+          {
+            "source": "Iranica",
+            "citation": "MARZBĀN-NĀMA",
+            "locator": "Marzbān-nāma"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "book/article titles: IJMES spelling and English capitalization, no ordinary diacritics, preserve ayn/hamza; Persian i/u and izafat rules"
+          }
+        ],
+        "reviewNote": "The compound title boundary is preserved; title rendering removes ordinary diacritics.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-book-005",
@@ -2389,8 +2505,42 @@
       "category": "BOOK_TITLE",
       "profile": "ijmes_title",
       "batch": "D",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Safarnāma-yi Nāṣir-i Khusraw",
+        "renderedOutput": "Safarnama-yi Nasir-i Khusraw",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry سفرنامه ناصرخسرو",
+            "locator": "entry سفرنامه ناصرخسرو"
+          },
+          {
+            "source": "Iranica",
+            "citation": "SAFARNĀMA",
+            "locator": "Safarnāma-ye Nāṣer-e Ḵosrow"
+          },
+          {
+            "source": "Scholarly bibliography",
+            "citation": "Safarnāma-yi Nāṣir-i Khusraw",
+            "locator": "attested title/name construction with internal izafat"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "book/article titles: IJMES spelling and English capitalization, no ordinary diacritics, preserve ayn/hamza; Persian i/u and izafat rules"
+          }
+        ],
+        "reviewNote": "Canonical preserves post-vocalic -yi after Safarnāma and the conventional internal izafat Nāṣir-i Khusraw; Iranica e/ḵ/o are converted to IJMES i/kh/u-aw.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-book-006",
@@ -2398,8 +2548,37 @@
       "category": "BOOK_TITLE",
       "profile": "ijmes_title",
       "batch": "D",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Kalīla va Dimna",
+        "renderedOutput": "Kalila va Dimna",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry کلیله و دمنه",
+            "locator": "entry کلیله و دمنه"
+          },
+          {
+            "source": "Iranica",
+            "citation": "KALILA WA DEMNA",
+            "locator": "Kalīla va Demna in Persian reception"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "book/article titles: IJMES spelling and English capitalization, no ordinary diacritics, preserve ayn/hamza; Persian i/u and izafat rules"
+          }
+        ],
+        "reviewNote": "Persian short e in Demna is converted to IJMES i, yielding Dimna; Persian conjunction is retained as va.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-book-007",
@@ -2407,8 +2586,37 @@
       "category": "BOOK_TITLE",
       "profile": "ijmes_title",
       "batch": "D",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Gulistān",
+        "renderedOutput": "Gulistan",
+        "readingEvidence": [
+          {
+            "source": "Steingass",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 1093",
+            "locator": "p. 1093; گلستان"
+          },
+          {
+            "source": "Iranica",
+            "citation": "GOLESTĀN-E SAʿDĪ",
+            "locator": "Golestān reading evidence"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "book/article titles: IJMES spelling and English capitalization, no ordinary diacritics, preserve ayn/hamza; Persian i/u and izafat rules"
+          }
+        ],
+        "reviewNote": "Iranica o/e are converted to IJMES Persian u/i: Gulistān.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-book-008",
@@ -2416,8 +2624,37 @@
       "category": "BOOK_TITLE",
       "profile": "ijmes_title",
       "batch": "D",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Būstān",
+        "renderedOutput": "Bustan",
+        "readingEvidence": [
+          {
+            "source": "Steingass",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 206",
+            "locator": "p. 206; بوستان"
+          },
+          {
+            "source": "Iranica",
+            "citation": "BŪSTĀN",
+            "locator": "Būstān"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "book/article titles: IJMES spelling and English capitalization, no ordinary diacritics, preserve ayn/hamza; Persian i/u and izafat rules"
+          }
+        ],
+        "reviewNote": "The attested long vowels are retained canonically; title rendering removes the macron.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-book-009",
@@ -2425,8 +2662,42 @@
       "category": "BOOK_TITLE",
       "profile": "ijmes_title",
       "batch": "D",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Savūshūn",
+        "renderedOutput": "Savushun",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry سووشون",
+            "locator": "entry سووشون"
+          },
+          {
+            "source": "Iranica",
+            "citation": "DĀNEŠVAR, SĪMĪN",
+            "locator": "Savūšūn"
+          },
+          {
+            "source": "Iranian Studies",
+            "citation": "Authorial title preference for Savūshūn",
+            "locator": "Daneshvar preference reported in scholarly discussion"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "book/article titles: IJMES spelling and English capitalization, no ordinary diacritics, preserve ayn/hamza; Persian i/u and izafat rules"
+          }
+        ],
+        "reviewNote": "Savūshūn is retained as the reviewed literary-title reading; IJMES sh replaces Iranica š and title rendering removes macrons.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-book-010",
@@ -2434,8 +2705,37 @@
       "category": "BOOK_TITLE",
       "profile": "ijmes_title",
       "batch": "D",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Chashm-hā-yash",
+        "renderedOutput": "Chashm-ha-yash",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry چشم‌هایش",
+            "locator": "entry چشم‌هایش"
+          },
+          {
+            "source": "Iranica",
+            "citation": "ʿALAVĪ, BOZORG",
+            "locator": "Čašmhāyeš title/reading evidence"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "book/article titles: IJMES spelling and English capitalization, no ordinary diacritics, preserve ayn/hamza; Persian i/u and izafat rules"
+          }
+        ],
+        "reviewNote": "Canonical makes the productive plural -hā and possessive -yash morphology auditable with boundary hyphens. Rendering removes ordinary diacritics but does not erase those morphological boundaries.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-book-011",
@@ -2443,8 +2743,37 @@
       "category": "BOOK_TITLE",
       "profile": "ijmes_title",
       "batch": "D",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Ḥājī Āqā",
+        "renderedOutput": "Haji Aqa",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry حاجی آقا",
+            "locator": "entry حاجی آقا"
+          },
+          {
+            "source": "Iranica",
+            "citation": "HEDAYAT, SADEQ i. LIFE AND WORK",
+            "locator": "Ḥājī Āqā"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "book/article titles: IJMES spelling and English capitalization, no ordinary diacritics, preserve ayn/hamza; Persian i/u and izafat rules"
+          }
+        ],
+        "reviewNote": "Reading is directly attested; title rendering removes ordinary diacritics.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-book-012",
@@ -2452,8 +2781,37 @@
       "category": "BOOK_TITLE",
       "profile": "ijmes_title",
       "batch": "D",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Zimistān",
+        "renderedOutput": "Zimistan",
+        "readingEvidence": [
+          {
+            "source": "Steingass",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 622",
+            "locator": "p. 622; زمستان"
+          },
+          {
+            "source": "Iranica",
+            "citation": "AḴAVĀN-E SĀLES, MEHDĪ",
+            "locator": "Zemestān title/reading evidence"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "book/article titles: IJMES spelling and English capitalization, no ordinary diacritics, preserve ayn/hamza; Persian i/u and izafat rules"
+          }
+        ],
+        "reviewNote": "Iranica e is converted to IJMES Persian i, yielding Zimistān; title rendering removes the macron.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-cmp-001",
