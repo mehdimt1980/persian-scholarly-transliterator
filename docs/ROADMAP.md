@@ -12,6 +12,13 @@
 10. **Phase 4.6D — future if required by 4.6C:** evidence-backed remediation of coverage or policy gaps discovered by the frozen benchmark; no benchmark-driven data mutation.
 11. **Release hardening — future before RC:** dependency/security remediation, release-gate cleanup (including replacing the legacy `REAL_DISSERTATION` corpus-tier name), and release documentation.
 12. **v1.0.0-rc1 — future:** only after signed-off independent benchmark evaluation satisfies safety gates and agreed usefulness/coverage thresholds.
-13. **Phase 5 — future:** extensible citation style formatting (CSL-compatible models, Chicago/APA scholarly notes, and bibliographic formatting).
+13. **Phase 5A — Lexical Evidence Foundation (current):** source-neutral external evidence models, candidate semantics, and connector boundaries (`docs/LEXICAL_EVIDENCE_MODEL.md`).
+14. **Phase 5B — Library of Congress Pilot Connector (future):** source adapter for Library of Congress catalog records, non-authoritative evidence extraction.
+15. **Phase 5C — Alignment & Candidate Extraction (future):** cross-record alignment, Persian script reconciliation, and candidate construction.
+16. **Phase 5D — Scheme-Aware Evidence Aggregation (future):** multi-scheme normalization analysis (ALA-LC to IJMES mapping) and conflict reporting.
+17. **Phase 5E — Human Adjudication & Explicit Lexicon Promotion (future):** specialist human review workflow and explicit promotion into `LexiconRepository`.
+18. **Phase 6 — Multi-Source Expansion (future):** VIAF, BnF, GND, and additional scholarly source adapters.
+19. **Phase 7 — Training Corpus & Small Transformer (future):** verified scholarly training corpus curation and domain model distillation.
+20. **Later / Deferred:** extensible citation style formatting (CSL-compatible models, Chicago/APA scholarly notes, and bibliographic formatting).
 
-Phase 4.6B performs scholarly review only and does not evaluate or tune the transliteration engine. Phase 5 remains deferred until the transliterator itself reaches release-candidate quality.
+Phase 4.6B performs scholarly review only and does not evaluate or tune the transliteration engine.

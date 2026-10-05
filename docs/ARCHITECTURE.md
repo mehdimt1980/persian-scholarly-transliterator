@@ -22,6 +22,14 @@ The public `transliterate(input, profile, reviewDecisions?, lexicon?)` pipeline 
     - Computes deterministic record and batch readiness (`READY`, `REVIEW_REQUIRED`, `INVALID`).
     - Serializes authoritative metadata into source-preserving CSV, final scholarly CSV, RIS, and BibTeX (`docs/EXPORT_FORMATS.md`).
 
+
+13. **Lexical evidence & acquisition architecture (Phase 5)** establishes source-neutral external evidence models, candidates, and connectors behind strict non-authoritative boundaries (`docs/LEXICAL_EVIDENCE_MODEL.md`):
+    - Maintains complete separation: `External Observation ≠ Lexical Candidate ≠ Authoritative Lexicon Entry`.
+    - Preserves raw Persian forms and external romanization strings without loss.
+    - Treats romanization schemes (`ALA_LC`, `IJMES`, `IRANICA`, `ISO`, `DMG`, `LOCAL`, `UNKNOWN`) as first-class domain values.
+    - Supports multi-evidence candidate synthesis and explicit conflict detection.
+    - Defines source connector contracts (`LexicalEvidenceSource`) isolated from runtime transliteration.
+
 Diagnostic consonantal scaffolds are separate from `canonicalTransliteration`. Ambiguous and unresolved tokens use explicit review placeholders, make the aggregate result non-copyable, and never become authoritative by array order.
 
 The domain engine remains 100% independent of React, Next.js, and external AI providers.
