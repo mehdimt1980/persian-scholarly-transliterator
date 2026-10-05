@@ -24,7 +24,7 @@ Publication rendering follows current IJMES proper-name policy: personal names, 
 | `cand-pers-001` | محمدعلی جمال‌زاده | `Muḥammad-ʿAlī Jamālzāda` | `Mohammad-Ali Jamalzadeh` |
 | `cand-pers-002` | صادق هدایت | `Ṣādiq Hidāyat` | `Sadeq Hedayat` |
 | `cand-pers-003` | علی‌اکبر دهخدا | `ʿAlī-Akbar Dihkhudā` | `Ali-Akbar Dehkhoda` |
-| `cand-pers-004` | ملک‌الشعرای بهار | `Malik al-Shuʿarāʾ Bahār` | `Malek al-Shoʿaraʾ Bahar` |
+| `cand-pers-004` | ملک‌الشعرای بهار | `Malik al-Shuʿarā-yi Bahār` | `Malek al-Shoʿara Bahar` |
 | `cand-pers-005` | جلال آل‌احمد | `Jalāl Āl-i Aḥmad` | `Jalal Al-e Ahmad` |
 | `cand-pers-006` | سیمین دانشور | `Sīmīn Dānishvar` | `Simin Daneshvar` |
 | `cand-pers-007` | نیما یوشیج | `Nīmā Yūshīj` | `Nima Yushij` |
@@ -74,7 +74,7 @@ Publication rendering follows current IJMES proper-name policy: personal names, 
 The canonical is `Ṣādiq Hidāyat`, not a mechanically Anglicized `Sadeq Hedayat`: the current IJMES Persian chart maps `ص` to `ṣ` and Persian short vowels to `i/u`. The established English publication spelling remains `Sadeq Hedayat` in the rendering layer.
 
 ### ملک‌الشعرای بهار
-The source is preserved as the honorific/name form `Malik al-Shuʿarāʾ Bahār`; the benchmark does not silently substitute `Muḥammad-Taqī Bahār`. Publication rendering removes ordinary diacritics while preserving ʿayn/hamza.
+The exact supplied Persian surface contains the explicit yeh of izāfat in `الشعرای`, so the canonical preserves that morphology as `Malik al-Shuʿarā-yi Bahār`; it does not silently reconstruct an Arabic final hamza in place of the written Persian linker. The publication layer uses the established English-facing `Malek al-Shoʿara Bahar` form without ordinary diacritics. Independent bibliographic evidence also attests `Malik al-Shuʿarā-yi Bahār` for this exact Persian construction.
 
 ### جلال آل‌احمد
 The scholarly canonical uses the project IJMES izāfat form `Āl-i Aḥmad`; the widely established publication spelling `Jalal Al-e Ahmad` belongs only to the rendering layer.
