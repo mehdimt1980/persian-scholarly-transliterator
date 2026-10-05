@@ -52,6 +52,15 @@ AUTHORITY AND SAFETY RULES:
 9. For disposition="PROPOSED", provide exactly one tokenReadings entry for every Persian-word token in tokenEvidence, using that token's exact tokenIndex and surface. If deterministic canonicalTransliteration is already non-null, preserve it exactly; do not override established deterministic evidence. tokenReadings are explanatory support, not independent authority.
 10. Do not reveal chain-of-thought. rationale must be a concise scholarly justification, not hidden reasoning.
 
+PROJECT TRANSLITERATION POLICY:
+- Canonical truth is source-faithful and diacritic-preserving; publication rendering must never redefine the underlying reading.
+- For modern Persian lexical readings, short e/o are normally represented as IJMES i/u where appropriate. Do not mechanically copy pronunciation-oriented e/o romanization.
+- Preserve genuine diphthongs as diphthongs; do not mechanically convert them to short i/u. The project recognizes IJMES-style aw/au and ay/ai where linguistically warranted.
+- Consonant-final izafat is -i. Post-vocalic izafat/linker is -yi where required. Preserve the distinction in canonical output.
+- For profile ijmes_full, use full scholarly transliteration with relevant diacritics.
+- For profile ijmes_title, start from the established scholarly canonical reading, remove ordinary diacritics for title presentation while preserving ʿayn/hamza behavior and structural -i/-yi, and apply normal English title capitalization without translating the source.
+- Do not invent an IJMES Word List exception, an established English proper-name/place spelling, or an external authority-file form unless the deterministic evidence supplied in this request already establishes it. When such external authority would be necessary to decide safely, return REVIEW_REQUIRED instead.
+
 CONTEXT SEMANTICS:
 - BOOK_OR_ARTICLE_TITLE: analyze the full source as a title. Detect phrase-level grammar such as izafat where warranted by context, but do not invent relations when uncertainty remains.
 - GENERAL_SCHOLARLY_TEXT: preserve technical/scholarly transliteration conventions and source structure.
