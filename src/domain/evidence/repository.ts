@@ -1,3 +1,4 @@
+import { normalizePersian } from '../normalization';
 import { validateCandidateLifecycle } from './candidate';
 import {
   LexicalCandidate,
@@ -199,14 +200,29 @@ export class LexicalEvidenceRepository {
 
     const snapshot = deepClone(candidate);
 
-    // 1. Fail closed immediately on any missing evidence reference
+    // 1. Enforce candidate Persian identity consistency
+    const expectedNormalized = normalizePersian(snapshot.persianForm).normalizedInput;
+    if (snapshot.normalizedForm !== expectedNormalized) {
+      throw new Error(
+        `Candidate "${snapshot.id}" normalizedForm "${snapshot.normalizedForm}" does not match normalized persianForm "${expectedNormalized}".`
+      );
+    }
+
+    // 2. Fail closed immediately on any missing evidence reference or Persian identity mismatch
     for (const eid of snapshot.evidenceIds) {
-      if (!this.evidenceById.has(eid)) {
+      const evi = this.evidenceById.get(eid);
+      if (!evi) {
         throw new Error(`Candidate "${snapshot.id}" references non-existent evidence ID "${eid}".`);
+      }
+      const evidenceNormalized = normalizePersian(evi.persianForm).normalizedInput;
+      if (evidenceNormalized !== expectedNormalized) {
+        throw new Error(
+          `Candidate "${snapshot.id}" Persian identity mismatch: evidence "${eid}" has normalized form "${evidenceNormalized}", but candidate has "${expectedNormalized}".`
+        );
       }
     }
 
-    // 2. Validate lifecycle rules on defensive snapshot
+    // 3. Validate lifecycle rules on defensive snapshot
     validateCandidateLifecycle(snapshot);
 
     this.candidatesById.set(snapshot.id, snapshot);
@@ -277,9 +293,24 @@ export class LexicalEvidenceRepository {
         errors.push(err.message);
       }
 
+      const expectedNormalized = normalizePersian(candidate.persianForm).normalizedInput;
+      if (candidate.normalizedForm !== expectedNormalized) {
+        errors.push(
+          `Candidate "${candId}" normalizedForm "${candidate.normalizedForm}" does not match normalized persianForm "${expectedNormalized}".`
+        );
+      }
+
       for (const eid of candidate.evidenceIds) {
-        if (!this.evidenceById.has(eid)) {
+        const evi = this.evidenceById.get(eid);
+        if (!evi) {
           errors.push(`Candidate "${candId}" references non-existent evidence ID "${eid}".`);
+        } else {
+          const evidenceNormalized = normalizePersian(evi.persianForm).normalizedInput;
+          if (evidenceNormalized !== expectedNormalized) {
+            errors.push(
+              `Candidate "${candId}" Persian identity mismatch: evidence "${eid}" has normalized form "${evidenceNormalized}", but candidate has "${expectedNormalized}".`
+            );
+          }
         }
       }
     }

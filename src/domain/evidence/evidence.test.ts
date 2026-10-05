@@ -602,6 +602,125 @@ describe('Lexical Evidence & Candidate Architecture', () => {
       expect(repo.getCandidateCount()).toBe(0);
     });
 
+    it('rejects manually constructed candidate when evidence Persian form does not match candidate Persian form', () => {
+      const repo = new LexicalEvidenceRepository();
+      const hafezEvidence: LexicalEvidence = {
+        id: 'evi-hafez-1',
+        sourceType: 'LIBRARY_CATALOG',
+        sourceRecordId: '1',
+        sourceUri: null,
+        sourceField: '100$a',
+        persianForm: 'حافظ',
+        observedRomanization: 'Ḥāfiẓ',
+        romanizationScheme: 'IJMES',
+        entityType: 'PERSON',
+        context: null,
+        provenance: { sourceId: 'LOC', retrievalMethod: 'API', retrievedAt: '2026-10-05T00:00:00Z' },
+        status: 'OBSERVED'
+      };
+      repo.addEvidence(hafezEvidence);
+
+      // Manual candidate for Ferdowsi referencing Hafez evidence
+      const ferdowsiCandidate: LexicalCandidate = {
+        id: 'cand-ferdowsi-mismatch',
+        persianForm: 'فردوسی',
+        normalizedForm: 'فردوسی',
+        proposedCanonical: 'firdawsī',
+        entityType: 'PERSON',
+        evidenceIds: ['evi-hafez-1'],
+        conflicts: [],
+        status: 'UNREVIEWED',
+        derivationProvenance: {
+          derivedAt: '2026-10-05T00:00:00Z',
+          strategy: 'SINGLE_EVIDENCE'
+        }
+      };
+
+      expect(() => repo.addCandidate(ferdowsiCandidate)).toThrowError(
+        /Candidate "cand-ferdowsi-mismatch" Persian identity mismatch: evidence "evi-hafez-1" has normalized form "حافظ", but candidate has "فردوسی"/
+      );
+      expect(repo.getCandidateCount()).toBe(0);
+    });
+
+    it('rejects candidate when candidate normalizedForm does not match normalized persianForm', () => {
+      const repo = new LexicalEvidenceRepository();
+      const hafezEvidence: LexicalEvidence = {
+        id: 'evi-hafez-2',
+        sourceType: 'LIBRARY_CATALOG',
+        sourceRecordId: '2',
+        sourceUri: null,
+        sourceField: '100$a',
+        persianForm: 'حافظ',
+        observedRomanization: 'Ḥāfiẓ',
+        romanizationScheme: 'IJMES',
+        entityType: 'PERSON',
+        context: null,
+        provenance: { sourceId: 'LOC', retrievalMethod: 'API', retrievedAt: '2026-10-05T00:00:00Z' },
+        status: 'OBSERVED'
+      };
+      repo.addEvidence(hafezEvidence);
+
+      const corruptedCandidate: LexicalCandidate = {
+        id: 'cand-corrupted-normalized',
+        persianForm: 'حافظ',
+        normalizedForm: 'فردوسی', // mismatch with persianForm
+        proposedCanonical: 'ḥāfiẓ',
+        entityType: 'PERSON',
+        evidenceIds: ['evi-hafez-2'],
+        conflicts: [],
+        status: 'UNREVIEWED',
+        derivationProvenance: {
+          derivedAt: '2026-10-05T00:00:00Z',
+          strategy: 'SINGLE_EVIDENCE'
+        }
+      };
+
+      expect(() => repo.addCandidate(corruptedCandidate)).toThrowError(
+        /Candidate "cand-corrupted-normalized" normalizedForm "فردوسی" does not match normalized persianForm "حافظ"/
+      );
+      expect(repo.getCandidateCount()).toBe(0);
+    });
+
+    it('accepts candidate when candidate and evidence Persian forms differ only by legitimate normalization equivalence', () => {
+      const repo = new LexicalEvidenceRepository();
+      // Evidence has Arabic Yeh: 'سعدي' (\u0633\u0639\u062f\u064A)
+      const evidenceArabicYeh: LexicalEvidence = {
+        id: 'evi-saadi-arabic-yeh',
+        sourceType: 'LIBRARY_CATALOG',
+        sourceRecordId: '3',
+        sourceUri: null,
+        sourceField: '100$a',
+        persianForm: 'سعدي',
+        observedRomanization: 'Saʿdī',
+        romanizationScheme: 'IJMES',
+        entityType: 'PERSON',
+        context: null,
+        provenance: { sourceId: 'LOC', retrievalMethod: 'API', retrievedAt: '2026-10-05T00:00:00Z' },
+        status: 'OBSERVED'
+      };
+      repo.addEvidence(evidenceArabicYeh);
+
+      // Candidate has standard Persian Yeh: 'سعدی' (\u0633\u0639\u062f\u06CC)
+      const candidatePersianYeh: LexicalCandidate = {
+        id: 'cand-saadi-normalized',
+        persianForm: 'سعدی',
+        normalizedForm: 'سعدی',
+        proposedCanonical: 'saʿdī',
+        entityType: 'PERSON',
+        evidenceIds: ['evi-saadi-arabic-yeh'],
+        conflicts: [],
+        status: 'UNREVIEWED',
+        derivationProvenance: {
+          derivedAt: '2026-10-05T00:00:00Z',
+          strategy: 'SINGLE_EVIDENCE'
+        }
+      };
+
+      expect(() => repo.addCandidate(candidatePersianYeh)).not.toThrow();
+      expect(repo.getCandidateCount()).toBe(1);
+      expect(repo.getCandidateById('cand-saadi-normalized')?.persianForm).toBe('سعدی');
+    });
+
     it('protects stored candidate from caller reference mutations on status, adjudication, and derivationProvenance', () => {
       const repo = new LexicalEvidenceRepository();
       const evidence: LexicalEvidence = {
