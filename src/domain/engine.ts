@@ -8,6 +8,7 @@ import { applyTitleProfile } from './profiles';
 import { RULES } from './provenance';
 import { analyzeRelations } from './relations';
 import { tokenize } from './tokenizer';
+import { resolveWithFrozenReviewedAuthority } from './frozenReviewedAuthority';
 import {
   AutomaticBlockingReason,
   AutomaticTokenSnapshot,
@@ -310,6 +311,20 @@ export function transliterate(
 ): TransliterationResult {
   lexicon.assertValid();
   const normalization = normalizePersian(input);
+
+  // Human-approved frozen V2 authority is an exact normalized phrase/profile layer.
+  // It is consulted only after the independent Phase 4.6C baseline was recorded.
+  // Misses fall through unchanged to the compositional lexicon/morphology pipeline.
+  if (lexicon === DEFAULT_LEXICON_REPOSITORY) {
+    const reviewedAuthority = resolveWithFrozenReviewedAuthority(
+      input,
+      normalization,
+      profile,
+      reviewDecisions
+    );
+    if (reviewedAuthority) return reviewedAuthority;
+  }
+
   const tokens = tokenize(normalization.normalizedInput);
   const analyses = analyzeOrthography(tokens);
   const analysisByToken = new Map(analyses.map((analysis) => [analysis.tokenIndex, analysis]));
