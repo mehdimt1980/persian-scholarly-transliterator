@@ -18,8 +18,8 @@ replaceOnce(
 
 replaceOnce(
   'indexed token reading key',
-  `<div key={reading.surface} className={styles.tokenChip}>`,
-  `<div key={\`${reading.tokenIndex}:\${reading.surface}\`} className={styles.tokenChip}>`
+  '<div key={reading.surface} className={styles.tokenChip}>',
+  '<div key={`${reading.tokenIndex}:${reading.surface}`} className={styles.tokenChip}>'
 );
 
 replaceOnce(
