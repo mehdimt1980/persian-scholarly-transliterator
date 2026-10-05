@@ -4,15 +4,15 @@
     "artifactType": "BLIND_REAUDIT_WORKLIST",
     "sourceCorpus": "validation/acquisition/external-candidates.v1.json",
     "sourceCorpusCount": 108,
-    "status": "BATCH_B_COMPLETED",
+    "status": "BATCH_C_COMPLETED",
     "engineEvaluationPerformed": false,
     "humanSignoff": null,
     "priorAdjudicationAuthority": "HISTORICAL_ONLY"
   },
   "summary": {
     "total": 108,
-    "pending": 60,
-    "adjudicated": 48,
+    "pending": 24,
+    "adjudicated": 84,
     "byBatch": {
       "A": 25,
       "B": 23,
@@ -980,8 +980,37 @@
       "category": "PERSON",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Muḥammad-ʿAlī Jamālzāda",
+        "renderedOutput": "Mohammad-Ali Jamalzadeh",
+        "readingEvidence": [
+          {
+            "source": "VIAF",
+            "citation": "VIAF authority record for Mohammad-Ali Jamalzadeh",
+            "locator": "authority identity"
+          },
+          {
+            "source": "Iranica",
+            "citation": "JAMALZADEH, MOHAMMAD-ALI",
+            "locator": "Moḥammad-ʿAlī Jamālzāda"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica reading evidence to IJMES Persian vowels/consonants; publication uses the established English spelling.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-pers-002",
@@ -989,8 +1018,37 @@
       "category": "PERSON",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Ṣādiq Hidāyat",
+        "renderedOutput": "Sadeq Hedayat",
+        "readingEvidence": [
+          {
+            "source": "VIAF",
+            "citation": "VIAF authority record for Sadeq Hedayat",
+            "locator": "authority identity"
+          },
+          {
+            "source": "Iranica",
+            "citation": "HEDAYAT, SADEQ i. LIFE AND WORK",
+            "locator": "Ṣādeq Hedāyat"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Persian ص remains scholarly ṣ and Iranica e becomes IJMES i; established English publication spelling is Sadeq Hedayat.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-pers-003",
@@ -998,8 +1056,37 @@
       "category": "PERSON",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "ʿAlī-Akbar Dihkhudā",
+        "renderedOutput": "Ali-Akbar Dehkhoda",
+        "readingEvidence": [
+          {
+            "source": "VIAF",
+            "citation": "VIAF authority record for Ali-Akbar Dehkhoda",
+            "locator": "authority identity"
+          },
+          {
+            "source": "Iranica",
+            "citation": "DEHḴODĀ",
+            "locator": "ʿAlī-Akbar Dehḵodā"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical follows IJMES Persian i/u and kh; rendering uses the established English spelling.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-pers-004",
@@ -1007,8 +1094,42 @@
       "category": "PERSON",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Malik al-Shuʿarā-yi Bahār",
+        "renderedOutput": "Malek al-Shoʿara Bahar",
+        "readingEvidence": [
+          {
+            "source": "VIAF",
+            "citation": "VIAF authority record for Mohammad-Taqi Bahar",
+            "locator": "identity evidence"
+          },
+          {
+            "source": "Iranica",
+            "citation": "BAHĀR, MOḤAMMAD-TAQĪ",
+            "locator": "Malek-al-Šoʿarāʾ Bahār as established name/title evidence"
+          },
+          {
+            "source": "CiNii",
+            "citation": "Dīvān-i ashʿār-i Malik al-Shuʿarā-yi Bahār",
+            "locator": "explicit Persian izafat transcription -yi in the supplied surface pattern"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "The exact supplied string contains explicit Persian yeh marking izafat in الشعرای; canonical therefore preserves -yi: Malik al-Shuʿarā-yi Bahār. Publication rendering follows the established English-facing Malek al-Shoʿara Bahar form without ordinary diacritics.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-pers-005",
@@ -1016,8 +1137,37 @@
       "category": "PERSON",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Jalāl Āl-i Aḥmad",
+        "renderedOutput": "Jalal Al-e Ahmad",
+        "readingEvidence": [
+          {
+            "source": "VIAF",
+            "citation": "VIAF authority record for Jalal Al-e Ahmad",
+            "locator": "authority identity"
+          },
+          {
+            "source": "Iranica",
+            "citation": "ĀL-E AḤMAD, JALĀL",
+            "locator": "Jalāl Āl-e Aḥmad"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical uses IJMES Persian izafat -i; rendering uses the established English spelling.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-pers-006",
@@ -1025,8 +1175,37 @@
       "category": "PERSON",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Sīmīn Dānishvar",
+        "renderedOutput": "Simin Daneshvar",
+        "readingEvidence": [
+          {
+            "source": "VIAF",
+            "citation": "VIAF authority record for Simin Daneshvar",
+            "locator": "authority identity"
+          },
+          {
+            "source": "Iranica",
+            "citation": "DĀNEŠVAR, SĪMĪN",
+            "locator": "Sīmīn Dānešvar"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Iranica e is converted to IJMES i in the scholarly canonical; publication uses established English spelling.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-pers-007",
@@ -1034,8 +1213,37 @@
       "category": "PERSON",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Nīmā Yūshīj",
+        "renderedOutput": "Nima Yushij",
+        "readingEvidence": [
+          {
+            "source": "VIAF",
+            "citation": "VIAF authority record for Nima Yushij",
+            "locator": "authority identity"
+          },
+          {
+            "source": "Iranica",
+            "citation": "NĪMĀ YŪŠĪJ",
+            "locator": "Nīmā Yūšīj"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical converts š to sh and preserves vowel length; rendering omits ordinary diacritics.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-pers-008",
@@ -1043,8 +1251,37 @@
       "category": "PERSON",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Ghulām-Ḥusayn Sāʿidī",
+        "renderedOutput": "Gholam-Hossein Saʿedi",
+        "readingEvidence": [
+          {
+            "source": "VIAF",
+            "citation": "VIAF authority record for Gholam-Hossein Saedi",
+            "locator": "authority identity"
+          },
+          {
+            "source": "Iranica",
+            "citation": "SĀʿEDĪ, ḠOLĀM-ḤOSAYN",
+            "locator": "Ḡolām-Ḥosayn Sāʿedī"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica o/e to IJMES u/i and preserves ḥ/ʿ; rendering follows established English spelling while retaining ʿayn.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-pers-009",
@@ -1052,8 +1289,37 @@
       "category": "PERSON",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Parvīn Iʿtiṣāmī",
+        "renderedOutput": "Parvin Eʿtesami",
+        "readingEvidence": [
+          {
+            "source": "VIAF",
+            "citation": "VIAF authority record for Parvin Etesami",
+            "locator": "authority identity"
+          },
+          {
+            "source": "Iranica",
+            "citation": "EʿTEṢĀMĪ, PARVĪN",
+            "locator": "Parvīn Eʿteṣāmī"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical uses IJMES i for Persian short e; publication follows established English spelling and preserves ʿayn.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-pers-010",
@@ -1061,8 +1327,37 @@
       "category": "PERSON",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Badīʿ al-Zamān Furūzānfar",
+        "renderedOutput": "Badiʿ al-Zaman Foruzanfar",
+        "readingEvidence": [
+          {
+            "source": "VIAF",
+            "citation": "VIAF authority record for Badi al-Zaman Foruzanfar",
+            "locator": "authority identity"
+          },
+          {
+            "source": "Iranica",
+            "citation": "FORŪZĀNFAR, BADĪʿ-AL-ZAMĀN",
+            "locator": "Badīʿ-al-Zamān Forūzānfar"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical preserves ʿayn and converts Persian o to IJMES u; publication omits ordinary diacritics.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-pers-011",
@@ -1070,8 +1365,37 @@
       "category": "PERSON",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "ʿAbd al-Ḥusayn Zarrīnkūb",
+        "renderedOutput": "ʿAbd al-Husayn Zarrinkub",
+        "readingEvidence": [
+          {
+            "source": "VIAF",
+            "citation": "VIAF authority record for Abd al-Husayn Zarrinkub",
+            "locator": "authority identity"
+          },
+          {
+            "source": "Iranica",
+            "citation": "ZARRĪNKŪB, ʿABD-AL-ḤOSAYN",
+            "locator": "ʿAbd-al-Ḥosayn Zarrīnkūb"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica o to IJMES u and preserves ʿ/ḥ; rendering removes ordinary diacritics.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-pers-012",
@@ -1079,8 +1403,37 @@
       "category": "PERSON",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Mujtabā Mīnuvī",
+        "renderedOutput": "Mojtaba Minovi",
+        "readingEvidence": [
+          {
+            "source": "VIAF",
+            "citation": "VIAF authority record for Mojtaba Minovi",
+            "locator": "authority identity"
+          },
+          {
+            "source": "Iranica",
+            "citation": "MĪNOVĪ, MOJTABĀ",
+            "locator": "Mojtabā Mīnovī"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica o to IJMES u; publication follows established English spelling.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-pers-013",
@@ -1088,8 +1441,37 @@
       "category": "PERSON",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Aḥmad Kasravī",
+        "renderedOutput": "Ahmad Kasravi",
+        "readingEvidence": [
+          {
+            "source": "VIAF",
+            "citation": "VIAF authority record for Ahmad Kasravi",
+            "locator": "authority identity"
+          },
+          {
+            "source": "Iranica",
+            "citation": "KASRAVI, AḤMAD",
+            "locator": "Aḥmad Kasravī"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical preserves scholarly ḥ and vowel length; rendering omits ordinary diacritics.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-pers-014",
@@ -1097,8 +1479,37 @@
       "category": "PERSON",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Īraj Afshār",
+        "renderedOutput": "Iraj Afshar",
+        "readingEvidence": [
+          {
+            "source": "VIAF",
+            "citation": "VIAF authority record for Iraj Afshar",
+            "locator": "authority identity"
+          },
+          {
+            "source": "Iranica",
+            "citation": "AFŠĀR, ĪRAJ",
+            "locator": "Īraj Afšār"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical converts š to sh; publication omits ordinary diacritics.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-pers-015",
@@ -1106,8 +1517,37 @@
       "category": "PERSON",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Hūshang Ibtihāj",
+        "renderedOutput": "Hushang Ebtehaj",
+        "readingEvidence": [
+          {
+            "source": "VIAF",
+            "citation": "VIAF authority record for Hushang Ebtehaj",
+            "locator": "authority identity"
+          },
+          {
+            "source": "Iranica",
+            "citation": "EBTEHĀJ, HŪŠANG",
+            "locator": "Hūšang Ebtehāj"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical uses IJMES i/u; publication follows the established English spelling.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-pers-016",
@@ -1115,8 +1555,37 @@
       "category": "PERSON",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Suhrāb Sipihrī",
+        "renderedOutput": "Sohrab Sepehri",
+        "readingEvidence": [
+          {
+            "source": "VIAF",
+            "citation": "VIAF authority record for Sohrab Sepehri",
+            "locator": "authority identity"
+          },
+          {
+            "source": "Iranica",
+            "citation": "SEPEHRĪ, SOHRĀB",
+            "locator": "Sohrāb Sepehrī"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica o/e to IJMES u/i; publication follows established English spelling.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-pers-017",
@@ -1124,8 +1593,37 @@
       "category": "PERSON",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Mihdī Akhavān-i Sālis",
+        "renderedOutput": "Mehdi Akhavan-Sales",
+        "readingEvidence": [
+          {
+            "source": "VIAF",
+            "citation": "VIAF authority record for Mehdi Akhavan Sales",
+            "locator": "authority identity"
+          },
+          {
+            "source": "Iranica",
+            "citation": "AḴAVĀN-E SĀLES, MEHDĪ",
+            "locator": "Mehdī Aḵavān-e Sāles"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical uses IJMES i/u and Persian izafat -i; publication follows established English spelling.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-pers-018",
@@ -1133,8 +1631,37 @@
       "category": "PERSON",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Furūgh Farrukhzād",
+        "renderedOutput": "Forugh Farrokhzad",
+        "readingEvidence": [
+          {
+            "source": "VIAF",
+            "citation": "VIAF authority record for Forugh Farrokhzad",
+            "locator": "authority identity"
+          },
+          {
+            "source": "Iranica",
+            "citation": "FARROḴZĀD, FORŪḠ-ZAMĀN",
+            "locator": "Forūḡ Farroḵzād"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica o/ḵ/ḡ to IJMES u/kh/gh; publication follows established English spelling.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-plc-001",
@@ -1142,8 +1669,37 @@
       "category": "PLACE",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Māzandarān",
+        "renderedOutput": "Mazandaran",
+        "readingEvidence": [
+          {
+            "source": "GeoNames",
+            "citation": "GeoNames record for Mazandaran",
+            "locator": "geographic authority"
+          },
+          {
+            "source": "Iranica",
+            "citation": "MĀZANDARĀN i. Geography",
+            "locator": "Māzandarān"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Publication removes ordinary diacritics.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-plc-002",
@@ -1151,8 +1707,37 @@
       "category": "PLACE",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Khūzistān",
+        "renderedOutput": "Khuzestan",
+        "readingEvidence": [
+          {
+            "source": "GeoNames",
+            "citation": "GeoNames record for Khuzestan",
+            "locator": "geographic authority"
+          },
+          {
+            "source": "Iranica",
+            "citation": "ḴŪZESTĀN i. Geography",
+            "locator": "Ḵūzestān"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica ḵ/e to IJMES kh/i; publication uses established English spelling.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-plc-003",
@@ -1160,8 +1745,37 @@
       "category": "PLACE",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Āzarbāyjān",
+        "renderedOutput": "Azerbaijan",
+        "readingEvidence": [
+          {
+            "source": "GeoNames",
+            "citation": "GeoNames record for Azerbaijan region",
+            "locator": "geographic authority"
+          },
+          {
+            "source": "Iranica",
+            "citation": "AZERBAIJAN i. Geography",
+            "locator": "Āẕarbāyjān"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical follows IJMES Persian mapping; publication uses accepted English Azerbaijan.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-plc-004",
@@ -1169,8 +1783,37 @@
       "category": "PLACE",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Sīstān va Balūchistān",
+        "renderedOutput": "Sistan and Baluchestan",
+        "readingEvidence": [
+          {
+            "source": "GeoNames",
+            "citation": "GeoNames record for Sistan and Baluchestan",
+            "locator": "geographic authority"
+          },
+          {
+            "source": "Iranica",
+            "citation": "BALUCHISTAN i. Geography",
+            "locator": "Sīstān va Balūčestān"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical preserves the Persian source phrase; publication uses the established English province name.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-plc-005",
@@ -1178,8 +1821,37 @@
       "category": "PLACE",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Kirmānshāh",
+        "renderedOutput": "Kermanshah",
+        "readingEvidence": [
+          {
+            "source": "GeoNames",
+            "citation": "GeoNames record for Kermanshah",
+            "locator": "geographic authority"
+          },
+          {
+            "source": "Iranica",
+            "citation": "KERMANSHAH i. Geography",
+            "locator": "Kermānšāh"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica e/š to IJMES i/sh; publication follows accepted English spelling.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-plc-006",
@@ -1187,8 +1859,37 @@
       "category": "PLACE",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Nīshāpūr",
+        "renderedOutput": "Nishapur",
+        "readingEvidence": [
+          {
+            "source": "GeoNames",
+            "citation": "GeoNames record for Nishapur",
+            "locator": "geographic authority"
+          },
+          {
+            "source": "Iranica",
+            "citation": "NISHAPUR i. Historical Geography",
+            "locator": "Nīšāpūr"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical converts š to sh; publication uses accepted English Nishapur.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-plc-007",
@@ -1196,8 +1897,37 @@
       "category": "PLACE",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Takht-i Jamshīd",
+        "renderedOutput": "Persepolis",
+        "readingEvidence": [
+          {
+            "source": "GeoNames",
+            "citation": "GeoNames record for Persepolis",
+            "locator": "geographic authority"
+          },
+          {
+            "source": "Iranica",
+            "citation": "PERSEPOLIS",
+            "locator": "Taḵt-e Jamšīd"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical remains source-faithful to تخت جمشید; IJMES place-name policy permits accepted English Persepolis in publication.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-plc-008",
@@ -1205,8 +1935,37 @@
       "category": "PLACE",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Pāsārgād",
+        "renderedOutput": "Pasargadae",
+        "readingEvidence": [
+          {
+            "source": "GeoNames",
+            "citation": "GeoNames record for Pasargadae",
+            "locator": "geographic authority"
+          },
+          {
+            "source": "Iranica",
+            "citation": "PASARGADAE",
+            "locator": "Pāsārgād"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical preserves the Persian source reading; publication uses accepted English Pasargadae.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-plc-009",
@@ -1214,8 +1973,37 @@
       "category": "PLACE",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Damāvand",
+        "renderedOutput": "Damavand",
+        "readingEvidence": [
+          {
+            "source": "GeoNames",
+            "citation": "GeoNames record for Damavand",
+            "locator": "geographic authority"
+          },
+          {
+            "source": "Iranica",
+            "citation": "DAMĀVAND",
+            "locator": "Damāvand"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Publication removes ordinary diacritics.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-plc-010",
@@ -1223,8 +2011,37 @@
       "category": "PLACE",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Zāgrus",
+        "renderedOutput": "Zagros",
+        "readingEvidence": [
+          {
+            "source": "GeoNames",
+            "citation": "GeoNames record for Zagros Mountains",
+            "locator": "geographic authority"
+          },
+          {
+            "source": "Iranica",
+            "citation": "ZAGROS MOUNTAINS",
+            "locator": "Zāgros"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica o to IJMES u; publication uses accepted English Zagros.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-plc-011",
@@ -1232,8 +2049,37 @@
       "category": "PLACE",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Zāyanda-rūd",
+        "renderedOutput": "Zayandeh Rud",
+        "readingEvidence": [
+          {
+            "source": "GeoNames",
+            "citation": "GeoNames record for Zayandeh Rud",
+            "locator": "geographic authority"
+          },
+          {
+            "source": "Iranica",
+            "citation": "ZĀYANDA-RŪD",
+            "locator": "Zāyanda-rūd"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical preserves scholarly vowel length and compound boundary; publication uses established English spelling.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-plc-012",
@@ -1241,8 +2087,37 @@
       "category": "PLACE",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Hurmuzgān",
+        "renderedOutput": "Hormozgan",
+        "readingEvidence": [
+          {
+            "source": "GeoNames",
+            "citation": "GeoNames record for Hormozgan",
+            "locator": "geographic authority"
+          },
+          {
+            "source": "Iranica",
+            "citation": "HORMOZGĀN",
+            "locator": "Hormozgān"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical converts Persian o to IJMES u; publication uses accepted English Hormozgan.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-inst-001",
@@ -1250,8 +2125,37 @@
       "category": "INSTITUTION",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Farhangistān-i Zabān va Adab-i Fārsī",
+        "renderedOutput": "Farhangistan-i Zaban va Adab-i Farsi",
+        "readingEvidence": [
+          {
+            "source": "ISNI",
+            "citation": "ISNI authority record for the Academy of Persian Language and Literature",
+            "locator": "institution identity"
+          },
+          {
+            "source": "Iranica",
+            "citation": "FARHANGESTĀN",
+            "locator": "Farhangestān-e Zabān va Adab-e Fārsī"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica e to IJMES i and Persian izafat -i; publication removes ordinary diacritics without translating the institution.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-inst-002",
@@ -1259,8 +2163,37 @@
       "category": "INSTITUTION",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Dānishgāh-i Tihrān",
+        "renderedOutput": "Danishgah-i Tihran",
+        "readingEvidence": [
+          {
+            "source": "ISNI",
+            "citation": "ISNI authority record for University of Tehran",
+            "locator": "institution identity"
+          },
+          {
+            "source": "Iranica",
+            "citation": "FACULTIES OF THE UNIVERSITY OF TEHRAN",
+            "locator": "Dānešgāh-e Tehrān"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica e/š to IJMES i/sh and uses -i; publication removes ordinary diacritics without translating.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-inst-003",
@@ -1268,8 +2201,37 @@
       "category": "INSTITUTION",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Kitābkhāna-yi Millī-yi Īrān",
+        "renderedOutput": "Kitabkhana-yi Milli-yi Iran",
+        "readingEvidence": [
+          {
+            "source": "ISNI",
+            "citation": "ISNI authority record for National Library of Iran",
+            "locator": "institution identity"
+          },
+          {
+            "source": "Iranica",
+            "citation": "LIBRARIES in Persia",
+            "locator": "Ketābḵāna-ye Mellī-ye Īrān"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical uses IJMES i/u plus explicit post-vocalic -yi; publication removes ordinary diacritics.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-inst-004",
@@ -1277,8 +2239,37 @@
       "category": "INSTITUTION",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Majlis-i Shūrā-yi Millī",
+        "renderedOutput": "Majlis-i Shura-yi Milli",
+        "readingEvidence": [
+          {
+            "source": "VIAF",
+            "citation": "VIAF authority record for Majles-e Shura-ye Melli",
+            "locator": "institution identity"
+          },
+          {
+            "source": "Iranica",
+            "citation": "MAJLES",
+            "locator": "Majles-e Šūrā-ye Mellī"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica e/š to IJMES i/sh and preserves the two izafat linkers; publication removes ordinary diacritics.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-inst-005",
@@ -1286,8 +2277,37 @@
       "category": "INSTITUTION",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Dār al-Funūn",
+        "renderedOutput": "Dar al-Funun",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry دارالفنون",
+            "locator": "entry دارالفنون"
+          },
+          {
+            "source": "Iranica",
+            "citation": "DĀR AL-FONŪN",
+            "locator": "Dār al-Fonūn"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica o to IJMES u; publication removes ordinary diacritics.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-inst-006",
@@ -1295,8 +2315,37 @@
       "category": "INSTITUTION",
       "profile": "ijmes_full",
       "batch": "C",
-      "reviewState": "PENDING",
-      "decision": null
+      "reviewState": "COMPLETED",
+      "decision": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Anjuman-i Āsār-i Millī",
+        "renderedOutput": "Anjuman-i Asar-i Milli",
+        "readingEvidence": [
+          {
+            "source": "Dehkhoda",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry انجمن آثار ملی",
+            "locator": "entry انجمن آثار ملی"
+          },
+          {
+            "source": "Iranica",
+            "citation": "ANJOMAN-E ĀṮĀR-E MELLĪ",
+            "locator": "Anjoman-e Āṯār-e Mellī"
+          }
+        ],
+        "renderingEvidence": [
+          {
+            "source": "IJMES",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u"
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica o/e and Persian ث to IJMES u/i/s; publication removes ordinary diacritics.",
+        "reviewer": {
+          "name": "OpenAI GPT-5.6 Sol",
+          "type": "AI_SPECIALIST",
+          "reviewedAt": "2026-10-05"
+        }
+      }
     },
     {
       "id": "cand-book-001",
