@@ -12,6 +12,21 @@ function jsonRequest(body: unknown): NextRequest {
   });
 }
 
+function syntheticReadings(request: PhraseResolverRequest) {
+  let counter = 0;
+  return request.tokenEvidence
+    .filter((token) => token.tokenType === 'persian-word')
+    .map((token) => {
+      counter += 1;
+      return {
+        tokenIndex: token.index,
+        surface: token.surface,
+        canonical: token.canonicalTransliteration ?? `synthetic-${counter}`,
+        note: 'Synthetic server-boundary token reading.'
+      };
+    });
+}
+
 describe('phrase assistance server boundary', () => {
   it('recomputes authoritative phrase evidence server-side before invoking provider', async () => {
     let seen: PhraseResolverRequest | null = null;
@@ -25,7 +40,7 @@ describe('phrase assistance server boundary', () => {
         basis: 'CONTEXTUAL_INFERENCE',
         rationale: 'Synthetic phrase proposal for server-boundary testing.',
         assumptions: ['Synthetic mechanics-only assumption.'],
-        tokenReadings: [],
+        tokenReadings: syntheticReadings(request),
         warnings: []
       };
     });
