@@ -1,12 +1,15 @@
 'use client';
 import { useMemo, useState } from 'react';
+import PhraseAssistantPanel from './components/PhraseAssistantPanel';
 import { transliterate } from '../domain/engine';
 import { ProfileId, ReviewDecision, ReviewIssue } from '../domain/types';
 import {
+  AcceptedPhraseDecision,
   AssistedCandidate,
   AssistedResolution,
   buildResolverRequest,
   candidateToReviewDecision,
+  checkAcceptedPhraseApplicability,
   computeRequestFingerprint
 } from '../domain/assistance';
 import {
@@ -60,8 +63,15 @@ export default function Home() {
   const [manualInputs, setManualInputs] = useState<Record<string, string>>({});
   const [manualErrors, setManualErrors] = useState<Record<string, string>>({});
   const [copied, setCopied] = useState(false);
+  const [acceptedPhraseDecision, setAcceptedPhraseDecision] = useState<AcceptedPhraseDecision | null>(null);
 
   const result = useMemo(() => transliterate(input, profile, decisions), [input, profile, decisions]);
+  const activePhraseDecision = acceptedPhraseDecision && checkAcceptedPhraseApplicability(acceptedPhraseDecision, result).applicable
+    ? acceptedPhraseDecision
+    : null;
+  const selectedOutput = activePhraseDecision?.renderedOutput ?? result.output;
+  const selectedCopyable = Boolean(activePhraseDecision) || result.copyable;
+  const selectedStatus = activePhraseDecision ? 'USER_OVERRIDE' : result.status;
 
   function applyDecision(newDecision: ReviewDecision) {
     setDecisions((prev) => {
@@ -78,6 +88,7 @@ export default function Home() {
     setDecisions([]);
     setManualInputs({});
     setManualErrors({});
+    setAcceptedPhraseDecision(null);
   }
 
   const [assistStatus, setAssistStatus] = useState<Record<string, AssistStatusType>>({});
@@ -155,8 +166,8 @@ export default function Home() {
   }
 
   async function copy() {
-    if (!result.copyable) return;
-    await navigator.clipboard.writeText(result.output);
+    if (!selectedCopyable) return;
+    await navigator.clipboard.writeText(selectedOutput);
     setCopied(true);
     setTimeout(() => setCopied(false), 1400);
   }
@@ -429,26 +440,39 @@ export default function Home() {
             <div className="panel output-panel">
               <div className="panel-top">
                 <label>Selected transliteration</label>
-                <span className={`status ${result.status.toLowerCase()}`}>{result.status}</span>
+                <span className={`status ${selectedStatus.toLowerCase()}`}>{selectedStatus}</span>
               </div>
               <div className="output">
-                {result.output || <span className="muted">Output appears here</span>}
+                {selectedOutput || <span className="muted">Output appears here</span>}
               </div>
-              {!result.copyable && (
+              {activePhraseDecision ? (
+                <p className="review-notice" style={{ color: 'var(--sage)' }}>
+                  AI-assisted phrase proposal accepted by the user. The deterministic unresolved state remains visible below for audit and can be restored by revoking the phrase decision.
+                </p>
+              ) : !result.copyable ? (
                 <p className="review-notice">
                   Human review required. Ambiguous or unresolved material is intentionally not copyable as final transliteration.
                 </p>
-              )}
+              ) : null}
               <div className="output-actions">
                 <span className="profile">
                   {profile === 'ijmes_title' ? 'IJMES · title presentation' : 'IJMES · full scholarly'}
                 </span>
-                <button onClick={copy} disabled={!result.copyable}>
-                  {copied ? 'Copied' : result.copyable ? 'Copy output' : 'Review required'}
+                <button onClick={copy} disabled={!selectedCopyable}>
+                  {copied ? 'Copied' : selectedCopyable ? 'Copy output' : 'Review required'}
                 </button>
               </div>
             </div>
           </section>
+
+          {(!result.copyable || activePhraseDecision) && (
+            <PhraseAssistantPanel
+              result={result}
+              reviewDecisions={decisions}
+              acceptedDecision={acceptedPhraseDecision}
+              onAcceptedDecision={setAcceptedPhraseDecision}
+            />
+          )}
 
           {/* Single Review Workspace: Visible when issues exist OR active decisions can be reviewed/undone */}
           {(hasIssues || hasDecisions) && (
