@@ -14,7 +14,8 @@
     "validate:adjudication": "tsx src/validation/review/cli.ts",
     "validate:reaudit-worklist": "tsx src/validation/review/reauditWorklistCli.ts",
     "build:v2-benchmark": "tsx src/validation/review/consolidateV2BenchmarkCli.ts --write",
-    "validate:v2-benchmark": "tsx src/validation/review/consolidateV2BenchmarkCli.ts"
+    "validate:v2-benchmark": "tsx src/validation/review/consolidateV2BenchmarkCli.ts",
+    "validate:gold-freeze": "tsx src/validation/review/goldFreezeV2Cli.ts"
   },
   "dependencies": {
     "next": "14.2.15",

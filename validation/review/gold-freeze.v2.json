@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "GOLD_FREEZE",
+  "benchmarkId": "phase4.6b-external-benchmark-v2",
+  "sourceBenchmarkPath": "validation/corpus/phase4.6b-external-benchmark.v2.json",
+  "sourceBenchmarkGitBlobSha1": "be46b312e2cb82cc4ec0f95ed1c019f8f5e27162",
+  "sourceBenchmarkMetadataVersion": "2.0.0-draft",
+  "promotedGoldVersion": "2.0.0",
+  "promotionStatus": "HUMAN_APPROVED_FROZEN",
+  "humanSignoffPath": "validation/review/human-signoff.v2.json",
+  "frozenAt": "2026-10-05",
+  "caseCount": 108,
+  "dispositionCounts": {
+    "FINAL": 103,
+    "REVIEW_REQUIRED": 5,
+    "UNRESOLVED": 0
+  },
+  "reviewRequiredIds": [
+    "cand-amb-001",
+    "cand-amb-003",
+    "cand-amb-007",
+    "cand-amb-009",
+    "cand-amb-011"
+  ],
+  "engineEvaluationPerformedAtFreeze": false,
+  "phase46CAuthorized": true,
+  "caseLevelPrimaryReviewer": "OpenAI GPT-5.6 Sol / AI_SPECIALIST"
+}

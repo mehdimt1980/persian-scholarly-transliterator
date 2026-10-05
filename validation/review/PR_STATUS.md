@@ -13,20 +13,27 @@
 - PR #21 — Batch D (`BOOK_TITLE`).
 - PR #22 — Batch E (`AMBIGUITY`).
 - PR #23 — deterministic consolidation into Validation V2; merged at `cc4cf4e557591a81f995d56765508a7dc0b08155`.
+- PR #24 — V2 human-governance sign-off readiness packet; merged at `4420f7b4c2c1ae3724923e67ac50ce58eff0efa3`.
 
-## Consolidated benchmark
+## Frozen benchmark
 
-- Artifact: `validation/corpus/phase4.6b-external-benchmark.v2.json`
-- Version: `2.0.0-draft`
-- Tier: `EXTERNAL_BENCHMARK`
-- Review status: `AI_SPECIALIST_REVIEWED_PENDING_HUMAN`
-- Total: 108
+The reviewed source benchmark snapshot is intentionally not rewritten after approval:
+
+- source artifact: `validation/corpus/phase4.6b-external-benchmark.v2.json`
+- source metadata version: `2.0.0-draft`
+- exact frozen Git blob: `be46b312e2cb82cc4ec0f95ed1c019f8f5e27162`
+- promoted gold version: `2.0.0`
+- promotion manifest: `validation/review/gold-freeze.v2.json`
+- human sign-off artifact: `validation/review/human-signoff.v2.json`
+- integrity gate: `npm run validate:gold-freeze`
+
+Benchmark contents remain:
+
+- total: 108
 - `FINAL`: 103
 - `REVIEW_REQUIRED`: 5
 - `UNRESOLVED`: 0
-- Pending: 0
-- Specialist reviewer provenance: OpenAI GPT-5.6 Sol / `AI_SPECIALIST`
-- Deterministic integrity gate: `npm run validate:v2-benchmark`
+- pending: 0
 
 The exact `REVIEW_REQUIRED` IDs are:
 
@@ -36,34 +43,49 @@ The exact `REVIEW_REQUIRED` IDs are:
 - `cand-amb-009`
 - `cand-amb-011`
 
-## Current gate — human governance review readiness
+## Human governance decision
 
-The next gate is formal human governance review using:
+- Decision: `APPROVE`
+- Date: 2026-10-05
+- Human reviewer identity: `@mehdimt1980`
+- Basis: repository owner / human governance reviewer
+- Scope: policy, representative/high-risk cases, ambiguity preservation, provenance model, consolidation integrity, and readiness to freeze
+- Explicit non-claim: the human reviewer did **not** claim personal case-by-case re-adjudication of all 108 cases
+- Primary case-level reviewer provenance remains: OpenAI GPT-5.6 Sol / `AI_SPECIALIST`
 
-- `validation/review/HUMAN_SIGNOFF.md`
-- `validation/review/SIGNOFF_PACKET_V2.md`
+## Current governance state
 
-The review materials are being aligned to the consolidated V2 corpus. This preparation does **not** constitute approval.
-
-Current governance state remains:
-
-- `humanSignoff = null`
-- gold **not frozen**
-- `engineEvaluationPerformed = false`
-- Phase 4.6C **blocked**
-- historical V1 = `HISTORICAL_ONLY`
-- runtime/lexicon/morphology/profile/bibliography behavior unchanged by scholarly review/consolidation
+- human governance: **APPROVED**
+- promoted scholarly gold version: **2.0.0**
+- gold: **FROZEN BY MANIFEST**
+- source benchmark payload after review: **UNCHANGED**
+- `engineEvaluationPerformedAtFreeze = false`
+- Phase 4.6C: **AUTHORIZED after `validate:gold-freeze` passes**
+- historical V1: `HISTORICAL_ONLY`
+- runtime/lexicon/morphology/profile/bibliography behavior: unchanged by scholarly freeze
 - safety invariant: `FALSE_AUTHORITATIVE = 0`
 
-## What human approval will mean
+## Why freeze uses an external manifest
 
-Human approval is governance approval over the scholarly policy, representative/high-risk decisions, ambiguity preservation, provenance truthfulness, and consolidation integrity. It does not falsely claim that the human reviewer personally re-adjudicated all 108 cases. Case-level `AI_SPECIALIST` provenance remains permanent.
+The source benchmark was reviewed in the exact snapshot whose metadata still says `2.0.0-draft` / pending-human. Rewriting that payload after approval merely to alter governance metadata would mutate the reviewed artifact. The freeze therefore binds the exact Git blob to a separate machine-readable human approval and promotion record.
 
-## Remaining release gates
+This yields a stronger provenance chain:
 
-1. Complete and merge human-signoff readiness documentation.
-2. Obtain an explicit named human decision: `APPROVE` or `REQUEST_CORRECTIONS`.
-3. If approved, perform a separate gold-promotion/freeze change that preserves AI specialist provenance.
-4. Run blind Phase 4.6C engine evaluation against the frozen V2 benchmark.
-5. Apply targeted runtime remediation only where the frozen evaluation proves a gap; never rewrite gold to improve metrics.
-6. Rerun the frozen benchmark and complete final regression, release documentation, and versioning gates.
+```text
+exact reviewed benchmark blob
+        +
+human-signoff.v2.json
+        +
+gold-freeze.v2.json
+        ↓
+frozen promoted gold v2.0.0
+```
+
+## Next gate — Phase 4.6C
+
+1. Merge the human-signoff/gold-freeze PR only after full CI including `validate:gold-freeze` passes on the exact PR HEAD.
+2. Re-run full CI on the merge commit.
+3. Execute Phase 4.6C engine evaluation against the frozen promoted gold only after the freeze validator passes.
+4. Record baseline metrics without changing gold.
+5. Apply targeted runtime remediation only where frozen evaluation proves a gap.
+6. Rerun the same frozen benchmark and complete regression/release documentation.

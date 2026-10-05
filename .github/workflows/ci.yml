@@ -42,6 +42,9 @@ jobs:
       - name: Validate consolidated V2 benchmark
         run: npm run validate:v2-benchmark
 
+      - name: Validate frozen V2 gold
+        run: npm run validate:gold-freeze
+
       - name: Validate existing validation corpus
         run: npm run validate:corpus
 
