@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "PHASE_4_6C_FROZEN_BASELINE_SUMMARY",
+  "benchmarkId": "phase4.6b-external-benchmark-v2",
+  "promotedGoldVersion": "2.0.0",
+  "sourceBenchmarkGitBlobSha1": "be46b312e2cb82cc4ec0f95ed1c019f8f5e27162",
+  "evaluationRunnerHeadSha": "9d3ca9eb407d1bb03dc2df4017b8a5f6715c7191",
+  "githubActionsRunId": 37292803825,
+  "githubActionsRunNumber": 136,
+  "evaluatedAt": "2026-10-05",
+  "engineEvaluationPerformed": true,
+  "summary": {
+    "total": 108,
+    "authoritativeCases": 103,
+    "reviewRequiredCases": 5,
+    "classifications": {
+      "CORRECT_AUTHORITATIVE": 5,
+      "FALSE_AUTHORITATIVE": 0,
+      "CORRECT_REVIEW_REQUIRED": 0,
+      "CORRECT_UNRESOLVED": 0,
+      "OVER_BLOCKED": 98,
+      "UNDER_BLOCKED": 0,
+      "ISSUE_TYPE_MISMATCH": 5,
+      "INVALID_GOLD_CASE": 0
+    },
+    "authoritativeExactMatchRate": 0.04854368932038835,
+    "safeBehaviorRate": 0.9537037037037037,
+    "canonicalMismatchCount": 0,
+    "renderingMismatchCount": 0,
+    "bothCanonicalAndRenderingMismatchCount": 0,
+    "issueTypeMismatchCaseIds": [
+      "cand-amb-001",
+      "cand-amb-003",
+      "cand-amb-007",
+      "cand-amb-009",
+      "cand-amb-011"
+    ]
+  },
+  "safetyInterpretation": {
+    "falseAuthoritativeInvariantPreserved": true,
+    "underBlockedCountIsZero": true,
+    "dominantGap": "OVER_BLOCKED_COVERAGE",
+    "goldMutationAuthorized": false
+  },
+  "note": "Historical measurement artifact for the pre-remediation Phase 4.6C baseline. Full case-level diagnostics, including all 98 OVER_BLOCKED IDs, are preserved in GitHub Actions run 37292803825. This file is not a target-metrics contract."
+}
