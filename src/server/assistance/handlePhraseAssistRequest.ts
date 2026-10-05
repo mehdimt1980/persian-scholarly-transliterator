@@ -6,22 +6,28 @@ import { getAssistedResolverConfig, isOpenAiConfigured } from './configuration';
 import { OpenAiPhraseResolverProvider } from './openaiPhraseProvider';
 import type { PhraseResolverProvider } from './phraseProvider';
 
+const MAX_PHRASE_INPUT_CHARACTERS = 4000;
+const MAX_PHRASE_PERSIAN_WORDS = 64;
+const MAX_PHRASE_MEANINGFUL_TOKENS = 128;
+
+const reviewDecisionSchema = z.object({
+  issueId: z.string(),
+  action: z.enum([
+    'SELECT_LEXICAL_READING',
+    'MANUAL_CANONICAL_OVERRIDE',
+    'ACCEPT_IZAFAT',
+    'REJECT_IZAFAT',
+    'SELECT_MORPHOLOGY'
+  ]),
+  selectedAlternativeId: z.string().optional(),
+  manualCanonicalTransliteration: z.string().optional(),
+  note: z.string().optional()
+}).strict();
+
 const phraseRequestSchema = z.object({
-  input: z.string().min(1).max(10000),
+  input: z.string().min(1).max(MAX_PHRASE_INPUT_CHARACTERS),
   profile: z.enum(['ijmes_full', 'ijmes_title']).default('ijmes_full'),
-  reviewDecisions: z.array(z.object({
-    issueId: z.string(),
-    action: z.enum([
-      'SELECT_LEXICAL_READING',
-      'MANUAL_CANONICAL_OVERRIDE',
-      'ACCEPT_IZAFAT',
-      'REJECT_IZAFAT',
-      'SELECT_MORPHOLOGY'
-    ]),
-    selectedAlternativeId: z.string().optional(),
-    manualCanonicalTransliteration: z.string().optional(),
-    note: z.string().optional()
-  })).default([])
+  reviewDecisions: z.array(reviewDecisionSchema).max(128).default([])
 }).strict();
 
 export async function handlePhraseAssistRequest(
@@ -57,6 +63,21 @@ export async function handlePhraseAssistRequest(
   // The server always recomputes deterministic state. The client cannot inject
   // token status, review issues, morphology, relations, or evidence into the AI prompt.
   const transliteration = transliterate(input, profile, reviewDecisions);
+
+  const meaningfulTokens = transliteration.tokens.filter((token) => token.tokenType !== 'whitespace');
+  const persianWordCount = meaningfulTokens.filter((token) => token.tokenType === 'persian-word').length;
+  if (
+    meaningfulTokens.length > MAX_PHRASE_MEANINGFUL_TOKENS ||
+    persianWordCount > MAX_PHRASE_PERSIAN_WORDS
+  ) {
+    return NextResponse.json(
+      {
+        error: 'PHRASE_TOO_LARGE',
+        message: 'Context-aware assistance is limited to a single bounded phrase/title. Split longer material into smaller scholarly units.'
+      },
+      { status: 413 }
+    );
+  }
 
   if (transliteration.copyable || transliteration.reviewIssues.length === 0) {
     return NextResponse.json(
