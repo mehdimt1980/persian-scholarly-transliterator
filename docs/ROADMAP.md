@@ -13,5 +13,6 @@
 11. **Release hardening — future before RC:** dependency/security remediation, release-gate cleanup (including replacing the legacy `REAL_DISSERTATION` corpus-tier name), and release documentation.
 12. **v1.0.0-rc1 — future:** only after signed-off independent benchmark evaluation satisfies safety gates and agreed usefulness/coverage thresholds.
 13. **Phase 5 — future:** extensible citation style formatting (CSL-compatible models, Chicago/APA scholarly notes, and bibliographic formatting).
+14. **Phase 5 Lexical Evidence Foundation — current:** source-neutral external evidence models, candidate semantics, and connector boundaries (`docs/LEXICAL_EVIDENCE_MODEL.md`).
 
-Phase 4.6B performs scholarly review only and does not evaluate or tune the transliteration engine. Phase 5 remains deferred until the transliterator itself reaches release-candidate quality.
+Phase 4.6B performs scholarly review only and does not evaluate or tune the transliteration engine.

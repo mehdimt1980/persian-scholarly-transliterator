@@ -155,6 +155,7 @@ export interface TransliterationResult {
 
 export * from './lexicon/types';
 export * from './review/types';
+export * from './evidence/types';
 export type {
   MorphemeEvidence,
   MorphemeRealization,
