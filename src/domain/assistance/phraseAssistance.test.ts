@@ -5,6 +5,7 @@ import {
   checkAcceptedPhraseApplicability,
   computePhraseRequestFingerprint,
   createAcceptedPhraseDecision,
+  resolveSelectedTransliteration,
   validatePhraseProviderResolution
 } from './index';
 import type { PhraseResolverRequest } from './phraseTypes';
@@ -226,7 +227,7 @@ describe('context-aware phrase assistance', () => {
     expect(validation.errors.join(' ')).toContain('conflicts with deterministic canonical evidence');
   });
 
-  it('creates explicit human acceptance provenance and invalidates it when the request changes', () => {
+  it('selects the scholarly canonical after human acceptance while preserving profile rendering separately', () => {
     const result = unresolvedPhrase();
     const request = buildPhraseResolverRequest(result);
     const validation = validatePhraseProviderResolution(
@@ -257,12 +258,39 @@ describe('context-aware phrase assistance', () => {
     );
 
     expect(decision.acceptance).toBe('HUMAN_ACCEPTED_AI_SUGGESTION');
+    expect(decision.scholarlyCanonical).toBe('alpha beta');
+    expect(decision.renderedOutput).toBe('Alpha Beta');
     expect(checkAcceptedPhraseApplicability(decision, result).applicable).toBe(true);
+
+    const selected = resolveSelectedTransliteration(result, decision);
+    expect(selected.activePhraseDecision).toEqual(decision);
+    expect(selected.primary).toBe('alpha beta');
+    expect(selected.profileRendering).toBe('Alpha Beta');
+    expect(selected.copyable).toBe(true);
+    expect(selected.status).toBe('USER_OVERRIDE');
 
     const changed = transliterate('واژه سوم', 'ijmes_title');
     const applicability = checkAcceptedPhraseApplicability(decision, changed);
     expect(applicability.applicable).toBe(false);
     expect(applicability.reason).toBe('REQUEST_CHANGED');
+
+    const staleSelection = resolveSelectedTransliteration(changed, decision);
+    expect(staleSelection.activePhraseDecision).toBeNull();
+    expect(staleSelection.primary).toBe(changed.output);
+    expect(staleSelection.profileRendering).toBeNull();
+    expect(staleSelection.copyable).toBe(changed.copyable);
+    expect(staleSelection.status).toBe(changed.status);
+  });
+
+  it('restores deterministic selected output when the phrase decision is revoked', () => {
+    const result = unresolvedPhrase();
+    const selected = resolveSelectedTransliteration(result, null);
+
+    expect(selected.activePhraseDecision).toBeNull();
+    expect(selected.primary).toBe(result.output);
+    expect(selected.profileRendering).toBeNull();
+    expect(selected.copyable).toBe(result.copyable);
+    expect(selected.status).toBe(result.status);
   });
 
   it('records edited AI output as human-edited provenance', () => {
