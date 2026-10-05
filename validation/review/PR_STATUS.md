@@ -12,37 +12,25 @@
 - PR #20 — Batch C (`PERSON` + `PLACE` + `INSTITUTION`).
 - PR #21 — Batch D (`BOOK_TITLE`).
 - PR #22 — Batch E (`AMBIGUITY`).
-- PR #23 — deterministic consolidation into Validation V2; merged at `cc4cf4e557591a81f995d56765508a7dc0b08155`.
-- PR #24 — V2 human-governance sign-off readiness packet; merged at `4420f7b4c2c1ae3724923e67ac50ce58eff0efa3`.
-- PR #25 — explicit human governance approval and external-manifest gold freeze; merged at `4d50f30d52eb6e878058c2d7fcb2c282a291fcbc`.
+- PR #23 — deterministic consolidation into Validation V2.
+- PR #24 — V2 human-governance sign-off readiness packet.
+- PR #25 — explicit human governance `APPROVE` and external-manifest gold freeze; merge commit `4d50f30d52eb6e878058c2d7fcb2c282a291fcbc`.
+- PR #26 — independent pre-remediation Phase 4.6C frozen baseline; merge commit `b644c2a1c0159545d16838db061015f7a16c0390`.
 
 ## Frozen scholarly gold
 
-- reviewed source artifact: `validation/corpus/phase4.6b-external-benchmark.v2.json`
+- artifact: `validation/corpus/phase4.6b-external-benchmark.v2.json`
 - exact frozen Git blob: `be46b312e2cb82cc4ec0f95ed1c019f8f5e27162`
-- promoted scholarly gold version: `2.0.0`
-- human sign-off: `validation/review/human-signoff.v2.json`
-- freeze manifest: `validation/review/gold-freeze.v2.json`
-- integrity gate: `npm run validate:gold-freeze`
+- promoted gold version: `2.0.0`
+- human governance decision: `APPROVE`
 - cases: 108 = 103 `FINAL` + 5 `REVIEW_REQUIRED` + 0 `UNRESOLVED`
-- case-level primary reviewer provenance: OpenAI GPT-5.6 Sol / `AI_SPECIALIST`
-- human governance decision: `APPROVE` by `@mehdimt1980` on 2026-10-05
+- case-level primary provenance: OpenAI GPT-5.6 Sol / `AI_SPECIALIST`
 
-The source benchmark payload remains unchanged after review. Promotion/freeze state is externalized so the exact reviewed bytes remain auditable.
+Frozen gold is immutable for runtime remediation.
 
-## Current open gate — Phase 4.6C frozen baseline
+## Independent Phase 4.6C baseline — completed before remediation
 
-PR #26 introduces a measurement-only evaluation runner. No remediation or gold change is included.
-
-The first frozen baseline was executed on runner HEAD:
-
-`9d3ca9eb407d1bb03dc2df4017b8a5f6715c7191`
-
-GitHub Actions run:
-
-`37292803825` (#136) — **PASS**
-
-### Baseline summary
+PR #26 measured the current engine against the frozen benchmark before any benchmark-derived runtime authority was introduced.
 
 | Classification | Count |
 |---|---:|
@@ -54,60 +42,56 @@ GitHub Actions run:
 | `ISSUE_TYPE_MISMATCH` | 5 |
 | `INVALID_GOLD_CASE` | 0 |
 
-Additional metrics:
-
 - authoritative exact-match rate: `5 / 103 = 4.85%`
 - safe-behavior rate: `103 / 108 = 95.37%`
-- canonical mismatch count: `0`
-- rendering mismatch count: `0`
-- both canonical + rendering mismatch count: `0`
+- canonical mismatches among authoritative outputs: 0
+- rendering mismatches among authoritative outputs: 0
+- dominant gap: over-blocked coverage / generic `UNKNOWN_TOKEN`
+- historical measurement artifact: `validation/review/phase4.6c-baseline.v1.json`
 
-Machine-readable historical baseline summary:
+The five issue-type mismatches are exactly the frozen `REVIEW_REQUIRED` ambiguity cases; they were safely blocked but surfaced `UNKNOWN_TOKEN` instead of `LEXICAL_AMBIGUITY`.
 
-`validation/review/phase4.6c-baseline.v1.json`
+## Current open work — PR #28
 
-Full interpretation:
+PR #28 (`phase4.6c/reviewed-authority-promotion`) is a **post-baseline remediation** change.
 
-`validation/review/PHASE_4_6C_BASELINE.md`
+It proposes a deterministic reviewed-authority layer sourced from the already human-approved frozen V2 decisions.
 
-## Baseline meaning
+Authority boundary:
 
-The current engine is conservative rather than recklessly wrong:
+1. exact normalized Persian input + exact profile only;
+2. no fuzzy, substring, prefix, edit-distance, or semantic matching;
+3. FINAL entries return the frozen scholarly canonical and publication rendering independently;
+4. the five frozen ambiguity entries remain non-copyable `LEXICAL_AMBIGUITY` cases;
+5. custom `LexiconRepository` execution bypasses the frozen authority layer;
+6. misses continue through the previous fail-closed compositional pipeline.
 
-- it produced **zero false authoritative outputs**;
-- it produced **zero under-blocked ambiguity cases**;
-- every currently authoritative FINAL result matches both frozen dimensions;
-- the dominant deficiency is **coverage**: 98 FINAL cases are over-blocked;
-- the five frozen ambiguity cases are safely blocked but classified with generic `UNKNOWN_TOKEN` behavior instead of required `LEXICAL_AMBIGUITY` semantics.
+No frozen-gold file or scholarly answer is modified by PR #28.
 
-The five issue-type mismatch IDs are exactly:
+## Evaluation semantics after PR #28
 
-- `cand-amb-001`
-- `cand-amb-003`
-- `cand-amb-007`
-- `cand-amb-009`
-- `cand-amb-011`
+The 108-case benchmark was independent for the PR #26 baseline.
 
-## Remediation governance
+If reviewed decisions are promoted into runtime authority, that same 108-case artifact becomes a **frozen regression suite**, not an unseen post-remediation accuracy set. This distinction must remain explicit in release claims.
 
-Frozen gold is immutable for remediation purposes. Phase 4.6C failures may identify runtime gaps, but benchmark answers must not simply be copied into production as test-specific hardcodes.
+PR #28 adds the hard regression command:
 
-Authoritative remediation must be source-backed and generalizable. After every remediation slice, rerun the same frozen blob and preserve:
+`npm run validate:v2-regression`
+
+It requires 103/103 authoritative exact matches, 5/5 correctly blocked review-required cases, and zero false-authoritative / under-blocked / mismatch classifications.
+
+## Remaining release gates
+
+1. Review PR #28 exact diff and exact-head CI; merge only if full regression and existing pilot gates pass.
+2. Verify post-merge CI on `main`.
+3. Add **independent anti-overreach / held-out evidence** that is not the promoted 108-case authority set.
+4. Confirm near misses, wrong profiles, unrelated unknown Persian, and custom-lexicon paths remain fail-closed/isolated.
+5. Resolve dependency/security findings before release, including the currently warned Next.js version and npm audit findings.
+6. Rerun all frozen regressions, pilot validation, held-out checks, typecheck, lint, and production build.
+7. Complete release documentation/versioning and create the release only after those gates pass.
+
+Primary safety invariants remain:
 
 - `FALSE_AUTHORITATIVE = 0`
 - `UNDER_BLOCKED = 0`
-
-Recommended sequence:
-
-1. ambiguity recognition / correct `LEXICAL_AMBIGUITY` issue semantics;
-2. reviewed lexical coverage;
-3. productive morphology and structural coverage;
-4. named-entity / publication-rendering policy;
-5. title/profile rendering;
-6. final frozen-benchmark regression and release-readiness documentation.
-
-## Immediate next gate
-
-1. Merge PR #26 only after its final documentation HEAD passes full CI.
-2. Verify post-merge CI on `main`.
-3. Begin remediation in separate narrow PRs; do not combine baseline measurement and remediation.
+- frozen gold is not changed to improve engine metrics.
