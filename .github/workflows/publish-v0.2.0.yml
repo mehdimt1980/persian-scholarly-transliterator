@@ -1,0 +1,40 @@
+name: Publish v0.2.0
+
+on:
+  push:
+    branches:
+      - automation/publish-v0.2.0
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out publishing branch
+        uses: actions/checkout@v5
+
+      - name: Verify target commit and release metadata
+        run: |
+          test "$(git show ba9832015df6549d567d0fbe7b70477deb2d7fc2:package.json | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version")" = "0.2.0"
+          git show ba9832015df6549d567d0fbe7b70477deb2d7fc2:docs/RELEASE_v0.2.0.md > /tmp/RELEASE_v0.2.0.md
+
+      - name: Create tag and GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create v0.2.0 \
+            --repo "${{ github.repository }}" \
+            --target ba9832015df6549d567d0fbe7b70477deb2d7fc2 \
+            --title "v0.2.0 — Governed Validation V2 & Reviewed Authority" \
+            --notes-file /tmp/RELEASE_v0.2.0.md \
+            --latest
+
+      - name: Verify published release target
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$(gh api repos/${{ github.repository }}/git/ref/tags/v0.2.0 --jq '.object.sha')" = "ba9832015df6549d567d0fbe7b70477deb2d7fc2"
+          test "$(gh api repos/${{ github.repository }}/releases/tags/v0.2.0 --jq '.tag_name')" = "v0.2.0"
