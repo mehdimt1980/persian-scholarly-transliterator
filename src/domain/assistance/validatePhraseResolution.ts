@@ -8,6 +8,7 @@ import type {
 } from './phraseTypes';
 
 const phraseTokenReadingSchema = z.object({
+  tokenIndex: z.number().int().min(0),
   surface: z.string().min(1).max(200),
   canonical: z.string().min(1).max(300),
   note: z.string().min(1).max(500)
@@ -75,22 +76,33 @@ export function validatePhraseProviderResolution(
         errors
       );
     }
-  } else {
-    if (payload.scholarlyCanonical !== null || payload.renderedOutput !== null) {
-      errors.push('REVIEW_REQUIRED phrase resolution must not expose authoritative canonical or rendered output.');
-    }
+  } else if (payload.scholarlyCanonical !== null || payload.renderedOutput !== null) {
+    errors.push('REVIEW_REQUIRED phrase resolution must not expose authoritative canonical or rendered output.');
   }
 
-  const allowedSurfaces = new Set(request.tokenEvidence.map((token) => token.surface));
-  const seenSurfaces = new Set<string>();
+  const authoritativePersianTokens = new Map(
+    request.tokenEvidence
+      .filter((token) => token.tokenType === 'persian-word')
+      .map((token) => [token.index, token] as const)
+  );
+  const seenIndexes = new Set<number>();
+
   const tokenReadings = payload.tokenReadings.map((reading, index) => {
-    if (!allowedSurfaces.has(reading.surface)) {
-      errors.push(`tokenReadings.${index}.surface references a token not present in the authoritative request.`);
+    const matchingToken = authoritativePersianTokens.get(reading.tokenIndex);
+    if (!matchingToken) {
+      errors.push(
+        `tokenReadings.${index}.tokenIndex does not reference a Persian-word token in the authoritative request.`
+      );
+    } else if (matchingToken.surface !== reading.surface) {
+      errors.push(
+        `tokenReadings.${index}.surface does not match authoritative token ${reading.tokenIndex}.`
+      );
     }
-    if (seenSurfaces.has(reading.surface)) {
-      errors.push(`Duplicate token reading for surface "${reading.surface}".`);
+
+    if (seenIndexes.has(reading.tokenIndex)) {
+      errors.push(`Duplicate token reading for tokenIndex ${reading.tokenIndex}.`);
     }
-    seenSurfaces.add(reading.surface);
+    seenIndexes.add(reading.tokenIndex);
 
     const canonical = validateLatinTransliteration(
       reading.canonical,
@@ -98,14 +110,38 @@ export function validatePhraseProviderResolution(
       errors
     );
 
+    if (
+      matchingToken?.canonicalTransliteration &&
+      canonical &&
+      canonical !== matchingToken.canonicalTransliteration
+    ) {
+      errors.push(
+        `tokenReadings.${index}.canonical conflicts with deterministic canonical evidence for token ${reading.tokenIndex}.`
+      );
+    }
+
     return {
+      tokenIndex: reading.tokenIndex,
       surface: reading.surface,
       canonical: canonical ?? reading.canonical,
       note: reading.note.trim()
     };
   });
 
-  if (payload.disposition === 'REVIEW_REQUIRED' && payload.assumptions.length === 0 && (payload.warnings ?? []).length === 0) {
+  if (payload.disposition === 'PROPOSED') {
+    const missingIndexes = [...authoritativePersianTokens.keys()].filter((index) => !seenIndexes.has(index));
+    if (missingIndexes.length > 0) {
+      errors.push(
+        `PROPOSED phrase resolution must explain every Persian-word token; missing tokenIndexes: ${missingIndexes.join(', ')}.`
+      );
+    }
+  }
+
+  if (
+    payload.disposition === 'REVIEW_REQUIRED' &&
+    payload.assumptions.length === 0 &&
+    (payload.warnings ?? []).length === 0
+  ) {
     errors.push('REVIEW_REQUIRED phrase resolution must explain the blocking ambiguity through assumptions or warnings.');
   }
 
