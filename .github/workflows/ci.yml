@@ -45,6 +45,9 @@ jobs:
       - name: Validate frozen V2 gold
         run: npm run validate:gold-freeze
 
+      - name: Run Phase 4.6C frozen baseline evaluation
+        run: npm run evaluate:v2-frozen
+
       - name: Validate existing validation corpus
         run: npm run validate:corpus
 
