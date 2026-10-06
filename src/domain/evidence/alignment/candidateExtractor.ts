@@ -1,29 +1,58 @@
 import { normalizePersian } from '../../normalization';
 import { synthesizeCandidateFromEvidence } from '../candidate';
+import { validateDerivedEvidenceLineage } from '../repository';
 import {
   LexicalCandidate,
   LexicalEntityType,
   LexicalEvidence
 } from '../types';
-import { classifyAlignedSegmentEligibility } from './eligibilityClassifier';
 import {
   CandidateExtractionOptions,
   CandidateExtractionResult
 } from './types';
 
 /**
+ * Parent evidence source for lineage validation.
+ * Can be a lookup function, an array of parent LexicalEvidence records, or an object with getEvidenceById.
+ */
+export type ParentEvidenceLookup =
+  | ((id: string) => LexicalEvidence | undefined)
+  | LexicalEvidence[]
+  | { getEvidenceById(id: string): LexicalEvidence | undefined };
+
+function toLookupFunction(
+  source: ParentEvidenceLookup
+): (id: string) => LexicalEvidence | undefined {
+  if (typeof source === 'function') {
+    return source;
+  }
+  if (Array.isArray(source)) {
+    const map = new Map<string, LexicalEvidence>();
+    for (const item of source) {
+      map.set(item.id, item);
+    }
+    return (id: string) => map.get(id);
+  }
+  if (source && typeof source.getEvidenceById === 'function') {
+    return (id: string) => source.getEvidenceById(id);
+  }
+  throw new Error('Invalid parent evidence source provided to extractCandidatesFromAlignedEvidence.');
+}
+
+/**
  * Cross-record candidate extraction aggregating candidate-eligible derived aligned evidence
  * into non-authoritative LexicalCandidate proposals.
  *
  * Core scholarly invariants:
- *   1. Input-order independent & normalized identity:
+ *   1. Full Lineage Validation:
+ *      Strictly validates parent lineage (existence, exact Persian & Roman spans, non-recursive parent,
+ *      non-forgeable eligibility, and full source/provenance identity consistency) via
+ *      validateDerivedEvidenceLineage() before accepting any derived segment evidence.
+ *   2. Input-order independent & normalized identity:
  *      Candidate Persian form and normalizedForm are strictly the normalized group identity.
  *      Evidence input ordering does NOT affect candidate identity or candidate ID.
- *   2. Deduplication & Determinism:
+ *   3. Deduplication & Determinism:
  *      Supporting evidence is deduplicated by immutable ID and sorted deterministically.
- *   3. Non-forgeable eligibility:
- *      Requires derivation.kind === 'ALIGNED_SEGMENT' and strictly verifies candidateEligibility
- *      against the deterministic classifier (fail-closed on forgery).
  *   4. proposedCanonical is ALWAYS null (never infers or converts transliteration).
  *   5. Entity reconciliation: If all supporting evidence agrees on an entity type, inherit it; otherwise fall back to WORD.
  *   6. Conflict preservation: ALA-LC disagreements are retained as review information without auto-resolution.
@@ -31,15 +60,22 @@ import {
  */
 export function extractCandidatesFromAlignedEvidence(
   evidenceList: LexicalEvidence[],
+  parentSource: ParentEvidenceLookup,
   options?: CandidateExtractionOptions
 ): CandidateExtractionResult {
-  // 1. Filter and validate derived segments
+  const parentLookup = toLookupFunction(parentSource);
+
+  // 1. Filter and validate derived segments against parent lineage
   const derivedSegments: LexicalEvidence[] = [];
   const eligibleSegments: LexicalEvidence[] = [];
   const contextBoundSegments: LexicalEvidence[] = [];
 
   for (const evi of evidenceList) {
-    if (!evi.derivation) continue;
+    if (!evi.derivation) {
+      throw new Error(
+        `Evidence "${evi.id}" has no derivation metadata. Only derived ALIGNED_SEGMENT evidence can produce candidate proposals.`
+      );
+    }
 
     if (evi.derivation.kind !== 'ALIGNED_SEGMENT') {
       throw new Error(
@@ -47,24 +83,8 @@ export function extractCandidatesFromAlignedEvidence(
       );
     }
 
-    if (!evi.observedRomanization) {
-      throw new Error(
-        `Evidence "${evi.id}" has no observed romanization. Cannot participate in candidate extraction.`
-      );
-    }
-
-    // Validate eligibility against deterministic classifier (fail-closed on forged eligibility)
-    const expectedClassification = classifyAlignedSegmentEligibility(evi.observedRomanization);
-    if (evi.derivation.candidateEligibility !== expectedClassification.candidateEligibility) {
-      throw new Error(
-        `Evidence "${evi.id}" has forged or mismatched candidateEligibility "${evi.derivation.candidateEligibility}" (expected "${expectedClassification.candidateEligibility}").`
-      );
-    }
-    if ((evi.derivation.exclusionReason ?? null) !== (expectedClassification.exclusionReason ?? null)) {
-      throw new Error(
-        `Evidence "${evi.id}" has mismatched exclusionReason "${evi.derivation.exclusionReason}" (expected "${expectedClassification.exclusionReason}").`
-      );
-    }
+    // Validate full lineage and source span integrity against parent evidence
+    validateDerivedEvidenceLineage(evi, parentLookup);
 
     derivedSegments.push(evi);
 

@@ -596,12 +596,12 @@ describe('Phase 5C: Lexical Alignment & Candidate Extraction', () => {
       const eviB = align2.derivedEvidence[0];
 
       // Forward order
-      const extForward = extractCandidatesFromAlignedEvidence([eviA, eviB], {
+      const extForward = extractCandidatesFromAlignedEvidence([eviA, eviB], [parent1, parent2], {
         derivedAt: '2026-10-06T12:00:00Z'
       });
 
       // Reversed order
-      const extReversed = extractCandidatesFromAlignedEvidence([eviB, eviA], {
+      const extReversed = extractCandidatesFromAlignedEvidence([eviB, eviA], [parent1, parent2], {
         derivedAt: '2026-10-06T12:00:00Z'
       });
 
@@ -641,10 +641,10 @@ describe('Phase 5C: Lexical Alignment & Candidate Extraction', () => {
       const eviA = align1.derivedEvidence[0];
       const eviB = align2.derivedEvidence[0];
 
-      const extUnique = extractCandidatesFromAlignedEvidence([eviA, eviB], {
+      const extUnique = extractCandidatesFromAlignedEvidence([eviA, eviB], [parent1, parent2], {
         derivedAt: '2026-10-06T12:00:00Z'
       });
-      const extDuplicates = extractCandidatesFromAlignedEvidence([eviA, eviB, eviA, eviB, eviA], {
+      const extDuplicates = extractCandidatesFromAlignedEvidence([eviA, eviB, eviA, eviB, eviA], [parent1, parent2], {
         derivedAt: '2026-10-06T12:00:00Z'
       });
 
@@ -656,7 +656,143 @@ describe('Phase 5C: Lexical Alignment & Candidate Extraction', () => {
       expect(extDuplicates.candidates[0].evidenceIds).toHaveLength(2);
     });
 
-    it('fails closed when candidate extractor receives forged or malformed derived evidence', () => {
+    it('fails closed when candidate extractor receives fabricated parentless derived evidence', () => {
+      const derivation: LexicalEvidenceDerivation = {
+        kind: 'ALIGNED_SEGMENT',
+        parentEvidenceId: 'evi-nonexistent-99999',
+        segmentIndex: 0,
+        persianSpan: { start: 0, end: 4 },
+        romanizationSpan: { start: 0, end: 5 },
+        alignmentStrategy: 'POSITIONAL_EQUAL_COUNT',
+        candidateEligibility: 'ELIGIBLE'
+      };
+
+      const fabricatedChild: LexicalEvidence = {
+        id: generateEvidenceId({
+          sourceId: 'LOC',
+          sourceRecordId: '2016404617',
+          sourceField: '245$a',
+          persianForm: 'سعدی',
+          observedRomanization: 'Saʻdī',
+          romanizationScheme: 'ALA_LC',
+          derivation
+        }),
+        sourceType: 'LIBRARY_CATALOG',
+        sourceRecordId: '2016404617',
+        sourceUri: 'https://lccn.loc.gov/2016404617',
+        sourceField: '245$a',
+        persianForm: 'سعدی',
+        observedRomanization: 'Saʻdī',
+        romanizationScheme: 'ALA_LC',
+        entityType: 'PERSON',
+        context: 'Test context',
+        provenance: {
+          sourceId: 'LOC',
+          sourceTitle: 'Library of Congress Online Catalog',
+          sourceOrganization: 'Library of Congress',
+          retrievalMethod: 'API',
+          retrievedAt: '2026-10-06T12:00:00Z',
+          extractorVersion: '1.0.0-test'
+        },
+        status: 'OBSERVED',
+        derivation
+      };
+
+      // Empty parent lookup / no parent
+      expect(() => extractCandidatesFromAlignedEvidence([fabricatedChild], [])).toThrow(
+        /references non-existent parent evidence "evi-nonexistent-99999"/
+      );
+    });
+
+    it('fails closed when candidate extractor receives Persian span mismatch against parent', () => {
+      const parent = createParentEvidence();
+      const align = alignLexicalEvidence(parent);
+      const child = align.derivedEvidence[1]; // Gulistān
+
+      const forgedChild: LexicalEvidence = {
+        ...child,
+        persianForm: 'بوستان' // Mismatch against parent slice!
+      };
+
+      expect(() => extractCandidatesFromAlignedEvidence([forgedChild], [parent])).toThrow(
+        /persianForm "بوستان" does not match parent substring slice/
+      );
+    });
+
+    it('fails closed when candidate extractor receives Roman span mismatch against parent', () => {
+      const parent = createParentEvidence();
+      const align = alignLexicalEvidence(parent);
+      const child = align.derivedEvidence[1]; // Gulistān
+
+      const forgedChild: LexicalEvidence = {
+        ...child,
+        observedRomanization: 'Būstān' // Mismatch against parent slice!
+      };
+
+      expect(() => extractCandidatesFromAlignedEvidence([forgedChild], [parent])).toThrow(
+        /observedRomanization "Būstān" does not match parent substring slice/
+      );
+    });
+
+    it('fails closed when candidate extractor receives sourceType or sourceField mismatch against parent', () => {
+      const parent = createParentEvidence();
+      const align = alignLexicalEvidence(parent);
+      const child = align.derivedEvidence[1];
+
+      const forgedTypeChild: LexicalEvidence = {
+        ...child,
+        sourceType: 'SCHOLARLY_DICTIONARY'
+      };
+      expect(() => extractCandidatesFromAlignedEvidence([forgedTypeChild], [parent])).toThrow(
+        /sourceType "SCHOLARLY_DICTIONARY" does not match parent sourceType "LIBRARY_CATALOG"/
+      );
+
+      const forgedFieldChild: LexicalEvidence = {
+        ...child,
+        sourceField: '650$a'
+      };
+      expect(() => extractCandidatesFromAlignedEvidence([forgedFieldChild], [parent])).toThrow(
+        /sourceField "650\$a" does not match parent sourceField "245\$a"/
+      );
+    });
+
+    it('fails closed when candidate extractor receives recursive derived parent', () => {
+      const parent = createParentEvidence();
+      const align = alignLexicalEvidence(parent);
+      const child1 = align.derivedEvidence[1]; // derived child
+
+      // Attempt to extract candidates from a secondary child deriving from child1
+      const recursiveChild: LexicalEvidence = {
+        id: 'evi-recursive-child-cand',
+        sourceType: child1.sourceType,
+        sourceRecordId: child1.sourceRecordId,
+        sourceUri: child1.sourceUri,
+        sourceField: child1.sourceField,
+        persianForm: child1.persianForm,
+        observedRomanization: child1.observedRomanization,
+        romanizationScheme: child1.romanizationScheme,
+        entityType: 'WORD',
+        context: child1.context,
+        provenance: child1.provenance,
+        status: 'OBSERVED',
+        derivation: {
+          kind: 'ALIGNED_SEGMENT',
+          parentEvidenceId: child1.id,
+          segmentIndex: 0,
+          persianSpan: { start: 0, end: 6 },
+          romanizationSpan: { start: 0, end: 8 },
+          alignmentStrategy: 'POSITIONAL_EQUAL_COUNT',
+          candidateEligibility: 'ELIGIBLE'
+        }
+      };
+
+      // Providing child1 as parent lookup should fail because child1 is itself derived
+      expect(() => extractCandidatesFromAlignedEvidence([recursiveChild], [child1])).toThrow(
+        /cannot derive from another derived evidence record/
+      );
+    });
+
+    it('fails closed when candidate extractor receives forged or malformed derived evidence eligibility', () => {
       const parent = createParentEvidence();
       const align = alignLexicalEvidence(parent);
       const child = align.derivedEvidence[0]; // Kitāb-i (CONTEXT_BOUND)
@@ -670,7 +806,108 @@ describe('Phase 5C: Lexical Alignment & Candidate Extraction', () => {
         }
       };
 
-      expect(() => extractCandidatesFromAlignedEvidence([forgedChild])).toThrow(/forged or mismatched candidateEligibility/);
+      expect(() => extractCandidatesFromAlignedEvidence([forgedChild], [parent])).toThrow(
+        /declared candidateEligibility "ELIGIBLE" does not match deterministic classification "CONTEXT_BOUND"/
+      );
+    });
+
+    it('includes alignerVersion in deterministic derived evidence ID but excludes derivedAt', () => {
+      const parent = createParentEvidence();
+      
+      const alignV1 = alignLexicalEvidence(parent, {
+        alignerVersion: 'aligner-v1.0.0',
+        derivedAt: '2026-10-06T10:00:00Z'
+      });
+      const alignV1DifferentTime = alignLexicalEvidence(parent, {
+        alignerVersion: 'aligner-v1.0.0',
+        derivedAt: '2026-10-06T15:30:00Z'
+      });
+      const alignV2 = alignLexicalEvidence(parent, {
+        alignerVersion: 'aligner-v2.0.0',
+        derivedAt: '2026-10-06T10:00:00Z'
+      });
+
+      const childV1_a = alignV1.derivedEvidence[1];
+      const childV1_b = alignV1DifferentTime.derivedEvidence[1];
+      const childV2 = alignV2.derivedEvidence[1];
+
+      // Same alignment + same alignerVersion + different derivedAt -> SAME evidence ID
+      expect(childV1_a.id).toBe(childV1_b.id);
+
+      // Same alignment + different alignerVersion -> DIFFERENT evidence ID
+      expect(childV1_a.id).not.toBe(childV2.id);
+    });
+
+    it('treats same alignment with different derivedAt as idempotent repository ingestion', () => {
+      const repo = new LexicalEvidenceRepository();
+      const parent = createParentEvidence();
+      repo.addEvidence(parent);
+
+      const alignRun1 = alignLexicalEvidence(parent, {
+        alignerVersion: 'aligner-v1.0.0',
+        derivedAt: '2026-10-06T10:00:00Z'
+      });
+      const alignRun2 = alignLexicalEvidence(parent, {
+        alignerVersion: 'aligner-v1.0.0',
+        derivedAt: '2026-10-06T18:00:00Z'
+      });
+
+      const child1 = alignRun1.derivedEvidence[1];
+      const child2 = alignRun2.derivedEvidence[1];
+
+      expect(child1.id).toBe(child2.id);
+      expect(child1.derivation?.derivedAt).toBe('2026-10-06T10:00:00Z');
+      expect(child2.derivation?.derivedAt).toBe('2026-10-06T18:00:00Z');
+
+      // First ingestion
+      repo.addEvidence(child1);
+      expect(repo.getEvidenceCount()).toBe(2); // parent + 1 child
+
+      // Re-ingestion of run 2 with different timestamp succeeds idempotently
+      expect(() => repo.addEvidence(child2)).not.toThrow();
+      expect(repo.getEvidenceCount()).toBe(2);
+
+      // Stored record preserves original derivedAt without alteration
+      const stored = repo.getEvidenceById(child1.id);
+      expect(stored?.derivation?.derivedAt).toBe('2026-10-06T10:00:00Z');
+    });
+
+    it('strictly preserves and validates full external extraction provenance', () => {
+      const parent = createParentEvidence({
+        provenance: {
+          sourceId: 'LOC',
+          sourceTitle: 'Library of Congress Catalog',
+          sourceOrganization: 'Library of Congress',
+          retrievalMethod: 'API',
+          retrievedAt: '2026-10-06T09:00:00Z',
+          extractorVersion: 'loc-connector-1.5.0',
+          notes: 'Standard catalog extraction'
+        }
+      });
+
+      const alignRes = alignLexicalEvidence(parent, {
+        alignerVersion: 'aligner-v1.0.0',
+        derivedAt: '2026-10-06T12:00:00Z'
+      });
+
+      const child = alignRes.derivedEvidence[1];
+
+      // External provenance exactly matches parent
+      expect(child.provenance.sourceId).toBe('LOC');
+      expect(child.provenance.sourceTitle).toBe('Library of Congress Catalog');
+      expect(child.provenance.sourceOrganization).toBe('Library of Congress');
+      expect(child.provenance.retrievalMethod).toBe('API');
+      expect(child.provenance.retrievedAt).toBe('2026-10-06T09:00:00Z');
+      expect(child.provenance.extractorVersion).toBe('loc-connector-1.5.0');
+      expect(child.provenance.notes).toBe('Standard catalog extraction');
+
+      // Derivation provenance holds alignment-specific metadata
+      expect(child.derivation?.alignerVersion).toBe('aligner-v1.0.0');
+      expect(child.derivation?.derivedAt).toBe('2026-10-06T12:00:00Z');
+
+      // Candidate extraction validates these provenance fields
+      const extRes = extractCandidatesFromAlignedEvidence([child], [parent]);
+      expect(extRes.candidates).toHaveLength(1);
     });
 
     it('reconciles entity types: unanimous type is preserved, conflicting types fall back to WORD', () => {
@@ -681,7 +918,7 @@ describe('Phase 5C: Lexical Alignment & Candidate Extraction', () => {
         entityType: 'PERSON'
       });
       const align1 = alignLexicalEvidence(parent1);
-      const ext1 = extractCandidatesFromAlignedEvidence(align1.derivedEvidence);
+      const ext1 = extractCandidatesFromAlignedEvidence(align1.derivedEvidence, [parent1]);
       expect(ext1.candidates[0].entityType).toBe('PERSON');
 
       // Mixed WORK and WORD -> falls back to WORD
@@ -695,7 +932,7 @@ describe('Phase 5C: Lexical Alignment & Candidate Extraction', () => {
         id: 'evi-b',
         entityType: 'WORD'
       };
-      const ext2 = extractCandidatesFromAlignedEvidence([childA, childB]);
+      const ext2 = extractCandidatesFromAlignedEvidence([childA, childB], [parent1]);
       expect(ext2.candidates[0].entityType).toBe('WORD');
     });
 
@@ -716,10 +953,10 @@ describe('Phase 5C: Lexical Alignment & Candidate Extraction', () => {
       const align1 = alignLexicalEvidence(parent1);
       const align2 = alignLexicalEvidence(parent2);
 
-      const ext = extractCandidatesFromAlignedEvidence([
-        ...align1.derivedEvidence,
-        ...align2.derivedEvidence
-      ]);
+      const ext = extractCandidatesFromAlignedEvidence(
+        [...align1.derivedEvidence, ...align2.derivedEvidence],
+        [parent1, parent2]
+      );
 
       expect(ext.candidates).toHaveLength(1);
       const cand = ext.candidates[0];
@@ -732,7 +969,7 @@ describe('Phase 5C: Lexical Alignment & Candidate Extraction', () => {
     it('candidate generation is pure and does not mutate authoritative lexicon', () => {
       const parent = createParentEvidence();
       const align = alignLexicalEvidence(parent);
-      const ext = extractCandidatesFromAlignedEvidence(align.derivedEvidence);
+      const ext = extractCandidatesFromAlignedEvidence(align.derivedEvidence, [parent]);
 
       expect(ext.candidates.length).toBeGreaterThan(0);
       for (const c of ext.candidates) {

@@ -108,9 +108,13 @@ async function main(): Promise<void> {
   console.log(' Candidate Extraction & Synthesis');
   console.log('========================================================================\n');
 
-  const extractionResult = extractCandidatesFromAlignedEvidence(allDerivedEvidence, {
-    notes: 'Generated via Phase 5C pilot CLI'
-  });
+  const extractionResult = extractCandidatesFromAlignedEvidence(
+    allDerivedEvidence,
+    allParentEvidence,
+    {
+      notes: 'Generated via Phase 5C pilot CLI'
+    }
+  );
 
   console.log(`Summary Statistics:`);
   console.log(`  Parent observations:         ${allParentEvidence.length}`);

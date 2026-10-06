@@ -131,6 +131,8 @@ export function generateEvidenceId(params: {
     hash.update(`${params.derivation.romanizationSpan.start}:${params.derivation.romanizationSpan.end}`);
     hash.update('\0');
     hash.update(params.derivation.alignmentStrategy);
+    hash.update('\0');
+    hash.update(params.derivation.alignerVersion ?? '');
   }
 
   const digest = hash.digest('hex').slice(0, 16);

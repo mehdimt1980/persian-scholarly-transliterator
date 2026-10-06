@@ -57,11 +57,11 @@ A fundamental semantic distinction exists between field-level observations and c
 
 Derived segment evidence records preserve exact substrings from parent observations without lossy lowercasing, diacritic stripping, or normalization mutation.
 
-### Enforced Repository Invariants
+### Enforced Lineage Invariants
 
-For every derived segment evidence record added to `LexicalEvidenceRepository`:
+Every derived segment evidence record added to `LexicalEvidenceRepository` or consumed by `extractCandidatesFromAlignedEvidence()` is validated via `validateDerivedEvidenceLineage()`:
 
-1. **Parent Existence**: `parentEvidenceId` must reference an existing evidence record in the repository.
+1. **Parent Existence**: `parentEvidenceId` must reference an existing raw parent evidence record.
 2. **Parent Romanization Requirement**: `parent.observedRomanization !== null` (a parent without Romanization cannot produce aligned segment evidence).
 3. **No Self-Derivation**: `parentEvidenceId !== child.id`.
 4. **No Recursive Derivation**: Phase 5C derived segments cannot derive from other derived segments (`parent.derivation === undefined`).
@@ -75,10 +75,10 @@ For every derived segment evidence record added to `LexicalEvidenceRepository`:
    ```
 7. **Non-Forgeable Eligibility Integrity**:
    `child.derivation.candidateEligibility` and `child.derivation.exclusionReason` must match the deterministic classification of `classifyAlignedSegmentEligibility(child.observedRomanization)`.
-8. **Strict Source Identity Preservation**:
-   `sourceType`, `sourceField`, `sourceRecordId`, `sourceUri`, `romanizationScheme`, `provenance.sourceId`, `provenance.sourceTitle`, `provenance.sourceOrganization`, and `provenance.extractorVersion` must remain strictly identical between parent and child.
+8. **Strict External Provenance Preservation**:
+   All external provenance fields (`sourceType`, `sourceField`, `sourceRecordId`, `sourceUri`, `romanizationScheme`, `provenance.sourceId`, `provenance.sourceTitle`, `provenance.sourceOrganization`, `provenance.retrievalMethod`, `provenance.retrievedAt`, `provenance.extractorVersion`, and `provenance.notes`) must remain strictly identical between parent and child.
 
-Any violation fails closed immediately at repository insertion time and during deserialization integrity validation.
+Any violation fails closed immediately at repository insertion time, deserialization integrity validation, and candidate extraction boundaries.
 
 ---
 
@@ -86,9 +86,13 @@ Any violation fails closed immediately at repository insertion time and during d
 
 Phase 5C strictly separates external source provenance from computational alignment derivation:
 
-1. **`child.provenance`**: Preserves the parent observation's external extraction metadata (`sourceId: 'LOC'`, `extractorVersion: '1.0.0'`, `retrievedAt: '...'`). The alignment engine NEVER overwrites the source extractor version.
+1. **`child.provenance`**: Preserves the parent observation's external extraction metadata (`sourceId: 'LOC'`, `sourceTitle: '...'`, `sourceOrganization: '...'`, `retrievalMethod: '...'`, `retrievedAt: '...'`, `extractorVersion: '1.0.0'`, `notes: '...'`). The alignment engine NEVER overwrites the source extractor version.
 2. **`child.derivation`**: Records the alignment event (`alignerVersion`, `derivedAt`, `alignmentStrategy`, `persianSpan`, `romanizationSpan`, `candidateEligibility`, `exclusionReason`).
-3. **Deterministic Evidence ID**: Includes `parentEvidenceId`, `segmentIndex`, `persianSpan`, `romanizationSpan`, `alignmentStrategy`, and `alignerVersion`, ensuring that re-running identical semantic alignment remains idempotent without creating spurious duplicate IDs due to wall-clock time.
+3. **Deterministic Evidence ID vs. Audit Timestamp**:
+   - **Semantic Evidence Identity**: Derived evidence deterministic hashing includes `parentEvidenceId`, `segmentIndex`, `persianSpan`, `romanizationSpan`, `alignmentStrategy`, and `alignerVersion`.
+   - **Audit Metadata**: `derivedAt` is wall-clock audit metadata and is excluded from deterministic hashing and semantic evidence equality (`isExactSameEvidence()`).
+   - **Idempotency**: Re-running the exact same alignment with the same `alignerVersion` at a different time produces the same evidence ID and succeeds as an idempotent repository no-op, preserving the originally stored `derivedAt` timestamp.
+   - **Algorithm Changes**: Bumping `alignerVersion` changes the derivation identity and produces distinct derived evidence IDs.
 
 ---
 
@@ -120,24 +124,27 @@ POSITIONAL_EQUAL_COUNT
 
 ## 6. Cross-Record Candidate Extraction & Invariants
 
-Once candidate-eligible derived segments exist:
+Automatic Phase 5C candidate extraction (`extractCandidatesFromAlignedEvidence`) only consumes **lineage-validated aligned evidence**:
 
-1. **Input-Order Invariance**:
+1. **Parent Lineage Enforcement**:
+   - Requires a parent lookup source (`ParentEvidenceLookup`).
+   - Validates each derived segment against its raw parent using `validateDerivedEvidenceLineage()`. Fabricated parentless or altered segments fail closed.
+2. **Input-Order Invariance**:
    - Candidate `persianForm` and `normalizedForm` are strictly set to the normalized grouping key (`normalizePersian(persianForm).normalizedInput`).
    - Sibling evidence records (`[eviA, eviB]` vs `[eviB, eviA]`) produce the exact same candidate identity and candidate ID.
    - Raw historical orthographies (`سعدى` vs `سعدی`) remain unmutated in the supporting evidence records.
-2. **Evidence Deduplication**:
+3. **Evidence Deduplication**:
    - Supporting evidence records are deduplicated by immutable evidence ID prior to synthesis.
    - Duplicate inputs (`[eviA, eviB]` vs `[eviA, eviB, eviA]`) produce identical candidates.
    - Supporting evidence IDs are sorted deterministically.
-3. **Entity Type Reconciliation**:
+4. **Entity Type Reconciliation**:
    - If all supporting evidence records agree on an entity type (e.g. `PERSON`), the candidate inherits that type.
    - If supporting records differ (e.g. `WORK` vs `WORD`), the candidate falls back to `WORD`.
-4. **Same-Scheme Conflict Preservation**:
+5. **Same-Scheme Conflict Preservation**:
    - Disagreements under the same comparable scheme (e.g. `Gulistān` vs `Golistān` under `ALA_LC`) flag `CONFLICT_WITHIN_SCHEME` and assign status `REVIEW_REQUIRED`.
-5. **`proposedCanonical: null`**:
+6. **`proposedCanonical: null`**:
    - The candidate proposal leaves `proposedCanonical` null. ALA-LC strings are never copied into the project canonical field.
-6. **Candidate Derivation Strategy**:
+7. **Candidate Derivation Strategy**:
    - Automatically synthesized candidates carry `strategy: 'ALIGNED_SEGMENT_SYNTHESIS'`.
 
 ---
@@ -146,7 +153,7 @@ Once candidate-eligible derived segments exist:
 
 The domain model avoids hard-coding zero telemetry in pure functions:
 
-1. **`extractCandidatesFromAlignedEvidence(derivedEvidence)`**:
+1. **`extractCandidatesFromAlignedEvidence(derivedEvidence, parentLookup)`**:
    Returns metrics truth-computable directly from derived evidence:
    - `derivedSegmentsCount`
    - `eligibleSegmentsCount`

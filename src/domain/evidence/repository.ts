@@ -95,7 +95,8 @@ export function isExactSameEvidence(a: LexicalEvidence, b: LexicalEvidence): boo
   if (da.candidateEligibility !== db.candidateEligibility) return false;
   if ((da.exclusionReason ?? null) !== (db.exclusionReason ?? null)) return false;
   if ((da.alignerVersion ?? null) !== (db.alignerVersion ?? null)) return false;
-  if ((da.derivedAt ?? null) !== (db.derivedAt ?? null)) return false;
+  // Note: derivedAt is intentionally excluded from semantic evidence equality so that re-running
+  // the same alignment is treated as an idempotent no-op without creating duplicates or failing closed.
 
   return true;
 }
@@ -179,7 +180,7 @@ export function validateDerivedEvidenceLineage(
     );
   }
 
-  // 5. Validate strict consistency of parent/child source identity
+  // 5. Validate strict consistency of parent/child source identity and full external provenance
   if (child.sourceType !== parent.sourceType) {
     throw new Error(
       `Evidence "${child.id}" sourceType "${child.sourceType}" does not match parent sourceType "${parent.sourceType}".`
@@ -220,9 +221,24 @@ export function validateDerivedEvidenceLineage(
       `Evidence "${child.id}" provenance.sourceOrganization "${child.provenance.sourceOrganization}" does not match parent sourceOrganization "${parent.provenance.sourceOrganization}".`
     );
   }
+  if (child.provenance.retrievalMethod !== parent.provenance.retrievalMethod) {
+    throw new Error(
+      `Evidence "${child.id}" provenance.retrievalMethod "${child.provenance.retrievalMethod}" does not match parent retrievalMethod "${parent.provenance.retrievalMethod}".`
+    );
+  }
+  if (child.provenance.retrievedAt !== parent.provenance.retrievedAt) {
+    throw new Error(
+      `Evidence "${child.id}" provenance.retrievedAt "${child.provenance.retrievedAt}" does not match parent retrievedAt "${parent.provenance.retrievedAt}".`
+    );
+  }
   if ((child.provenance.extractorVersion ?? null) !== (parent.provenance.extractorVersion ?? null)) {
     throw new Error(
       `Evidence "${child.id}" provenance.extractorVersion "${child.provenance.extractorVersion}" does not match parent extractorVersion "${parent.provenance.extractorVersion}".`
+    );
+  }
+  if ((child.provenance.notes ?? null) !== (parent.provenance.notes ?? null)) {
+    throw new Error(
+      `Evidence "${child.id}" provenance.notes "${child.provenance.notes}" does not match parent notes "${parent.provenance.notes}".`
     );
   }
 }

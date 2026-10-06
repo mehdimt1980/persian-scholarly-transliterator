@@ -32,6 +32,7 @@ export function processEvidenceAlignmentBatch(
 
   const extraction = extractCandidatesFromAlignedEvidence(
     derivedEvidence,
+    parentEvidenceList,
     options?.candidateOptions
   );
 
