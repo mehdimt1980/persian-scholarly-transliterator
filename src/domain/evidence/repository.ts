@@ -1,5 +1,6 @@
 import { normalizePersian } from '../normalization';
 import { validateCandidateLifecycle } from './candidate';
+import { classifyAlignedSegmentEligibility } from './alignment/eligibilityClassifier';
 import {
   LexicalCandidate,
   LexicalCandidateStatus,
@@ -81,7 +82,165 @@ export function isExactSameEvidence(a: LexicalEvidence, b: LexicalEvidence): boo
   if ((pa.extractorVersion ?? null) !== (pb.extractorVersion ?? null)) return false;
   if ((pa.notes ?? null) !== (pb.notes ?? null)) return false;
 
+  const da = a.derivation;
+  const db = b.derivation;
+  if (!da && !db) return true;
+  if (!da || !db) return false;
+  if (da.kind !== db.kind) return false;
+  if (da.parentEvidenceId !== db.parentEvidenceId) return false;
+  if (da.segmentIndex !== db.segmentIndex) return false;
+  if (da.persianSpan.start !== db.persianSpan.start || da.persianSpan.end !== db.persianSpan.end) return false;
+  if (da.romanizationSpan.start !== db.romanizationSpan.start || da.romanizationSpan.end !== db.romanizationSpan.end) return false;
+  if (da.alignmentStrategy !== db.alignmentStrategy) return false;
+  if (da.candidateEligibility !== db.candidateEligibility) return false;
+  if ((da.exclusionReason ?? null) !== (db.exclusionReason ?? null)) return false;
+  if ((da.alignerVersion ?? null) !== (db.alignerVersion ?? null)) return false;
+  // Note: derivedAt is intentionally excluded from semantic evidence equality so that re-running
+  // the same alignment is treated as an idempotent no-op without creating duplicates or failing closed.
+
   return true;
+}
+
+/**
+ * Validate provenance lineage and exact source-span integrity for derived segment evidence.
+ */
+export function validateDerivedEvidenceLineage(
+  child: LexicalEvidence,
+  parentLookup: (id: string) => LexicalEvidence | undefined
+): void {
+  if (!child.derivation) return;
+
+  const d = child.derivation;
+  if (d.kind !== 'ALIGNED_SEGMENT') {
+    throw new Error(`Evidence "${child.id}" has unsupported derivation kind "${(d as any).kind}".`);
+  }
+
+  if (d.parentEvidenceId === child.id) {
+    throw new Error(`Evidence "${child.id}" cannot derive from itself.`);
+  }
+
+  const parent = parentLookup(d.parentEvidenceId);
+  if (!parent) {
+    throw new Error(
+      `Evidence "${child.id}" references non-existent parent evidence "${d.parentEvidenceId}".`
+    );
+  }
+
+  if (parent.derivation) {
+    throw new Error(
+      `Evidence "${child.id}" cannot derive from another derived evidence record "${parent.id}". Recursive derivation is prohibited.`
+    );
+  }
+
+  // 1. Parent must have observed romanization for ALIGNED_SEGMENT derivation
+  if (parent.observedRomanization === null) {
+    throw new Error(
+      `Evidence "${child.id}" cannot derive aligned segment evidence from parent "${parent.id}" because parent has no observed romanization.`
+    );
+  }
+
+  // 2. Validate Persian span
+  const { start: pStart, end: pEnd } = d.persianSpan;
+  if (pStart < 0 || pEnd < pStart || pEnd > parent.persianForm.length) {
+    throw new Error(
+      `Evidence "${child.id}" persianSpan [${pStart}, ${pEnd}] is out of bounds for parent length ${parent.persianForm.length}.`
+    );
+  }
+  const expectedPersian = parent.persianForm.slice(pStart, pEnd);
+  if (expectedPersian !== child.persianForm) {
+    throw new Error(
+      `Evidence "${child.id}" persianForm "${child.persianForm}" does not match parent substring slice [${pStart}, ${pEnd}] "${expectedPersian}".`
+    );
+  }
+
+  // 3. Validate Romanization span
+  const { start: rStart, end: rEnd } = d.romanizationSpan;
+  if (rStart < 0 || rEnd < rStart || rEnd > parent.observedRomanization.length) {
+    throw new Error(
+      `Evidence "${child.id}" romanizationSpan [${rStart}, ${rEnd}] is out of bounds for parent observedRomanization length ${parent.observedRomanization.length}.`
+    );
+  }
+  const expectedRoman = parent.observedRomanization.slice(rStart, rEnd);
+  if (expectedRoman !== child.observedRomanization) {
+    throw new Error(
+      `Evidence "${child.id}" observedRomanization "${child.observedRomanization}" does not match parent substring slice [${rStart}, ${rEnd}] "${expectedRoman}".`
+    );
+  }
+
+  // 4. Validate non-forgeable candidate eligibility classification
+  const expectedClassification = classifyAlignedSegmentEligibility(child.observedRomanization);
+  if (d.candidateEligibility !== expectedClassification.candidateEligibility) {
+    throw new Error(
+      `Evidence "${child.id}" declared candidateEligibility "${d.candidateEligibility}" does not match deterministic classification "${expectedClassification.candidateEligibility}" for observed romanization "${child.observedRomanization}".`
+    );
+  }
+  if ((d.exclusionReason ?? null) !== (expectedClassification.exclusionReason ?? null)) {
+    throw new Error(
+      `Evidence "${child.id}" declared exclusionReason "${d.exclusionReason ?? 'undefined'}" does not match deterministic classification reason "${expectedClassification.exclusionReason ?? 'undefined'}".`
+    );
+  }
+
+  // 5. Validate strict consistency of parent/child source identity and full external provenance
+  if (child.sourceType !== parent.sourceType) {
+    throw new Error(
+      `Evidence "${child.id}" sourceType "${child.sourceType}" does not match parent sourceType "${parent.sourceType}".`
+    );
+  }
+  if (child.sourceField !== parent.sourceField) {
+    throw new Error(
+      `Evidence "${child.id}" sourceField "${child.sourceField}" does not match parent sourceField "${parent.sourceField}".`
+    );
+  }
+  if (child.sourceRecordId !== parent.sourceRecordId) {
+    throw new Error(
+      `Evidence "${child.id}" sourceRecordId "${child.sourceRecordId}" does not match parent sourceRecordId "${parent.sourceRecordId}".`
+    );
+  }
+  if (child.sourceUri !== parent.sourceUri) {
+    throw new Error(
+      `Evidence "${child.id}" sourceUri "${child.sourceUri}" does not match parent sourceUri "${parent.sourceUri}".`
+    );
+  }
+  if (child.romanizationScheme !== parent.romanizationScheme) {
+    throw new Error(
+      `Evidence "${child.id}" romanizationScheme "${child.romanizationScheme}" does not match parent romanizationScheme "${parent.romanizationScheme}".`
+    );
+  }
+  if (child.provenance.sourceId !== parent.provenance.sourceId) {
+    throw new Error(
+      `Evidence "${child.id}" provenance.sourceId "${child.provenance.sourceId}" does not match parent sourceId "${parent.provenance.sourceId}".`
+    );
+  }
+  if ((child.provenance.sourceTitle ?? null) !== (parent.provenance.sourceTitle ?? null)) {
+    throw new Error(
+      `Evidence "${child.id}" provenance.sourceTitle "${child.provenance.sourceTitle}" does not match parent sourceTitle "${parent.provenance.sourceTitle}".`
+    );
+  }
+  if ((child.provenance.sourceOrganization ?? null) !== (parent.provenance.sourceOrganization ?? null)) {
+    throw new Error(
+      `Evidence "${child.id}" provenance.sourceOrganization "${child.provenance.sourceOrganization}" does not match parent sourceOrganization "${parent.provenance.sourceOrganization}".`
+    );
+  }
+  if (child.provenance.retrievalMethod !== parent.provenance.retrievalMethod) {
+    throw new Error(
+      `Evidence "${child.id}" provenance.retrievalMethod "${child.provenance.retrievalMethod}" does not match parent retrievalMethod "${parent.provenance.retrievalMethod}".`
+    );
+  }
+  if (child.provenance.retrievedAt !== parent.provenance.retrievedAt) {
+    throw new Error(
+      `Evidence "${child.id}" provenance.retrievedAt "${child.provenance.retrievedAt}" does not match parent retrievedAt "${parent.provenance.retrievedAt}".`
+    );
+  }
+  if ((child.provenance.extractorVersion ?? null) !== (parent.provenance.extractorVersion ?? null)) {
+    throw new Error(
+      `Evidence "${child.id}" provenance.extractorVersion "${child.provenance.extractorVersion}" does not match parent extractorVersion "${parent.provenance.extractorVersion}".`
+    );
+  }
+  if ((child.provenance.notes ?? null) !== (parent.provenance.notes ?? null)) {
+    throw new Error(
+      `Evidence "${child.id}" provenance.notes "${child.provenance.notes}" does not match parent notes "${parent.provenance.notes}".`
+    );
+  }
 }
 
 /**
@@ -92,10 +251,11 @@ export function isExactSameEvidence(a: LexicalEvidence, b: LexicalEvidence): boo
  *      Defensive cloning on ingress and egress ensures caller mutations cannot affect stored records.
  *   2. Re-adding an identical evidence record is an idempotent no-op. Attempting to add an
  *      existing evidence ID with altered content fails closed with EvidenceImmutabilityViolationError.
- *   3. Candidates require all referenced evidence IDs to exist at insertion time (fail-closed).
- *   4. Candidate lifecycle states (ACCEPTED / REJECTED) are strictly validated and protected from
+ *   3. Derived aligned evidence records must strictly satisfy parent lineage and exact source-span constraints.
+ *   4. Candidates require all referenced evidence IDs to exist at insertion time (fail-closed).
+ *   5. Candidate lifecycle states (ACCEPTED / REJECTED) are strictly validated and protected from
  *      unauthorized reference mutations.
- *   5. This repository contains zero authoritative lexicon entries and has NO
+ *   6. This repository contains zero authoritative lexicon entries and has NO
  *      direct mutation path into LexiconRepository.
  */
 export class LexicalEvidenceRepository {
@@ -130,6 +290,11 @@ export class LexicalEvidenceRepository {
     }
 
     const snapshot = deepClone(evidence);
+
+    // Validate derived evidence lineage and span consistency
+    if (snapshot.derivation) {
+      validateDerivedEvidenceLineage(snapshot, (id) => this.evidenceById.get(id));
+    }
 
     const existing = this.evidenceById.get(snapshot.id);
     if (existing) {
@@ -281,11 +446,32 @@ export class LexicalEvidenceRepository {
     return results;
   }
 
+  /**
+   * Retrieve parent LexicalEvidence for a derived aligned segment observation.
+   */
+  public getParentEvidence(derivedEvidenceId: string): LexicalEvidence | undefined {
+    const child = this.evidenceById.get(derivedEvidenceId);
+    if (!child?.derivation?.parentEvidenceId) return undefined;
+    return this.getEvidenceById(child.derivation.parentEvidenceId);
+  }
+
   // --- Integrity and Serialization ---
 
   public validateIntegrity(): EvidenceIntegrityReport {
     const errors: string[] = [];
 
+    // 1. Validate derived evidence lineage and source-span integrity
+    for (const [eviId, evidence] of this.evidenceById.entries()) {
+      if (evidence.derivation) {
+        try {
+          validateDerivedEvidenceLineage(evidence, (id) => this.evidenceById.get(id));
+        } catch (err: any) {
+          errors.push(`Evidence "${eviId}" derivation error: ${err.message}`);
+        }
+      }
+    }
+
+    // 2. Validate candidate integrity and Persian identity
     for (const [candId, candidate] of this.candidatesById.entries()) {
       try {
         validateCandidateLifecycle(candidate);
