@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReviewDecision, TransliterationResult } from '../../domain/types';
 import {
   AcceptedPhraseDecision,
@@ -39,15 +39,9 @@ export default function PhraseAssistantPanel({
   const [editing, setEditing] = useState(false);
   const [canonicalDraft, setCanonicalDraft] = useState('');
   const [renderedDraft, setRenderedDraft] = useState('');
-  const lastAutomaticAttempt = useRef<string | null>(null);
-
-  const meaningfulPersianTokens = useMemo(
-    () => result.tokens.filter((token) => token.tokenType === 'persian-word').length,
-    [result.tokens]
-  );
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const eligible = !result.copyable && result.reviewIssues.length > 0;
-  const automaticEligible = eligible && meaningfulPersianTokens >= 2;
   const acceptedApplicable = acceptedDecision
     ? checkAcceptedPhraseApplicability(acceptedDecision, result).applicable
     : false;
@@ -94,6 +88,7 @@ export default function PhraseAssistantPanel({
     setCanonicalDraft('');
     setRenderedDraft('');
     setStatus('idle');
+    setIsExpanded(false);
 
     if (acceptedDecision && !acceptedApplicable) {
       onAcceptedDecision(null);
@@ -106,6 +101,7 @@ export default function PhraseAssistantPanel({
     setStatus('loading');
     setError(null);
     setEditing(false);
+    setIsExpanded(true);
 
     try {
       const response = await fetch('/api/assist/phrase', {
@@ -149,18 +145,6 @@ export default function PhraseAssistantPanel({
     }
   }, [eligible, result.originalInput, result.profile, reviewDecisions]);
 
-  useEffect(() => {
-    if (!automaticEligible || configured !== true || acceptedApplicable) return;
-    if (lastAutomaticAttempt.current === requestKey) return;
-
-    const timer = window.setTimeout(() => {
-      lastAutomaticAttempt.current = requestKey;
-      void requestPhraseResolution();
-    }, 900);
-
-    return () => window.clearTimeout(timer);
-  }, [automaticEligible, configured, acceptedApplicable, requestKey, requestPhraseResolution]);
-
   function acceptResolution() {
     if (!resolution) return;
     try {
@@ -185,7 +169,7 @@ export default function PhraseAssistantPanel({
     setEditing(false);
     setError(null);
     setStatus('rejected');
-    lastAutomaticAttempt.current = requestKey;
+    setIsExpanded(false);
     onAcceptedDecision(null);
   }
 
@@ -201,68 +185,97 @@ export default function PhraseAssistantPanel({
 
   if (!eligible && !acceptedApplicable) return null;
 
+  // Accepted State
   if (acceptedDecision && acceptedApplicable) {
     return (
-      <section className={`${styles.panel} ${styles.accepted}`}>
+      <section className={`${styles.panel} ${styles.accepted}`} aria-label="Accepted Phrase Suggestion">
         <div className={styles.topline}>
           <div>
-            <div className={styles.kicker}>HUMAN-GATED PHRASE RESOLUTION</div>
-            <h3>Accepted context-aware resolution</h3>
+            <span className={styles.kicker}>Human-Accepted Phrase Suggestion</span>
+            <h3 className={styles.title}>Accepted Context-Aware Reading</h3>
           </div>
-          <span className={styles.acceptedBadge}>USER ACCEPTED</span>
+          <span className={styles.acceptedBadge}>Human Accepted</span>
         </div>
 
         <div className={styles.outputGrid}>
-          <div>
+          <div className={styles.outputField}>
             <span className={styles.label}>Scholarly canonical</span>
             <div className={styles.value}>{acceptedDecision.scholarlyCanonical}</div>
           </div>
-          <div>
-            <span className={styles.label}>Selected profile rendering</span>
+          <div className={styles.outputField}>
+            <span className={styles.label}>Profile rendering</span>
             <div className={styles.value}>{acceptedDecision.renderedOutput}</div>
           </div>
         </div>
 
         <div className={styles.metaRow}>
-          <span>{acceptedDecision.acceptance.replaceAll('_', ' ')}</span>
+          <span>{acceptedDecision.acceptance.replaceAll('_', ' ').toLowerCase()}</span>
           <span>{acceptedDecision.provider} · {acceptedDecision.model}</span>
-          <span>prompt {acceptedDecision.promptVersion}</span>
+          <span>prompt v{acceptedDecision.promptVersion}</span>
         </div>
 
         <div className={styles.actions}>
-          <button className={styles.secondaryButton} onClick={() => onAcceptedDecision(null)}>
-            Revoke phrase decision
+          <button type="button" className={styles.secondaryButton} onClick={() => onAcceptedDecision(null)}>
+            Revoke phrase choice
           </button>
         </div>
         <p className={styles.authorityNote}>
-          The AI proposal became usable only after explicit human acceptance. Granular deterministic issues remain available below for inspection.
+          This suggestion became active only after explicit human acceptance. Granular deterministic issues remain available below for review.
         </p>
       </section>
     );
   }
 
-  return (
-    <section className={styles.panel}>
-      <div className={styles.topline}>
-        <div>
-          <div className={styles.kicker}>AUTOMATIC CONTEXT-AWARE ASSISTED RESOLVER</div>
-          <h3>Resolve the whole phrase, not isolated tokens</h3>
-          <p className={styles.subtitle}>
-            {result.profile === 'ijmes_title' ? 'Book / article title' : 'Full scholarly / technical context'} · {result.reviewIssues.length} unresolved issue{result.reviewIssues.length === 1 ? '' : 's'}
+  // Quiet callout state: default collapsed when not yet explicitly requested
+  if (!isExpanded && !resolution && status !== 'loading') {
+    return (
+      <div className={styles.callout}>
+        <div className={styles.calloutText}>
+          <strong className={styles.calloutTitle}>Need help resolving this phrase?</strong>
+          <p className={styles.calloutDesc}>
+            The assistant can suggest a context-aware reading. Suggestions never become authoritative automatically.
           </p>
         </div>
-        <span className={styles.aiBadge}>AI ADVISORY · ZERO AUTHORITY</span>
+        <button
+          type="button"
+          className={styles.primaryButton}
+          onClick={() => {
+            void requestPhraseResolution();
+          }}
+          disabled={configured === false}
+          aria-label={configured === false ? 'Assistant unavailable' : 'Ask assistant'}
+        >
+          {configured === false ? 'Assistant unavailable' : 'Ask assistant'}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <section className={styles.panel} aria-label="Phrase Assistance Panel">
+      <div className={styles.topline}>
+        <div>
+          <span className={styles.kicker}>Context-Aware Phrase Suggestion</span>
+          <h3 className={styles.title}>Phrase-Level Proposal</h3>
+          <p className={styles.subtitle}>
+            {result.profile === 'ijmes_title' ? 'Title profile' : 'Full scholarly profile'} · {result.reviewIssues.length} unresolved issue{result.reviewIssues.length === 1 ? '' : 's'}
+          </p>
+        </div>
+        <div className={styles.badgeContainer}>
+          <span className={styles.aiBadge}>AI suggestion</span>
+          <span className={styles.advisorySub}>Advisory only · Requires human acceptance</span>
+        </div>
       </div>
 
       {configured === false && (
         <div className={styles.notice}>
-          AI phrase resolution is implemented but not connected. Configure <code>OPENAI_API_KEY</code> and <code>ASSISTED_RESOLVER_MODEL</code> on deployment; deterministic and manual review continue to work normally.
+          Assisted phrase resolution is not configured (OpenAI credentials not set). Deterministic transliteration and manual review continue to work normally.
         </div>
       )}
 
       {status === 'loading' && (
         <div className={styles.loadingBox}>
-          Analyzing full phrase context, unresolved tokens, morphology, and relations…
+          Analyzing full phrase context, morphology, and relations…
         </div>
       )}
 
@@ -270,15 +283,19 @@ export default function PhraseAssistantPanel({
 
       {resolution?.disposition === 'REVIEW_REQUIRED' && (
         <div className={styles.reviewRequiredBox}>
-          <strong>AI declined to force a single reading.</strong>
+          <strong>Assistant declined to force a single reading.</strong>
           <p>{resolution.rationale}</p>
           {resolution.assumptions.length > 0 && (
             <ul>
-              {resolution.assumptions.map((assumption) => <li key={assumption}>{assumption}</li>)}
+              {resolution.assumptions.map((assumption) => (
+                <li key={assumption}>{assumption}</li>
+              ))}
             </ul>
           )}
           {(resolution.warnings ?? []).map((warning) => (
-            <div key={warning} className={styles.warning}>{warning}</div>
+            <div key={warning} className={styles.warning}>
+              {warning}
+            </div>
           ))}
         </div>
       )}
@@ -286,18 +303,21 @@ export default function PhraseAssistantPanel({
       {resolution?.disposition === 'PROPOSED' && resolution.scholarlyCanonical && resolution.renderedOutput && (
         <>
           <div className={styles.proposalHeader}>
-            <div>
-              <span className={styles.proposalBadge}>PROPOSAL · NOT YET AUTHORITATIVE</span>
+            <div className={styles.proposalMeta}>
+              <span className={styles.proposalBadge}>Suggestion · Not authoritative</span>
               <span className={styles.confidence}>
-                confidence: {confidenceLabel(resolution.confidence)}{resolution.confidence !== null ? ` · ${Math.round(resolution.confidence * 100)}%` : ''}
+                confidence: {confidenceLabel(resolution.confidence)}
+                {resolution.confidence !== null ? ` (${Math.round(resolution.confidence * 100)}%)` : ''}
               </span>
             </div>
-            <span className={styles.basis}>{resolution.basis.replaceAll('_', ' ')}</span>
+            <span className={styles.basis}>{resolution.basis.replaceAll('_', ' ').toLowerCase()}</span>
           </div>
 
           <div className={styles.outputGrid}>
-            <div>
-              <label className={styles.label} htmlFor="phrase-canonical">Scholarly canonical</label>
+            <div className={styles.outputField}>
+              <label className={styles.label} htmlFor="phrase-canonical">
+                Scholarly canonical
+              </label>
               {editing ? (
                 <input
                   id="phrase-canonical"
@@ -309,8 +329,10 @@ export default function PhraseAssistantPanel({
                 <div className={styles.value}>{resolution.scholarlyCanonical}</div>
               )}
             </div>
-            <div>
-              <label className={styles.label} htmlFor="phrase-rendered">Profile rendering</label>
+            <div className={styles.outputField}>
+              <label className={styles.label} htmlFor="phrase-rendered">
+                Profile rendering
+              </label>
               {editing ? (
                 <input
                   id="phrase-rendered"
@@ -336,7 +358,7 @@ export default function PhraseAssistantPanel({
                   <bdi dir="rtl">{reading.surface}</bdi>
                   <span>→</span>
                   <strong>{reading.canonical}</strong>
-                  <small>{reading.note}</small>
+                  {reading.note && <small>{reading.note}</small>}
                 </div>
               ))}
             </div>
@@ -344,24 +366,28 @@ export default function PhraseAssistantPanel({
 
           {resolution.assumptions.length > 0 && (
             <details className={styles.details}>
-              <summary>Assumptions and uncertainties</summary>
-              <ul>
-                {resolution.assumptions.map((assumption) => <li key={assumption}>{assumption}</li>)}
+              <summary className={styles.detailsSummary}>Assumptions and uncertainties</summary>
+              <ul className={styles.detailsList}>
+                {resolution.assumptions.map((assumption) => (
+                  <li key={assumption}>{assumption}</li>
+                ))}
               </ul>
             </details>
           )}
 
           <div className={styles.actions}>
-            <button className={styles.primaryButton} onClick={acceptResolution}>
-              {editing ? 'Accept edited resolution' : 'Accept resolution'}
+            <button type="button" className={styles.primaryButton} onClick={acceptResolution}>
+              {editing ? 'Accept edited suggestion' : 'Accept suggestion'}
             </button>
-            <button className={styles.secondaryButton} onClick={toggleEditing}>
+            <button type="button" className={styles.secondaryButton} onClick={toggleEditing}>
               {editing ? 'Cancel edit' : 'Edit before accepting'}
             </button>
-            <button className={styles.rejectButton} onClick={rejectResolution}>Reject</button>
+            <button type="button" className={styles.rejectButton} onClick={rejectResolution}>
+              Dismiss
+            </button>
           </div>
           <p className={styles.authorityNote}>
-            Accepting creates explicit user-decision provenance. Model confidence is advisory and never grants authority by itself.
+            Accepting creates explicit user-decision provenance. Suggestions never grant reusable authority by themselves.
           </p>
         </>
       )}
@@ -369,18 +395,15 @@ export default function PhraseAssistantPanel({
       {!resolution && status !== 'loading' && (
         <div className={styles.actions}>
           <button
+            type="button"
             className={styles.primaryButton}
             onClick={() => {
-              lastAutomaticAttempt.current = requestKey;
               void requestPhraseResolution();
             }}
             disabled={configured === false}
           >
-            {status === 'rejected' ? 'Analyze phrase again' : automaticEligible ? 'Resolve full phrase now' : 'Ask phrase resolver'}
+            {status === 'rejected' ? 'Analyze phrase again' : 'Ask assistant'}
           </button>
-          {automaticEligible && configured === true && status === 'idle' && (
-            <span className={styles.autoHint}>Automatic fallback starts after the input is stable.</span>
-          )}
         </div>
       )}
     </section>
