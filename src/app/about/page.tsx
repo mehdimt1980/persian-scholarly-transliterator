@@ -35,6 +35,18 @@ export default function AboutPage() {
       </section>
 
       <section className="editorial-section">
+        <h2 className="editorial-heading">Workspace Persistence & Privacy</h2>
+        <div className="editorial-body">
+          <p>
+            Current work is stored locally in this browser so you can move between sections or return later without losing your research state.
+          </p>
+          <p>
+            Your workspace data remains strictly in your browser. Assistant requests are transmitted only when you explicitly choose to use the assistant.
+          </p>
+        </div>
+      </section>
+
+      <section className="editorial-section">
         <h2 className="editorial-heading">Author & Attribution</h2>
         <div className="editorial-body">
           <p>

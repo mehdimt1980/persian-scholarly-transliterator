@@ -1669,3 +1669,190 @@ summary:focus-visible {
     flex-direction: column;
   }
 }
+
+/* Local Research Workspace Persistence Bar */
+.workspace-save-status-container {
+  margin-bottom: 20px;
+}
+
+.workspace-persistence-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: var(--font-sans);
+  color: var(--text-secondary);
+}
+
+.workspace-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: help;
+}
+
+.workspace-status-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.workspace-status-text {
+  font-weight: 500;
+  color: var(--text-ink);
+}
+
+.workspace-privacy-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.workspace-status-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.workspace-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.workspace-clear-btn {
+  padding: 4px 10px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px dashed var(--border-rule);
+  border-radius: 3px;
+  font-size: 11px;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.workspace-clear-btn:hover {
+  color: var(--status-blocked-text);
+  border-color: var(--status-blocked-border);
+  background: var(--status-blocked-bg);
+}
+
+.workspace-clear-confirm-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  background: var(--bg-subtle);
+  border-radius: 3px;
+  border: 1px solid var(--border-rule);
+}
+
+.workspace-clear-prompt {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-ink);
+}
+
+.workspace-clear-btn-confirm {
+  padding: 2px 8px;
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.workspace-clear-btn-confirm:hover {
+  background: #b91c1c;
+}
+
+.workspace-clear-btn-cancel {
+  padding: 2px 8px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.workspace-clear-btn-cancel:hover {
+  background: var(--bg-surface);
+  color: var(--text-ink);
+}
+
+.workspace-crosstab-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  margin-bottom: 8px;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #92400e;
+}
+
+.workspace-crosstab-text {
+  font-weight: 500;
+}
+
+.workspace-crosstab-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.workspace-crosstab-btn-reload {
+  padding: 3px 10px;
+  background: #d97706;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.workspace-crosstab-btn-reload:hover {
+  background: #b45309;
+}
+
+.workspace-crosstab-btn-keep {
+  padding: 3px 8px;
+  background: transparent;
+  border: 1px solid #d97706;
+  color: #92400e;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.workspace-crosstab-btn-keep:hover {
+  background: rgba(217, 119, 6, 0.15);
+}
+
+.workspace-status-unsupported-schema {
+  color: #d97706;
+}
+
+.workspace-status-conflict {
+  color: #d97706;
+}
+
+

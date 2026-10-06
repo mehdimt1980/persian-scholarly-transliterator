@@ -32,12 +32,18 @@ function actionForAlternative(issue: ReviewIssue, altId: string): ReviewActionTy
 
 type AssistStatusType = 'idle' | 'loading' | 'available' | 'error' | 'stale' | 'unavailable';
 
+import { useResearchWorkspace } from '../client/workspace';
+import WorkspaceSaveStatus from './components/WorkspaceSaveStatus';
+
 export default function Home() {
-  const [input, setInput] = useState(fixture);
-  const [profile, setProfile] = useState<ProfileId>('ijmes_citation_title');
-  const [decisions, setDecisions] = useState<ReviewDecision[]>([]);
+  const { transliteration, updateTransliteration } = useResearchWorkspace();
+
+  const input = transliteration.input;
+  const profile = transliteration.profile;
+  const decisions = transliteration.reviewDecisions;
+  const acceptedPhraseDecision = transliteration.acceptedPhraseDecision;
+
   const [copied, setCopied] = useState(false);
-  const [acceptedPhraseDecision, setAcceptedPhraseDecision] = useState<AcceptedPhraseDecision | null>(null);
 
   const result = useMemo(() => transliterate(input, profile, decisions), [input, profile, decisions]);
   const {
@@ -47,20 +53,40 @@ export default function Home() {
     status: selectedStatus
   } = resolveSelectedTransliteration(result, acceptedPhraseDecision);
 
+  function setInput(newInput: string) {
+    updateTransliteration({ input: newInput });
+  }
+
+  function setProfile(newProfile: ProfileId) {
+    updateTransliteration({ profile: newProfile });
+  }
+
   function applyDecision(newDecision: ReviewDecision) {
-    setDecisions((prev) => {
-      const filtered = prev.filter((d) => d.issueId !== newDecision.issueId);
-      return [...filtered, newDecision];
+    updateTransliteration((prev) => {
+      const filtered = prev.reviewDecisions.filter((d) => d.issueId !== newDecision.issueId);
+      return {
+        ...prev,
+        reviewDecisions: [...filtered, newDecision]
+      };
     });
   }
 
   function clearDecision(issueId: string) {
-    setDecisions((prev) => prev.filter((d) => d.issueId !== issueId));
+    updateTransliteration((prev) => ({
+      ...prev,
+      reviewDecisions: prev.reviewDecisions.filter((d) => d.issueId !== issueId)
+    }));
   }
 
   function clearAllDecisions() {
-    setDecisions([]);
-    setAcceptedPhraseDecision(null);
+    updateTransliteration({
+      reviewDecisions: [],
+      acceptedPhraseDecision: null
+    });
+  }
+
+  function setAcceptedPhraseDecision(decision: AcceptedPhraseDecision | null) {
+    updateTransliteration({ acceptedPhraseDecision: decision });
   }
 
   const [assistStatus, setAssistStatus] = useState<Record<string, AssistStatusType>>({});
@@ -136,6 +162,8 @@ export default function Home() {
           Deterministic IJMES · explicit ambiguity · human-reviewed authority
         </p>
       </section>
+
+      <WorkspaceSaveStatus workspaceType="transliteration" />
 
       <section className="workspace-grid" aria-label="Transliteration Workspace">
         {/* Persian Source Input Panel */}

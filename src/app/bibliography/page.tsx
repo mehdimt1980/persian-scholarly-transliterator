@@ -20,8 +20,6 @@ import {
   makeBibliographyIssueScopeKey,
   candidateToBibliographyReviewDecision,
   BibliographyFieldPath,
-  BibliographyRecord,
-  BibliographyReviewDecision,
   BibliographyAssistanceState,
   BibliographyDiagnostic,
   BibliographyExportReport,
@@ -48,14 +46,20 @@ function actionForAlternative(issue: ReviewIssue, altId: string): ReviewActionTy
 
 type AssistStatusType = 'idle' | 'loading' | 'available' | 'error' | 'stale' | 'unavailable';
 
+import { useResearchWorkspace } from '../../client/workspace';
+import WorkspaceSaveStatus from '../components/WorkspaceSaveStatus';
+
 export default function BibliographyPage() {
-  const [csvText, setCsvText] = useState(sampleCsv);
-  const [batchRecords, setBatchRecords] = useState<BibliographyRecord[]>([]);
+  const { bibliography, updateBibliography } = useResearchWorkspace();
+
+  const csvText = bibliography.csvText;
+  const batchRecords = bibliography.records;
+  const batchReviewDecisions = bibliography.reviewDecisions;
+  const selectedRecordId = bibliography.selectedRecordId;
+  const batchFilter = bibliography.filter;
+  const exportMode = bibliography.exportMode;
+
   const [importDiagnostics, setImportDiagnostics] = useState<BibliographyDiagnostic[]>([]);
-  const [batchReviewDecisions, setBatchReviewDecisions] = useState<BibliographyReviewDecision[]>([]);
-  const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
-  const [batchFilter, setBatchFilter] = useState<'ALL' | 'READY' | 'REVIEW_REQUIRED' | 'INVALID'>('ALL');
-  const [exportMode, setExportMode] = useState<ScholarlyExportMode>('STRICT_ALL');
   const [exportReport, setExportReport] = useState<BibliographyExportReport | null>(null);
 
   // Field-scoped assistance
@@ -73,25 +77,41 @@ export default function BibliographyPage() {
     [processedBatch, selectedRecordId]
   );
 
+  function setCsvText(newCsv: string) {
+    updateBibliography({ csvText: newCsv });
+  }
+
+  function setSelectedRecordId(id: string | null) {
+    updateBibliography({ selectedRecordId: id });
+  }
+
+  function setBatchFilter(filter: 'ALL' | 'READY' | 'REVIEW_REQUIRED' | 'INVALID') {
+    updateBibliography({ filter });
+  }
+
+  function setExportMode(mode: ScholarlyExportMode) {
+    updateBibliography({ exportMode: mode });
+  }
+
   function handleImportCsv() {
     const result = importBibliographyFromCsv(csvText);
     if (!result.success) {
-      setBatchRecords([]);
+      updateBibliography({
+        records: [],
+        selectedRecordId: null,
+        reviewDecisions: []
+      });
       setImportDiagnostics(result.diagnostics);
-      setSelectedRecordId(null);
-      setBatchReviewDecisions([]);
       setExportReport(null);
       return;
     }
-    setBatchRecords(result.records);
+    updateBibliography({
+      records: result.records,
+      selectedRecordId: result.records.length > 0 ? result.records[0].id : null,
+      reviewDecisions: []
+    });
     setImportDiagnostics(result.diagnostics);
-    setBatchReviewDecisions([]);
     setExportReport(null);
-    if (result.records.length > 0) {
-      setSelectedRecordId(result.records[0].id);
-    } else {
-      setSelectedRecordId(null);
-    }
   }
 
   function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
@@ -100,10 +120,12 @@ export default function BibliographyPage() {
 
     const sizeCheck = validateFileSize(file.size, DEFAULT_IMPORT_LIMITS.maxFileSize);
     if (!sizeCheck.valid && sizeCheck.diagnostic) {
-      setBatchRecords([]);
+      updateBibliography({
+        records: [],
+        selectedRecordId: null,
+        reviewDecisions: []
+      });
       setImportDiagnostics([sizeCheck.diagnostic]);
-      setSelectedRecordId(null);
-      setBatchReviewDecisions([]);
       setExportReport(null);
       return;
     }
@@ -111,48 +133,56 @@ export default function BibliographyPage() {
     const reader = new FileReader();
     reader.onload = (e) => {
       const content = e.target?.result as string;
-      setCsvText(content);
       const result = importBibliographyFromCsv(content);
       if (!result.success) {
-        setBatchRecords([]);
+        updateBibliography({
+          csvText: content,
+          records: [],
+          selectedRecordId: null,
+          reviewDecisions: []
+        });
         setImportDiagnostics(result.diagnostics);
-        setSelectedRecordId(null);
-        setBatchReviewDecisions([]);
         setExportReport(null);
         return;
       }
-      setBatchRecords(result.records);
+      updateBibliography({
+        csvText: content,
+        records: result.records,
+        selectedRecordId: result.records.length > 0 ? result.records[0].id : null,
+        reviewDecisions: []
+      });
       setImportDiagnostics(result.diagnostics);
-      setBatchReviewDecisions([]);
       setExportReport(null);
-      if (result.records.length > 0) {
-        setSelectedRecordId(result.records[0].id);
-      }
     };
     reader.readAsText(file, 'UTF-8');
   }
 
   function applyBatchFieldDecision(recordId: string, fieldPath: BibliographyFieldPath, decision: ReviewDecision) {
-    setBatchReviewDecisions((prev) => {
-      const filtered = prev.filter(
+    updateBibliography((prev) => {
+      const filtered = prev.reviewDecisions.filter(
         (d) => !(d.recordId === recordId && d.fieldPath === fieldPath && d.decision.issueId === decision.issueId)
       );
-      return [...filtered, { recordId, fieldPath, decision }];
+      return {
+        ...prev,
+        reviewDecisions: [...filtered, { recordId, fieldPath, decision }]
+      };
     });
   }
 
   function clearBatchFieldDecision(recordId: string, fieldPath: BibliographyFieldPath, issueId: string) {
-    setBatchReviewDecisions((prev) =>
-      prev.filter(
+    updateBibliography((prev) => ({
+      ...prev,
+      reviewDecisions: prev.reviewDecisions.filter(
         (d) => !(d.recordId === recordId && d.fieldPath === fieldPath && d.decision.issueId === issueId)
       )
-    );
+    }));
   }
 
   function resetFieldDecisions(recordId: string, fieldPath: BibliographyFieldPath) {
-    setBatchReviewDecisions((prev) =>
-      prev.filter((d) => !(d.recordId === recordId && d.fieldPath === fieldPath))
-    );
+    updateBibliography((prev) => ({
+      ...prev,
+      reviewDecisions: prev.reviewDecisions.filter((d) => !(d.recordId === recordId && d.fieldPath === fieldPath))
+    }));
   }
 
   async function requestBatchAssistance(recordId: string, fieldPath: BibliographyFieldPath, issue: ReviewIssue) {
@@ -268,6 +298,8 @@ export default function BibliographyPage() {
           Batch processing for scholarly bibliographies with field-level ambiguity tracking and multi-format export.
         </p>
       </section>
+
+      <WorkspaceSaveStatus workspaceType="bibliography" />
 
       {/* 1. Import Section */}
       <section className="batch-card" aria-labelledby="import-heading">
