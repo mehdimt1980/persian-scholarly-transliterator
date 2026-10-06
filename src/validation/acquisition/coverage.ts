@@ -27,6 +27,7 @@ const ALL_CATEGORIES: AcquisitionCategory[] = [
 
 const ALL_PROFILES: ProposedProfile[] = [
   'ijmes_full',
+  'ijmes_citation_title',
   'ijmes_title'
 ];
 

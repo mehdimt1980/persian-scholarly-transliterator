@@ -7,7 +7,7 @@ import { OpenAiAssistedResolverProvider } from './openaiProvider';
 
 const requestSchema = z.object({
   input: z.string().max(10000),
-  profile: z.enum(['ijmes_full', 'ijmes_title']).default('ijmes_full'),
+  profile: z.enum(['ijmes_full', 'ijmes_citation_title']).default('ijmes_full'),
   reviewDecisions: z.array(z.object({
     issueId: z.string(),
     action: z.enum(['SELECT_LEXICAL_READING', 'MANUAL_CANONICAL_OVERRIDE', 'ACCEPT_IZAFAT', 'REJECT_IZAFAT', 'SELECT_MORPHOLOGY']),

@@ -48,7 +48,7 @@ describe('phrase assistance server boundary', () => {
     const response = await handlePhraseAssistRequest(
       jsonRequest({
         input: 'واژه دیگر',
-        profile: 'ijmes_title',
+        profile: 'ijmes_citation_title',
         reviewDecisions: []
       }),
       provider
@@ -83,7 +83,7 @@ describe('phrase assistance server boundary', () => {
     const response = await handlePhraseAssistRequest(
       jsonRequest({
         input: 'واژه دیگر',
-        profile: 'ijmes_title',
+        profile: 'ijmes_citation_title',
         reviewDecisions: [],
         tokenEvidence: [{ surface: 'injected', status: 'DETERMINISTIC' }]
       }),
@@ -114,7 +114,7 @@ describe('phrase assistance server boundary', () => {
     const response = await handlePhraseAssistRequest(
       jsonRequest({
         input: 'واژه دیگر',
-        profile: 'ijmes_title',
+        profile: 'ijmes_citation_title',
         reviewDecisions: [
           {
             issueId: 'synthetic',
@@ -152,7 +152,7 @@ describe('phrase assistance server boundary', () => {
     const response = await handlePhraseAssistRequest(
       jsonRequest({
         input: tooManyPersianWords,
-        profile: 'ijmes_title',
+        profile: 'ijmes_citation_title',
         reviewDecisions: []
       }),
       provider
@@ -208,7 +208,7 @@ describe('phrase assistance server boundary', () => {
     const response = await handlePhraseAssistRequest(
       jsonRequest({
         input: 'واژه دیگر',
-        profile: 'ijmes_title',
+        profile: 'ijmes_citation_title',
         reviewDecisions: []
       }),
       provider

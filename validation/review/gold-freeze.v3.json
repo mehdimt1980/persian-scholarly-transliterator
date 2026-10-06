@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "GOLD_FREEZE",
+  "benchmarkId": "phase4.6b-external-benchmark-v3",
+  "sourceBenchmarkPath": "validation/corpus/phase4.6b-external-benchmark.v3.json",
+  "sourceBenchmarkGitBlobSha1": "769f281ef297d70da09b01de3ed15e201e8dab06",
+  "sourceBenchmarkMetadataVersion": "3.0.0",
+  "promotedGoldVersion": "3.0.0",
+  "promotionStatus": "HUMAN_APPROVED_FROZEN",
+  "humanSignoffPath": "validation/review/human-signoff.v3.json",
+  "frozenAt": "2026-10-06",
+  "caseCount": 108,
+  "dispositionCounts": {
+    "FINAL": 103,
+    "REVIEW_REQUIRED": 5,
+    "UNRESOLVED": 0
+  },
+  "reviewRequiredIds": [
+    "cand-amb-001",
+    "cand-amb-003",
+    "cand-amb-007",
+    "cand-amb-009",
+    "cand-amb-011"
+  ],
+  "engineEvaluationPerformedAtFreeze": false,
+  "phase46CAuthorized": true,
+  "caseLevelPrimaryReviewer": "OpenAI GPT-5.6 Sol / AI_SPECIALIST (lexical authority V2) + Deterministic Presentation Policy Migration (V3)"
+}

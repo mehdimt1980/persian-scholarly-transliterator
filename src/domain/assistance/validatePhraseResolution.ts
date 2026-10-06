@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { renderCanonicalForProfile } from '../profiles';
 import { validateManualTransliteration } from '../review/validation';
 import { computePhraseRequestFingerprint } from './phraseIdentity';
 import type {
@@ -62,19 +63,17 @@ export function validatePhraseProviderResolution(
   let renderedOutput: string | null = null;
 
   if (payload.disposition === 'PROPOSED') {
-    if (!payload.scholarlyCanonical || !payload.renderedOutput) {
-      errors.push('PROPOSED phrase resolution requires both scholarlyCanonical and renderedOutput.');
+    if (!payload.scholarlyCanonical) {
+      errors.push('PROPOSED phrase resolution requires scholarlyCanonical.');
     } else {
       scholarlyCanonical = validateLatinTransliteration(
         payload.scholarlyCanonical,
         'scholarlyCanonical',
         errors
       );
-      renderedOutput = validateLatinTransliteration(
-        payload.renderedOutput,
-        'renderedOutput',
-        errors
-      );
+      if (scholarlyCanonical) {
+        renderedOutput = renderCanonicalForProfile(scholarlyCanonical, request.profile);
+      }
     }
   } else if (payload.scholarlyCanonical !== null || payload.renderedOutput !== null) {
     errors.push('REVIEW_REQUIRED phrase resolution must not expose authoritative canonical or rendered output.');

@@ -953,7 +953,7 @@ describe('Lexical Evidence & Candidate Architecture', () => {
         persianForm: 'تاریخ بیهقی',
         normalizedForm: 'تاریخ بیهقی',
         proposedCanonical: 'Tārīkh-i Bayhaqī',
-        proposedProfile: 'ijmes_title',
+        proposedProfile: 'ijmes_citation_title',
         entityType: 'WORK',
         evidenceIds: ['evi-loc-001'],
         conflicts: [],

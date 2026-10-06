@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReviewDecision, TransliterationResult } from '../../domain/types';
+import { renderCanonicalForProfile } from '../../domain/profiles';
 import {
   AcceptedPhraseDecision,
   PhraseResolution,
@@ -186,6 +187,12 @@ export default function PhraseAssistantPanel({
   if (!eligible && !acceptedApplicable) return null;
 
   // Accepted State
+  const renderingLabel =
+    result.profile === 'ijmes_citation_title'
+      ? 'Citation-title rendering'
+      : 'Profile rendering';
+
+  // Accepted State
   if (acceptedDecision && acceptedApplicable) {
     return (
       <section className={`${styles.panel} ${styles.accepted}`} aria-label="Accepted Phrase Suggestion">
@@ -203,8 +210,13 @@ export default function PhraseAssistantPanel({
             <div className={styles.value}>{acceptedDecision.scholarlyCanonical}</div>
           </div>
           <div className={styles.outputField}>
-            <span className={styles.label}>Profile rendering</span>
+            <span className={styles.label}>{renderingLabel}</span>
             <div className={styles.value}>{acceptedDecision.renderedOutput}</div>
+            {result.profile === 'ijmes_citation_title' && (
+              <small style={{ color: '#4a5568', marginTop: '0.25rem', display: 'block', fontSize: '0.8rem' }}>
+                Citation rendering preserves scholarly diacritics and applies title capitalization.
+              </small>
+            )}
           </div>
         </div>
 
@@ -258,7 +270,7 @@ export default function PhraseAssistantPanel({
           <span className={styles.kicker}>Context-Aware Phrase Suggestion</span>
           <h3 className={styles.title}>Phrase-Level Proposal</h3>
           <p className={styles.subtitle}>
-            {result.profile === 'ijmes_title' ? 'Title profile' : 'Full scholarly profile'} · {result.reviewIssues.length} unresolved issue{result.reviewIssues.length === 1 ? '' : 's'}
+            {result.profile === 'ijmes_citation_title' ? 'Citation title profile' : 'Full scholarly profile'} · {result.reviewIssues.length} unresolved issue{result.reviewIssues.length === 1 ? '' : 's'}
           </p>
         </div>
         <div className={styles.badgeContainer}>
@@ -323,7 +335,11 @@ export default function PhraseAssistantPanel({
                   id="phrase-canonical"
                   className={styles.editInput}
                   value={canonicalDraft}
-                  onChange={(event) => setCanonicalDraft(event.target.value)}
+                  onChange={(event) => {
+                    const next = event.target.value;
+                    setCanonicalDraft(next);
+                    setRenderedDraft(renderCanonicalForProfile(next, result.profile));
+                  }}
                 />
               ) : (
                 <div className={styles.value}>{resolution.scholarlyCanonical}</div>
@@ -331,17 +347,19 @@ export default function PhraseAssistantPanel({
             </div>
             <div className={styles.outputField}>
               <label className={styles.label} htmlFor="phrase-rendered">
-                Profile rendering
+                {renderingLabel}
               </label>
               {editing ? (
-                <input
-                  id="phrase-rendered"
-                  className={styles.editInput}
-                  value={renderedDraft}
-                  onChange={(event) => setRenderedDraft(event.target.value)}
-                />
+                <div className={styles.value} style={{ background: '#f8fafc', fontStyle: 'italic' }}>
+                  {renderedDraft}
+                </div>
               ) : (
                 <div className={styles.value}>{resolution.renderedOutput}</div>
+              )}
+              {result.profile === 'ijmes_citation_title' && (
+                <small style={{ color: '#4a5568', marginTop: '0.25rem', display: 'block', fontSize: '0.8rem' }}>
+                  Citation rendering preserves scholarly diacritics and applies title capitalization.
+                </small>
               )}
             </div>
           </div>

@@ -406,7 +406,7 @@ export function transliterate(
     }
   }
 
-  if (profile === 'ijmes_title') {
+  if (profile === 'ijmes_citation_title') {
     applyTitleProfile(finalTokens);
   }
 

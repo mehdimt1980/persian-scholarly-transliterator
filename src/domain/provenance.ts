@@ -211,19 +211,12 @@ export const RULES = {
     authority: 'current-guide',
     reference: 'Current IJMES guide; example: vilāyat-i faqīh.'
   },
-  titleDiacritics: {
-    id: 'IJMES-TITLE-DIACRITIC-REMOVAL',
-    title: 'Title diacritic policy',
-    description: 'Remove scholarly diacritics while preserving ʿayn and non-initial hamza.',
-    authority: 'current-guide',
-    reference: 'Current IJMES Translation and Transliteration Guide.'
-  },
-  titleCase: {
-    id: 'IJMES-TITLE-CAPITALIZATION',
-    title: 'English title capitalization',
-    description: 'Capitalize major title words; keep listed minor words lowercase except at title boundaries.',
-    authority: 'current-guide',
-    reference: 'Current IJMES Translation and Transliteration Guide.'
+  citationTitleCapitalization: {
+    id: 'SCHOLARLY-CITATION-TITLE-CAPITALIZATION',
+    title: 'Scholarly citation title capitalization',
+    description: 'Capitalize independent words in fully diacritized scholarly citation titles while preserving canonical internal hyphenation.',
+    authority: 'editorial',
+    reference: 'Project citation presentation policy.'
   },
   userLexicalReadingSelection: {
     id: 'USER-LEXICAL-READING-SELECTION',

@@ -6,9 +6,9 @@ describe('Phase 4.6C frozen baseline runner', () => {
     const report = runPhase46CFrozenBaseline();
 
     expect(report.artifactType).toBe('PHASE_4_6C_FROZEN_BASELINE');
-    expect(report.promotedGoldVersion).toBe('2.0.0');
+    expect(report.promotedGoldVersion).toBe('3.0.0');
     expect(report.sourceBenchmarkGitBlobSha1).toBe(
-      'be46b312e2cb82cc4ec0f95ed1c019f8f5e27162'
+      '769f281ef297d70da09b01de3ed15e201e8dab06'
     );
     expect(report.engineEvaluationPerformed).toBe(true);
     expect(report.results).toHaveLength(108);

@@ -6,6 +6,8 @@
  *   EXTERNAL OBSERVATION ≠ LEXICAL CANDIDATE ≠ AUTHORITATIVE LEXICON ENTRY
  */
 
+import type { ProfileId } from '../types';
+
 /**
  * Romanization scheme / standard of an observed external transliteration string.
  * This is an explicit first-class distinction from the internal IJMES canonical standard.
@@ -226,7 +228,7 @@ export interface LexicalCandidate {
   /** Proposed scholarly canonical transliteration, or null if unassigned/ambiguous */
   proposedCanonical: string | null;
   /** Target profile for proposed canonical */
-  proposedProfile?: 'ijmes_full' | 'ijmes_title';
+  proposedProfile?: ProfileId;
   /** Entity classification */
   entityType: LexicalEntityType;
   /** IDs of supporting LexicalEvidence records */

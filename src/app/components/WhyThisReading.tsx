@@ -10,8 +10,8 @@ export default function WhyThisReading({ result }: WhyThisReadingProps) {
   const issueCount = result.reviewIssues.length;
   const appliedCount = result.appliedDecisions.length;
   const profileName =
-    result.profile === 'ijmes_title'
-      ? 'IJMES · Title presentation profile'
+    result.profile === 'ijmes_citation_title'
+      ? 'IJMES · Scholarly citation title profile'
       : 'IJMES · Full scholarly / technical profile';
 
   return (

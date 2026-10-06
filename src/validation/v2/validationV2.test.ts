@@ -253,8 +253,8 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
       originalInput: 'واژه یک',
       normalizedInput: 'واژه یک',
       normalizationChanges: [],
-      profile: 'ijmes_title',
-      output: 'Vazheh Yek',
+      profile: 'ijmes_citation_title',
+      output: 'Vāzhah Yak',
       copyable: true,
       status: 'DETERMINISTIC',
       tokens: [
@@ -337,7 +337,7 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
 
     const derivedCanonical = deriveScholarlyCanonicalOutput(syntheticResult);
     expect(derivedCanonical).toBe('vāzhah yak');
-    expect(syntheticResult.output).toBe('Vazheh Yek');
+    expect(syntheticResult.output).toBe('Vāzhah Yak');
   });
 
   // 11. Canonical and rendered BOTH match: CORRECT_AUTHORITATIVE.
@@ -345,12 +345,12 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
     const testCase: ScholarlyValidationCaseV2 = {
       id: 'case-synth-11',
       input: 'واژه یک',
-      profile: 'ijmes_title',
+      profile: 'ijmes_citation_title',
       category: 'TERM',
       expected: {
         disposition: 'FINAL',
         scholarlyCanonical: 'vāzhah yak',
-        renderedOutput: 'Vazheh Yek'
+        renderedOutput: 'Vāzhah Yak'
       },
       provenance: baseProvenance
     };
@@ -359,8 +359,8 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
       originalInput: 'واژه یک',
       normalizedInput: 'واژه یک',
       normalizationChanges: [],
-      profile: 'ijmes_title',
-      output: 'Vazheh Yek',
+      profile: 'ijmes_citation_title',
+      output: 'Vāzhah Yak',
       copyable: true,
       status: 'DETERMINISTIC',
       tokens: [
@@ -453,12 +453,12 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
     const testCase: ScholarlyValidationCaseV2 = {
       id: 'case-synth-12',
       input: 'واژه یک',
-      profile: 'ijmes_title',
+      profile: 'ijmes_citation_title',
       category: 'TERM',
       expected: {
         disposition: 'FINAL',
         scholarlyCanonical: 'vāzhah yak',
-        renderedOutput: 'Vazheh Yek'
+        renderedOutput: 'Vāzhah Yak'
       },
       provenance: baseProvenance
     };
@@ -467,8 +467,8 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
       originalInput: 'واژه یک',
       normalizedInput: 'واژه یک',
       normalizationChanges: [],
-      profile: 'ijmes_title',
-      output: 'Vazheh Yek',
+      profile: 'ijmes_citation_title',
+      output: 'Vāzhah Yak',
       copyable: true,
       status: 'DETERMINISTIC',
       tokens: [
@@ -562,12 +562,12 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
     const testCase: ScholarlyValidationCaseV2 = {
       id: 'case-synth-13',
       input: 'واژه یک',
-      profile: 'ijmes_title',
+      profile: 'ijmes_citation_title',
       category: 'TERM',
       expected: {
         disposition: 'FINAL',
         scholarlyCanonical: 'vāzhah yak',
-        renderedOutput: 'Vazheh Yek'
+        renderedOutput: 'Vāzhah Yak'
       },
       provenance: baseProvenance
     };
@@ -576,8 +576,8 @@ describe('Validation V2 Schema & Evaluator Suite', () => {
       originalInput: 'واژه یک',
       normalizedInput: 'واژه یک',
       normalizationChanges: [],
-      profile: 'ijmes_title',
-      output: 'Vazheh Yak', // wrong rendered output
+      profile: 'ijmes_citation_title',
+      output: 'Vāzhah Yik', // wrong rendered output
       copyable: true,
       status: 'DETERMINISTIC',
       tokens: [

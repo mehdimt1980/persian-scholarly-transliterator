@@ -90,7 +90,7 @@ function validateCanonicalString(val: string, ctx: z.RefinementCtx, path: (strin
 export const ScholarlyValidationCaseSchema = z.object({
   id: z.string().min(1, 'Case ID must not be empty'),
   input: z.string().min(1, 'Input must not be empty'),
-  profile: z.enum(['ijmes_full', 'ijmes_title']),
+  profile: z.enum(['ijmes_full', 'ijmes_citation_title', 'ijmes_title']),
   category: ScholarlyCategorySchema,
   expected: z.object({
     disposition: ValidationExpectedDispositionSchema,

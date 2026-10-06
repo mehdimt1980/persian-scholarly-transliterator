@@ -11,7 +11,7 @@ import {
 import type { PhraseResolverRequest } from './phraseTypes';
 
 function unresolvedPhrase() {
-  return transliterate('واژه دیگر', 'ijmes_title');
+  return transliterate('واژه دیگر', 'ijmes_citation_title');
 }
 
 function syntheticReadings(request: PhraseResolverRequest) {
@@ -114,7 +114,7 @@ describe('context-aware phrase assistance', () => {
   });
 
   it('binds token readings to authoritative token indexes rather than surface alone', () => {
-    const request = buildPhraseResolverRequest(transliterate('واژه واژه', 'ijmes_title'));
+    const request = buildPhraseResolverRequest(transliterate('واژه واژه', 'ijmes_citation_title'));
     const readings = syntheticReadings(request);
 
     expect(readings).toHaveLength(2);
@@ -227,7 +227,7 @@ describe('context-aware phrase assistance', () => {
     expect(validation.errors.join(' ')).toContain('conflicts with deterministic canonical evidence');
   });
 
-  it('selects the scholarly canonical after human acceptance while preserving profile rendering separately', () => {
+  it('selects the profile rendering as primary after human acceptance while preserving canonical separately', () => {
     const result = unresolvedPhrase();
     const request = buildPhraseResolverRequest(result);
     const validation = validatePhraseProviderResolution(
@@ -264,12 +264,12 @@ describe('context-aware phrase assistance', () => {
 
     const selected = resolveSelectedTransliteration(result, decision);
     expect(selected.activePhraseDecision).toEqual(decision);
-    expect(selected.primary).toBe('alpha beta');
+    expect(selected.primary).toBe('Alpha Beta');
     expect(selected.profileRendering).toBe('Alpha Beta');
     expect(selected.copyable).toBe(true);
     expect(selected.status).toBe('USER_OVERRIDE');
 
-    const changed = transliterate('واژه سوم', 'ijmes_title');
+    const changed = transliterate('واژه سوم', 'ijmes_citation_title');
     const applicability = checkAcceptedPhraseApplicability(decision, changed);
     expect(applicability.applicable).toBe(false);
     expect(applicability.reason).toBe('REQUEST_CHANGED');

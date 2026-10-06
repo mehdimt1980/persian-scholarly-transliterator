@@ -1,5 +1,5 @@
-import frozenBenchmarkJson from '../../validation/corpus/phase4.6b-external-benchmark.v2.json';
-import goldFreezeJson from '../../validation/review/gold-freeze.v2.json';
+import frozenBenchmarkJson from '../../validation/corpus/phase4.6b-external-benchmark.v3.json';
+import goldFreezeJson from '../../validation/review/gold-freeze.v3.json';
 import { normalizePersian } from './normalization';
 import { RULES } from './provenance';
 import { validateManualTransliteration } from './review/validation';
@@ -12,8 +12,8 @@ import type {
   TransliterationResult
 } from './types';
 
-const FROZEN_GOLD_VERSION = '2.0.0';
-const FROZEN_BENCHMARK_GIT_BLOB = 'be46b312e2cb82cc4ec0f95ed1c019f8f5e27162';
+const FROZEN_GOLD_VERSION = '3.0.0';
+const FROZEN_BENCHMARK_GIT_BLOB = '769f281ef297d70da09b01de3ed15e201e8dab06';
 
 interface FrozenSource {
   citation: string;
@@ -79,7 +79,7 @@ const benchmark = frozenBenchmarkJson as unknown as FrozenBenchmarkDocument;
 const freeze = goldFreezeJson as unknown as GoldFreezeDocument;
 
 function assertPromotionIntegrity(): void {
-  if (benchmark.schemaVersion !== 2 || benchmark.metadata.id !== 'phase4.6b-external-benchmark-v2') {
+  if (benchmark.schemaVersion !== 2 || benchmark.metadata.id !== 'phase4.6b-external-benchmark-v3') {
     throw new Error('FROZEN_AUTHORITY_BENCHMARK_IDENTITY_INVALID');
   }
   if (

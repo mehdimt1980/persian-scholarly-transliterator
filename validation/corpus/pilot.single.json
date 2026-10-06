@@ -189,11 +189,11 @@
     {
       "id": "case-place-02",
       "input": "ایران",
-      "profile": "ijmes_title",
+      "profile": "ijmes_citation_title",
       "category": "PLACE",
       "expected": {
         "disposition": "FINAL",
-        "canonical": "Iran"
+        "canonical": "Īrān"
       },
       "provenance": {
         "sources": [
@@ -274,7 +274,7 @@
     {
       "id": "case-inst-01",
       "input": "مجلس",
-      "profile": "ijmes_title",
+      "profile": "ijmes_citation_title",
       "category": "INSTITUTION",
       "expected": {
         "disposition": "FINAL",
@@ -578,11 +578,11 @@
     {
       "id": "case-compound-02",
       "input": "الهلال",
-      "profile": "ijmes_title",
+      "profile": "ijmes_citation_title",
       "category": "COMPOUND",
       "expected": {
         "disposition": "FINAL",
-        "canonical": "al-Hilal"
+        "canonical": "Al-hilāl"
       },
       "provenance": {
         "sources": [

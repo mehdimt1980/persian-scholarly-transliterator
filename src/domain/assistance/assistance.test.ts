@@ -221,7 +221,7 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
   });
 
   describe('Strict Authority Boundary & Request Fingerprint Verification (Sections 1, 2, 3, 11)', () => {
-    it('11A. invalidates resolution when profile changes (ijmes_full to ijmes_title)', () => {
+    it('11A. invalidates resolution when profile changes (ijmes_full to ijmes_citation_title)', () => {
       const input = 'کرم';
       const initialFull = transliterate(input, 'ijmes_full');
       const issue = initialFull.reviewIssues[0];
@@ -249,8 +249,8 @@ describe('Phase 3 Human-Gated Assisted Candidate Resolver', () => {
         warnings: []
       };
 
-      // Switch to ijmes_title -> produces different request fingerprint
-      const initialTitle = transliterate(input, 'ijmes_title');
+      // Switch to ijmes_citation_title -> produces different request fingerprint
+      const initialTitle = transliterate(input, 'ijmes_citation_title');
       const requestTitle = buildResolverRequest(initialTitle, issue.id)!;
 
       const applicability = validateAssistedApplicability(

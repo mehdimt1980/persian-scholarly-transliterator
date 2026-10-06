@@ -7,7 +7,7 @@ import type {
 export const CURRENT_PHRASE_RESOLVER_PROMPT_VERSION = 'phrase-resolver-v1';
 
 export function phraseContextKindForProfile(profile: ProfileId): PhraseContextKind {
-  return profile === 'ijmes_title' ? 'BOOK_OR_ARTICLE_TITLE' : 'GENERAL_SCHOLARLY_TEXT';
+  return profile === 'ijmes_citation_title' ? 'BOOK_OR_ARTICLE_TITLE' : 'GENERAL_SCHOLARLY_TEXT';
 }
 
 export function buildPhraseResolverRequest(

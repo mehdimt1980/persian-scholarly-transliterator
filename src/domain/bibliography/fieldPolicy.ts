@@ -10,7 +10,7 @@ export function getFieldPolicy(fieldPath: BibliographyFieldPath): FieldTranslite
   if (fieldPath === 'title' || fieldPath === 'containerTitle') {
     return {
       isTransformable: true,
-      profile: 'ijmes_title'
+      profile: 'ijmes_citation_title'
     };
   }
 
