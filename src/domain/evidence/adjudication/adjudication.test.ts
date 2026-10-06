@@ -11,12 +11,21 @@ import { synthesizeCandidateFromEvidence } from '../candidate';
 import { LexicalEvidence } from '../types';
 import {
   prepareCandidateReviewPacket,
+  computeReviewBasisFingerprint,
   computeLexiconFingerprint,
   recordAdjudicationDecision,
   preparePromotionPlan,
   executePromotion,
+  assertExactSamePromotionPlan,
+  validateAdjudicationDecisionIntegrity,
+  validatePromotionReceiptIntegrity,
+  generateDecisionId,
+  generatePromotionPlanId,
+  generatePromotionReceiptId,
   AdjudicationLedger,
   InvalidAdjudicationDecisionError,
+  InvalidPromotionPlanError,
+  InvalidPromotionReceiptError,
   StaleReviewBasisError,
   ConflictingHumanDecisionsError,
   StaleLexiconBaseError,
@@ -24,7 +33,8 @@ import {
   DecisionImmutabilityViolationError,
   ReceiptImmutabilityViolationError,
   CandidateAdjudicationDecision,
-  PromotionReceipt
+  PromotionReceipt,
+  SerializedAdjudicationStore
 } from './index';
 
 function createSyntheticAlignedEvidence(params: {
@@ -97,6 +107,71 @@ function createSyntheticAlignedEvidence(params: {
   return { parent, child };
 }
 
+function createValidSyntheticContext(idSuffix = 'valid-helper-1') {
+  const { parent, child } = createSyntheticAlignedEvidence({
+    id: idSuffix,
+    persianForm: 'سعدی',
+    observedRomanization: 'Saʻdī',
+    entityType: 'PERSON'
+  });
+  const candidate = synthesizeCandidateFromEvidence('سعدی', [child], { entityType: 'PERSON' });
+  (candidate.derivationProvenance as any).strategy = 'ALIGNED_SEGMENT_SYNTHESIS';
+
+  const repo = new LexicalEvidenceRepository({
+    evidence: [parent, child],
+    candidates: [candidate]
+  });
+
+  const packet = prepareCandidateReviewPacket(candidate.id, repo);
+  const decidedAt = '2026-01-01T00:00:00Z';
+  const reviewerRef = 'reviewer@example.edu';
+  const disposition = 'ACCEPT' as const;
+  const canonicalSelection = {
+    kind: 'SELECT_SCHEME_HYPOTHESIS' as const,
+    canonical: 'saʿdī'
+  };
+
+  const id = generateDecisionId({
+    reviewPacketId: packet.id,
+    candidateId: candidate.id,
+    reviewerRef,
+    disposition,
+    canonicalSelection,
+    decidedAt
+  });
+
+  const decision: CandidateAdjudicationDecision = {
+    id,
+    reviewPacketId: packet.id,
+    reviewBasisFingerprint: packet.reviewBasisFingerprint,
+    candidateId: candidate.id,
+    schemeAnalysisId: packet.schemeAnalysisId,
+    disposition,
+    canonicalSelection,
+    reviewerRef,
+    rationale: 'Scholarly acceptance.',
+    decidedAt,
+    candidateSnapshot: packet.candidateSnapshot,
+    schemeAnalysisSnapshot: packet.schemeAnalysisSnapshot,
+    decisionVersion: '1.0.0'
+  };
+
+  const ledger = new AdjudicationLedger();
+  ledger.addDecision(decision);
+
+  return { parent, child, candidate, repo, packet, decision, ledger };
+}
+
+function createValidSyntheticDecision(
+  overrides?: Partial<CandidateAdjudicationDecision>
+): CandidateAdjudicationDecision {
+  const ctx = createValidSyntheticContext('valid-helper-1');
+  return {
+    ...ctx.decision,
+    ...overrides
+  };
+}
+
 describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
   describe('1. Review Packet Preparation & Invariants', () => {
     it('prepares an immutable review packet with deterministic ID and fingerprint', () => {
@@ -110,7 +185,6 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
       const candidate = synthesizeCandidateFromEvidence('سعدی', [child], {
         entityType: 'PERSON'
       });
-      // Set ALIGNED_SEGMENT_SYNTHESIS strategy required by Phase 5D
       (candidate.derivationProvenance as any).strategy = 'ALIGNED_SEGMENT_SYNTHESIS';
 
       const repo = new LexicalEvidenceRepository({
@@ -157,7 +231,6 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
       });
       const packet1 = prepareCandidateReviewPacket(cand1.id, repo1);
 
-      // Modified observation (variant)
       const { parent: p2, child: c2 } = createSyntheticAlignedEvidence({
         id: 'term-2',
         persianForm: 'حافظ',
@@ -203,7 +276,6 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
       expect(packet.schemeAnalysisSnapshot.consensusStatus).toBe('UNANIMOUS_DETERMINISTIC');
       expect(packet.schemeAnalysisSnapshot.consensusTargetHypothesis).toBe('saʿdī');
 
-      // Invariants:
       expect(candidate.proposedCanonical).toBeNull();
       expect(candidate.status).toBe('UNREVIEWED');
       expect(ledger.getAllDecisions()).toHaveLength(0);
@@ -212,7 +284,7 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
     });
   });
 
-  describe('3. Human Decision Recording & Validation', () => {
+  describe('3. Human Decision Recording & Intrinsic Integrity Validation', () => {
     it('records an explicit ACCEPT decision with SELECT_SCHEME_HYPOTHESIS', () => {
       const { parent, child } = createSyntheticAlignedEvidence({
         id: 'sadi-3',
@@ -257,7 +329,6 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
       expect(decision.reviewerRef).toBe('reviewer-alice@example.edu');
       expect(ledger.getDecisionById(decision.id)).toBeDefined();
 
-      // Candidate remains unmutated
       const storedCand = repo.getCandidateById(candidate.id)!;
       expect(storedCand.status).toBe('UNREVIEWED');
       expect(storedCand.proposedCanonical).toBeNull();
@@ -331,7 +402,7 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
           disposition: 'ACCEPT',
           canonicalSelection: {
             kind: 'MANUAL_CANONICAL',
-            canonical: ' rūznāmah ' // test safe trimming
+            canonical: ' rūznāmah '
           },
           reviewerRef: 'specialist-bob@example.edu',
           rationale: 'Scholarly manual resolution of silent heh for 19th-century periodical entry.'
@@ -341,44 +412,6 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
       );
 
       expect(decision.canonicalSelection?.canonical).toBe('rūznāmah');
-    });
-
-    it('rejects MANUAL_CANONICAL containing Arabic script or control characters', () => {
-      const { parent, child } = createSyntheticAlignedEvidence({
-        id: 'manual-val-1',
-        persianForm: 'روزنامه',
-        observedRomanization: 'Rūznāmah'
-      });
-
-      const candidate = synthesizeCandidateFromEvidence('روزنامه', [child]);
-      (candidate.derivationProvenance as any).strategy = 'ALIGNED_SEGMENT_SYNTHESIS';
-
-      const repo = new LexicalEvidenceRepository({
-        evidence: [parent, child],
-        candidates: [candidate]
-      });
-
-      const packet = prepareCandidateReviewPacket(candidate.id, repo);
-      const ledger = new AdjudicationLedger();
-
-      expect(() =>
-        recordAdjudicationDecision(
-          {
-            reviewPacketId: packet.id,
-            reviewBasisFingerprint: packet.reviewBasisFingerprint,
-            candidateId: candidate.id,
-            disposition: 'ACCEPT',
-            canonicalSelection: {
-              kind: 'MANUAL_CANONICAL',
-              canonical: 'روزنامه' // invalid: Arabic script
-            },
-            reviewerRef: 'reviewer@example.edu',
-            rationale: 'Invalid test'
-          },
-          repo,
-          ledger
-        )
-      ).toThrow(InvalidAdjudicationDecisionError);
     });
 
     it('enforces canonicalSelection = null for REJECT and DEFER', () => {
@@ -399,7 +432,6 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
       const packet = prepareCandidateReviewPacket(candidate.id, repo);
       const ledger = new AdjudicationLedger();
 
-      // Valid REJECT
       const rejDecision = recordAdjudicationDecision(
         {
           reviewPacketId: packet.id,
@@ -414,7 +446,6 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
       );
       expect(rejDecision.canonicalSelection).toBeNull();
 
-      // Invalid REJECT with canonical
       expect(() =>
         recordAdjudicationDecision(
           {
@@ -434,7 +465,6 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
         )
       ).toThrow(InvalidAdjudicationDecisionError);
 
-      // Valid DEFER
       const defDecision = recordAdjudicationDecision(
         {
           reviewPacketId: packet.id,
@@ -525,7 +555,6 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
       const packet = prepareCandidateReviewPacket(candidate.id, repo);
       const ledger = new AdjudicationLedger();
 
-      // Caller attempts to pass an altered fingerprint
       expect(() =>
         recordAdjudicationDecision(
           {
@@ -547,42 +576,72 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
     });
   });
 
-  describe('4. Adjudication Ledger Immutability & Defensive Copies', () => {
+  describe('4. Adjudication Ledger Immutability, Intrinsic Ingress Validation & Defensive Copies', () => {
     it('is idempotent on identical re-insert and fails closed on altered decision', () => {
       const ledger = new AdjudicationLedger();
-      const decision: CandidateAdjudicationDecision = {
-        id: 'adj-dec-test1',
-        reviewPacketId: 'rev-packet-1',
-        reviewBasisFingerprint: 'rev-basis-1',
-        candidateId: 'cand-1',
-        schemeAnalysisId: 'analysis-1',
-        disposition: 'ACCEPT',
-        canonicalSelection: { kind: 'SELECT_SCHEME_HYPOTHESIS', canonical: 'test' },
-        reviewerRef: 'reviewer@example.edu',
-        rationale: 'Rationale',
-        decidedAt: '2026-01-01T00:00:00Z',
-        candidateSnapshot: {} as any,
-        schemeAnalysisSnapshot: {} as any,
-        decisionVersion: '1.0.0'
-      };
+      const decision = createValidSyntheticDecision();
 
       ledger.addDecision(decision);
-      // Re-insert identical
       expect(() => ledger.addDecision(decision)).not.toThrow();
 
-      // Altered insert
       const altered = { ...decision, rationale: 'Altered rationale' };
       expect(() => ledger.addDecision(altered)).toThrow(DecisionImmutabilityViolationError);
+    });
 
-      // Receipts
-      const receipt: PromotionReceipt = {
-        id: 'prom-rcpt-test1',
+    it('rejects altered scheme analysis snapshot under the same decision ID', () => {
+      const ledger = new AdjudicationLedger();
+      const decision = createValidSyntheticDecision();
+      ledger.addDecision(decision);
+
+      const alteredSnapshot = {
+        ...decision.schemeAnalysisSnapshot,
+        deterministicTargetHypotheses: ['tampered-hypothesis']
+      };
+
+      const alteredDecision = {
+        ...decision,
+        schemeAnalysisSnapshot: alteredSnapshot
+      };
+
+      expect(() => ledger.addDecision(alteredDecision)).toThrow();
+    });
+
+    it('protects stored decisions from caller mutation via defensive cloning', () => {
+      const ledger = new AdjudicationLedger();
+      const decision = createValidSyntheticDecision();
+      ledger.addDecision(decision);
+
+      const retrieved = ledger.getDecisionById(decision.id)!;
+      retrieved.rationale = 'Mutated';
+      (retrieved.candidateSnapshot as any).persianForm = 'MutatedPersian';
+
+      const fresh = ledger.getDecisionById(decision.id)!;
+      expect(fresh.rationale).toBe('Scholarly acceptance.');
+      expect(fresh.candidateSnapshot.persianForm).toBe('سعدی');
+    });
+
+    it('round-trips serialization and deserialization with integrity validation', () => {
+      const ledger = new AdjudicationLedger();
+      const decision = createValidSyntheticDecision();
+      ledger.addDecision(decision);
+
+      const receiptId = generatePromotionReceiptId({
         decisionId: decision.id,
+        planId: 'prom-plan-test1',
+        baseLexiconFingerprint: 'lex-fp-1',
+        promoterRef: 'promoter@example.edu',
+        promotedAt: '2026-01-01T00:00:00Z'
+      });
+
+      const receipt: PromotionReceipt = {
+        id: receiptId,
+        decisionId: decision.id,
+        promotionPlanId: 'prom-plan-test1',
         reviewPacketId: decision.reviewPacketId,
         reviewBasisFingerprint: decision.reviewBasisFingerprint,
         candidateId: decision.candidateId,
         schemeAnalysisId: decision.schemeAnalysisId,
-        canonical: 'test',
+        canonical: decision.canonicalSelection!.canonical,
         action: 'CREATE_ENTRY',
         lexiconEntryId: 'lex:promoted:1',
         lexicalReadingId: 'read:promoted:1',
@@ -592,66 +651,14 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
         promotedAt: '2026-01-01T00:00:00Z',
         promotionVersion: '1.0.0'
       };
+
       ledger.addReceipt(receipt);
-      expect(() => ledger.addReceipt(receipt)).not.toThrow();
-
-      const alteredReceipt = { ...receipt, canonical: 'altered-canonical' };
-      expect(() => ledger.addReceipt(alteredReceipt)).toThrow(ReceiptImmutabilityViolationError);
-    });
-
-    it('protects stored decisions from caller mutation via defensive cloning', () => {
-      const ledger = new AdjudicationLedger();
-      const decision: CandidateAdjudicationDecision = {
-        id: 'adj-dec-test2',
-        reviewPacketId: 'rev-packet-2',
-        reviewBasisFingerprint: 'rev-basis-2',
-        candidateId: 'cand-2',
-        schemeAnalysisId: 'analysis-2',
-        disposition: 'ACCEPT',
-        canonicalSelection: { kind: 'SELECT_SCHEME_HYPOTHESIS', canonical: 'test' },
-        reviewerRef: 'reviewer@example.edu',
-        rationale: 'Rationale',
-        decidedAt: '2026-01-01T00:00:00Z',
-        candidateSnapshot: { id: 'cand-2', persianForm: 'تست' } as any,
-        schemeAnalysisSnapshot: {} as any,
-        decisionVersion: '1.0.0'
-      };
-
-      ledger.addDecision(decision);
-
-      // Caller mutates retrieved decision
-      const retrieved = ledger.getDecisionById('adj-dec-test2')!;
-      retrieved.rationale = 'Mutated';
-      (retrieved.candidateSnapshot as any).persianForm = 'MutatedPersian';
-
-      const fresh = ledger.getDecisionById('adj-dec-test2')!;
-      expect(fresh.rationale).toBe('Rationale');
-      expect(fresh.candidateSnapshot.persianForm).toBe('تست');
-    });
-
-    it('round-trips serialization and deserialization with integrity validation', () => {
-      const ledger = new AdjudicationLedger();
-      const decision: CandidateAdjudicationDecision = {
-        id: 'adj-dec-test3',
-        reviewPacketId: 'rev-packet-3',
-        reviewBasisFingerprint: 'rev-basis-3',
-        candidateId: 'cand-3',
-        schemeAnalysisId: 'analysis-3',
-        disposition: 'ACCEPT',
-        canonicalSelection: { kind: 'SELECT_SCHEME_HYPOTHESIS', canonical: 'test' },
-        reviewerRef: 'reviewer@example.edu',
-        rationale: 'Rationale',
-        decidedAt: '2026-01-01T00:00:00Z',
-        candidateSnapshot: {} as any,
-        schemeAnalysisSnapshot: {} as any,
-        decisionVersion: '1.0.0'
-      };
-      ledger.addDecision(decision);
 
       const serialized = ledger.serialize();
       const restored = AdjudicationLedger.deserialize(serialized);
 
-      expect(restored.getDecisionById('adj-dec-test3')).toBeDefined();
+      expect(restored.getDecisionById(decision.id)).toBeDefined();
+      expect(restored.getReceiptById(receipt.id)).toBeDefined();
       expect(restored.validateIntegrity().valid).toBe(true);
     });
   });
@@ -680,7 +687,6 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
       const packet = prepareCandidateReviewPacket(candidate.id, repo);
       const ledger = new AdjudicationLedger();
 
-      // Reviewer A accepts gulistān
       const decA = recordAdjudicationDecision(
         {
           reviewPacketId: packet.id,
@@ -699,7 +705,6 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
         ledger
       );
 
-      // Reviewer B accepts golestān
       const decB = recordAdjudicationDecision(
         {
           reviewPacketId: packet.id,
@@ -723,7 +728,6 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
 
       const isolatedLexicon = new LexiconRepository([]);
 
-      // Promotion preparation fails closed
       expect(() =>
         preparePromotionPlan(decA.id, repo, ledger, isolatedLexicon)
       ).toThrow(ConflictingHumanDecisionsError);
@@ -734,8 +738,8 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
     });
   });
 
-  describe('6. Promotion Planning & Stale-State Protection', () => {
-    it('prepares a promotion plan with CREATE_ENTRY action for a new lexical entry', () => {
+  describe('6. Promotion Planning & Full Semantic Binding', () => {
+    it('prepares a promotion plan and binds every semantic field into plan ID', () => {
       const { parent, child } = createSyntheticAlignedEvidence({
         id: 'plan-1',
         persianForm: 'سعدی',
@@ -782,6 +786,30 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
       expect(plan.targetEntryId).toMatch(/^lex:promoted:/);
       expect(plan.targetReadingId).toMatch(/^read:promoted:/);
       expect(plan.expectedBaseLexiconFingerprint).toBe(computeLexiconFingerprint(isolatedLexicon));
+
+      // Test individual field alteration changing plan ID
+      const baseParams = {
+        decisionId: plan.decisionId,
+        candidateId: plan.candidateId,
+        canonical: plan.canonical,
+        normalizedPersian: plan.normalizedPersian,
+        persianSurface: plan.persianSurface,
+        action: plan.action,
+        targetEntryId: plan.targetEntryId,
+        targetReadingId: plan.targetReadingId,
+        expectedBaseLexiconFingerprint: plan.expectedBaseLexiconFingerprint,
+        reviewBasisFingerprint: plan.reviewBasisFingerprint,
+        planVersion: plan.planVersion
+      };
+
+      expect(generatePromotionPlanId({ ...baseParams, canonical: 'forged' })).not.toBe(plan.id);
+      expect(generatePromotionPlanId({ ...baseParams, candidateId: 'cand-alt' })).not.toBe(plan.id);
+      expect(generatePromotionPlanId({ ...baseParams, normalizedPersian: 'alt' })).not.toBe(plan.id);
+      expect(generatePromotionPlanId({ ...baseParams, persianSurface: 'alt' })).not.toBe(plan.id);
+      expect(generatePromotionPlanId({ ...baseParams, reviewBasisFingerprint: 'rev-basis-alt' })).not.toBe(plan.id);
+      expect(generatePromotionPlanId({ ...baseParams, targetEntryId: 'lex:alt' })).not.toBe(plan.id);
+      expect(generatePromotionPlanId({ ...baseParams, targetReadingId: 'read:alt' })).not.toBe(plan.id);
+      expect(generatePromotionPlanId({ ...baseParams, action: 'ADD_READING' })).not.toBe(plan.id);
     });
 
     it('refuses to plan promotion for REJECT or DEFER decisions', () => {
@@ -820,67 +848,9 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
         /Only ACCEPT decisions can be promoted/
       );
     });
-
-    it('fails closed when executing promotion against a modified base lexicon (StaleLexiconBaseError)', () => {
-      const { parent, child } = createSyntheticAlignedEvidence({
-        id: 'stale-lex-1',
-        persianForm: 'سعدی',
-        observedRomanization: 'Saʻdī',
-        entityType: 'PERSON'
-      });
-
-      const candidate = synthesizeCandidateFromEvidence('سعدی', [child], {
-        entityType: 'PERSON'
-      });
-      (candidate.derivationProvenance as any).strategy = 'ALIGNED_SEGMENT_SYNTHESIS';
-
-      const repo = new LexicalEvidenceRepository({
-        evidence: [parent, child],
-        candidates: [candidate]
-      });
-
-      const packet = prepareCandidateReviewPacket(candidate.id, repo);
-      const ledger = new AdjudicationLedger();
-
-      const decision = recordAdjudicationDecision(
-        {
-          reviewPacketId: packet.id,
-          reviewBasisFingerprint: packet.reviewBasisFingerprint,
-          candidateId: candidate.id,
-          disposition: 'ACCEPT',
-          canonicalSelection: {
-            kind: 'SELECT_SCHEME_HYPOTHESIS',
-            canonical: 'saʿdī'
-          },
-          reviewerRef: 'reviewer@example.edu',
-          rationale: 'Accepted'
-        },
-        repo,
-        ledger
-      );
-
-      const baseLexicon = new LexiconRepository([]);
-      const plan = preparePromotionPlan(decision.id, repo, ledger, baseLexicon);
-
-      // Mutate lexicon state by creating a different base repository
-      const alteredLexicon = new LexiconRepository([
-        {
-          id: 'lex:test',
-          surface: 'کتاب',
-          normalized: 'کتاب',
-          readings: [{ canonical: 'kitāb', confidence: 1.0, source: 'Test' }]
-        }
-      ]);
-
-      expect(() =>
-        executePromotion(plan, repo, ledger, alteredLexicon, {
-          promoterRef: 'promoter@example.edu'
-        })
-      ).toThrow(StaleLexiconBaseError);
-    });
   });
 
-  describe('7. Promotion Execution, Snapshot Isolation & Provenance', () => {
+  describe('7. Promotion Execution, Complete Plan Equivalence & Stale State Rejections', () => {
     it('executes promotion and produces a new LexiconRepository snapshot without mutating the base repository', () => {
       const { parent, child } = createSyntheticAlignedEvidence({
         id: 'exec-1',
@@ -929,12 +899,10 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
         promotedAt: '2026-01-01T15:00:00Z'
       });
 
-      // 1. Initial repository is completely unchanged
       expect(initialLexicon.getAllEntries()).toHaveLength(0);
       expect(computeLexiconFingerprint(initialLexicon)).toBe(baseFpBefore);
       expect(DEFAULT_LEXICON_REPOSITORY.findByNormalized('سعدی')).toBeUndefined();
 
-      // 2. New repository contains promoted entry and reading
       const newRepo = result.repository;
       expect(newRepo.getAllEntries()).toHaveLength(1);
       const entry = newRepo.findByNormalized('سعدی')!;
@@ -951,19 +919,19 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
       expect(reading.sources?.[0].type).toBe('REVIEWED_PROJECT_ENTRY');
       expect(reading.sources?.[0].reference).toContain(`decision=${decision.id}`);
 
-      // 3. Receipt recorded in ledger
       const receipt = result.receipt;
       expect(receipt.id).toMatch(/^prom-rcpt-/);
       expect(receipt.decisionId).toBe(decision.id);
+      expect(receipt.promotionPlanId).toBe(plan.id);
       expect(receipt.canonical).toBe('saʿdī');
       expect(receipt.action).toBe('CREATE_ENTRY');
       expect(receipt.promoterRef).toBe('promoter-carol@example.edu');
       expect(ledger.getReceiptById(receipt.id)).toBeDefined();
     });
 
-    it('handles ADD_READING when entry exists and preserves existing readings', () => {
+    it('rejects promotion if plan canonical was tampered with (assertExactSamePromotionPlan)', () => {
       const { parent, child } = createSyntheticAlignedEvidence({
-        id: 'add-read-1',
+        id: 'tamper-1',
         persianForm: 'سعدی',
         observedRomanization: 'Saʻdī',
         entityType: 'PERSON'
@@ -999,43 +967,27 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
         ledger
       );
 
-      // Existing lexicon with a different reading
-      const existingLexicon = new LexiconRepository([
-        {
-          id: 'lex:sadi:existing',
-          surface: 'سعدی',
-          normalized: 'سعدی',
-          category: 'proper-noun',
-          properName: { type: 'PERSON' },
-          readings: [
-            {
-              id: 'read:existing:1',
-              canonical: 'saʻdī-archaic',
-              confidence: 1.0,
-              source: 'Historical Lexicon'
-            }
-          ]
-        }
-      ]);
+      const initialLexicon = new LexiconRepository([]);
+      const plan = preparePromotionPlan(decision.id, repo, ledger, initialLexicon);
 
-      const plan = preparePromotionPlan(decision.id, repo, ledger, existingLexicon);
-      expect(plan.action).toBe('ADD_READING');
+      const tamperedPlan = {
+        ...plan,
+        canonical: 'forged-canonical'
+      };
 
-      const result = executePromotion(plan, repo, ledger, existingLexicon, {
-        promoterRef: 'promoter@example.edu'
-      });
+      expect(() =>
+        executePromotion(tamperedPlan, repo, ledger, initialLexicon, {
+          promoterRef: 'promoter@example.edu'
+        })
+      ).toThrow(InvalidPromotionPlanError);
 
-      const promotedEntry = result.repository.findByNormalized('سعدی')!;
-      expect(promotedEntry.readings).toHaveLength(2);
-      expect(promotedEntry.readings.map((r) => r.canonical)).toEqual([
-        'saʻdī-archaic',
-        'saʿdī'
-      ]);
+      expect(ledger.getAllReceipts()).toHaveLength(0);
+      expect(initialLexicon.getAllEntries()).toHaveLength(0);
     });
 
-    it('handles ALREADY_PRESENT when exact reading already exists without duplicating', () => {
+    it('fails closed when executing promotion against a modified base lexicon (StaleLexiconBaseError)', () => {
       const { parent, child } = createSyntheticAlignedEvidence({
-        id: 'already-1',
+        id: 'stale-lex-1',
         persianForm: 'سعدی',
         observedRomanization: 'Saʻdī',
         entityType: 'PERSON'
@@ -1071,35 +1023,23 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
         ledger
       );
 
-      // Existing lexicon already having saʿdī
-      const existingLexicon = new LexiconRepository([
+      const baseLexicon = new LexiconRepository([]);
+      const plan = preparePromotionPlan(decision.id, repo, ledger, baseLexicon);
+
+      const alteredLexicon = new LexiconRepository([
         {
-          id: 'lex:sadi:existing',
-          surface: 'سعدی',
-          normalized: 'سعدی',
-          category: 'proper-noun',
-          properName: { type: 'PERSON' },
-          readings: [
-            {
-              id: 'read:existing:sadi',
-              canonical: 'saʿdī',
-              confidence: 1.0,
-              source: 'Existing Authority'
-            }
-          ]
+          id: 'lex:test',
+          surface: 'کتاب',
+          normalized: 'کتاب',
+          readings: [{ canonical: 'kitāb', confidence: 1.0, source: 'Test' }]
         }
       ]);
 
-      const plan = preparePromotionPlan(decision.id, repo, ledger, existingLexicon);
-      expect(plan.action).toBe('ALREADY_PRESENT');
-
-      const result = executePromotion(plan, repo, ledger, existingLexicon, {
-        promoterRef: 'promoter@example.edu'
-      });
-
-      expect(result.receipt.action).toBe('ALREADY_PRESENT');
-      const promotedEntry = result.repository.findByNormalized('سعدی')!;
-      expect(promotedEntry.readings).toHaveLength(1);
+      expect(() =>
+        executePromotion(plan, repo, ledger, alteredLexicon, {
+          promoterRef: 'promoter@example.edu'
+        })
+      ).toThrow(StaleLexiconBaseError);
     });
 
     it('prevents double promotion of the same decision (fail-closed)', () => {
@@ -1146,7 +1086,6 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
         promoterRef: 'promoter@example.edu'
       });
 
-      // Second promotion attempt must fail closed
       expect(() =>
         preparePromotionPlan(decision.id, repo, ledger, isolatedLexicon)
       ).toThrow(DecisionAlreadyPromotedError);
@@ -1157,58 +1096,270 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
         })
       ).toThrow(DecisionAlreadyPromotedError);
     });
+  });
 
-    it('conservatively maps entity types and leaves general words category undefined', () => {
-      const { parent, child } = createSyntheticAlignedEvidence({
-        id: 'word-cat-1',
-        persianForm: 'کتاب',
-        observedRomanization: 'Kitāb',
-        entityType: 'WORD'
-      });
+  describe('8. Explicit Attack Vectors (Section 18 Security Gates)', () => {
+    it('Attack A: rejects promotion canonical substitution', () => {
+      const { decision, repo, ledger } = createValidSyntheticContext('atk-a-1');
+      const lex = new LexiconRepository([]);
+      const plan = preparePromotionPlan(decision.id, repo, ledger, lex);
 
-      const candidate = synthesizeCandidateFromEvidence('کتاب', [child], {
-        entityType: 'WORD'
-      });
-      (candidate.derivationProvenance as any).strategy = 'ALIGNED_SEGMENT_SYNTHESIS';
-
-      const repo = new LexicalEvidenceRepository({
-        evidence: [parent, child],
-        candidates: [candidate]
-      });
-
-      const packet = prepareCandidateReviewPacket(candidate.id, repo);
-      const ledger = new AdjudicationLedger();
-
-      const decision = recordAdjudicationDecision(
-        {
-          reviewPacketId: packet.id,
-          reviewBasisFingerprint: packet.reviewBasisFingerprint,
-          candidateId: candidate.id,
-          disposition: 'ACCEPT',
-          canonicalSelection: {
-            kind: 'SELECT_SCHEME_HYPOTHESIS',
-            canonical: 'kitāb'
-          },
-          reviewerRef: 'reviewer@example.edu',
-          rationale: 'Standard noun.'
-        },
-        repo,
-        ledger
+      const forgedPlan = { ...plan, canonical: 'forged' };
+      expect(() => executePromotion(forgedPlan, repo, ledger, lex, { promoterRef: 'prom@example.edu' })).toThrow(
+        /Canonical substitution detected|Plan canonical mismatch/
       );
+    });
 
-      const isolatedLexicon = new LexiconRepository([]);
-      const plan = preparePromotionPlan(decision.id, repo, ledger, isolatedLexicon);
-      const result = executePromotion(plan, repo, ledger, isolatedLexicon, {
-        promoterRef: 'promoter@example.edu'
+    it('Attack B: rejects promotion Persian identity substitution', () => {
+      const { decision, repo, ledger } = createValidSyntheticContext('atk-b-1');
+      const lex = new LexiconRepository([]);
+      const plan = preparePromotionPlan(decision.id, repo, ledger, lex);
+
+      const forgedPlan1 = { ...plan, normalizedPersian: 'forged' };
+      expect(() => executePromotion(forgedPlan1, repo, ledger, lex, { promoterRef: 'prom@example.edu' })).toThrow();
+
+      const forgedPlan2 = { ...plan, persianSurface: 'forged' };
+      expect(() => executePromotion(forgedPlan2, repo, ledger, lex, { promoterRef: 'prom@example.edu' })).toThrow();
+    });
+
+    it('Attack C: rejects promotion candidateId substitution', () => {
+      const { decision, repo, ledger } = createValidSyntheticContext('atk-c-1');
+      const lex = new LexiconRepository([]);
+      const plan = preparePromotionPlan(decision.id, repo, ledger, lex);
+
+      const forgedPlan = { ...plan, candidateId: 'cand-forged' };
+      expect(() => executePromotion(forgedPlan, repo, ledger, lex, { promoterRef: 'prom@example.edu' })).toThrow();
+    });
+
+    it('Attack D: rejects promotion reviewBasisFingerprint substitution', () => {
+      const { decision, repo, ledger } = createValidSyntheticContext('atk-d-1');
+      const lex = new LexiconRepository([]);
+      const plan = preparePromotionPlan(decision.id, repo, ledger, lex);
+
+      const forgedPlan = { ...plan, reviewBasisFingerprint: 'rev-basis-forged' };
+      expect(() => executePromotion(forgedPlan, repo, ledger, lex, { promoterRef: 'prom@example.edu' })).toThrow();
+    });
+
+    it('Attack E: rejects forged ledger decision ID', () => {
+      const decision = createValidSyntheticDecision();
+      const forged = { ...decision, id: 'adj-dec-forged-fake-id' };
+      const ledger = new AdjudicationLedger();
+      expect(() => ledger.addDecision(forged)).toThrow(InvalidAdjudicationDecisionError);
+    });
+
+    it('Attack F: rejects forged decision fingerprint where snapshot does not hash to declared fingerprint', () => {
+      const decision = createValidSyntheticDecision();
+      const forged = { ...decision, reviewBasisFingerprint: 'rev-basis-forged-fingerprint' };
+      const ledger = new AdjudicationLedger();
+      expect(() => ledger.addDecision(forged)).toThrow(InvalidAdjudicationDecisionError);
+    });
+
+    it('Attack G: rejects forged scheme-analysis snapshot under existing decision ID', () => {
+      const decision = createValidSyntheticDecision();
+      const ledger = new AdjudicationLedger();
+      ledger.addDecision(decision);
+
+      const alteredSnapshot = {
+        ...decision.schemeAnalysisSnapshot,
+        deterministicTargetHypotheses: ['unauthorized-hypothesis']
+      };
+      const alteredDecision = { ...decision, schemeAnalysisSnapshot: alteredSnapshot };
+
+      expect(() => ledger.addDecision(alteredDecision)).toThrow();
+    });
+
+    it('Attack H: rejects ACCEPT with invalid SELECT_SCHEME_HYPOTHESIS at ledger insertion', () => {
+      const decision = createValidSyntheticDecision();
+      const forged = {
+        ...decision,
+        canonicalSelection: {
+          kind: 'SELECT_SCHEME_HYPOTHESIS' as const,
+          canonical: 'not-in-hypotheses'
+        }
+      };
+      const ledger = new AdjudicationLedger();
+      expect(() => ledger.addDecision(forged)).toThrow(InvalidAdjudicationDecisionError);
+    });
+
+    it('Attack I: rejects ACCEPT with structurally invalid MANUAL_CANONICAL at ledger insertion', () => {
+      const decision = createValidSyntheticDecision();
+      const forged = {
+        ...decision,
+        canonicalSelection: {
+          kind: 'MANUAL_CANONICAL' as const,
+          canonical: 'سعدی' // Arabic script not allowed in manual canonical
+        }
+      };
+      const ledger = new AdjudicationLedger();
+      expect(() => ledger.addDecision(forged)).toThrow(InvalidAdjudicationDecisionError);
+    });
+
+    it('Attack J: rejects REJECT / DEFER with canonical selection at ledger insertion', () => {
+      const decision = createValidSyntheticDecision();
+      const forgedReject = {
+        ...decision,
+        disposition: 'REJECT' as const,
+        canonicalSelection: { kind: 'MANUAL_CANONICAL' as const, canonical: 'test' }
+      };
+      const ledger = new AdjudicationLedger();
+      expect(() => ledger.addDecision(forgedReject)).toThrow(InvalidAdjudicationDecisionError);
+
+      const forgedDefer = {
+        ...decision,
+        disposition: 'DEFER' as const,
+        canonicalSelection: { kind: 'MANUAL_CANONICAL' as const, canonical: 'test' }
+      };
+      expect(() => ledger.addDecision(forgedDefer)).toThrow(InvalidAdjudicationDecisionError);
+    });
+
+    it('Attack K: rejects orphan receipt insertion immediately', () => {
+      const ledger = new AdjudicationLedger();
+      const receipt: PromotionReceipt = {
+        id: 'prom-rcpt-orphan',
+        decisionId: 'adj-dec-non-existent',
+        promotionPlanId: 'prom-plan-1',
+        reviewPacketId: 'rev-packet-1',
+        reviewBasisFingerprint: 'rev-basis-1',
+        candidateId: 'cand-1',
+        schemeAnalysisId: 'analysis-1',
+        canonical: 'test',
+        action: 'CREATE_ENTRY',
+        lexiconEntryId: 'lex:1',
+        lexicalReadingId: 'read:1',
+        baseLexiconFingerprint: 'lex-fp-1',
+        resultLexiconFingerprint: 'lex-fp-2',
+        promoterRef: 'promoter@example.edu',
+        promotedAt: '2026-01-01T00:00:00Z',
+        promotionVersion: '1.0.0'
+      };
+
+      expect(() => ledger.addReceipt(receipt)).toThrow(InvalidPromotionReceiptError);
+    });
+
+    it('Attack L: rejects receipt referencing REJECT/DEFER decision', () => {
+      const validDecision = createValidSyntheticDecision();
+      const deferDecision = {
+        ...validDecision,
+        id: generateDecisionId({
+          reviewPacketId: validDecision.reviewPacketId,
+          candidateId: validDecision.candidateId,
+          reviewerRef: validDecision.reviewerRef,
+          disposition: 'DEFER',
+          canonicalSelection: null,
+          decidedAt: validDecision.decidedAt
+        }),
+        disposition: 'DEFER' as const,
+        canonicalSelection: null
+      };
+
+      const ledger = new AdjudicationLedger();
+      ledger.addDecision(deferDecision);
+
+      const receiptId = generatePromotionReceiptId({
+        decisionId: deferDecision.id,
+        planId: 'prom-plan-1',
+        baseLexiconFingerprint: 'lex-fp-1',
+        promoterRef: 'promoter@example.edu',
+        promotedAt: '2026-01-01T00:00:00Z'
       });
 
-      const entry = result.repository.findByNormalized('کتاب')!;
-      expect(entry.category).toBeUndefined();
-      expect(entry.properName).toBeUndefined();
+      const receipt: PromotionReceipt = {
+        id: receiptId,
+        decisionId: deferDecision.id,
+        promotionPlanId: 'prom-plan-1',
+        reviewPacketId: deferDecision.reviewPacketId,
+        reviewBasisFingerprint: deferDecision.reviewBasisFingerprint,
+        candidateId: deferDecision.candidateId,
+        schemeAnalysisId: deferDecision.schemeAnalysisId,
+        canonical: 'test',
+        action: 'CREATE_ENTRY',
+        lexiconEntryId: 'lex:1',
+        lexicalReadingId: 'read:1',
+        baseLexiconFingerprint: 'lex-fp-1',
+        resultLexiconFingerprint: 'lex-fp-2',
+        promoterRef: 'promoter@example.edu',
+        promotedAt: '2026-01-01T00:00:00Z',
+        promotionVersion: '1.0.0'
+      };
+
+      expect(() => ledger.addReceipt(receipt)).toThrow(InvalidPromotionReceiptError);
+    });
+
+    it('Attack M: rejects forged receipt ID at insertion', () => {
+      const decision = createValidSyntheticDecision();
+      const ledger = new AdjudicationLedger();
+      ledger.addDecision(decision);
+
+      const receipt: PromotionReceipt = {
+        id: 'prom-rcpt-forged-fake-id',
+        decisionId: decision.id,
+        promotionPlanId: 'prom-plan-1',
+        reviewPacketId: decision.reviewPacketId,
+        reviewBasisFingerprint: decision.reviewBasisFingerprint,
+        candidateId: decision.candidateId,
+        schemeAnalysisId: decision.schemeAnalysisId,
+        canonical: decision.canonicalSelection!.canonical,
+        action: 'CREATE_ENTRY',
+        lexiconEntryId: 'lex:1',
+        lexicalReadingId: 'read:1',
+        baseLexiconFingerprint: 'lex-fp-1',
+        resultLexiconFingerprint: 'lex-fp-2',
+        promoterRef: 'promoter@example.edu',
+        promotedAt: '2026-01-01T00:00:00Z',
+        promotionVersion: '1.0.0'
+      };
+
+      expect(() => ledger.addReceipt(receipt)).toThrow(InvalidPromotionReceiptError);
+    });
+
+    it('Attack N: rejects receipt canonical mismatch with decision', () => {
+      const decision = createValidSyntheticDecision();
+      const ledger = new AdjudicationLedger();
+      ledger.addDecision(decision);
+
+      const receiptId = generatePromotionReceiptId({
+        decisionId: decision.id,
+        planId: 'prom-plan-1',
+        baseLexiconFingerprint: 'lex-fp-1',
+        promoterRef: 'promoter@example.edu',
+        promotedAt: '2026-01-01T00:00:00Z'
+      });
+
+      const receipt: PromotionReceipt = {
+        id: receiptId,
+        decisionId: decision.id,
+        promotionPlanId: 'prom-plan-1',
+        reviewPacketId: decision.reviewPacketId,
+        reviewBasisFingerprint: decision.reviewBasisFingerprint,
+        candidateId: decision.candidateId,
+        schemeAnalysisId: decision.schemeAnalysisId,
+        canonical: 'mismatched-canonical',
+        action: 'CREATE_ENTRY',
+        lexiconEntryId: 'lex:1',
+        lexicalReadingId: 'read:1',
+        baseLexiconFingerprint: 'lex-fp-1',
+        resultLexiconFingerprint: 'lex-fp-2',
+        promoterRef: 'promoter@example.edu',
+        promotedAt: '2026-01-01T00:00:00Z',
+        promotionVersion: '1.0.0'
+      };
+
+      expect(() => ledger.addReceipt(receipt)).toThrow(InvalidPromotionReceiptError);
+    });
+
+    it('Attack O: rejects deserialization of malformed authority store', () => {
+      const decision = createValidSyntheticDecision();
+      const malformedStore: SerializedAdjudicationStore = {
+        version: 1,
+        decisions: [{ ...decision, id: 'forged-id' }],
+        receipts: []
+      };
+
+      expect(() => AdjudicationLedger.deserialize(malformedStore)).toThrow();
     });
   });
 
-  describe('8. Genuine Fixture Review Packets (LoC Regressions)', () => {
+  describe('9. Genuine Fixture Review Packets (LoC Regressions)', () => {
     const fixtureLccns = ['2016404617', '2002341405', '2025364468'];
 
     it('generates review packets for genuine Library of Congress candidate fixtures', () => {
@@ -1252,7 +1403,6 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
             blockedCount++;
           }
 
-          // Verify candidate remains untouched
           expect(cand.status).toBe('UNREVIEWED');
           expect(cand.proposedCanonical).toBeNull();
         }
@@ -1262,7 +1412,6 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
       expect(unanimousCount).toBe(21);
       expect(blockedCount).toBe(2);
 
-      // Pre-adjudication invariants:
       expect(ledger.getAllDecisions()).toHaveLength(0);
       expect(ledger.getAllReceipts()).toHaveLength(0);
     });

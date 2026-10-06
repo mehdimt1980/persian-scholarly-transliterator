@@ -3,13 +3,18 @@
  *
  * Core invariants:
  *   1. Historical append-only governance ledger for CandidateAdjudicationDecision and PromotionReceipt.
- *   2. Re-adding identical decision/receipt is an idempotent no-op.
- *   3. Re-adding an existing ID with altered data fails closed with immutability violation error.
- *   4. Defensive snapshot isolation on ingress and egress.
- *   5. Integrity validation ensures no orphaned receipts and valid reference graphs.
+ *   2. Strict intrinsic decision and receipt validation on every insertion.
+ *   3. Re-adding identical decision/receipt is an idempotent no-op.
+ *   4. Re-adding an existing ID with altered data (including altered snapshots) fails closed with immutability violation error.
+ *   5. Defensive snapshot isolation on ingress and egress.
+ *   6. Immediate governance reference validation on receipt insertion (no orphaned receipts or receipts for REJECT/DEFER).
+ *   7. Recomputes and verifies deterministic decision IDs and receipt IDs.
  */
 
 import { deepClone } from '../repository';
+import { computeReviewBasisFingerprint } from './fingerprint';
+import { generatePromotionReceiptId } from './identity';
+import { validateAdjudicationDecisionIntegrity } from './decision';
 import type {
   CandidateAdjudicationDecision,
   PromotionReceipt,
@@ -40,6 +45,13 @@ export class ReceiptImmutabilityViolationError extends Error {
   }
 }
 
+export class InvalidPromotionReceiptError extends Error {
+  constructor(message: string) {
+    super(`[InvalidPromotionReceipt] ${message}`);
+    this.name = 'InvalidPromotionReceiptError';
+  }
+}
+
 export interface AdjudicationIntegrityReport {
   valid: boolean;
   errors: string[];
@@ -63,10 +75,19 @@ function isExactSameDecision(
 
   const selA = a.canonicalSelection;
   const selB = b.canonicalSelection;
-  if (!selA && !selB) return true;
-  if (!selA || !selB) return false;
-  if (selA.kind !== selB.kind) return false;
-  if (selA.canonical !== selB.canonical) return false;
+  if (!selA && !selB) {
+    // Both null
+  } else if (!selA || !selB) {
+    return false;
+  } else {
+    if (selA.kind !== selB.kind) return false;
+    if (selA.canonical !== selB.canonical) return false;
+  }
+
+  // Compare semantic review basis fingerprints of snapshots
+  const fpA = computeReviewBasisFingerprint(a.candidateSnapshot, a.schemeAnalysisSnapshot);
+  const fpB = computeReviewBasisFingerprint(b.candidateSnapshot, b.schemeAnalysisSnapshot);
+  if (fpA !== fpB) return false;
 
   return true;
 }
@@ -74,6 +95,7 @@ function isExactSameDecision(
 function isExactSameReceipt(a: PromotionReceipt, b: PromotionReceipt): boolean {
   if (a.id !== b.id) return false;
   if (a.decisionId !== b.decisionId) return false;
+  if (a.promotionPlanId !== b.promotionPlanId) return false;
   if (a.reviewPacketId !== b.reviewPacketId) return false;
   if (a.reviewBasisFingerprint !== b.reviewBasisFingerprint) return false;
   if (a.candidateId !== b.candidateId) return false;
@@ -90,6 +112,100 @@ function isExactSameReceipt(a: PromotionReceipt, b: PromotionReceipt): boolean {
   if (a.promotionVersion !== b.promotionVersion) return false;
 
   return true;
+}
+
+/**
+ * Validate that a promotion receipt satisfies all integrity and governance reference constraints
+ * relative to its referenced decision.
+ */
+export function validatePromotionReceiptIntegrity(
+  receipt: PromotionReceipt,
+  referencedDecision?: CandidateAdjudicationDecision
+): void {
+  if (!receipt.id || receipt.id.trim() === '') {
+    throw new InvalidPromotionReceiptError('Promotion receipt must have a non-empty id.');
+  }
+
+  if (!receipt.decisionId || receipt.decisionId.trim() === '') {
+    throw new InvalidPromotionReceiptError(
+      `Receipt "${receipt.id}" must specify non-empty decisionId.`
+    );
+  }
+
+  if (!receipt.promotionPlanId || receipt.promotionPlanId.trim() === '') {
+    throw new InvalidPromotionReceiptError(
+      `Receipt "${receipt.id}" must specify non-empty promotionPlanId.`
+    );
+  }
+
+  if (!receipt.promoterRef || receipt.promoterRef.trim() === '') {
+    throw new InvalidPromotionReceiptError(
+      `Receipt "${receipt.id}" must specify non-empty promoterRef.`
+    );
+  }
+
+  if (!referencedDecision) {
+    throw new InvalidPromotionReceiptError(
+      `Receipt "${receipt.id}" references non-existent decision "${receipt.decisionId}". Orphaned promotion receipts are prohibited.`
+    );
+  }
+
+  if (referencedDecision.disposition !== 'ACCEPT') {
+    throw new InvalidPromotionReceiptError(
+      `Receipt "${receipt.id}" references decision "${referencedDecision.id}" with disposition "${referencedDecision.disposition}". Only ACCEPT decisions may be promoted.`
+    );
+  }
+
+  if (!referencedDecision.canonicalSelection) {
+    throw new InvalidPromotionReceiptError(
+      `Receipt "${receipt.id}" references decision "${referencedDecision.id}" lacking a canonical selection.`
+    );
+  }
+
+  if (receipt.canonical !== referencedDecision.canonicalSelection.canonical) {
+    throw new InvalidPromotionReceiptError(
+      `Receipt "${receipt.id}" canonical "${receipt.canonical}" does not match decision canonical "${referencedDecision.canonicalSelection.canonical}".`
+    );
+  }
+
+  if (receipt.candidateId !== referencedDecision.candidateId) {
+    throw new InvalidPromotionReceiptError(
+      `Receipt "${receipt.id}" candidateId "${receipt.candidateId}" does not match decision candidateId "${referencedDecision.candidateId}".`
+    );
+  }
+
+  if (receipt.reviewPacketId !== referencedDecision.reviewPacketId) {
+    throw new InvalidPromotionReceiptError(
+      `Receipt "${receipt.id}" reviewPacketId "${receipt.reviewPacketId}" does not match decision reviewPacketId "${referencedDecision.reviewPacketId}".`
+    );
+  }
+
+  if (receipt.reviewBasisFingerprint !== referencedDecision.reviewBasisFingerprint) {
+    throw new InvalidPromotionReceiptError(
+      `Receipt "${receipt.id}" reviewBasisFingerprint "${receipt.reviewBasisFingerprint}" does not match decision reviewBasisFingerprint "${referencedDecision.reviewBasisFingerprint}".`
+    );
+  }
+
+  if (receipt.schemeAnalysisId !== referencedDecision.schemeAnalysisId) {
+    throw new InvalidPromotionReceiptError(
+      `Receipt "${receipt.id}" schemeAnalysisId "${receipt.schemeAnalysisId}" does not match decision schemeAnalysisId "${referencedDecision.schemeAnalysisId}".`
+    );
+  }
+
+  // Recompute receipt ID
+  const recomputedId = generatePromotionReceiptId({
+    decisionId: receipt.decisionId,
+    planId: receipt.promotionPlanId,
+    baseLexiconFingerprint: receipt.baseLexiconFingerprint,
+    promoterRef: receipt.promoterRef,
+    promotedAt: receipt.promotedAt
+  });
+
+  if (recomputedId !== receipt.id) {
+    throw new InvalidPromotionReceiptError(
+      `Receipt ID "${receipt.id}" does not match recomputed deterministic receipt ID "${recomputedId}". Receipt identity tampering detected.`
+    );
+  }
 }
 
 export class AdjudicationLedger {
@@ -119,15 +235,8 @@ export class AdjudicationLedger {
   // --- Decisions ---
 
   public addDecision(decision: CandidateAdjudicationDecision): void {
-    if (!decision.id || decision.id.trim() === '') {
-      throw new Error('Adjudication decision must have a non-empty id.');
-    }
-    if (!decision.candidateId || decision.candidateId.trim() === '') {
-      throw new Error(`Decision "${decision.id}" must specify candidateId.`);
-    }
-    if (!decision.reviewerRef || decision.reviewerRef.trim() === '') {
-      throw new Error(`Decision "${decision.id}" must specify non-empty reviewerRef.`);
-    }
+    // 1. Intrinsic decision integrity validation
+    validateAdjudicationDecisionIntegrity(decision);
 
     const snapshot = deepClone(decision);
     const existing = this.decisionsById.get(snapshot.id);
@@ -200,14 +309,14 @@ export class AdjudicationLedger {
   // --- Promotion Receipts ---
 
   public addReceipt(receipt: PromotionReceipt): void {
-    if (!receipt.id || receipt.id.trim() === '') {
-      throw new Error('Promotion receipt must have a non-empty id.');
-    }
-    if (!receipt.decisionId || receipt.decisionId.trim() === '') {
-      throw new Error(`Receipt "${receipt.id}" must specify decisionId.`);
-    }
-
     const snapshot = deepClone(receipt);
+
+    // 1. Resolve referenced decision
+    const referencedDecision = this.decisionsById.get(snapshot.decisionId);
+
+    // 2. Validate receipt integrity and references immediately
+    validatePromotionReceiptIntegrity(snapshot, referencedDecision);
+
     const existing = this.receiptsById.get(snapshot.id);
     if (existing) {
       if (isExactSameReceipt(existing, snapshot)) {
@@ -256,10 +365,19 @@ export class AdjudicationLedger {
     if (store.version !== 1) {
       throw new Error(`Unsupported SerializedAdjudicationStore version: ${(store as any).version}`);
     }
-    const ledger = new AdjudicationLedger({
-      decisions: store.decisions,
-      receipts: store.receipts
-    });
+
+    const ledger = new AdjudicationLedger();
+
+    // Ingest decisions first
+    for (const d of store.decisions) {
+      ledger.addDecision(d);
+    }
+
+    // Ingest receipts
+    for (const r of store.receipts) {
+      ledger.addReceipt(r);
+    }
+
     const report = ledger.validateIntegrity();
     if (!report.valid) {
       throw new Error(
@@ -272,26 +390,22 @@ export class AdjudicationLedger {
   public validateIntegrity(): AdjudicationIntegrityReport {
     const errors: string[] = [];
 
-    // Check each receipt references an existing ACCEPT decision
+    // Validate every decision
+    for (const decision of this.decisionsById.values()) {
+      try {
+        validateAdjudicationDecisionIntegrity(decision);
+      } catch (err: any) {
+        errors.push(`Decision "${decision.id}" invalid: ${err.message}`);
+      }
+    }
+
+    // Validate every receipt
     for (const receipt of this.receiptsById.values()) {
       const dec = this.decisionsById.get(receipt.decisionId);
-      if (!dec) {
-        errors.push(`Receipt "${receipt.id}" references non-existent decision "${receipt.decisionId}".`);
-      } else {
-        if (dec.disposition !== 'ACCEPT') {
-          errors.push(
-            `Receipt "${receipt.id}" references decision "${dec.id}" with non-ACCEPT disposition "${dec.disposition}".`
-          );
-        }
-        if (!dec.canonicalSelection) {
-          errors.push(
-            `Receipt "${receipt.id}" references decision "${dec.id}" lacking a canonical selection.`
-          );
-        } else if (dec.canonicalSelection.canonical !== receipt.canonical) {
-          errors.push(
-            `Receipt "${receipt.id}" canonical "${receipt.canonical}" does not match decision canonical "${dec.canonicalSelection.canonical}".`
-          );
-        }
+      try {
+        validatePromotionReceiptIntegrity(receipt, dec);
+      } catch (err: any) {
+        errors.push(`Receipt "${receipt.id}" invalid: ${err.message}`);
       }
     }
 

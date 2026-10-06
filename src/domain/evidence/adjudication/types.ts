@@ -195,6 +195,9 @@ export interface PromotionReceipt {
   /** ID of the promoted human decision */
   decisionId: string;
 
+  /** ID of the promotion plan */
+  promotionPlanId: string;
+
   /** ID of the review packet */
   reviewPacketId: string;
 

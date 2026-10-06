@@ -69,17 +69,31 @@ export function generateDecisionId(params: {
 
 /**
  * Generate a deterministic identifier for a LexiconPromotionPlan.
+ * Binds every executable semantic field capable of changing promotion behavior.
  */
 export function generatePromotionPlanId(params: {
   decisionId: string;
+  candidateId: string;
+  canonical: string;
+  normalizedPersian: string;
+  persianSurface: string;
   action: string;
   targetEntryId: string;
   targetReadingId: string;
   expectedBaseLexiconFingerprint: string;
+  reviewBasisFingerprint: string;
   planVersion: string;
 }): string {
   const hash = crypto.createHash('sha256');
   hash.update(params.decisionId);
+  hash.update('\0');
+  hash.update(params.candidateId);
+  hash.update('\0');
+  hash.update(params.canonical);
+  hash.update('\0');
+  hash.update(params.normalizedPersian);
+  hash.update('\0');
+  hash.update(params.persianSurface);
   hash.update('\0');
   hash.update(params.action);
   hash.update('\0');
@@ -88,6 +102,8 @@ export function generatePromotionPlanId(params: {
   hash.update(params.targetReadingId);
   hash.update('\0');
   hash.update(params.expectedBaseLexiconFingerprint);
+  hash.update('\0');
+  hash.update(params.reviewBasisFingerprint);
   hash.update('\0');
   hash.update(params.planVersion);
 

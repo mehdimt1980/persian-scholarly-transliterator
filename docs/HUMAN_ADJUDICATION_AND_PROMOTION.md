@@ -193,7 +193,34 @@ The input `currentLexiconRepository` and `DEFAULT_LEXICON_REPOSITORY` remain com
 
 ---
 
-## 6. Relationship to Session-Scoped Review (Phase 2C)
+## 6. Ledger Hardening & Authority-Integrity Invariants
+
+### 6.1 Untrusted Persistence Boundary & Intrinsic Validation
+The `AdjudicationLedger` treats historical JSON input as an untrusted boundary. Any decision added to the ledger or deserialized must pass `validateAdjudicationDecisionIntegrity(decision)`:
+- Non-empty `id`, `reviewerRef`, `rationale`, and valid `disposition`;
+- `ACCEPT` strictly requires valid `canonicalSelection`; `REJECT` and `DEFER` require `canonicalSelection: null`;
+- `MANUAL_CANONICAL` passes `validateManualTransliteration()`;
+- `SELECT_SCHEME_HYPOTHESIS` canonical must exist in `schemeAnalysisSnapshot.deterministicTargetHypotheses`;
+- Candidate snapshot matches Phase 5C origin (`ALIGNED_SEGMENT_SYNTHESIS`, `proposedCanonical: null`);
+- Decision snapshot integrity: Recomputed `computeReviewBasisFingerprint(candidateSnapshot, schemeAnalysisSnapshot)` strictly equals `reviewBasisFingerprint`;
+- Recomputed `generateDecisionId(...)` strictly equals `decision.id`.
+
+### 6.2 Full Promotion Plan Semantic Binding & Equivalence
+Every executable semantic field is bound into `generatePromotionPlanId()`:
+- `decisionId`, `candidateId`, `canonical`, `normalizedPersian`, `persianSurface`, `action`, `targetEntryId`, `targetReadingId`, `expectedBaseLexiconFingerprint`, `reviewBasisFingerprint`, `planVersion`.
+Tampering with ANY executable semantic field changes the plan ID. Furthermore, before promotion execution, `executePromotion()` recomputes the plan live and executes `assertExactSamePromotionPlan(plan, recomputedPlan)`, rejecting any deviation with `InvalidPromotionPlanError` and zero lexicon mutation.
+
+### 6.3 Receipt Identity & Immediate Reference Validation
+`PromotionReceipt` contains `promotionPlanId`, enabling independent recomputation and verification of `receipt.id` via `generatePromotionReceiptId()`.
+`AdjudicationLedger.addReceipt()` validates governance references immediately upon insertion:
+- Referenced decision exists in ledger with `ACCEPT` disposition and matching canonical;
+- Receipt `candidateId`, `reviewPacketId`, `reviewBasisFingerprint`, and `schemeAnalysisId` match the decision;
+- Recomputed receipt ID matches `receipt.id`;
+- Rejects orphaned receipts and receipts for `REJECT` / `DEFER` decisions.
+
+---
+
+## 7. Relationship to Session-Scoped Review (Phase 2C)
 
 | Dimension | Phase 2C Session Review | Phase 5E Human Adjudication & Promotion |
 |---|---|---|
@@ -201,3 +228,4 @@ The input `currentLexiconRepository` and `DEFAULT_LEXICON_REPOSITORY` remain com
 | **Object** | Token-level `ReviewDecision` / `USER_OVERRIDE` | Candidate `CandidateAdjudicationDecision` & `PromotionReceipt` |
 | **Persistence** | Ephemeral or batch-run export | Append-only `AdjudicationLedger` & new `LexiconRepository` |
 | **Lexicon Impact** | Zero (runtime override only) | Generates new reviewed lexicon repository snapshots |
+
