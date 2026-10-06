@@ -1,4 +1,10 @@
-import { LinkedMarcFieldPair, MarcDataField, MarcRecord, ParsedSubfield6 } from './types';
+import {
+  LinkedMarcFieldPair,
+  LinkageStatus,
+  MarcDataField,
+  MarcRecord,
+  ParsedSubfield6
+} from './types';
 
 /**
  * Parse MARC Subfield $6 linkage value.
@@ -43,16 +49,18 @@ export function getSubfield6(field: MarcDataField): string | undefined {
 }
 
 /**
- * Resolve all linked field pairs in a MARC record.
+ * Resolve all linked field pairs in a MARC record with full ambiguity and mismatch detection.
  *
- * MARC 880 linkage invariants:
- *   1. A regular datafield (tag !== '880') specifies `$6 880-NN`.
- *   2. The corresponding alternate graphic datafield (tag === '880') specifies `$6 TTT-NN`
- *      where TTT equals the regular field tag, and NN is the identical occurrence number.
- *   3. Fields are linked STRICTLY by (associatedTag + occurrenceNumber). They are never
- *      linked by array proximity or line order.
- *   4. Occurrence '00' on an 880 field indicates an unlinked alternate graphic field with
- *      no corresponding regular Roman-script field.
+ * Linkage semantics:
+ *   1. MATCHED: Exactly one regular field (tag !== '880', $6 880-NN) and exactly one
+ *      alternate field (tag === '880', $6 TTT-NN) share the same tag and nonzero occurrence.
+ *   2. OCCURRENCE_00: Alternate field (tag === '880', $6 TTT-00) is an unlinked representation
+ *      without a Roman-script counterpart.
+ *   3. UNMATCHED_NONZERO: Nonzero alternate field lacks a corresponding regular field.
+ *      (Does NOT produce lexical evidence).
+ *   4. AMBIGUOUS_DUPLICATE: Multiple regular fields or multiple alternate fields claim the same
+ *      tag and occurrence number. Fails closed without arbitrary pairing.
+ *   5. MALFORMED_LINKAGE: Field 880 possesses a missing, unparseable, or invalid $6 subfield.
  */
 export function resolveMarc880Linkages(record: MarcRecord): LinkedMarcFieldPair[] {
   const regularFields: MarcDataField[] = [];
@@ -66,64 +74,116 @@ export function resolveMarc880Linkages(record: MarcRecord): LinkedMarcFieldPair[
     }
   }
 
-  // Index regular fields by `880-${occurrenceNumber}`
-  // Map key: `${df.tag}-${occurrenceNumber}`
-  const regularIndex = new Map<string, MarcDataField>();
+  // 1. Index regular fields by `${associatedTag}-${occurrenceNumber}` and detect duplicates
+  const regularMap = new Map<string, MarcDataField[]>();
 
   for (const reg of regularFields) {
     const raw6 = getSubfield6(reg);
     if (!raw6) continue;
     const parsed6 = parseSubfield6(raw6);
     if (parsed6 && parsed6.linkingTag === '880') {
-      // Keyed by associated tag and occurrence number: e.g. "245-02"
       const key = `${reg.tag}-${parsed6.occurrenceNumber}`;
-      regularIndex.set(key, reg);
+      const existing = regularMap.get(key) ?? [];
+      existing.push(reg);
+      regularMap.set(key, existing);
+    }
+  }
+
+  // 2. Count alternate 880 fields by `${linkingTag}-${occurrenceNumber}` to detect duplicate 880 targets
+  const altCountMap = new Map<string, number>();
+  for (const alt of alternate880Fields) {
+    const raw6 = getSubfield6(alt);
+    if (!raw6) continue;
+    const parsed6 = parseSubfield6(raw6);
+    if (parsed6 && parsed6.occurrenceNumber !== '00') {
+      const key = `${parsed6.linkingTag}-${parsed6.occurrenceNumber}`;
+      altCountMap.set(key, (altCountMap.get(key) ?? 0) + 1);
     }
   }
 
   const linkedPairs: LinkedMarcFieldPair[] = [];
 
+  // 3. Resolve each alternate field
   for (const alt of alternate880Fields) {
     const raw6 = getSubfield6(alt);
-    if (!raw6) continue;
+    if (!raw6) {
+      linkedPairs.push({
+        tag: '880',
+        regularField: undefined,
+        alternateField: alt,
+        occurrenceNumber: '??',
+        status: 'MALFORMED_LINKAGE',
+        diagnostic: 'Field 880 is missing subfield $6 linkage.'
+      });
+      continue;
+    }
+
     const parsed6 = parseSubfield6(raw6);
-    if (!parsed6) continue;
+    if (!parsed6) {
+      linkedPairs.push({
+        tag: '880',
+        regularField: undefined,
+        alternateField: alt,
+        occurrenceNumber: '??',
+        status: 'MALFORMED_LINKAGE',
+        diagnostic: `Field 880 has malformed subfield $6: "${raw6}".`
+      });
+      continue;
+    }
 
     const associatedTag = parsed6.linkingTag;
     const occurrence = parsed6.occurrenceNumber;
 
     if (occurrence === '00') {
-      // Occurrence 00: Unlinked alternate graphic representation
+      // Conservative occurrence 00 unlinked representation
       linkedPairs.push({
         tag: associatedTag,
         regularField: undefined,
         alternateField: alt,
         occurrenceNumber: '00',
-        linkage: parsed6
+        linkage: parsed6,
+        status: 'OCCURRENCE_00'
       });
       continue;
     }
 
     const lookupKey = `${associatedTag}-${occurrence}`;
-    const matchedRegular = regularIndex.get(lookupKey);
+    const matchedRegulars = regularMap.get(lookupKey) ?? [];
+    const altOccurrences = altCountMap.get(lookupKey) ?? 1;
 
-    // Only pair if regular field exists with exact matching associated tag and occurrence number
-    if (matchedRegular) {
-      linkedPairs.push({
-        tag: associatedTag,
-        regularField: matchedRegular,
-        alternateField: alt,
-        occurrenceNumber: occurrence,
-        linkage: parsed6
-      });
-    } else {
-      // Unmatched or orphaned 880 field (occurrence mismatch or missing regular counterpart)
+    // Detect duplicate/ambiguous linkage
+    if (matchedRegulars.length > 1 || altOccurrences > 1) {
       linkedPairs.push({
         tag: associatedTag,
         regularField: undefined,
         alternateField: alt,
         occurrenceNumber: occurrence,
-        linkage: parsed6
+        linkage: parsed6,
+        status: 'AMBIGUOUS_DUPLICATE',
+        diagnostic: `Ambiguous linkage: ${matchedRegulars.length} regular field(s) and ${altOccurrences} alternate 880 field(s) claim key "${lookupKey}".`
+      });
+      continue;
+    }
+
+    if (matchedRegulars.length === 1) {
+      linkedPairs.push({
+        tag: associatedTag,
+        regularField: matchedRegulars[0],
+        alternateField: alt,
+        occurrenceNumber: occurrence,
+        linkage: parsed6,
+        status: 'MATCHED'
+      });
+    } else {
+      // Nonzero occurrence without matching regular field
+      linkedPairs.push({
+        tag: associatedTag,
+        regularField: undefined,
+        alternateField: alt,
+        occurrenceNumber: occurrence,
+        linkage: parsed6,
+        status: 'UNMATCHED_NONZERO',
+        diagnostic: `No corresponding regular field ${associatedTag} found with $6 880-${occurrence}.`
       });
     }
   }

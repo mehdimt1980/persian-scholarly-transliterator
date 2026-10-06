@@ -36,10 +36,15 @@ export function extractEvidenceFromMarcRecord(
   const evidenceList: LexicalEvidence[] = [];
 
   for (const pair of linkedPairs) {
+    // Only extract evidence from legitimate MATCHED pairs or conservative OCCURRENCE_00 representations
+    if (pair.status !== 'MATCHED' && pair.status !== 'OCCURRENCE_00') {
+      continue;
+    }
+
     const associatedTag = pair.tag;
     const regField = pair.regularField;
     const altField = pair.alternateField;
-    const linkageRaw = pair.linkage.raw;
+    const linkageRaw = pair.linkage?.raw ?? `${associatedTag}-${pair.occurrenceNumber}`;
 
     // Iterate through supported subfields in the alternate graphic field
     for (const altSf of altField.subfields) {

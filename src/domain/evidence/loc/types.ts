@@ -1,10 +1,4 @@
-import {
-  LexicalEntityType,
-  LexicalEvidence,
-  LexicalEvidenceProvenance,
-  LexicalEvidenceSourceType,
-  RomanizationScheme
-} from '../types';
+import { RomanizationScheme } from '../types';
 
 /**
  * Supported query formats for Library of Congress catalog retrieval.
@@ -73,6 +67,16 @@ export interface ParsedSubfield6 {
 }
 
 /**
+ * Status of a MARC field 880 linkage resolution.
+ */
+export type LinkageStatus =
+  | 'MATCHED'
+  | 'OCCURRENCE_00'
+  | 'UNMATCHED_NONZERO'
+  | 'AMBIGUOUS_DUPLICATE'
+  | 'MALFORMED_LINKAGE';
+
+/**
  * Resolved linkage between a regular MARC field and its alternate graphic representation (field 880).
  */
 export interface LinkedMarcFieldPair {
@@ -80,7 +84,29 @@ export interface LinkedMarcFieldPair {
   regularField?: MarcDataField;
   alternateField: MarcDataField;
   occurrenceNumber: string;
-  linkage: ParsedSubfield6;
+  linkage?: ParsedSubfield6;
+  status: LinkageStatus;
+  diagnostic?: string;
+}
+
+/**
+ * Diagnostic error reported by an SRU server.
+ */
+export interface SruDiagnostic {
+  uri?: string;
+  message: string;
+  details?: string;
+}
+
+/**
+ * Parsed SRU response envelope containing record count, diagnostics, and records.
+ */
+export interface SruResponse {
+  version?: string;
+  numberOfRecords: number;
+  diagnostics: SruDiagnostic[];
+  records: MarcRecord[];
+  rawRecords: string[];
 }
 
 /**
@@ -91,3 +117,4 @@ export interface LocExtractorOptions {
   defaultScheme?: RomanizationScheme;
   now?: () => string;
 }
+

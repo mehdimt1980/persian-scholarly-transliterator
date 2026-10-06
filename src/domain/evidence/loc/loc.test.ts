@@ -9,8 +9,14 @@ import {
   extractEvidenceFromMarcRecord,
   hasPersianLanguageEvidence,
   LocClient,
+  LocClientError,
   LocEvidenceConnector,
+  LocRateLimitError,
+  LocSruDiagnosticError,
+  MarcXmlParseError,
+  OFFICIAL_LOC_HTTPS_SRU_URL,
   parseMarcXml,
+  parseSruResponse,
   parseSubfield6,
   resolveMarc880Linkages
 } from './index';
@@ -26,40 +32,96 @@ describe('Library of Congress Pilot Evidence Connector', () => {
   const genuine2025364468Xml = loadFixture('2025364468.marcxml.xml');
   const syntheticXml = loadFixture('syntheticEdgeCases.marcxml.xml');
 
-  describe('1. Pure MARCXML Parsing & Entity Decoding', () => {
-    it('parses genuine LoC Saʻdī manuscript record 2016404617 correctly', () => {
-      const records = parseMarcXml(genuine2016404617Xml);
-      expect(records.length).toBe(1);
-
-      const rec = records[0];
-      expect(rec.lccn).toBe('2016404617');
-      expect(rec.language).toBe('per');
-      expect(rec.sourceUri).toBe('https://lccn.loc.gov/2016404617');
-
-      // Check decoded entities in 100$a and 880$a
-      const df100 = rec.dataFields.find((df) => df.tag === '100');
-      expect(df100?.subfields.find((sf) => sf.code === 'a')?.value).toBe('Saʻdī,');
-
-      const df880s = rec.dataFields.filter((df) => df.tag === '880');
-      expect(df880s.length).toBe(3);
-      expect(df880s[0].subfields.find((sf) => sf.code === 'a')?.value).toBe('سعدى.');
+  describe('1. Endpoint Configuration & HTTPS Transport Invariants', () => {
+    it('uses the official HTTPS SRU endpoint as default', () => {
+      const client = new LocClient({ allowInsecureHttp: true });
+      expect(client.baseUrl).toBe(OFFICIAL_LOC_HTTPS_SRU_URL);
+      expect(client.baseUrl).toBe('https://lx2.loc.gov/sru/lcdb');
     });
 
-    it('extracts all records from a multi-record collection safely', () => {
-      const records = parseMarcXml(syntheticXml);
-      expect(records.length).toBe(5);
-      expect(records.map((r) => r.lccn)).toEqual([
-        'syn0001',
-        'syn0002',
-        'syn0003',
-        'syn0004',
-        'syn0005'
-      ]);
+    it('rejects insecure HTTP base URLs for production client requests by default', () => {
+      expect(
+        () => new LocClient({ baseUrl: 'http://lx2.loc.gov:210/LCDB' })
+      ).toThrow(LocClientError);
+    });
+
+    it('permits HTTP endpoints when allowInsecureHttp is set for local test mocks', () => {
+      expect(
+        () => new LocClient({ baseUrl: 'http://lx2.loc.gov:210/LCDB', allowInsecureHttp: true })
+      ).not.toThrow();
     });
   });
 
-  describe('2. MARC $6 Linkage Parsing & Resolution', () => {
-    it('parses various valid $6 values into tag, occurrence, and script metadata', () => {
+  describe('2. SRU Response Parsing, Diagnostics, & Zero-Result Detection', () => {
+    it('parses valid SRU response and extracts individual raw record XML payloads', () => {
+      const sru = parseSruResponse(genuine2016404617Xml);
+      expect(sru.numberOfRecords).toBe(1);
+      expect(sru.diagnostics.length).toBe(0);
+      expect(sru.records.length).toBe(1);
+      expect(sru.rawRecords.length).toBe(1);
+      expect(sru.records[0].lccn).toBe('2016404617');
+    });
+
+    it('correctly detects valid empty SRU search results (numberOfRecords = 0)', () => {
+      const emptySruXml = `<?xml version="1.0"?>
+<zs:searchRetrieveResponse xmlns:zs="http://www.loc.gov/zing/srw/">
+  <zs:version>1.1</zs:version>
+  <zs:numberOfRecords>0</zs:numberOfRecords>
+</zs:searchRetrieveResponse>`;
+
+      const sru = parseSruResponse(emptySruXml);
+      expect(sru.numberOfRecords).toBe(0);
+      expect(sru.records.length).toBe(0);
+      expect(sru.diagnostics.length).toBe(0);
+    });
+
+    it('detects SRU server diagnostics and throws LocSruDiagnosticError in client', async () => {
+      const diagnosticXml = `<?xml version="1.0"?>
+<zs:searchRetrieveResponse xmlns:zs="http://www.loc.gov/zing/srw/">
+  <zs:diagnostics xmlns:diag="http://www.loc.gov/zing/srw/diagnostic/">
+    <diag:diagnostic>
+      <diag:uri>info:srw/diagnostic/1/16</diag:uri>
+      <diag:details>invalid_cql</diag:details>
+      <diag:message>Unsupported index</diag:message>
+    </diag:diagnostic>
+  </zs:diagnostics>
+</zs:searchRetrieveResponse>`;
+
+      const mockFetch = async () => new Response(diagnosticXml, { status: 200 });
+      const client = new LocClient({ fetchFn: mockFetch as any });
+
+      await expect(client.searchSru('invalid_cql=foo')).rejects.toThrow(LocSruDiagnosticError);
+    });
+
+    it('throws 404 when fetchLccn encounters a valid zero-result response', async () => {
+      const emptySruXml = `<?xml version="1.0"?>
+<zs:searchRetrieveResponse xmlns:zs="http://www.loc.gov/zing/srw/">
+  <zs:version>1.1</zs:version>
+  <zs:numberOfRecords>0</zs:numberOfRecords>
+</zs:searchRetrieveResponse>`;
+
+      const mockFetch = async () => new Response(emptySruXml, { status: 200 });
+      const client = new LocClient({ fetchFn: mockFetch as any });
+
+      await expect(client.fetchLccn('0000000000')).rejects.toThrow(/No record found for LCCN "0000000000"/);
+    });
+
+    it('throws on LCCN mismatch between requested LCCN and returned MARC record', async () => {
+      const mockFetch = async () => new Response(genuine2016404617Xml, { status: 200 });
+      const client = new LocClient({ fetchFn: mockFetch as any });
+
+      // Requesting 9999999999 but mock returns 2016404617
+      await expect(client.fetchLccn('9999999999')).rejects.toThrow(/LCCN mismatch in LoC response/);
+    });
+
+    it('throws MarcXmlParseError on empty or non-XML response payloads', () => {
+      expect(() => parseSruResponse('')).toThrow(MarcXmlParseError);
+      expect(() => parseSruResponse('plain text error')).toThrow(MarcXmlParseError);
+    });
+  });
+
+  describe('3. MARC $6 Linkage Parsing & Hardened Semantics', () => {
+    it('parses valid $6 formats correctly', () => {
       const p1 = parseSubfield6('880-01');
       expect(p1).toEqual({
         linkingTag: '880',
@@ -77,48 +139,111 @@ describe('Library of Congress Pilot Evidence Connector', () => {
         orientationCode: 'r',
         raw: '100-01/(3/r'
       });
-
-      const p3 = parseSubfield6('700-70/(3/r');
-      expect(p3).toEqual({
-        linkingTag: '700',
-        occurrenceNumber: '70',
-        scriptCode: '3',
-        orientationCode: 'r',
-        raw: '700-70/(3/r'
-      });
     });
 
-    it('returns null for invalid $6 syntax', () => {
-      expect(parseSubfield6('')).toBeNull();
-      expect(parseSubfield6('invalid')).toBeNull();
-      expect(parseSubfield6('88-01')).toBeNull(); // tag must be 3 digits
-    });
-
-    it('pairs fields strictly by tag and occurrence number, not array order', () => {
+    it('correctly classifies MATCHED pairs on genuine Saʻdī record (2016404617)', () => {
       const records = parseMarcXml(genuine2016404617Xml);
       const linkedPairs = resolveMarc880Linkages(records[0]);
 
       expect(linkedPairs.length).toBe(3);
+      for (const pair of linkedPairs) {
+        expect(pair.status).toBe('MATCHED');
+        expect(pair.regularField).toBeDefined();
+        expect(pair.alternateField).toBeDefined();
+      }
+    });
 
-      // Pair 1: 100 ↔ 880(100-01)
-      expect(linkedPairs[0].tag).toBe('100');
-      expect(linkedPairs[0].occurrenceNumber).toBe('01');
-      expect(linkedPairs[0].regularField?.tag).toBe('100');
-      expect(linkedPairs[0].alternateField.tag).toBe('880');
+    it('classifies occurrence 00 as OCCURRENCE_00 without regular counterpart', () => {
+      const syntheticRecords = parseMarcXml(syntheticXml);
+      const rec = syntheticRecords.find((r) => r.lccn === 'syn0002')!;
+      const linkedPairs = resolveMarc880Linkages(rec);
 
-      // Pair 2: 240 ↔ 880(240-02)
-      expect(linkedPairs[1].tag).toBe('240');
-      expect(linkedPairs[1].occurrenceNumber).toBe('02');
-      expect(linkedPairs[1].regularField?.tag).toBe('240');
+      expect(linkedPairs.length).toBe(1);
+      expect(linkedPairs[0].status).toBe('OCCURRENCE_00');
+      expect(linkedPairs[0].occurrenceNumber).toBe('00');
+      expect(linkedPairs[0].regularField).toBeUndefined();
+    });
 
-      // Pair 3: 245 ↔ 880(245-03)
-      expect(linkedPairs[2].tag).toBe('245');
-      expect(linkedPairs[2].occurrenceNumber).toBe('03');
-      expect(linkedPairs[2].regularField?.tag).toBe('245');
+    it('classifies occurrence mismatch as UNMATCHED_NONZERO and suppresses evidence extraction', () => {
+      const syntheticRecords = parseMarcXml(syntheticXml);
+      const rec = syntheticRecords.find((r) => r.lccn === 'syn0001')!;
+      const linkedPairs = resolveMarc880Linkages(rec);
+
+      expect(linkedPairs.length).toBe(1);
+      expect(linkedPairs[0].status).toBe('UNMATCHED_NONZERO');
+      expect(linkedPairs[0].occurrenceNumber).toBe('03');
+
+      // CRITICAL FIX: Unmatched nonzero occurrence must NOT extract lexical evidence
+      const evidence = extractEvidenceFromMarcRecord(rec);
+      expect(evidence.length).toBe(0);
+    });
+
+    it('classifies ambiguous duplicate regular linkages as AMBIGUOUS_DUPLICATE and suppresses extraction', () => {
+      const syntheticRecords = parseMarcXml(syntheticXml);
+      const rec = syntheticRecords.find((r) => r.lccn === 'syn0006')!;
+      const linkedPairs = resolveMarc880Linkages(rec);
+
+      expect(linkedPairs.length).toBe(1);
+      expect(linkedPairs[0].status).toBe('AMBIGUOUS_DUPLICATE');
+
+      const evidence = extractEvidenceFromMarcRecord(rec);
+      expect(evidence.length).toBe(0);
+    });
+
+    it('classifies malformed $6 as MALFORMED_LINKAGE and suppresses extraction', () => {
+      const syntheticRecords = parseMarcXml(syntheticXml);
+      const rec = syntheticRecords.find((r) => r.lccn === 'syn0007')!;
+      const linkedPairs = resolveMarc880Linkages(rec);
+
+      expect(linkedPairs.length).toBe(1);
+      expect(linkedPairs[0].status).toBe('MALFORMED_LINKAGE');
+
+      const evidence = extractEvidenceFromMarcRecord(rec);
+      expect(evidence.length).toBe(0);
     });
   });
 
-  describe('3. Required Extraction Scenarios (A through J)', () => {
+  describe('4. Tightened Persian Language Identification', () => {
+    const syntheticRecords = parseMarcXml(syntheticXml);
+
+    it('accepts records with 008/35-37 set to per', () => {
+      const rec = syntheticRecords.find((r) => r.lccn === 'syn0005')!;
+      expect(hasPersianLanguageEvidence(rec)).toBe(true);
+    });
+
+    it('accepts records with 041$a set to per in mixed-language records', () => {
+      const rec = syntheticRecords.find((r) => r.lccn === 'syn0010')!;
+      expect(hasPersianLanguageEvidence(rec)).toBe(true);
+
+      const evidence = extractEvidenceFromMarcRecord(rec);
+      expect(evidence.length).toBe(1);
+      expect(evidence[0].persianForm).toBe('فرهنگ فارسی و انگلیسی.');
+    });
+
+    it('rejects Arabic translation of Persian work (041$a=ara, 041$h=per)', () => {
+      const rec = syntheticRecords.find((r) => r.lccn === 'syn0008')!;
+      // 041$h='per' indicates source of translation, not content language
+      expect(hasPersianLanguageEvidence(rec)).toBe(false);
+
+      const evidence = extractEvidenceFromMarcRecord(rec);
+      expect(evidence.length).toBe(0);
+    });
+
+    it('rejects records with misleading 546 translation notes and non-Persian language code', () => {
+      const rec = syntheticRecords.find((r) => r.lccn === 'syn0009')!;
+      expect(hasPersianLanguageEvidence(rec)).toBe(false);
+
+      const evidence = extractEvidenceFromMarcRecord(rec);
+      expect(evidence.length).toBe(0);
+    });
+
+    it('rejects records with Arabic content language (008=ara)', () => {
+      const rec = syntheticRecords.find((r) => r.lccn === 'syn0004')!;
+      expect(hasPersianLanguageEvidence(rec)).toBe(false);
+    });
+  });
+
+  describe('5. Required Extraction Scenarios & Preservation (A through J)', () => {
     const syntheticRecords = parseMarcXml(syntheticXml);
 
     // Scenario A: Valid 245 ↔ 880 pair
@@ -154,18 +279,14 @@ describe('Library of Congress Pilot Evidence Connector', () => {
     });
 
     // Scenario C: Occurrence mismatch
-    it('C. does NOT pair fields when occurrence numbers mismatch (880-02 vs 245-03)', () => {
+    it('C. does NOT extract evidence when occurrence numbers mismatch (880-02 vs 245-03)', () => {
       const rec = syntheticRecords.find((r) => r.lccn === 'syn0001')!;
       const evidence = extractEvidenceFromMarcRecord(rec);
-
-      // Because occurrence mismatched (880-02 vs 245-03), it becomes an unlinked alternate field
-      expect(evidence.length).toBe(1);
-      expect(evidence[0].persianForm).toBe('دیوان حافظ.');
-      expect(evidence[0].observedRomanization).toBeNull(); // No romanization paired
+      expect(evidence.length).toBe(0);
     });
 
     // Scenario D: Orphan 880 with occurrence 00
-    it('D. handles orphan 880 with occurrence 00 by preserving Persian-only evidence with observedRomanization: null', () => {
+    it('D. handles occurrence 00 unlinked representation by preserving Persian-only evidence with observedRomanization: null', () => {
       const rec = syntheticRecords.find((r) => r.lccn === 'syn0002')!;
       const evidence = extractEvidenceFromMarcRecord(rec);
 
@@ -179,12 +300,11 @@ describe('Library of Congress Pilot Evidence Connector', () => {
     it('E. skips Cyrillic/non-Persian alternate script data without extracting evidence', () => {
       const rec = syntheticRecords.find((r) => r.lccn === 'syn0003')!;
       const evidence = extractEvidenceFromMarcRecord(rec);
-
       expect(evidence.length).toBe(0);
     });
 
     // Scenario F: No Persian language evidence
-    it('F. conservatively skips Arabic-script records lacking positive Persian language evidence', () => {
+    it('F. skips Arabic-script records lacking positive Persian language evidence', () => {
       const rec = syntheticRecords.find((r) => r.lccn === 'syn0004')!;
       expect(hasPersianLanguageEvidence(rec)).toBe(false);
 
@@ -198,9 +318,7 @@ describe('Library of Congress Pilot Evidence Connector', () => {
       const evidence = extractEvidenceFromMarcRecord(rec);
 
       const e245b = evidence.find((e) => e.sourceField?.includes('245$b'))!;
-      // Diacritics: ʼ (U+02BC modifier letter apostrophe) and ḥ (U+1E25) and ī (U+12B)
       expect(e245b.observedRomanization).toBe('bā muqaddamah-ʼi Duktur Muḥammad Muʻīn.');
-      // Persian punctuation and hamzah/yeh above
       expect(e245b.persianForm).toBe('با مقدمهٔ دکتر محمد معین.');
     });
 
@@ -259,7 +377,7 @@ describe('Library of Congress Pilot Evidence Connector', () => {
     });
   });
 
-  describe('4. Genuine Library of Congress Fixture Validations', () => {
+  describe('6. Genuine Library of Congress Fixture Validations', () => {
     it('extracts expected linked pairs from Saʻdī Gulistān manuscript (LCCN 2016404617)', () => {
       const records = parseMarcXml(genuine2016404617Xml);
       const evidence = extractEvidenceFromMarcRecord(records[0]);
@@ -285,7 +403,7 @@ describe('Library of Congress Pilot Evidence Connector', () => {
       expect(gulistanTitle.entityType).toBe('TITLE');
     });
 
-    it('extracts expected personal names, corporate bodies, and titles from Modern Catalog (LCCN 2002341405)', () => {
+    it('extracts expected personal names, corporate bodies, and titles from Mīzān al-ṭibb (LCCN 2002341405)', () => {
       const records = parseMarcXml(genuine2002341405Xml);
       const evidence = extractEvidenceFromMarcRecord(records[0]);
 
@@ -321,7 +439,7 @@ describe('Library of Congress Pilot Evidence Connector', () => {
     });
   });
 
-  describe('5. LocEvidenceConnector Contract & Safety', () => {
+  describe('7. LocEvidenceConnector Contract & Transport Safety', () => {
     it('implements LexicalEvidenceSource interface and extracts from raw record offline', () => {
       const connector = new LocEvidenceConnector();
       expect(connector.sourceId).toBe('LOC');
@@ -346,7 +464,7 @@ describe('Library of Congress Pilot Evidence Connector', () => {
         });
 
       const client = new LocClient({ fetchFn: mockFetch as any });
-      await expect(client.fetchLccn('2016404617')).rejects.toThrow(/Rate limit exceeded/);
+      await expect(client.fetchLccn('2016404617')).rejects.toThrow(LocRateLimitError);
     });
   });
 });

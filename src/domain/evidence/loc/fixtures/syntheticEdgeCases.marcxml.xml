@@ -103,4 +103,105 @@
     </datafield>
   </record>
 
+  <!-- Case 6: Ambiguous / Duplicate Linkage (Multiple regular fields claiming 880-01) -->
+  <record>
+    <leader>01000nam a2200250 i 4500</leader>
+    <controlfield tag="001">syn-ambiguous-duplicate</controlfield>
+    <controlfield tag="008">240101s2024    ir            000 0 per  </controlfield>
+    <datafield tag="010" ind1=" " ind2=" ">
+      <subfield code="a">syn0006</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="6">880-01</subfield>
+      <subfield code="a">Title Variant Alpha.</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="6">880-01</subfield>
+      <subfield code="a">Title Variant Beta.</subfield>
+    </datafield>
+    <datafield tag="880" ind1="1" ind2="0">
+      <subfield code="6">245-01/(3/r</subfield>
+      <subfield code="a">عنوان الف و ب.</subfield>
+    </datafield>
+  </record>
+
+  <!-- Case 7: Malformed Linkage in 880 (Missing or invalid $6 syntax) -->
+  <record>
+    <leader>01000nam a2200250 i 4500</leader>
+    <controlfield tag="001">syn-malformed-linkage</controlfield>
+    <controlfield tag="008">240101s2024    ir            000 0 per  </controlfield>
+    <datafield tag="010" ind1=" " ind2=" ">
+      <subfield code="a">syn0007</subfield>
+    </datafield>
+    <datafield tag="880" ind1="1" ind2="0">
+      <subfield code="6">invalid-linkage-format</subfield>
+      <subfield code="a">متن بدون پیوند معتبر.</subfield>
+    </datafield>
+  </record>
+
+  <!-- Case 8: Arabic Content Translated from Persian (041$a=ara, 041$h=per -> Content is Arabic) -->
+  <record>
+    <leader>01000nam a2200250 i 4500</leader>
+    <controlfield tag="001">syn-trans-from-per</controlfield>
+    <controlfield tag="008">240101s2024    eg            000 0 ara  </controlfield>
+    <datafield tag="010" ind1=" " ind2=" ">
+      <subfield code="a">syn0008</subfield>
+    </datafield>
+    <datafield tag="041" ind1="1" ind2=" ">
+      <subfield code="a">ara</subfield>
+      <subfield code="h">per</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="6">880-01</subfield>
+      <subfield code="a">Tarjamah ʻArabīyah li-Gulistān.</subfield>
+    </datafield>
+    <datafield tag="880" ind1="1" ind2="0">
+      <subfield code="6">245-01/(3/r</subfield>
+      <subfield code="a">ترجمة عربية لگلستان.</subfield>
+    </datafield>
+  </record>
+
+  <!-- Case 9: Misleading 546 Note with Non-Persian Content Code -->
+  <record>
+    <leader>01000nam a2200250 i 4500</leader>
+    <controlfield tag="001">syn-misleading-546</controlfield>
+    <controlfield tag="008">240101s2024    eg            000 0 ara  </controlfield>
+    <datafield tag="010" ind1=" " ind2=" ">
+      <subfield code="a">syn0009</subfield>
+    </datafield>
+    <datafield tag="546" ind1=" " ind2=" ">
+      <subfield code="a">Translated from the Persian original into Arabic.</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="6">880-01</subfield>
+      <subfield code="a">Sharḥ al-Manẓūmah.</subfield>
+    </datafield>
+    <datafield tag="880" ind1="1" ind2="0">
+      <subfield code="6">245-01/(3/r</subfield>
+      <subfield code="a">شرح المنظومة.</subfield>
+    </datafield>
+  </record>
+
+  <!-- Case 10: Mixed Language with Explicit Persian in 041$a -->
+  <record>
+    <leader>01000nam a2200250 i 4500</leader>
+    <controlfield tag="001">syn-041-persian-content</controlfield>
+    <controlfield tag="008">240101s2024    xx            000 0 mul  </controlfield>
+    <datafield tag="010" ind1=" " ind2=" ">
+      <subfield code="a">syn0010</subfield>
+    </datafield>
+    <datafield tag="041" ind1="0" ind2=" ">
+      <subfield code="a">per</subfield>
+      <subfield code="a">eng</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="6">880-01</subfield>
+      <subfield code="a">Farhang-i Fārsī va Ingilīsī.</subfield>
+    </datafield>
+    <datafield tag="880" ind1="1" ind2="0">
+      <subfield code="6">245-01/(3/r</subfield>
+      <subfield code="a">فرهنگ فارسی و انگلیسی.</subfield>
+    </datafield>
+  </record>
+
 </collection>

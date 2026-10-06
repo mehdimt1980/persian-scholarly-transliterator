@@ -55,7 +55,7 @@ async function main(): Promise<void> {
   }
 
   const records = parseMarcXml(rawXml);
-  console.log(`[Parser] Parsed ${records.length} MARC record(s).\n`);
+  console.log(`[Parser] Parsed ${records.length} MARC record(s) from ${sourceOrigin}.\n`);
 
   for (let idx = 0; idx < records.length; idx++) {
     const rec = records[idx];
@@ -67,15 +67,16 @@ async function main(): Promise<void> {
     const linkedPairs = resolveMarc880Linkages(rec);
     console.log(`Discovered 880 Linkages (${linkedPairs.length}):`);
     for (const pair of linkedPairs) {
+      const linkRaw = pair.linkage ? `$6 ${pair.linkage.raw}` : '[No linkage]';
       console.log(
-        `  - Tag: ${pair.tag} ↔ 880 (occ: ${pair.occurrenceNumber}, linkage: $6 ${pair.linkage.raw})`
+        `  - Tag: ${pair.tag} ↔ 880 (occ: ${pair.occurrenceNumber}, status: ${pair.status}, linkage: ${linkRaw})`
       );
       if (pair.regularField) {
         for (const sf of pair.regularField.subfields) {
           console.log(`      Regular  $${sf.code}: "${sf.value}"`);
         }
       } else {
-        console.log(`      Regular: [None - unlinked occurrence 00 or orphan]`);
+        console.log(`      Regular: [None - status: ${pair.status}]`);
       }
       for (const sf of pair.alternateField.subfields) {
         if (sf.code !== '6') {

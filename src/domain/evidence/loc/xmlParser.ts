@@ -1,4 +1,18 @@
-import { MarcControlField, MarcDataField, MarcRecord, MarcSubfield } from './types';
+import {
+  MarcControlField,
+  MarcDataField,
+  MarcRecord,
+  MarcSubfield,
+  SruDiagnostic,
+  SruResponse
+} from './types';
+
+export class MarcXmlParseError extends Error {
+  constructor(message: string) {
+    super(`[MARCXML Parser] ${message}`);
+    this.name = 'MarcXmlParseError';
+  }
+}
 
 /**
  * Decode XML predefined and numeric character entities.
@@ -33,6 +47,10 @@ function getAttribute(tagSnippet: string, attrName: string): string | undefined 
  * Parse a single `<record>...</record>` XML snippet into a structured `MarcRecord`.
  */
 export function parseSingleMarcXmlRecord(recordXml: string): MarcRecord {
+  if (!recordXml || typeof recordXml !== 'string') {
+    throw new MarcXmlParseError('Cannot parse empty record XML.');
+  }
+
   let leader: string | undefined;
   const controlFields: MarcControlField[] = [];
   const dataFields: MarcDataField[] = [];
@@ -124,14 +142,13 @@ export function parseSingleMarcXmlRecord(recordXml: string): MarcRecord {
 }
 
 /**
- * Parse a MARCXML or SRU response string containing one or more `<record>` elements.
+ * Parse a MARCXML string containing one or more `<record>` elements.
  */
 export function parseMarcXml(xmlString: string): MarcRecord[] {
-  if (!xmlString || typeof xmlString !== 'string') {
+  if (!xmlString || typeof xmlString !== 'string' || xmlString.trim() === '') {
     return [];
   }
 
-  // Match all <record ...> ... </record> blocks (case-insensitive, non-greedy)
   const recordRegex = /<record\b[^>]*>([\s\S]*?)<\/record>/gi;
   const records: MarcRecord[] = [];
   let match: RegExpExecArray | null;
@@ -142,4 +159,84 @@ export function parseMarcXml(xmlString: string): MarcRecord[] {
   }
 
   return records;
+}
+
+/**
+ * Parse an SRU response envelope (<zs:searchRetrieveResponse>).
+ *
+ * Distinguishes:
+ *   - valid records
+ *   - valid empty response (numberOfRecords === 0)
+ *   - server diagnostics (<diag:diagnostic>)
+ *   - malformed/non-XML payloads
+ */
+export function parseSruResponse(xmlString: string): SruResponse {
+  if (!xmlString || typeof xmlString !== 'string' || xmlString.trim() === '') {
+    throw new MarcXmlParseError('Received empty XML string for SRU response.');
+  }
+
+  // Verify XML envelope presence
+  if (!xmlString.includes('<') || !xmlString.includes('>')) {
+    throw new MarcXmlParseError('Malformed response: payload is not valid XML.');
+  }
+
+  // 1. Version
+  let version: string | undefined;
+  const versionMatch = xmlString.match(/<(?:\w+:)?version>([\s\S]*?)<\/(?:\w+:)?version>/i);
+  if (versionMatch) {
+    version = decodeXmlEntities(versionMatch[1].trim());
+  }
+
+  // 2. Number of Records
+  let numberOfRecords = 0;
+  const numRecordsMatch = xmlString.match(/<(?:\w+:)?numberOfRecords>([\s\S]*?)<\/(?:\w+:)?numberOfRecords>/i);
+  if (numRecordsMatch) {
+    const parsedNum = parseInt(numRecordsMatch[1].trim(), 10);
+    if (!Number.isNaN(parsedNum)) {
+      numberOfRecords = parsedNum;
+    }
+  }
+
+  // 3. Diagnostics
+  const diagnostics: SruDiagnostic[] = [];
+  const diagRegex = /<(?:\w+:)?diagnostic\b[^>]*>([\s\S]*?)<\/(?:\w+:)?diagnostic>/gi;
+  let dMatch: RegExpExecArray | null;
+
+  while ((dMatch = diagRegex.exec(xmlString)) !== null) {
+    const diagBody = dMatch[1];
+    const uriMatch = diagBody.match(/<(?:\w+:)?uri>([\s\S]*?)<\/(?:\w+:)?uri>/i);
+    const msgMatch = diagBody.match(/<(?:\w+:)?message>([\s\S]*?)<\/(?:\w+:)?message>/i);
+    const detailsMatch = diagBody.match(/<(?:\w+:)?details>([\s\S]*?)<\/(?:\w+:)?details>/i);
+
+    diagnostics.push({
+      uri: uriMatch ? decodeXmlEntities(uriMatch[1].trim()) : undefined,
+      message: msgMatch ? decodeXmlEntities(msgMatch[1].trim()) : 'Unknown SRU diagnostic',
+      details: detailsMatch ? decodeXmlEntities(detailsMatch[1].trim()) : undefined
+    });
+  }
+
+  // 4. Records
+  const rawRecords: string[] = [];
+  const records: MarcRecord[] = [];
+  const recordRegex = /<record\b[^>]*>([\s\S]*?)<\/record>/gi;
+  let rMatch: RegExpExecArray | null;
+
+  while ((rMatch = recordRegex.exec(xmlString)) !== null) {
+    const recordXml = rMatch[0];
+    rawRecords.push(recordXml);
+    records.push(parseSingleMarcXmlRecord(recordXml));
+  }
+
+  // If numberOfRecords tag was omitted but records are present, sync count
+  if (numRecordsMatch === null && records.length > 0) {
+    numberOfRecords = records.length;
+  }
+
+  return {
+    version,
+    numberOfRecords,
+    diagnostics,
+    records,
+    rawRecords
+  };
 }

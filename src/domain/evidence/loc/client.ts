@@ -1,10 +1,13 @@
 import { RawSourceRecord } from '../connector';
+import { SruDiagnostic } from './types';
+import { parseSruResponse } from './xmlParser';
 
 export interface LocClientOptions {
   baseUrl?: string;
   userAgent?: string;
   timeoutMs?: number;
   maxRetries?: number;
+  allowInsecureHttp?: boolean;
   fetchFn?: typeof fetch;
 }
 
@@ -30,7 +33,20 @@ export class LocRateLimitError extends LocClientError {
   }
 }
 
-const DEFAULT_BASE_URL = 'http://lx2.loc.gov:210/LCDB';
+export class LocSruDiagnosticError extends LocClientError {
+  public readonly diagnostics: SruDiagnostic[];
+
+  constructor(diagnostics: SruDiagnostic[], url?: string) {
+    const summary = diagnostics
+      .map((d) => d.message + (d.details ? ` (${d.details})` : ''))
+      .join('; ');
+    super(`SRU diagnostic error: ${summary}`, 400, url);
+    this.name = 'LocSruDiagnosticError';
+    this.diagnostics = diagnostics;
+  }
+}
+
+export const OFFICIAL_LOC_HTTPS_SRU_URL = 'https://lx2.loc.gov/sru/lcdb';
 const DEFAULT_USER_AGENT = 'PersianScholarlyTransliterator/0.2.0 (research pilot; mailto:mehdi.mt@gmail.com)';
 const DEFAULT_TIMEOUT_MS = 10000;
 const DEFAULT_MAX_RETRIES = 2;
@@ -38,25 +54,46 @@ const DEFAULT_MAX_RETRIES = 2;
 /**
  * Client for official Library of Congress machine-readable catalog services (SRU & MARCXML).
  *
- * Designed with conservative rate limits, bounded queries, and fail-closed error handling.
+ * Operational invariants:
+ *   1. Production requests use the official HTTPS SRU endpoint (https://lx2.loc.gov/sru/lcdb).
+ *   2. Bounded queries (maximumRecords <= 20) with timeout abort controller (10s).
+ *   3. Explicit HTTP 429 rate-limit handling with Retry-After inspection.
+ *   4. Exponential backoff on transient 5xx server or network transport errors.
+ *   5. Strict SRU envelope inspection distinguishing diagnostics, valid zero-results, and malformed XML.
  */
 export class LocClient {
-  private readonly baseUrl: string;
+  public readonly baseUrl: string;
   private readonly userAgent: string;
   private readonly timeoutMs: number;
   private readonly maxRetries: number;
   private readonly fetchFn: typeof fetch;
 
   constructor(options?: LocClientOptions) {
-    this.baseUrl = (options?.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, '');
+    this.baseUrl = (options?.baseUrl ?? OFFICIAL_LOC_HTTPS_SRU_URL).replace(/\/+$/, '');
     this.userAgent = options?.userAgent ?? DEFAULT_USER_AGENT;
     this.timeoutMs = options?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     this.maxRetries = options?.maxRetries ?? DEFAULT_MAX_RETRIES;
     this.fetchFn = options?.fetchFn ?? fetch;
+
+    // Enforce HTTPS for remote endpoints unless explicitly exempted for test mocks or localhost
+    const isMock = options?.fetchFn !== undefined;
+    const isLocal = this.baseUrl.includes('localhost') || this.baseUrl.includes('127.0.0.1');
+    if (!options?.allowInsecureHttp && !isMock && !isLocal && this.baseUrl.startsWith('http://')) {
+      throw new LocClientError(
+        'Insecure HTTP is prohibited for Library of Congress production requests. Use https://lx2.loc.gov/sru/lcdb.',
+        400,
+        this.baseUrl
+      );
+    }
   }
 
   /**
    * Fetch a single MARCXML record by LCCN.
+   *
+   * Invariants:
+   *   - Validates response envelope for SRU diagnostics.
+   *   - Fails with 404 if record is not found.
+   *   - Validates that returned record's LCCN matches requested LCCN.
    */
   public async fetchLccn(lccn: string): Promise<RawSourceRecord<string>> {
     const cleanLccn = lccn.trim().replace(/\s+/g, '');
@@ -71,10 +108,24 @@ export class LocClient {
       throw new LocClientError(`No record found for LCCN "${cleanLccn}".`, 404);
     }
 
-    return {
-      ...records[0],
-      rawIdentifier: cleanLccn
-    };
+    const record = records[0];
+
+    // Validate that returned record's LCCN matches requested query
+    const normRequested = cleanLccn.replace(/\s+/g, '');
+    const normReturned = (record.rawIdentifier ?? '').replace(/\s+/g, '');
+    if (
+      normReturned &&
+      normReturned !== normRequested &&
+      !normReturned.endsWith(normRequested) &&
+      !normRequested.endsWith(normReturned)
+    ) {
+      throw new LocClientError(
+        `LCCN mismatch in LoC response: requested "${cleanLccn}", but returned record has LCCN "${record.rawIdentifier}".`,
+        409
+      );
+    }
+
+    return record;
   }
 
   /**
@@ -101,13 +152,34 @@ export class LocClient {
     const url = `${this.baseUrl}?${params.toString()}`;
     const xmlPayload = await this.executeWithRetry(url);
 
-    return [
-      {
+    // Validate SRU response envelope
+    const sruResponse = parseSruResponse(xmlPayload);
+
+    // Check for server-side SRU diagnostics
+    if (sruResponse.diagnostics.length > 0) {
+      throw new LocSruDiagnosticError(sruResponse.diagnostics, url);
+    }
+
+    // Valid zero-result response
+    if (sruResponse.numberOfRecords === 0 || sruResponse.records.length === 0) {
+      return [];
+    }
+
+    const fetchedAt = new Date().toISOString();
+    const results: RawSourceRecord<string>[] = [];
+
+    for (let i = 0; i < sruResponse.records.length; i++) {
+      const rec = sruResponse.records[i];
+      const rawXml = sruResponse.rawRecords[i] ?? xmlPayload;
+      results.push({
         sourceId: 'LOC',
-        payload: xmlPayload,
-        fetchedAt: new Date().toISOString()
-      }
-    ];
+        rawIdentifier: rec.lccn,
+        payload: rawXml,
+        fetchedAt
+      });
+    }
+
+    return results;
   }
 
   private async executeWithRetry(url: string, attempt = 0): Promise<string> {

@@ -26,7 +26,9 @@ External observations from the Library of Congress catalog represent external ca
 The connector interfaces with the official machine-readable services of the Library of Congress:
 
 1. **Endpoint:** Search/Retrieve via URL (SRU v1.1) service on the Library of Congress Database (LCDB):
-   - Base URL: `http://lx2.loc.gov:210/LCDB`
+   - Production Default Base URL: `https://lx2.loc.gov/sru/lcdb`
+   - Reference: [Library of Congress Z39.50/SRU Gateway](https://www.loc.gov/standards/z3950/lcserver.html)
+   - Production requests require HTTPS. Transport mocks remain injectable for offline deterministic testing.
 2. **Schema:** `recordSchema=marcxml` with `recordPacking=xml`.
 3. **Lookup by LCCN:** Queries using Contextual Query Language (CQL): `bath.lccn="{lccn}"` with `maximumRecords=1&startRecord=1`.
 4. **Bounded SRU Search:** Queries using arbitrary CQL with bounded page sizes (`maximumRecords <= 20`).
@@ -34,13 +36,18 @@ The connector interfaces with the official machine-readable services of the Libr
 
 ---
 
-## 3. Pure MARCXML Parsing Architecture
+## 3. Pure MARCXML Parsing & SRU Response Validation
 
-MARCXML records are parsed using a pure TypeScript, zero-dependency parser ([`xmlParser.ts`](file:///d:/persian-scholarly-transliterator/src/domain/evidence/loc/xmlParser.ts)):
+MARCXML records and SRU responses are parsed using a pure TypeScript, zero-dependency parser ([`xmlParser.ts`](file:///d:/persian-scholarly-transliterator/src/domain/evidence/loc/xmlParser.ts)):
 
 - **XXE Prevention:** Implements a direct character/regex scanner with zero external entity resolution, eliminating XML External Entity (XXE) attack vectors.
 - **Entity Decoding:** Automatically decodes XML predefined entities (`&amp;`, `&lt;`, `&gt;`, `&quot;`, `&apos;`) and numeric character entities (`&#x1E25;` $\rightarrow$ `ḥ`, `&#x6AF;` $\rightarrow$ `گ`, `&#x200C;` $\rightarrow$ ZWNJ).
-- **Envelope Handling:** Seamlessly parses both standalone `<record>` documents and multi-record SRU `<zs:searchRetrieveResponse>` envelopes.
+- **Envelope & Diagnostic Validation:**
+  - Explicitly inspects `numberOfRecords`.
+  - Detects and parses SRU diagnostics (`<zs:diagnostics>`), surfacing `LocSruDiagnosticError` with diagnostic URI, message, and detail.
+  - Distinguishes valid zero-result queries (`numberOfRecords == 0`) from protocol failures and malformed payloads.
+  - Verifies that `fetchLccn` returns a record whose `001`/`010` identifier matches the requested LCCN.
+  - Rejects truncated or malformed XML by throwing `MarcXmlParseError` rather than silently returning partial or empty records.
 
 ---
 
@@ -58,10 +65,15 @@ Where:
 - `NN` is the 2-digit occurrence number (`01` through `99`).
 - `(script-id)/(orientation)` is the script identification (e.g. `(3/r` for Arabic right-to-left script).
 
-### Resolution Invariants
-1. **Strict Keyed Matching:** Fields are linked exclusively by `(associatedTag, occurrenceNumber)`. Fields are **never** paired by array order or proximity.
-2. **Occurrence `00` Support:** An 880 field with occurrence number `00` indicates an unlinked alternate graphic field with no regular counterpart. The connector extracts this as Persian evidence with `observedRomanization: null`. No transliteration is ever fabricated.
-3. **Mismatched Occurrences:** If tags or occurrence numbers mismatch (e.g. regular `880-02` vs alternate `245-03`), linkage fails closed and fields are not paired.
+### Linkage Classification & Evidence Extraction Semantics
+
+| Linkage Status | Condition | Evidence Extraction Behavior |
+| :--- | :--- | :--- |
+| `MATCHED` | Regular field and 880 field match on `(associatedTag, occurrenceNumber)` | Extracts linked paired observation (`observedText` + `observedRomanization`). |
+| `OCCURRENCE_00` | 880 field with occurrence number `00` (`$6 TTT-00`) | Extracts Persian-only observation with `observedRomanization: null`. |
+| `UNMATCHED_NONZERO` | Regular or 880 field has nonzero occurrence without valid counterpart | **Fails closed.** Suppresses lexical evidence extraction; linkage diagnostic is inspectable. |
+| `AMBIGUOUS_DUPLICATE` | Multiple regular or 880 fields share the same linkage key | **Fails closed.** Suppresses lexical evidence extraction; does not arbitrarily select one field. |
+| `MALFORMED_LINKAGE` | Subfield `$6` syntax is malformed | **Fails closed.** Suppresses lexical evidence extraction. |
 
 ---
 
@@ -98,10 +110,12 @@ To prevent non-Persian records or corrupted linkages from entering the repositor
 
 1. **Record-Level Language Evidence:**
    - Fixed-field `008` (bytes 35-37) must equal `per`.
-   - Alternatively, field `041` (`$a`, `$d`, `$e`, `$h`, `$j`) or field `546$a` must positively identify Persian.
-   - Records lacking positive Persian language evidence (e.g. Arabic `ara`, Ottoman Turkish `ota`) are conservatively skipped.
-2. **Script Direction Validation:**
+   - Content language subfields in `041` (`$a` primary/content language, `$d` sung/spoken, `$e` libretto, `$j` subtitles) or an unambiguous `546$a` language note.
+   - **Translation vs. Content Distinction:** Subfield `041$h` designates original source language before translation. A record with `041$a=ara` and `041$h=per` represents an Arabic translation of a Persian work; its cataloged content is Arabic and it is strictly rejected.
+   - Records lacking affirmative Persian content language (e.g. pure Arabic `ara`, Ottoman Turkish `ota`) are conservatively skipped.
+2. **Script Direction & Distinction:**
    - The alternate graphic field must contain actual Arabic/Persian script characters (`containsArabicScript(text) === true`).
+   - Arabic-script text is not classified as Persian based solely on Unicode script; affirmative language metadata is mandatory.
    - The regular field must contain Latin romanization characters.
    - Alternate scripts in Cyrillic, Hebrew, CJK, etc. are rejected.
    - Pairs where both sides are Arabic or both sides are Latin are rejected.
@@ -116,15 +130,17 @@ Observations are extracted with absolute fidelity to the source catalog record:
 
 ---
 
-## 8. Network Safety & Rate Limiting
+## 8. Network Safety & Bounded Transport
 
-The HTTP client ([`client.ts`](file:///d:/persian-scholarly-transliterator/src/domain/evidence/loc/client.ts)) incorporates strict production safeguards:
+The HTTP client ([`client.ts`](file:///d:/persian-scholarly-transliterator/src/domain/evidence/loc/client.ts)) incorporates production safeguards:
 
-- **Bounded Concurrency & Page Limits:** Caps requests to `maximumRecords <= 20`.
+- **HTTPS Enforcement:** Production requests are restricted to HTTPS.
+- **Bounded Page Limits:** Caps SRU queries to `maximumRecords <= 20`.
 - **Safety Timeouts:** Default 10-second timeout via `AbortController`.
-- **HTTP 429 Handling:** Throws `LocRateLimitError` and extracts `Retry-After` header values.
-- **Exponential Backoff:** Up to 2 retries on transient network errors.
-- **User-Agent:** Identifies the client per LoC guidelines (`PersianScholarlyTransliterator/0.2.0 (research pilot; mailto:mehdi.mt@gmail.com)`).
+- **HTTP 429 Handling:** Detects HTTP 429 Rate Limiting responses, throws `LocRateLimitError`, and surfaces `Retry-After` header values.
+- **Exponential Backoff:** Retries transient network/5xx errors (up to 2 retries) with exponential delay.
+- **User-Agent Identification:** Complies with LoC guidelines by sending descriptive identification (`PersianScholarlyTransliterator/0.2.0 (research pilot; mailto:mehdi.mt@gmail.com)`).
+- **Scope Note:** The pilot client provides bounded request execution and transient error recovery. High-throughput crawling or distributed rate scheduling is out of scope for the pilot connector.
 
 ---
 
@@ -133,9 +149,9 @@ The HTTP client ([`client.ts`](file:///d:/persian-scholarly-transliterator/src/d
 Unit and regression tests run 100% offline using verified, genuine Library of Congress records:
 
 - [`2016404617.marcxml.xml`](file:///d:/persian-scholarly-transliterator/src/domain/evidence/loc/fixtures/2016404617.marcxml.xml): Saʻdī manuscript of *Kitāb-i Gulistān* (LCCN 2016404617).
-- [`2002341405.marcxml.xml`](file:///d:/persian-scholarly-transliterator/src/domain/evidence/loc/fixtures/2002341405.marcxml.xml): Modern bibliography *Fihrist-i kitābhā-yi chāpī-i Fārsī* (LCCN 2002341405).
+- [`2002341405.marcxml.xml`](file:///d:/persian-scholarly-transliterator/src/domain/evidence/loc/fixtures/2002341405.marcxml.xml): Medical treatise *Mīzān al-ṭibb* by Muḥammad Akbar Shāh Arzānī (LCCN 2002341405).
 - [`2025364468.marcxml.xml`](file:///d:/persian-scholarly-transliterator/src/domain/evidence/loc/fixtures/2025364468.marcxml.xml): Illustrated lithograph serials *Dawrah-ʼi rūznāmahʼhā-yi Sharaf va Sharāfat* (LCCN 2025364468).
-- [`syntheticEdgeCases.marcxml.xml`](file:///d:/persian-scholarly-transliterator/src/domain/evidence/loc/fixtures/syntheticEdgeCases.marcxml.xml): Synthetic edge cases for testing occurrence mismatches, orphan 00 fields, Cyrillic script, and missing language metadata.
+- [`syntheticEdgeCases.marcxml.xml`](file:///d:/persian-scholarly-transliterator/src/domain/evidence/loc/fixtures/syntheticEdgeCases.marcxml.xml): Synthetic edge cases for testing occurrence mismatches, unlinked occurrence 00 fields, ambiguous duplicate linkages, malformed `$6` subfields, translation source `041$h` exclusion, misleading `546` notes, Cyrillic script, and missing language metadata.
 
 ---
 
@@ -158,3 +174,4 @@ npm run evidence:loc:pilot -- --fixture src/domain/evidence/loc/fixtures/2016404
 - **Phase 5C (Alignment & Candidate Extraction):** Will handle multi-word token alignment and candidate synthesis.
 - **Phase 5D (Scheme Normalization):** Will handle deterministic ALA-LC to IJMES transliteration mapping.
 - **Phase 5E (Human Adjudication):** Will provide human review workflows for promoting candidates to authoritative lexicon entries.
+
