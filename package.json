@@ -20,7 +20,8 @@
     "validate:v2-regression": "tsx src/validation/v2/frozenRegressionCli.ts",
     "validate:portability": "tsx src/validation/release/releasePortabilityCli.ts",
     "evidence:loc:pilot": "tsx src/domain/evidence/loc/cli.ts",
-    "evidence:alignment:pilot": "tsx src/domain/evidence/alignment/cli.ts"
+    "evidence:alignment:pilot": "tsx src/domain/evidence/alignment/cli.ts",
+    "evidence:scheme:pilot": "tsx src/domain/evidence/scheme/cli.ts"
   },
   "dependencies": {
     "next": "16.3.8",
