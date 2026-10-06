@@ -143,6 +143,19 @@ export default function MethodPage() {
         </div>
       </section>
 
+      {/* Section 7: Workspace Persistence */}
+      <section className="editorial-section">
+        <h2 className="editorial-heading">Workspace persistence & research privacy</h2>
+        <div className="editorial-body">
+          <p>
+            Current work in the single transliteration and bibliography workspaces is stored locally in this browser using IndexedDB so you can move between sections or return later without losing your research state.
+          </p>
+          <p>
+            No user account, cloud synchronization, or server-side database is used for persistence. Assistant requests are transmitted only when you explicitly invoke assistance.
+          </p>
+        </div>
+      </section>
+
       {/* Future-Facing Note */}
       <div className="future-note">
         <strong>Implementation Note:</strong> Current evidence integration is intentionally conservative. The implemented external-source pilot uses Library of Congress records. Multi-source authority expansion is planned separately.
