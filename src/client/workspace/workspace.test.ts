@@ -7,19 +7,8 @@ import {
   toPersistedAcceptedPhraseDecision,
   fromPersistedAcceptedPhraseDecision
 } from './validation';
-import {
-  createDefaultTransliterationWorkspace,
-  createDefaultBibliographyWorkspace
-} from './defaults';
 import { OperationQueue } from './operationQueue';
 import { transliterationQueue, bibliographyQueue } from './workspaceRepository';
-import { transliterate } from '../../domain/engine';
-import {
-  resolveSelectedTransliteration,
-  buildPhraseResolverRequest,
-  computePhraseRequestFingerprint
-} from '../../domain/assistance';
-import { processBibliographyBatch } from '../../domain/bibliography/processBatch';
 import type { ReviewDecision } from '../../domain/types';
 import type { AcceptedPhraseDecision } from '../../domain/assistance/phraseTypes';
 import type { BibliographyRecord } from '../../domain/bibliography/types';
