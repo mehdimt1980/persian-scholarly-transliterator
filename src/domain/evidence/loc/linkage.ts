@@ -22,8 +22,8 @@ export function parseSubfield6(value: string): ParsedSubfield6 | null {
   if (!value || typeof value !== 'string') return null;
   const trimmed = value.trim();
 
-  // Pattern: tag (3 digits), hyphen, occurrence (2 digits or more), optional slash and params
-  const match = trimmed.match(/^(\d{3})-(\d{2,3})(?:\/([^/]+)(?:\/([^/]+))?)?$/);
+  // Pattern: tag (3 digits), hyphen, occurrence (exactly 2 digits), optional slash and params
+  const match = trimmed.match(/^(\d{3})-(\d{2})(?:\/([^/]+)(?:\/([^/]+))?)?$/);
   if (!match) return null;
 
   const linkingTag = match[1];

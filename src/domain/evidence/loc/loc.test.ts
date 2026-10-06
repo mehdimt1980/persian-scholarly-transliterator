@@ -165,7 +165,7 @@ describe('Library of Congress Pilot Evidence Connector', () => {
   });
 
   describe('3. MARC $6 Linkage Parsing & Hardened Semantics', () => {
-    it('parses valid $6 formats correctly', () => {
+    it('parses valid 2-digit $6 formats correctly', () => {
       const p1 = parseSubfield6('880-01');
       expect(p1).toEqual({
         linkingTag: '880',
@@ -183,6 +183,87 @@ describe('Library of Congress Pilot Evidence Connector', () => {
         orientationCode: 'r',
         raw: '100-01/(3/r'
       });
+
+      const p3 = parseSubfield6('245-00/(3/r');
+      expect(p3).toEqual({
+        linkingTag: '245',
+        occurrenceNumber: '00',
+        scriptCode: '3',
+        orientationCode: 'r',
+        raw: '245-00/(3/r'
+      });
+
+      const p4 = parseSubfield6('700-70');
+      expect(p4).toEqual({
+        linkingTag: '700',
+        occurrenceNumber: '70',
+        scriptCode: undefined,
+        orientationCode: undefined,
+        raw: '700-70'
+      });
+    });
+
+    it('rejects 1-digit and 3-digit occurrence numbers as invalid $6 syntax', () => {
+      // 1-digit occurrences must fail
+      expect(parseSubfield6('880-1')).toBeNull();
+      expect(parseSubfield6('245-3/(3/r')).toBeNull();
+
+      // 3-digit occurrences must fail
+      expect(parseSubfield6('880-001')).toBeNull();
+      expect(parseSubfield6('245-123/(3/r')).toBeNull();
+      expect(parseSubfield6('700-999')).toBeNull();
+    });
+
+    it('does not extract lexical evidence when occurrence number is 1-digit or 3-digit', () => {
+      const rec1Digit: MarcRecord = {
+        controlFields: [{ tag: '008', value: '260101s2026    xx            000 u per d' }],
+        dataFields: [
+          {
+            tag: '245',
+            ind1: '1',
+            ind2: '0',
+            subfields: [
+              { code: '6', value: '880-1' },
+              { code: 'a', value: 'Kitāb' }
+            ]
+          },
+          {
+            tag: '880',
+            ind1: '1',
+            ind2: '0',
+            subfields: [
+              { code: '6', value: '245-1/(3/r' },
+              { code: 'a', value: 'کتاب' }
+            ]
+          }
+        ]
+      };
+      expect(extractEvidenceFromMarcRecord(rec1Digit).length).toBe(0);
+
+      const rec3Digit: MarcRecord = {
+        controlFields: [{ tag: '008', value: '260101s2026    xx            000 u per d' }],
+        dataFields: [
+          {
+            tag: '245',
+            ind1: '1',
+            ind2: '0',
+            subfields: [
+              { code: '6', value: '880-001' },
+              { code: 'a', value: 'Kitāb' }
+            ]
+          },
+          {
+            tag: '880',
+            ind1: '1',
+            ind2: '0',
+            subfields: [
+              { code: '6', value: '245-001/(3/r' },
+              { code: 'a', value: 'کتاب' }
+            ]
+          }
+        ]
+      };
+      expect(extractEvidenceFromMarcRecord(rec3Digit).length).toBe(0);
     });
 
     it('correctly classifies MATCHED pairs on genuine Saʻdī record (2016404617)', () => {
