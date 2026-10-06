@@ -20,6 +20,7 @@ export type AcquisitionCategory =
 
 export type ProposedProfile =
   | 'ijmes_full'
+  | 'ijmes_citation_title'
   | 'ijmes_title';
 
 export type AcquisitionSourceKind =

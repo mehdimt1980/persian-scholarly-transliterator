@@ -626,7 +626,7 @@ describe('Phase 4.6A External Benchmark Corpus Acquisition Framework', () => {
     const bibCandidate: ExternalCorpusCandidate = {
       id: 'cand-bib-01',
       sourceText: 'تاریخ بیداری ایرانیان',
-      proposedProfile: 'ijmes_title',
+      proposedProfile: 'ijmes_citation_title',
       category: 'BOOK_TITLE',
       reviewStatus: 'PENDING_HUMAN_REVIEW',
       independenceClass: 'FULLY_EXTERNAL',

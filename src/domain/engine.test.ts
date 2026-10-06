@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { transliterate } from './engine';
+import { ProfileId } from './types';
 
-const ruleIds = (source: string, profile: 'ijmes_full' | 'ijmes_title' = 'ijmes_full') => transliterate(source, profile).tokens[0].appliedRules.map((rule) => rule.id);
+const ruleIds = (source: string, profile: ProfileId = 'ijmes_full') => transliterate(source, profile).tokens[0].appliedRules.map((rule) => rule.id);
 
 describe('canonical IJMES scholarly characters', () => {
   it('drops initial hamza in canonical/full output', () => expect(transliterate('امر').output).toBe('amr'));
-  it('drops initial hamza in title output', () => expect(transliterate('امر', 'ijmes_title').output).toBe('Amr'));
+  it('drops initial hamza in citation title output', () => expect(transliterate('امر', 'ijmes_citation_title').output).toBe('Amr'));
   it('preserves non-initial hamza as Unicode ʾ', () => { expect(transliterate('تأملی').output).toBe('taʾammulī'); expect(ruleIds('تأملی')).toContain('IJMES-P-NONINITIAL-HAMZA'); });
   it('preserves ʿayn as distinct Unicode ʿ', () => { expect(transliterate('علم').output).toBe('ʿilm'); expect(transliterate('علم').output).not.toContain("'"); });
   it('preserves long ā, ī, and ū in full output', () => expect(transliterate('ایران فقیه دور').output).toBe('īrān faqīh dūr'));

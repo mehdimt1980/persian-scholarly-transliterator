@@ -5,7 +5,7 @@ import { OpenAiPhraseResolverProvider } from './openaiPhraseProvider';
 
 describe('OpenAiPhraseResolverProvider', () => {
   it('uses Responses API structured output with store=false and validates the returned phrase proposal', async () => {
-    const deterministic = transliterate('واژه دیگر', 'ijmes_title');
+    const deterministic = transliterate('واژه دیگر', 'ijmes_citation_title');
     const request = buildPhraseResolverRequest(deterministic);
 
     let counter = 0;

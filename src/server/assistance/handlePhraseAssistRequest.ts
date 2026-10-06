@@ -26,7 +26,7 @@ const reviewDecisionSchema = z.object({
 
 const phraseRequestSchema = z.object({
   input: z.string().min(1).max(MAX_PHRASE_INPUT_CHARACTERS),
-  profile: z.enum(['ijmes_full', 'ijmes_title']).default('ijmes_full'),
+  profile: z.enum(['ijmes_full', 'ijmes_citation_title']).default('ijmes_full'),
   reviewDecisions: z.array(reviewDecisionSchema).max(128).default([])
 }).strict();
 

@@ -32,7 +32,7 @@
         "fields": {
           "title": {
             "disposition": "FINAL",
-            "finalText": "Tarikh-i Mashruta"
+            "finalText": "Tārīkh-i Mashrūṭa"
           },
           "authors.0.literal": {
             "disposition": "FINAL",

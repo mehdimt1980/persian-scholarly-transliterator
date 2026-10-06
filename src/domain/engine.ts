@@ -4,7 +4,7 @@ import { normalizePersian } from './normalization';
 import { analyzeOrthography } from './orthography';
 import { analyzeMorphology } from './morphology/analyzeMorphology';
 import { resolveMorphologicalToken } from './morphology/resolveMorphology';
-import { applyTitleProfile } from './profiles';
+import { applyTitleProfile, SUPPORTED_PROFILES } from './profiles';
 import { RULES } from './provenance';
 import { analyzeRelations } from './relations';
 import { tokenize } from './tokenizer';
@@ -309,6 +309,9 @@ export function transliterate(
   reviewDecisions: ReviewDecision[] = [],
   lexicon: LexiconRepository = DEFAULT_LEXICON_REPOSITORY
 ): TransliterationResult {
+  if (!SUPPORTED_PROFILES.includes(profile)) {
+    throw new Error(`Unsupported profile: ${profile}`);
+  }
   lexicon.assertValid();
   const normalization = normalizePersian(input);
 
@@ -406,7 +409,7 @@ export function transliterate(
     }
   }
 
-  if (profile === 'ijmes_title') {
+  if (profile === 'ijmes_citation_title') {
     applyTitleProfile(finalTokens);
   }
 

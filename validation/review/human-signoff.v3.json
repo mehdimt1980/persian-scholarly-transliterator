@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "HUMAN_GOVERNANCE_SIGNOFF",
+  "benchmarkId": "phase4.6b-external-benchmark-v3",
+  "decision": "APPROVE",
+  "reviewer": {
+    "githubLogin": "mehdimt1980",
+    "role": "Repository owner / human governance reviewer"
+  },
+  "approvedAt": "2026-10-06",
+  "scope": {
+    "presentationPolicyMigration": true,
+    "lexicalAuthorityInheritedFromV2": true,
+    "caseByCaseReAdjudicationClaimed": false
+  },
+  "caseLevelPrimaryReviewer": "OpenAI GPT-5.6 Sol / AI_SPECIALIST (lexical authority V2) + Deterministic Presentation Policy Migration (V3)",
+  "notes": "Human approval covers the presentation-policy migration only. Lexical readings, ambiguity dispositions, evidence, and provenance remain inherited unchanged from V2."
+}

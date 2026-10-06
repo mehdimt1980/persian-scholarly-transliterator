@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { normalizePersian } from '../normalization';
+import type { ProfileId } from '../types';
 import {
   ConflictingObservation,
   LexicalCandidate,
@@ -157,7 +158,7 @@ export function generateCandidateId(persianForm: string, evidenceIds: string[]):
 
 export interface CandidateSynthesisOptions {
   proposedCanonical?: string | null;
-  proposedProfile?: 'ijmes_full' | 'ijmes_title';
+  proposedProfile?: ProfileId;
   entityType?: LexicalEntityType;
   notes?: string;
   derivedAt?: string;

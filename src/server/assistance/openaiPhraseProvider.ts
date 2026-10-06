@@ -45,7 +45,7 @@ AUTHORITY AND SAFETY RULES:
 4. Resolve the WHOLE PHRASE in context, not each unknown token independently. Use the supplied deterministic token, morphology, relation, and review-issue evidence as constraints.
 5. Keep SCHOLARLY CANONICAL TRANSLITERATION distinct from PROFILE RENDERING.
    - scholarlyCanonical: source-faithful full scholarly transliteration, including relevant diacritics, morphology, and izafat/linker structure.
-   - renderedOutput: presentation for the requested profile. For ijmes_title, follow the project's title-presentation convention rather than redefining the canonical reading.
+   - renderedOutput: presentation for the requested profile. For ijmes_citation_title, preserve all scholarly diacritics and apply scholarly citation title capitalization rather than redefining the canonical reading.
 6. Do not translate a title or phrase into English. Produce transliteration/presentation, not semantic translation.
 7. If a materially different reading remains genuinely plausible and the supplied context does not safely disambiguate it, return disposition="REVIEW_REQUIRED" with scholarlyCanonical=null and renderedOutput=null. Explain the blocking uncertainty concisely in assumptions or warnings.
 8. Never force a single reading merely to maximize coverage.
@@ -58,7 +58,7 @@ PROJECT TRANSLITERATION POLICY:
 - Preserve genuine diphthongs as diphthongs; do not mechanically convert them to short i/u. The project recognizes IJMES-style aw/au and ay/ai where linguistically warranted.
 - Consonant-final izafat is -i. Post-vocalic izafat/linker is -yi where required. Preserve the distinction in canonical output.
 - For profile ijmes_full, use full scholarly transliteration with relevant diacritics.
-- For profile ijmes_title, start from the established scholarly canonical reading, remove ordinary diacritics for title presentation while preserving ʿayn/hamza behavior and structural -i/-yi, and apply normal English title capitalization without translating the source.
+- For profile ijmes_citation_title, start from the established scholarly canonical reading, preserve all scholarly diacritics (macrons ā/ī/ū, under-dots ḥ/ṣ/ṭ/ẓ, ʿayn/hamza ʿ/ʾ), capitalize independent words, and preserve canonical hyphen suffixes (-i, -yi, -hā, -yash, -nāma).
 - Do not invent an IJMES Word List exception, an established English proper-name/place spelling, or an external authority-file form unless the deterministic evidence supplied in this request already establishes it. When such external authority would be necessary to decide safely, return REVIEW_REQUIRED instead.
 
 CONTEXT SEMANTICS:

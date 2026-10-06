@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ProfileId } from '../../domain/types';
 import { containsArabicScript } from '../../domain/bibliography/scriptDetection';
 import {
   ReviewIssueTypeSchema,
@@ -9,7 +10,8 @@ import {
 import {
   ScholarlyValidationCaseV2,
   ScholarlyValidationExpectationV2,
-  SingleValidationCorpusV2
+  SingleValidationCorpusV2,
+  ValidationV2ProfileId
 } from './types';
 
 function validateTransliterationString(
@@ -56,7 +58,7 @@ export const ScholarlyValidationExpectationV2Schema = z.object({
 export const ScholarlyValidationCaseV2Schema = z.object({
   id: z.string().min(1, 'Case ID must not be empty'),
   input: z.string().min(1, 'Input must not be empty'),
-  profile: z.enum(['ijmes_full', 'ijmes_title']),
+  profile: z.enum(['ijmes_full', 'ijmes_citation_title', 'ijmes_title']) as z.ZodType<ValidationV2ProfileId>,
   category: ScholarlyCategorySchema,
   expected: ScholarlyValidationExpectationV2Schema,
   provenance: ValidationProvenanceSchema,

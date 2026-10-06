@@ -51,7 +51,7 @@ export function generateAcquisitionReport(
   lines.push('---------------------------------------------------------------');
   lines.push('Proposed Transliteration Profiles:');
   lines.push(`  ijmes_full (lexical/scholarly):        ${coverage.profiles['ijmes_full'] || 0}`);
-  lines.push(`  ijmes_title (books/articles):          ${coverage.profiles['ijmes_title'] || 0}`);
+  lines.push(`  ijmes_citation_title (citation titles): ${(coverage.profiles['ijmes_citation_title'] || 0) + (coverage.profiles['ijmes_title'] || 0)}`);
   lines.push('---------------------------------------------------------------');
   lines.push('Category Breakdown:');
   for (const [cat, count] of Object.entries(coverage.categories)) {

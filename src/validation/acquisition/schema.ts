@@ -38,6 +38,7 @@ export const AcquisitionCategorySchema = z.enum([
 
 export const ProposedProfileSchema = z.enum([
   'ijmes_full',
+  'ijmes_citation_title',
   'ijmes_title'
 ]);
 

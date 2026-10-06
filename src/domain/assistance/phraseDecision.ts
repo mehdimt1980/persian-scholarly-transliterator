@@ -1,4 +1,5 @@
 import type { TransliterationResult } from '../types';
+import { renderCanonicalForProfile } from '../profiles';
 import { validateManualTransliteration } from '../review/validation';
 import { buildPhraseResolverRequest } from './buildPhraseResolverRequest';
 import {
@@ -14,10 +15,10 @@ export function createAcceptedPhraseDecision(
   resolution: PhraseResolution,
   result: TransliterationResult,
   scholarlyCanonical: string,
-  renderedOutput: string,
+  renderedOutput?: string,
   acceptedAt: string = new Date().toISOString()
 ): AcceptedPhraseDecision {
-  if (resolution.disposition !== 'PROPOSED' || !resolution.scholarlyCanonical || !resolution.renderedOutput) {
+  if (resolution.disposition !== 'PROPOSED' || !resolution.scholarlyCanonical) {
     throw new Error('Only a complete PROPOSED phrase resolution can be accepted.');
   }
 
@@ -26,10 +27,10 @@ export function createAcceptedPhraseDecision(
     throw new Error(canonicalValidation.error ?? 'Invalid scholarly canonical transliteration.');
   }
 
-  const renderedValidation = validateManualTransliteration(renderedOutput);
-  if (!renderedValidation.valid || !renderedValidation.normalized) {
-    throw new Error(renderedValidation.error ?? 'Invalid rendered output.');
-  }
+  const derivedRendered = renderCanonicalForProfile(
+    canonicalValidation.normalized,
+    result.profile
+  );
 
   const currentRequest = buildPhraseResolverRequest(result, resolution.promptVersion);
   const currentFingerprint = computePhraseRequestFingerprint(
@@ -42,9 +43,7 @@ export function createAcceptedPhraseDecision(
     throw new Error('The phrase suggestion is stale. Request a fresh phrase analysis before accepting it.');
   }
 
-  const edited =
-    canonicalValidation.normalized !== resolution.scholarlyCanonical ||
-    renderedValidation.normalized !== resolution.renderedOutput;
+  const edited = canonicalValidation.normalized !== resolution.scholarlyCanonical;
 
   return {
     source: 'AI_ASSISTED_PHRASE',
@@ -55,7 +54,7 @@ export function createAcceptedPhraseDecision(
     normalizedInput: result.normalizedInput,
     profile: result.profile,
     scholarlyCanonical: canonicalValidation.normalized,
-    renderedOutput: renderedValidation.normalized,
+    renderedOutput: derivedRendered,
     provider: resolution.provider,
     model: resolution.model,
     promptVersion: resolution.promptVersion,
@@ -84,7 +83,7 @@ export function resolveSelectedTransliteration(
 
   return {
     activePhraseDecision,
-    primary: activePhraseDecision?.scholarlyCanonical ?? result.output,
+    primary: activePhraseDecision ? activePhraseDecision.renderedOutput : result.output,
     profileRendering: activePhraseDecision?.renderedOutput ?? null,
     copyable: Boolean(activePhraseDecision) || result.copyable,
     status: activePhraseDecision ? 'USER_OVERRIDE' : result.status

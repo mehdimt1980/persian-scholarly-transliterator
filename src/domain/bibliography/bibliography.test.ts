@@ -278,9 +278,9 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
       expect(batch.records.length).toBe(3);
       expect(batch.summary.total).toBe(3);
 
-      // r1: "ایران" is in lexicon (īrān -> Iran in title), "شاه" is in lexicon (shāh) -> READY
+      // r1: "ایران" is in lexicon (īrān -> Īrān in title), "شاه" is in lexicon (shāh) -> READY
       const r1 = batch.records.find((r) => r.record.id === 'r1')!;
-      expect(r1.fields['title'].finalText).toBe('Iran');
+      expect(r1.fields['title'].finalText).toBe('Īrān');
       expect(r1.readiness).toBe('READY');
 
       // r3: "کرم" is ambiguous (karm / kirm / karam) -> REVIEW_REQUIRED
@@ -529,7 +529,7 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
           title: {
             fieldPath: 'title',
             sourceText: 'دولت',
-            profile: 'ijmes_title',
+            profile: 'ijmes_citation_title',
             requiresTransliteration: false, // Falsely bypasses transliteration
             finalText: 'دولت',
             status: 'PASSTHROUGH',
@@ -563,9 +563,9 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
           title: {
             fieldPath: 'title',
             sourceText: 'کتاب', // Mismatch from canonical record.title ("دولت")
-            profile: 'ijmes_title',
+            profile: 'ijmes_citation_title',
             requiresTransliteration: true,
-            finalText: 'Kitab',
+            finalText: 'Kitāb',
             status: 'DETERMINISTIC',
             reviewIssues: []
           }
@@ -609,8 +609,8 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
       expect(ris.exportedRecordIds).toEqual(['r1', 'r3']);
       expect(ris.skippedRecordIds).toEqual(['r2']);
       expect(ris.skipReasons['r2']).toBeDefined();
-      expect(ris.content).toContain('TI  - Kitab');
-      expect(ris.content).toContain('TI  - Iran');
+      expect(ris.content).toContain('TI  - Kitāb');
+      expect(ris.content).toContain('TI  - Īrān');
       expect(ris.content).not.toContain('کرم');
       expect(ris.content).not.toContain('⟦');
     });
@@ -732,7 +732,7 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
 
       const expected = [
         'TY  - BOOK',
-        'TI  - Mashruta',
+        'TI  - Mashrūṭa',
         'AU  - shāh',
         'AU  - ṣafavī',
         'ED  - qājār',
@@ -754,7 +754,7 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
       const report = exportToRis(initial, 'STRICT_ALL');
       expect(report.success).toBe(true);
       expect(report.content).toContain('TY  - JOUR');
-      expect(report.content).toContain('TI  - Daulat va Jamiʿa');
+      expect(report.content).toContain('TI  - Daulat Va Jāmiʿa');
       expect(report.content).toContain('T2  - Farhang');
       expect(report.content).toContain('AU  - shāh');
       expect(report.content).toContain('VL  - 13');
@@ -796,7 +796,7 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
       expect(report.success).toBe(true);
 
       const expected = `@book{pst_r_book_1,
-  title = {Mashruta},
+  title = {Mashrūṭa},
   author = {shāh and ṣafavī},
   year = {1380},
   publisher = {daulat},
@@ -814,7 +814,7 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
       expect(report.success).toBe(true);
 
       const expected = `@article{pst_r_art_1,
-  title = {Daulat va Jamiʿa},
+  title = {Daulat Va Jāmiʿa},
   author = {shāh},
   journal = {Farhang},
   year = {1995},
@@ -833,7 +833,7 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
 
       const report = exportToBibTeX(batch, 'STRICT_ALL');
       expect(report.success).toBe(true);
-      expect(report.content).toContain('title = {Kitab}');
+      expect(report.content).toContain('title = {Kitāb}');
       expect(report.content).toContain('note = {Price is \\$5 \\& 10\\% off \\{Special\\\\Value\\}}');
     });
 
@@ -880,7 +880,7 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
         sourceColumns: [],
         passthrough: {}
       });
-      // Artificially tamper profile to ijmes_full instead of ijmes_title
+      // Artificially tamper profile to ijmes_full instead of ijmes_citation_title
       pr.fields.title.profile = 'ijmes_full';
 
       const batch: ProcessedBibliographyBatch = {
@@ -1097,7 +1097,7 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
         passthrough: {}
       });
       // Attach a valid copyable transliteration result generated for 'کتاب' instead of 'دولت'
-      const otherResult = transliterate('کتاب', 'ijmes_title');
+      const otherResult = transliterate('کتاب', 'ijmes_citation_title');
       pr.fields.title.transliterationResult = otherResult;
       pr.fields.title.finalText = otherResult.output;
 
@@ -1132,11 +1132,11 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
         sourceColumns: [],
         passthrough: {}
       });
-      // Generate valid result with ijmes_full and attach to title (which requires ijmes_title)
-      // while keeping field.profile as ijmes_title
+      // Generate valid result with ijmes_full and attach to title (which requires ijmes_citation_title)
+      // while keeping field.profile as ijmes_citation_title
       const fullResult = transliterate('دولت', 'ijmes_full');
       pr.fields.title.transliterationResult = fullResult;
-      pr.fields.title.profile = 'ijmes_title';
+      pr.fields.title.profile = 'ijmes_citation_title';
       pr.fields.title.finalText = fullResult.output;
 
       const batch: ProcessedBibliographyBatch = {
@@ -1156,6 +1156,81 @@ describe('Phase 4 Batch Bibliography Processing and Scholarly Exports', () => {
       const bibtexReport = exportToBibTeX(batch, 'STRICT_ALL');
       expect(bibtexReport.success).toBe(false);
       expect(bibtexReport.diagnostics.some((d) => d.code === 'TRANSLITERATION_RESULT_PROFILE_MISMATCH')).toBe(true);
+    });
+  });
+
+  describe('Scholarly Citation Title Diacritic Preservation in Bibliography Exports (Section 27)', () => {
+    it('preserves full scholarly diacritics in title fields across Review CSV, Final CSV, RIS, and BibTeX', () => {
+      const record: BibliographyRecord = {
+        id: 'rec_zaval_001',
+        type: 'BOOK',
+        title: 'زوال اندیشه سیاسی در ایران',
+        authors: [{ literal: 'شاه' }],
+        editors: [],
+        translators: [],
+        year: '2000',
+        publisher: 'دولت',
+        place: 'تهران',
+        sourceRowIndex: 1,
+        sourceColumns: [],
+        passthrough: {}
+      };
+
+      const processed = processBibliographyRecord(record);
+      // Verify processed title field policy uses ijmes_citation_title
+      expect(processed.fields.title.profile).toBe('ijmes_citation_title');
+
+      // Human-resolved field with Zavāl-i Andīshah-i Siyāsī Dar Īrān
+      processed.fields.title.finalText = 'Zavāl-i Andīshah-i Siyāsī Dar Īrān';
+      processed.fields.title.status = 'USER_OVERRIDE';
+      processed.readiness = 'READY';
+      processed.fields.title.transliterationResult = {
+        originalInput: 'زوال اندیشه سیاسی در ایران',
+        normalizedInput: 'زوال اندیشه سیاسی در ایران',
+        normalizationChanges: [],
+        profile: 'ijmes_citation_title',
+        output: 'Zavāl-i Andīshah-i Siyāsī Dar Īrān',
+        copyable: true,
+        status: 'USER_OVERRIDE',
+        tokens: [],
+        analyses: [],
+        morphology: [],
+        relations: [],
+        reviewIssues: [],
+        appliedDecisions: [],
+        staleDecisions: [],
+        reviewReasons: [],
+        warnings: []
+      };
+
+      const batch: ProcessedBibliographyBatch = {
+        records: [processed],
+        summary: { total: 1, ready: 1, reviewRequired: 0, invalid: 0 },
+        diagnostics: []
+      };
+
+      // 1. Review CSV
+      const reviewCsv = exportReviewCsv(batch);
+      expect(reviewCsv.content).toContain('Zavāl-i Andīshah-i Siyāsī Dar Īrān');
+      expect(reviewCsv.content).not.toContain('Zaval-i Andishah-i Siyasi Dar Iran');
+
+      // 2. Final CSV
+      const finalCsv = exportFinalCsv(batch, 'STRICT_ALL');
+      expect(finalCsv.success).toBe(true);
+      expect(finalCsv.content).toContain('Zavāl-i Andīshah-i Siyāsī Dar Īrān');
+      expect(finalCsv.content).not.toContain('Zaval-i Andishah-i Siyasi Dar Iran');
+
+      // 3. RIS
+      const ris = exportToRis(batch, 'STRICT_ALL');
+      expect(ris.success).toBe(true);
+      expect(ris.content).toContain('TI  - Zavāl-i Andīshah-i Siyāsī Dar Īrān');
+      expect(ris.content).not.toContain('Zaval-i Andishah-i Siyasi Dar Iran');
+
+      // 4. BibTeX
+      const bibtex = exportToBibTeX(batch, 'STRICT_ALL');
+      expect(bibtex.success).toBe(true);
+      expect(bibtex.content).toContain('title = {Zavāl-i Andīshah-i Siyāsī Dar Īrān}');
+      expect(bibtex.content).not.toContain('Zaval-i Andishah-i Siyasi Dar Iran');
     });
   });
 });

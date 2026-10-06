@@ -38,13 +38,16 @@ export default function MethodPage() {
 
       {/* Section 1: Deterministic transliteration */}
       <section className="editorial-section">
-        <h2 className="editorial-heading">Deterministic transliteration</h2>
+        <h2 className="editorial-heading">Deterministic transliteration & citation presentation</h2>
         <div className="editorial-body">
           <p>
             The transliterator is designed around reproducibility: the <strong>exact same scholarly input and review decisions always produce the exact same transliterated output</strong>.
           </p>
           <p>
-            Standard rules follow the guidelines of the <em>International Journal of Middle East Studies</em> (IJMES). Normalization handles zero-width non-joiners (ZWNJ), explicit diacritics, and Persian orthographic variations without destructive side effects.
+            The project uses IJMES-compatible Persian transliteration conventions for scholarly canonical forms. Normalization handles zero-width non-joiners (ZWNJ), explicit diacritics, and Persian orthographic variations without destructive side effects.
+          </p>
+          <p>
+            For bibliographic book/article titles, the application uses a <strong>scholarly citation-title presentation profile</strong> (<code>ijmes_citation_title</code>) that <strong>preserves full scholarly diacritics</strong> (e.g. <em>ā, ī, ū, ḥ, ṣ, ṭ, ẓ, ż, ʿ, ʾ</em>) and applies citation-title capitalization (e.g., <em>Zavāl-i Andīshah-i Siyāsī Dar Īrān</em>). This is intentionally distinct from the publication house style of the journal <em>IJMES</em>, ensuring full fidelity for bibliographies, dissertations, and research databases.
           </p>
         </div>
       </section>

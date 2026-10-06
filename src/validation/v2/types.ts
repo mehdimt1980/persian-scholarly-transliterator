@@ -38,13 +38,15 @@ export interface ScholarlyValidationExpectationV2 {
   forbiddenIssueTypes?: ReviewIssueType[];
 }
 
+export type ValidationV2ProfileId = ProfileId | 'ijmes_title';
+
 /**
  * Individual test case under the Validation V2 contract.
  */
 export interface ScholarlyValidationCaseV2 {
   id: string;
   input: string;
-  profile: ProfileId;
+  profile: ValidationV2ProfileId;
   category: ScholarlyCategory;
   expected: ScholarlyValidationExpectationV2;
   provenance: ValidationProvenance;
@@ -83,7 +85,7 @@ export interface SingleValidationCorpusV2 {
 export interface CaseEvaluationResultV2 {
   caseId: string;
   input: string;
-  profile: ProfileId;
+  profile: ValidationV2ProfileId;
   category: ScholarlyCategory;
   expectedDisposition: ValidationExpectedDisposition;
 

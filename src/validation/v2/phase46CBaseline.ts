@@ -1,8 +1,9 @@
 import fs from 'node:fs';
 import { transliterate } from '../../domain/engine';
-import { assertFrozenBenchmarkIntegrity, BENCHMARK_PATH } from '../review/goldFreezeV2';
+import { assertFrozenBenchmarkIntegrityV3, BENCHMARK_V3_PATH } from '../review/goldFreezeV3';
 import { validateSingleValidationCorpusV2 } from './schema';
 import { evaluateSingleCaseV2 } from './evaluateCase';
+import type { ProfileId } from '../../domain/types';
 import type { CaseEvaluationResultV2 } from './types';
 import type { ValidationClassification } from '../types';
 
@@ -36,8 +37,8 @@ export interface Phase46CBaselineSummary {
 export interface Phase46CBaselineReport {
   schemaVersion: 1;
   artifactType: 'PHASE_4_6C_FROZEN_BASELINE';
-  benchmarkId: 'phase4.6b-external-benchmark-v2';
-  promotedGoldVersion: '2.0.0';
+  benchmarkId: 'phase4.6b-external-benchmark-v3';
+  promotedGoldVersion: '3.0.0';
   sourceBenchmarkGitBlobSha1: string;
   engineEvaluationPerformed: true;
   results: CaseEvaluationResultV2[];
@@ -52,13 +53,15 @@ function emptyClassificationCounts(): Record<ValidationClassification, number> {
 }
 
 export function runPhase46CFrozenBaseline(): Phase46CBaselineReport {
-  const freeze = assertFrozenBenchmarkIntegrity();
+  const freeze = assertFrozenBenchmarkIntegrityV3();
   const corpus = validateSingleValidationCorpusV2(
-    JSON.parse(fs.readFileSync(BENCHMARK_PATH, 'utf8'))
+    JSON.parse(fs.readFileSync(BENCHMARK_V3_PATH, 'utf8'))
   );
 
   const results = corpus.cases.map((testCase) => {
-    const engineResult = transliterate(testCase.input, testCase.profile);
+    const profile: ProfileId =
+      testCase.profile === 'ijmes_citation_title' ? 'ijmes_citation_title' : 'ijmes_full';
+    const engineResult = transliterate(testCase.input, profile);
     return evaluateSingleCaseV2(testCase, engineResult);
   });
 
@@ -123,7 +126,7 @@ export function runPhase46CFrozenBaseline(): Phase46CBaselineReport {
   return {
     schemaVersion: 1,
     artifactType: 'PHASE_4_6C_FROZEN_BASELINE',
-    benchmarkId: 'phase4.6b-external-benchmark-v2',
+    benchmarkId: 'phase4.6b-external-benchmark-v3',
     promotedGoldVersion: freeze.promotedGoldVersion,
     sourceBenchmarkGitBlobSha1: freeze.sourceBenchmarkGitBlobSha1,
     engineEvaluationPerformed: true,

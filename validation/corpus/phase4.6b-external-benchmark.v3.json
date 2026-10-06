@@ -1,0 +1,4250 @@
+{
+  "schemaVersion": 2,
+  "metadata": {
+    "id": "phase4.6b-external-benchmark-v3",
+    "version": "3.0.0",
+    "description": "108-case external Persian scholarly transliteration benchmark with approved fully diacritized citation-title presentation policy.",
+    "tier": "EXTERNAL_BENCHMARK",
+    "reviewStatus": "AI_SPECIALIST_REVIEWED_PENDING_HUMAN",
+    "reviewer": "OpenAI GPT-5.6 Sol / AI_SPECIALIST",
+    "reviewedAt": "2026-10-05",
+    "reviewNote": "Lexical readings, ambiguity dispositions, and evidence inherited unchanged from human-approved V2 benchmark. V3 applies deterministic presentation-policy migration approved by repository owner, migrating 12 title cases to ijmes_citation_title with normalized lowercase scholarly canonical and fully diacritized word-capitalized rendered output."
+  },
+  "cases": [
+    {
+      "id": "cand-term-001",
+      "input": "نوسازی",
+      "profile": "ijmes_full",
+      "category": "TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "nawsāzī",
+        "renderedOutput": "nawsāzī"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry نوسازی",
+            "locator": "entry نوسازی",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "CITIES iv. Modern Urbanization and Modernization in Persia",
+            "locator": "article headword",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Source-faithful Persian reading; نو is represented with the written diphthong aw. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-term-002",
+      "input": "بازرگانی",
+      "profile": "ijmes_full",
+      "category": "TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "bāzargānī",
+        "renderedOutput": "bāzargānī"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry بازرگانی",
+            "locator": "entry بازرگانی",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "COMMERCE vi. In the Pahlavi Period",
+            "locator": "article headword",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Verified reading; technical-full rendering preserves the scholarly canonical form. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-term-003",
+      "input": "خودکامگی",
+      "profile": "ijmes_full",
+      "category": "TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "khudkāmigī",
+        "renderedOutput": "khudkāmigī"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry خودکامگی",
+            "locator": "entry خودکامگی",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "AUTOCRACY",
+            "locator": "article headword",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Source-faithful khud- plus derived khudkāmigī under IJMES Persian i/u. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-term-004",
+      "input": "مشروطه‌خواهی",
+      "profile": "ijmes_full",
+      "category": "TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "mashrūṭih-khwāhī",
+        "renderedOutput": "mashrūṭih-khwāhī"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry مشروطه‌خواهی",
+            "locator": "entry مشروطه‌خواهی",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "CONSTITUTIONAL REVOLUTION i. Overview",
+            "locator": "article headword",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian tāʾ marbūṭa = ih; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Persian final ه is rendered -ih; the ZWNJ compound boundary is hyphenated. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-term-005",
+      "input": "دیوان‌سالاری",
+      "profile": "ijmes_full",
+      "category": "TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "dīvān-sālārī",
+        "renderedOutput": "dīvān-sālārī"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry دیوان‌سالاری",
+            "locator": "entry دیوان‌سالاری",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "BUREAUCRACY in Modern Iran",
+            "locator": "article headword",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "The ZWNJ compound boundary is retained as a scholarly hyphen. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-term-006",
+      "input": "شاهنشاهی",
+      "profile": "ijmes_full",
+      "category": "TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "shāhanshāhī",
+        "renderedOutput": "shāhanshāhī"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry شاهنشاهی",
+            "locator": "entry شاهنشاهی",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "ŠĀHANŠĀH",
+            "locator": "article headword",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Reading evidence supports shāhanshāh; the derived form is shāhanshāhī. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-term-007",
+      "input": "تجدد",
+      "profile": "ijmes_full",
+      "category": "TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "tajaddud",
+        "renderedOutput": "tajaddud"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry تجدد",
+            "locator": "entry تجدد",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "TAJADDOD",
+            "locator": "opening sentence",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Iranica e/o is not copied; IJMES Persian short-vowel policy yields tajaddud. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-term-008",
+      "input": "شهروندی",
+      "profile": "ijmes_full",
+      "category": "TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "shahrvandī",
+        "renderedOutput": "shahrvandī"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry شهروندی",
+            "locator": "entry شهروندی",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "CITIZENSHIP in Modern Persia",
+            "locator": "article headword",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Verified reading; technical-full rendering preserves the scholarly canonical form. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-term-009",
+      "input": "استعمار",
+      "profile": "ijmes_full",
+      "category": "TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "istiʿmār",
+        "renderedOutput": "istiʿmār"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry استعمار",
+            "locator": "entry استعمار",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "COLONIALISM in Iran",
+            "locator": "article headword",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Arabic-derived Persian term retains ʿayn and long ā. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-term-010",
+      "input": "جهان‌بینی",
+      "profile": "ijmes_full",
+      "category": "TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "jahān-bīnī",
+        "renderedOutput": "jahān-bīnī"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 380",
+            "locator": "p. 380",
+            "note": "Original source label: Steingass; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Source-faithful transliteration is used rather than English translation. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-term-011",
+      "input": "دادگستری",
+      "profile": "ijmes_full",
+      "category": "TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "dādgustarī",
+        "renderedOutput": "dādgustarī"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry دادگستری",
+            "locator": "entry دادگستری",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "JUDICIAL SYSTEM iv. Modern",
+            "locator": "article headword",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "IJMES Persian u is used in gustar rather than another system’s o. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-term-012",
+      "input": "روشنفکری",
+      "profile": "ijmes_full",
+      "category": "TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "rawshanfikrī",
+        "renderedOutput": "rawshanfikrī"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry روشنفکری",
+            "locator": "entry روشنفکری",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "INTELLECTUALS in Modern Persia",
+            "locator": "article headword",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "The written diphthong in روشن is represented as aw. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-term-013",
+      "input": "کارگزاری",
+      "profile": "ijmes_full",
+      "category": "TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "kārguzārī",
+        "renderedOutput": "kārguzārī"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry کارگزاری",
+            "locator": "entry کارگزاری",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "KĀRGOZĀR",
+            "locator": "article headword; observed form kārgozārī",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Iranica reading evidence is converted to IJMES Persian u: kārguzārī. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-term-014",
+      "input": "کشورمندی",
+      "profile": "ijmes_full",
+      "category": "TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "kishvarmandī",
+        "renderedOutput": "kishvarmandī"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 1032",
+            "locator": "p. 1032",
+            "note": "Original source label: Steingass; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "IJMES Persian i/u policy yields kishvarmandī. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-term-015",
+      "input": "میهن‌پرستی",
+      "profile": "ijmes_full",
+      "category": "TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "mihan-parastī",
+        "renderedOutput": "mihan-parastī"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry میهن‌پرستی",
+            "locator": "entry میهن‌پرستی",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "IRANIAN IDENTITY iv. 19th-20th Centuries",
+            "locator": "discussion of mihan-parasti",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Independent reading evidence supports Iranian Persian mihan; the ZWNJ compound boundary is retained. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-rel-001",
+      "input": "اجتهاد",
+      "profile": "ijmes_full",
+      "category": "RELIGIOUS_TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "ijtihād",
+        "renderedOutput": "ijtihād"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry اجتهاد",
+            "locator": "entry اجتهاد",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "EJTEHĀD",
+            "locator": "article headword; observed form ejtehād",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Word List (Cambridge University Press)",
+            "locator": "Word List: ijtihād",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "IJMES Word List confirms ijtihād. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-rel-002",
+      "input": "تقلید",
+      "profile": "ijmes_full",
+      "category": "RELIGIOUS_TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "taqlīd",
+        "renderedOutput": "taqlīd"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry تقلید",
+            "locator": "entry تقلید",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "TAQLĪD",
+            "locator": "article headword; observed form taqlīd",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Reading is established independently; no publication exception applies. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-rel-003",
+      "input": "ولایت فقیه",
+      "profile": "ijmes_full",
+      "category": "RELIGIOUS_TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "vilāyat-i faqīh",
+        "renderedOutput": "vilāyat-i faqīh"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry ولایت فقیه",
+            "locator": "entry ولایت فقیه",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "VELĀYAT-E FAQĪH",
+            "locator": "article headword; observed form velāyat-e faqīh",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Word List (Cambridge University Press)",
+            "locator": "Word List: vilāyat-i faqīh (Persian)",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "IJMES Word List confirms vilāyat-i faqīh and Persian izāfat -i. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-rel-004",
+      "input": "امر به معروف",
+      "profile": "ijmes_full",
+      "category": "RELIGIOUS_TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "amr bih maʿrūf",
+        "renderedOutput": "amr bih maʿrūf"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry امر به معروف",
+            "locator": "entry امر به معروف",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "AMR BE MAʿRŪF",
+            "locator": "article headword; Persian phrase amr be maʿrūf",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Exact Persian surface is retained; به is represented as bih, not expanded into an Arabic formula. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-rel-005",
+      "input": "اهل بیت",
+      "profile": "ijmes_full",
+      "category": "RELIGIOUS_TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "ahl-i bayt",
+        "renderedOutput": "ahl-i bayt"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry اهل بیت",
+            "locator": "entry اهل بیت",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "AHL-E BAYT",
+            "locator": "article headword; observed form ahl-e bayt",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian izafat = -i; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Iranica -e linker is converted to IJMES Persian izāfat -i. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-rel-006",
+      "input": "خمس",
+      "profile": "ijmes_full",
+      "category": "RELIGIOUS_TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "khums",
+        "renderedOutput": "khums"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry خمس",
+            "locator": "entry خمس",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "ḴOMS",
+            "locator": "article headword; observed form ḵoms",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "technical terms fully transliterated; Persian i/u; transliteration chart",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Iranica ḵ/o is converted to IJMES kh/u: khums. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-rel-007",
+      "input": "زکات",
+      "profile": "ijmes_full",
+      "category": "RELIGIOUS_TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "zakāt",
+        "renderedOutput": "zakat"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry زکات",
+            "locator": "entry زکات",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "ZAKĀT",
+            "locator": "article headword; observed form zakāt",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Word List (Cambridge University Press)",
+            "locator": "Word List: zakat",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical preserves long ā; IJMES Word List rendering is zakat. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-rel-008",
+      "input": "عاشورا",
+      "profile": "ijmes_full",
+      "category": "RELIGIOUS_TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "ʿāshūrā",
+        "renderedOutput": "ʿAshuraʾ"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry عاشورا",
+            "locator": "entry عاشورا",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "ʿĀŠŪRĀʾ",
+            "locator": "article headword; identity and historical usage",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Word List (Cambridge University Press)",
+            "locator": "Word List: ʿAshuraʾ",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Persian source has no final hamza; canonical is ʿāshūrā, while IJMES Word List renders ʿAshuraʾ. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-rel-009",
+      "input": "دارالتقریب",
+      "profile": "ijmes_full",
+      "category": "RELIGIOUS_TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "dār al-taqrīb",
+        "renderedOutput": "dār al-taqrīb"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry دارالتقریب",
+            "locator": "entry دارالتقریب",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "DĀR AL-TAQRĪB",
+            "locator": "article headword; observed form dār al-taqrīb",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "definite article al- lowercase; technical terms fully transliterated",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "The exact source phrase is retained; al- remains lowercase. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-rel-010",
+      "input": "حسینیه",
+      "profile": "ijmes_full",
+      "category": "RELIGIOUS_TERM",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "ḥusayniyyih",
+        "renderedOutput": "ḥusayniyyih"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry حسینیه",
+            "locator": "entry حسینیه",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "ḤOSAYNĪYA",
+            "locator": "article headword; observed form ḥosaynīya",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian nisba = -iyyih; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "IJMES Persian nisba rule gives -iyyih; Iranica e/o is not copied. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-04."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-a",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-pers-001",
+      "input": "محمدعلی جمال‌زاده",
+      "profile": "ijmes_full",
+      "category": "PERSON",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Muḥammad-ʿAlī Jamālzāda",
+        "renderedOutput": "Mohammad-Ali Jamalzadeh"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "VIAF authority record for Mohammad-Ali Jamalzadeh",
+            "locator": "authority identity",
+            "note": "Original source label: VIAF; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "JAMALZADEH, MOHAMMAD-ALI",
+            "locator": "Moḥammad-ʿAlī Jamālzāda",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica reading evidence to IJMES Persian vowels/consonants; publication uses the established English spelling. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-pers-002",
+      "input": "صادق هدایت",
+      "profile": "ijmes_full",
+      "category": "PERSON",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Ṣādiq Hidāyat",
+        "renderedOutput": "Sadeq Hedayat"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "VIAF authority record for Sadeq Hedayat",
+            "locator": "authority identity",
+            "note": "Original source label: VIAF; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "HEDAYAT, SADEQ i. LIFE AND WORK",
+            "locator": "Ṣādeq Hedāyat",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Persian ص remains scholarly ṣ and Iranica e becomes IJMES i; established English publication spelling is Sadeq Hedayat. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-pers-003",
+      "input": "علی‌اکبر دهخدا",
+      "profile": "ijmes_full",
+      "category": "PERSON",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "ʿAlī-Akbar Dihkhudā",
+        "renderedOutput": "Ali-Akbar Dehkhoda"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "VIAF authority record for Ali-Akbar Dehkhoda",
+            "locator": "authority identity",
+            "note": "Original source label: VIAF; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "DEHḴODĀ",
+            "locator": "ʿAlī-Akbar Dehḵodā",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical follows IJMES Persian i/u and kh; rendering uses the established English spelling. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-pers-004",
+      "input": "ملک‌الشعرای بهار",
+      "profile": "ijmes_full",
+      "category": "PERSON",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Malik al-Shuʿarā-yi Bahār",
+        "renderedOutput": "Malek al-Shoʿara Bahar"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "VIAF authority record for Mohammad-Taqi Bahar",
+            "locator": "identity evidence",
+            "note": "Original source label: VIAF; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "BAHĀR, MOḤAMMAD-TAQĪ",
+            "locator": "Malek-al-Šoʿarāʾ Bahār as established name/title evidence",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Dīvān-i ashʿār-i Malik al-Shuʿarā-yi Bahār",
+            "locator": "explicit Persian izafat transcription -yi in the supplied surface pattern",
+            "note": "Original source label: CiNii; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "The exact supplied string contains explicit Persian yeh marking izafat in الشعرای; canonical therefore preserves -yi: Malik al-Shuʿarā-yi Bahār. Publication rendering follows the established English-facing Malek al-Shoʿara Bahar form without ordinary diacritics. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-pers-005",
+      "input": "جلال آل‌احمد",
+      "profile": "ijmes_full",
+      "category": "PERSON",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Jalāl Āl-i Aḥmad",
+        "renderedOutput": "Jalal Al-e Ahmad"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "VIAF authority record for Jalal Al-e Ahmad",
+            "locator": "authority identity",
+            "note": "Original source label: VIAF; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "ĀL-E AḤMAD, JALĀL",
+            "locator": "Jalāl Āl-e Aḥmad",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical uses IJMES Persian izafat -i; rendering uses the established English spelling. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-pers-006",
+      "input": "سیمین دانشور",
+      "profile": "ijmes_full",
+      "category": "PERSON",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Sīmīn Dānishvar",
+        "renderedOutput": "Simin Daneshvar"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "VIAF authority record for Simin Daneshvar",
+            "locator": "authority identity",
+            "note": "Original source label: VIAF; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "DĀNEŠVAR, SĪMĪN",
+            "locator": "Sīmīn Dānešvar",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Iranica e is converted to IJMES i in the scholarly canonical; publication uses established English spelling. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-pers-007",
+      "input": "نیما یوشیج",
+      "profile": "ijmes_full",
+      "category": "PERSON",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Nīmā Yūshīj",
+        "renderedOutput": "Nima Yushij"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "VIAF authority record for Nima Yushij",
+            "locator": "authority identity",
+            "note": "Original source label: VIAF; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "NĪMĀ YŪŠĪJ",
+            "locator": "Nīmā Yūšīj",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical converts š to sh and preserves vowel length; rendering omits ordinary diacritics. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-pers-008",
+      "input": "غلامحسین ساعدی",
+      "profile": "ijmes_full",
+      "category": "PERSON",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Ghulām-Ḥusayn Sāʿidī",
+        "renderedOutput": "Gholam-Hossein Saʿedi"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "VIAF authority record for Gholam-Hossein Saedi",
+            "locator": "authority identity",
+            "note": "Original source label: VIAF; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "SĀʿEDĪ, ḠOLĀM-ḤOSAYN",
+            "locator": "Ḡolām-Ḥosayn Sāʿedī",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica o/e to IJMES u/i and preserves ḥ/ʿ; rendering follows established English spelling while retaining ʿayn. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-pers-009",
+      "input": "پروین اعتصامی",
+      "profile": "ijmes_full",
+      "category": "PERSON",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Parvīn Iʿtiṣāmī",
+        "renderedOutput": "Parvin Eʿtesami"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "VIAF authority record for Parvin Etesami",
+            "locator": "authority identity",
+            "note": "Original source label: VIAF; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "EʿTEṢĀMĪ, PARVĪN",
+            "locator": "Parvīn Eʿteṣāmī",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical uses IJMES i for Persian short e; publication follows established English spelling and preserves ʿayn. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-pers-010",
+      "input": "بدیع‌الزمان فروزانفر",
+      "profile": "ijmes_full",
+      "category": "PERSON",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Badīʿ al-Zamān Furūzānfar",
+        "renderedOutput": "Badiʿ al-Zaman Foruzanfar"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "VIAF authority record for Badi al-Zaman Foruzanfar",
+            "locator": "authority identity",
+            "note": "Original source label: VIAF; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "FORŪZĀNFAR, BADĪʿ-AL-ZAMĀN",
+            "locator": "Badīʿ-al-Zamān Forūzānfar",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical preserves ʿayn and converts Persian o to IJMES u; publication omits ordinary diacritics. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-pers-011",
+      "input": "عبدالحسین زرین‌کوب",
+      "profile": "ijmes_full",
+      "category": "PERSON",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "ʿAbd al-Ḥusayn Zarrīnkūb",
+        "renderedOutput": "ʿAbd al-Husayn Zarrinkub"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "VIAF authority record for Abd al-Husayn Zarrinkub",
+            "locator": "authority identity",
+            "note": "Original source label: VIAF; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "ZARRĪNKŪB, ʿABD-AL-ḤOSAYN",
+            "locator": "ʿAbd-al-Ḥosayn Zarrīnkūb",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica o to IJMES u and preserves ʿ/ḥ; rendering removes ordinary diacritics. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-pers-012",
+      "input": "مجتبی مینوی",
+      "profile": "ijmes_full",
+      "category": "PERSON",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Mujtabā Mīnuvī",
+        "renderedOutput": "Mojtaba Minovi"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "VIAF authority record for Mojtaba Minovi",
+            "locator": "authority identity",
+            "note": "Original source label: VIAF; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "MĪNOVĪ, MOJTABĀ",
+            "locator": "Mojtabā Mīnovī",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica o to IJMES u; publication follows established English spelling. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-pers-013",
+      "input": "احمد کسروی",
+      "profile": "ijmes_full",
+      "category": "PERSON",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Aḥmad Kasravī",
+        "renderedOutput": "Ahmad Kasravi"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "VIAF authority record for Ahmad Kasravi",
+            "locator": "authority identity",
+            "note": "Original source label: VIAF; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "KASRAVI, AḤMAD",
+            "locator": "Aḥmad Kasravī",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical preserves scholarly ḥ and vowel length; rendering omits ordinary diacritics. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-pers-014",
+      "input": "ایرج افشار",
+      "profile": "ijmes_full",
+      "category": "PERSON",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Īraj Afshār",
+        "renderedOutput": "Iraj Afshar"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "VIAF authority record for Iraj Afshar",
+            "locator": "authority identity",
+            "note": "Original source label: VIAF; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "AFŠĀR, ĪRAJ",
+            "locator": "Īraj Afšār",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical converts š to sh; publication omits ordinary diacritics. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-pers-015",
+      "input": "هوشنگ ابتهاج",
+      "profile": "ijmes_full",
+      "category": "PERSON",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Hūshang Ibtihāj",
+        "renderedOutput": "Hushang Ebtehaj"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "VIAF authority record for Hushang Ebtehaj",
+            "locator": "authority identity",
+            "note": "Original source label: VIAF; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "EBTEHĀJ, HŪŠANG",
+            "locator": "Hūšang Ebtehāj",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical uses IJMES i/u; publication follows the established English spelling. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-pers-016",
+      "input": "سهراب سپهری",
+      "profile": "ijmes_full",
+      "category": "PERSON",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Suhrāb Sipihrī",
+        "renderedOutput": "Sohrab Sepehri"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "VIAF authority record for Sohrab Sepehri",
+            "locator": "authority identity",
+            "note": "Original source label: VIAF; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "SEPEHRĪ, SOHRĀB",
+            "locator": "Sohrāb Sepehrī",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica o/e to IJMES u/i; publication follows established English spelling. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-pers-017",
+      "input": "مهدی اخوان ثالث",
+      "profile": "ijmes_full",
+      "category": "PERSON",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Mihdī Akhavān-i Sālis",
+        "renderedOutput": "Mehdi Akhavan-Sales"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "VIAF authority record for Mehdi Akhavan Sales",
+            "locator": "authority identity",
+            "note": "Original source label: VIAF; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "AḴAVĀN-E SĀLES, MEHDĪ",
+            "locator": "Mehdī Aḵavān-e Sāles",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical uses IJMES i/u and Persian izafat -i; publication follows established English spelling. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-pers-018",
+      "input": "فروغ فرخزاد",
+      "profile": "ijmes_full",
+      "category": "PERSON",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Furūgh Farrukhzād",
+        "renderedOutput": "Forugh Farrokhzad"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "VIAF authority record for Forugh Farrokhzad",
+            "locator": "authority identity",
+            "note": "Original source label: VIAF; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "FARROḴZĀD, FORŪḠ-ZAMĀN",
+            "locator": "Forūḡ Farroḵzād",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica o/ḵ/ḡ to IJMES u/kh/gh; publication follows established English spelling. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-plc-001",
+      "input": "مازندران",
+      "profile": "ijmes_full",
+      "category": "PLACE",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Māzandarān",
+        "renderedOutput": "Mazandaran"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "GeoNames record for Mazandaran",
+            "locator": "geographic authority",
+            "note": "Original source label: GeoNames; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "MĀZANDARĀN i. Geography",
+            "locator": "Māzandarān",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Publication removes ordinary diacritics. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-plc-002",
+      "input": "خوزستان",
+      "profile": "ijmes_full",
+      "category": "PLACE",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Khūzistān",
+        "renderedOutput": "Khuzestan"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "GeoNames record for Khuzestan",
+            "locator": "geographic authority",
+            "note": "Original source label: GeoNames; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "ḴŪZESTĀN i. Geography",
+            "locator": "Ḵūzestān",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica ḵ/e to IJMES kh/i; publication uses established English spelling. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-plc-003",
+      "input": "آذربایجان",
+      "profile": "ijmes_full",
+      "category": "PLACE",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Āzarbāyjān",
+        "renderedOutput": "Azerbaijan"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "GeoNames record for Azerbaijan region",
+            "locator": "geographic authority",
+            "note": "Original source label: GeoNames; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "AZERBAIJAN i. Geography",
+            "locator": "Āẕarbāyjān",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical follows IJMES Persian mapping; publication uses accepted English Azerbaijan. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-plc-004",
+      "input": "سیستان و بلوچستان",
+      "profile": "ijmes_full",
+      "category": "PLACE",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Sīstān va Balūchistān",
+        "renderedOutput": "Sistan and Baluchestan"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "GeoNames record for Sistan and Baluchestan",
+            "locator": "geographic authority",
+            "note": "Original source label: GeoNames; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "BALUCHISTAN i. Geography",
+            "locator": "Sīstān va Balūčestān",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical preserves the Persian source phrase; publication uses the established English province name. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-plc-005",
+      "input": "کرمانشاه",
+      "profile": "ijmes_full",
+      "category": "PLACE",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Kirmānshāh",
+        "renderedOutput": "Kermanshah"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "GeoNames record for Kermanshah",
+            "locator": "geographic authority",
+            "note": "Original source label: GeoNames; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "KERMANSHAH i. Geography",
+            "locator": "Kermānšāh",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica e/š to IJMES i/sh; publication follows accepted English spelling. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-plc-006",
+      "input": "نیشابور",
+      "profile": "ijmes_full",
+      "category": "PLACE",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Nīshāpūr",
+        "renderedOutput": "Nishapur"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "GeoNames record for Nishapur",
+            "locator": "geographic authority",
+            "note": "Original source label: GeoNames; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "NISHAPUR i. Historical Geography",
+            "locator": "Nīšāpūr",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical converts š to sh; publication uses accepted English Nishapur. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-plc-007",
+      "input": "تخت جمشید",
+      "profile": "ijmes_full",
+      "category": "PLACE",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Takht-i Jamshīd",
+        "renderedOutput": "Persepolis"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "GeoNames record for Persepolis",
+            "locator": "geographic authority",
+            "note": "Original source label: GeoNames; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "PERSEPOLIS",
+            "locator": "Taḵt-e Jamšīd",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical remains source-faithful to تخت جمشید; IJMES place-name policy permits accepted English Persepolis in publication. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-plc-008",
+      "input": "پاسارگاد",
+      "profile": "ijmes_full",
+      "category": "PLACE",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Pāsārgād",
+        "renderedOutput": "Pasargadae"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "GeoNames record for Pasargadae",
+            "locator": "geographic authority",
+            "note": "Original source label: GeoNames; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "PASARGADAE",
+            "locator": "Pāsārgād",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical preserves the Persian source reading; publication uses accepted English Pasargadae. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-plc-009",
+      "input": "دماوند",
+      "profile": "ijmes_full",
+      "category": "PLACE",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Damāvand",
+        "renderedOutput": "Damavand"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "GeoNames record for Damavand",
+            "locator": "geographic authority",
+            "note": "Original source label: GeoNames; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "DAMĀVAND",
+            "locator": "Damāvand",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Publication removes ordinary diacritics. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-plc-010",
+      "input": "زاگرس",
+      "profile": "ijmes_full",
+      "category": "PLACE",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Zāgrus",
+        "renderedOutput": "Zagros"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "GeoNames record for Zagros Mountains",
+            "locator": "geographic authority",
+            "note": "Original source label: GeoNames; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "ZAGROS MOUNTAINS",
+            "locator": "Zāgros",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica o to IJMES u; publication uses accepted English Zagros. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-plc-011",
+      "input": "زاینده‌رود",
+      "profile": "ijmes_full",
+      "category": "PLACE",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Zāyanda-rūd",
+        "renderedOutput": "Zayandeh Rud"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "GeoNames record for Zayandeh Rud",
+            "locator": "geographic authority",
+            "note": "Original source label: GeoNames; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "ZĀYANDA-RŪD",
+            "locator": "Zāyanda-rūd",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical preserves scholarly vowel length and compound boundary; publication uses established English spelling. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-plc-012",
+      "input": "هرمزگان",
+      "profile": "ijmes_full",
+      "category": "PLACE",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Hurmuzgān",
+        "renderedOutput": "Hormozgan"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "GeoNames record for Hormozgan",
+            "locator": "geographic authority",
+            "note": "Original source label: GeoNames; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "HORMOZGĀN",
+            "locator": "Hormozgān",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical converts Persian o to IJMES u; publication uses accepted English Hormozgan. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-inst-001",
+      "input": "فرهنگستان زبان و ادب فارسی",
+      "profile": "ijmes_full",
+      "category": "INSTITUTION",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Farhangistān-i Zabān va Adab-i Fārsī",
+        "renderedOutput": "Farhangistan-i Zaban va Adab-i Farsi"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "ISNI authority record for the Academy of Persian Language and Literature",
+            "locator": "institution identity",
+            "note": "Original source label: ISNI; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "FARHANGESTĀN",
+            "locator": "Farhangestān-e Zabān va Adab-e Fārsī",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica e to IJMES i and Persian izafat -i; publication removes ordinary diacritics without translating the institution. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-inst-002",
+      "input": "دانشگاه تهران",
+      "profile": "ijmes_full",
+      "category": "INSTITUTION",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Dānishgāh-i Tihrān",
+        "renderedOutput": "Danishgah-i Tihran"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "ISNI authority record for University of Tehran",
+            "locator": "institution identity",
+            "note": "Original source label: ISNI; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "FACULTIES OF THE UNIVERSITY OF TEHRAN",
+            "locator": "Dānešgāh-e Tehrān",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica e/š to IJMES i/sh and uses -i; publication removes ordinary diacritics without translating. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-inst-003",
+      "input": "کتابخانه ملی ایران",
+      "profile": "ijmes_full",
+      "category": "INSTITUTION",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Kitābkhāna-yi Millī-yi Īrān",
+        "renderedOutput": "Kitabkhana-yi Milli-yi Iran"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "ISNI authority record for National Library of Iran",
+            "locator": "institution identity",
+            "note": "Original source label: ISNI; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "LIBRARIES in Persia",
+            "locator": "Ketābḵāna-ye Mellī-ye Īrān",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical uses IJMES i/u plus explicit post-vocalic -yi; publication removes ordinary diacritics. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-inst-004",
+      "input": "مجلس شورای ملی",
+      "profile": "ijmes_full",
+      "category": "INSTITUTION",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Majlis-i Shūrā-yi Millī",
+        "renderedOutput": "Majlis-i Shura-yi Milli"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "VIAF authority record for Majles-e Shura-ye Melli",
+            "locator": "institution identity",
+            "note": "Original source label: VIAF; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "MAJLES",
+            "locator": "Majles-e Šūrā-ye Mellī",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica e/š to IJMES i/sh and preserves the two izafat linkers; publication removes ordinary diacritics. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-inst-005",
+      "input": "دارالفنون",
+      "profile": "ijmes_full",
+      "category": "INSTITUTION",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Dār al-Funūn",
+        "renderedOutput": "Dar al-Funun"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry دارالفنون",
+            "locator": "entry دارالفنون",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "DĀR AL-FONŪN",
+            "locator": "Dār al-Fonūn",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica o to IJMES u; publication removes ordinary diacritics. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-inst-006",
+      "input": "انجمن آثار ملی",
+      "profile": "ijmes_full",
+      "category": "INSTITUTION",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "Anjuman-i Āsār-i Millī",
+        "renderedOutput": "Anjuman-i Asar-i Milli"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry انجمن آثار ملی",
+            "locator": "entry انجمن آثار ملی",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "ANJOMAN-E ĀṮĀR-E MELLĪ",
+            "locator": "Anjoman-e Āṯār-e Mellī",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "proper names/places/organizations; accepted English spellings; Persian i/u",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical converts Iranica o/e and Persian ث to IJMES u/i/s; publication removes ordinary diacritics. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-c",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-book-001",
+      "input": "تاریخ بیداری ایرانیان",
+      "profile": "ijmes_citation_title",
+      "category": "BOOK_TITLE",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "tārīkh-i bīdārī-yi īrānīyān",
+        "renderedOutput": "Tārīkh-i Bīdārī-yi Īrānīyān"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry تاریخ بیداری ایرانیان",
+            "locator": "entry تاریخ بیداری ایرانیان",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "TĀRĪḴ-E BĪDĀRĪ-E ĪRĀNĪĀN",
+            "locator": "Tārīḵ-e Bīdārī-e Īrānīān",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "book/article titles: IJMES spelling and English capitalization, no ordinary diacritics, preserve ayn/hamza; Persian i/u and izafat rules",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Iranica supplies reading evidence; IJMES converts ḵ/e to kh/i and the vowel-final Bīdārī host takes explicit -yi. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-d",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-book-002",
+      "input": "سیاست‌نامه",
+      "profile": "ijmes_citation_title",
+      "category": "BOOK_TITLE",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "siyāsat-nāma",
+        "renderedOutput": "Siyāsat-nāma"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry سیاست‌نامه",
+            "locator": "entry سیاست‌نامه",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "SIĀSAT-NĀMA",
+            "locator": "Sīāsat-nāma reading/title evidence",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "book/article titles: IJMES spelling and English capitalization, no ordinary diacritics, preserve ayn/hamza; Persian i/u and izafat rules",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "The established Persian reading is siyāsat; the compound title boundary is retained and title rendering removes ordinary diacritics. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-d",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-book-003",
+      "input": "قابوس‌نامه",
+      "profile": "ijmes_citation_title",
+      "category": "BOOK_TITLE",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "qābūs-nāma",
+        "renderedOutput": "Qābūs-nāma"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry قابوس‌نامه",
+            "locator": "entry قابوس‌نامه",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "QĀBUS-NĀMA",
+            "locator": "Qābūs-nāma",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "book/article titles: IJMES spelling and English capitalization, no ordinary diacritics, preserve ayn/hamza; Persian i/u and izafat rules",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Full scholarly vowels are preserved canonically; title rendering removes ordinary diacritics. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-d",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-book-004",
+      "input": "مرزبان‌نامه",
+      "profile": "ijmes_citation_title",
+      "category": "BOOK_TITLE",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "marzbān-nāma",
+        "renderedOutput": "Marzbān-nāma"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry مرزبان‌نامه",
+            "locator": "entry مرزبان‌نامه",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "MARZBĀN-NĀMA",
+            "locator": "Marzbān-nāma",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "book/article titles: IJMES spelling and English capitalization, no ordinary diacritics, preserve ayn/hamza; Persian i/u and izafat rules",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "The compound title boundary is preserved; title rendering removes ordinary diacritics. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-d",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-book-005",
+      "input": "سفرنامه ناصرخسرو",
+      "profile": "ijmes_citation_title",
+      "category": "BOOK_TITLE",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "safarnāma-yi nāṣir-i khusraw",
+        "renderedOutput": "Safarnāma-yi Nāṣir-i Khusraw"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry سفرنامه ناصرخسرو",
+            "locator": "entry سفرنامه ناصرخسرو",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "SAFARNĀMA",
+            "locator": "Safarnāma-ye Nāṣer-e Ḵosrow",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Safarnāma-yi Nāṣir-i Khusraw",
+            "locator": "attested title/name construction with internal izafat",
+            "note": "Original source label: Scholarly bibliography; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "book/article titles: IJMES spelling and English capitalization, no ordinary diacritics, preserve ayn/hamza; Persian i/u and izafat rules",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical preserves post-vocalic -yi after Safarnāma and the conventional internal izafat Nāṣir-i Khusraw; Iranica e/ḵ/o are converted to IJMES i/kh/u-aw. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-d",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-book-006",
+      "input": "کلیله و دمنه",
+      "profile": "ijmes_citation_title",
+      "category": "BOOK_TITLE",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "kalīla va dimna",
+        "renderedOutput": "Kalīla Va Dimna"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry کلیله و دمنه",
+            "locator": "entry کلیله و دمنه",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "KALILA WA DEMNA",
+            "locator": "Kalīla va Demna in Persian reception",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "book/article titles: IJMES spelling and English capitalization, no ordinary diacritics, preserve ayn/hamza; Persian i/u and izafat rules",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Persian short e in Demna is converted to IJMES i, yielding Dimna; Persian conjunction is retained as va. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-d",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-book-007",
+      "input": "گلستان",
+      "profile": "ijmes_citation_title",
+      "category": "BOOK_TITLE",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "gulistān",
+        "renderedOutput": "Gulistān"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 1093",
+            "locator": "p. 1093; گلستان",
+            "note": "Original source label: Steingass; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "GOLESTĀN-E SAʿDĪ",
+            "locator": "Golestān reading evidence",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "book/article titles: IJMES spelling and English capitalization, no ordinary diacritics, preserve ayn/hamza; Persian i/u and izafat rules",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Iranica o/e are converted to IJMES Persian u/i: Gulistān. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-d",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-book-008",
+      "input": "بوستان",
+      "profile": "ijmes_citation_title",
+      "category": "BOOK_TITLE",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "būstān",
+        "renderedOutput": "Būstān"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 206",
+            "locator": "p. 206; بوستان",
+            "note": "Original source label: Steingass; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "BŪSTĀN",
+            "locator": "Būstān",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "book/article titles: IJMES spelling and English capitalization, no ordinary diacritics, preserve ayn/hamza; Persian i/u and izafat rules",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "The attested long vowels are retained canonically; title rendering removes the macron. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-d",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-book-009",
+      "input": "سووشون",
+      "profile": "ijmes_citation_title",
+      "category": "BOOK_TITLE",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "savūshūn",
+        "renderedOutput": "Savūshūn"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry سووشون",
+            "locator": "entry سووشون",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "DĀNEŠVAR, SĪMĪN",
+            "locator": "Savūšūn",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Authorial title preference for Savūshūn",
+            "locator": "Daneshvar preference reported in scholarly discussion",
+            "note": "Original source label: Iranian Studies; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "book/article titles: IJMES spelling and English capitalization, no ordinary diacritics, preserve ayn/hamza; Persian i/u and izafat rules",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Savūshūn is retained as the reviewed literary-title reading; IJMES sh replaces Iranica š and title rendering removes macrons. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-d",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-book-010",
+      "input": "چشم‌هایش",
+      "profile": "ijmes_citation_title",
+      "category": "BOOK_TITLE",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "chashm-hā-yash",
+        "renderedOutput": "Chashm-hā-yash"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry چشم‌هایش",
+            "locator": "entry چشم‌هایش",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "ʿALAVĪ, BOZORG",
+            "locator": "Čašmhāyeš title/reading evidence",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "book/article titles: IJMES spelling and English capitalization, no ordinary diacritics, preserve ayn/hamza; Persian i/u and izafat rules",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Canonical makes the productive plural -hā and possessive -yash morphology auditable with boundary hyphens. Rendering removes ordinary diacritics but does not erase those morphological boundaries. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-d",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-book-011",
+      "input": "حاجی آقا",
+      "profile": "ijmes_citation_title",
+      "category": "BOOK_TITLE",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "ḥājī āqā",
+        "renderedOutput": "Ḥājī Āqā"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry حاجی آقا",
+            "locator": "entry حاجی آقا",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "HEDAYAT, SADEQ i. LIFE AND WORK",
+            "locator": "Ḥājī Āqā",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "book/article titles: IJMES spelling and English capitalization, no ordinary diacritics, preserve ayn/hamza; Persian i/u and izafat rules",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Reading is directly attested; title rendering removes ordinary diacritics. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-d",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-book-012",
+      "input": "زمستان",
+      "profile": "ijmes_citation_title",
+      "category": "BOOK_TITLE",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "zimistān",
+        "renderedOutput": "Zimistān"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 622",
+            "locator": "p. 622; زمستان",
+            "note": "Original source label: Steingass; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "AḴAVĀN-E SĀLES, MEHDĪ",
+            "locator": "Zemestān title/reading evidence",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "book/article titles: IJMES spelling and English capitalization, no ordinary diacritics, preserve ayn/hamza; Persian i/u and izafat rules",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Iranica e is converted to IJMES Persian i, yielding Zimistān; title rendering removes the macron. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-d",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-cmp-001",
+      "input": "جهانگرد",
+      "profile": "ijmes_full",
+      "category": "COMPOUND",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "jahān-gard",
+        "renderedOutput": "jahān-gard"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 380",
+            "locator": "p. 380; جهانگرد",
+            "note": "Original source label: Steingass; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Compound structure jahān + gard is preserved with the project canonical boundary hyphen. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-b",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-cmp-002",
+      "input": "سخن‌سنج",
+      "profile": "ijmes_full",
+      "category": "COMPOUND",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "sukhan-sanj",
+        "renderedOutput": "sukhan-sanj"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 687",
+            "locator": "p. 687; سخن‌سنج",
+            "note": "Original source label: Steingass; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Compound structure sukhan + sanj is preserved with the project canonical boundary hyphen. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-b",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-cmp-003",
+      "input": "دانش‌پژوه",
+      "profile": "ijmes_full",
+      "category": "COMPOUND",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "dānish-pazhūh",
+        "renderedOutput": "dānish-pazhūh"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry دانش‌پژوه",
+            "locator": "entry دانش‌پژوه",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "The ZWNJ-marked compound boundary is represented explicitly as dānish-pazhūh. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-b",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-cmp-004",
+      "input": "نامه‌نگار",
+      "profile": "ijmes_full",
+      "category": "COMPOUND",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "nāma-nigār",
+        "renderedOutput": "nāma-nigār"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry نامه‌نگار",
+            "locator": "entry نامه‌نگار",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "The vowel-final first stem and compound structure are represented as nāma-nigār. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-b",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-cmp-005",
+      "input": "دست‌نویس",
+      "profile": "ijmes_full",
+      "category": "COMPOUND",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "dast-nivīs",
+        "renderedOutput": "dast-nivīs"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry دست‌نویس",
+            "locator": "entry دست‌نویس",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "The ZWNJ-marked compound is represented with an explicit canonical stem boundary. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-b",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-mrp-001",
+      "input": "کتاب‌ها",
+      "profile": "ijmes_full",
+      "category": "MORPHOLOGY",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "kitāb-hā",
+        "renderedOutput": "kitāb-hā"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Lazard, A Grammar of Contemporary Persian (1992), p. 45",
+            "locator": "p. 45; plural -hā",
+            "note": "Original source label: Lazard; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Productive plural -hā is represented with an explicit morphological boundary. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-b",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-mrp-002",
+      "input": "نامه‌های",
+      "profile": "ijmes_full",
+      "category": "MORPHOLOGY",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "nāma-hā-yi",
+        "renderedOutput": "nāma-hā-yi"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Lazard, A Grammar of Contemporary Persian (1992), p. 47",
+            "locator": "p. 47; plural/linker morphology",
+            "note": "Original source label: Lazard; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Plural -hā plus post-vocalic linker -yi is represented explicitly. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-b",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-mrp-003",
+      "input": "خردمندتر",
+      "profile": "ijmes_full",
+      "category": "MORPHOLOGY",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "khiradmand-tar",
+        "renderedOutput": "khiradmand-tar"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Lazard, A Grammar of Contemporary Persian (1992), p. 62",
+            "locator": "p. 62; comparative -tar",
+            "note": "Original source label: Lazard; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Comparative -tar remains a distinct productive morphological segment; IJMES Persian i gives khiradmand. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-b",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-mrp-004",
+      "input": "بزرگ‌ترین",
+      "profile": "ijmes_full",
+      "category": "MORPHOLOGY",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "buzurg-tarīn",
+        "renderedOutput": "buzurg-tarīn"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Lazard, A Grammar of Contemporary Persian (1992), p. 63",
+            "locator": "p. 63; superlative -tarīn",
+            "note": "Original source label: Lazard; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Superlative -tarīn remains explicit; IJMES Persian u gives buzurg. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-b",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-mrp-005",
+      "input": "کتابم",
+      "profile": "ijmes_full",
+      "category": "MORPHOLOGY",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "kitāb-am",
+        "renderedOutput": "kitāb-am"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Windfuhr, Persian Grammar: History and State of Its Study (1979), p. 34",
+            "locator": "p. 34; possessive enclitic",
+            "note": "Original source label: Windfuhr; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "First-person singular possessive enclitic -am is morphologically explicit. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-b",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-mrp-006",
+      "input": "خانه‌ات",
+      "profile": "ijmes_full",
+      "category": "MORPHOLOGY",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "khāna-at",
+        "renderedOutput": "khāna-at"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Windfuhr, Persian Grammar (1979), p. 35",
+            "locator": "p. 35; possessive enclitic",
+            "note": "Original source label: Windfuhr; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Vowel-final khāna plus second-person singular enclitic is represented khāna-at. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-b",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-mrp-007",
+      "input": "قلمش",
+      "profile": "ijmes_full",
+      "category": "MORPHOLOGY",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "qalam-ash",
+        "renderedOutput": "qalam-ash"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Windfuhr, Persian Grammar (1979), p. 35",
+            "locator": "p. 35; possessive enclitic",
+            "note": "Original source label: Windfuhr; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Third-person singular possessive enclitic -ash is morphologically explicit. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-b",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-mrp-008",
+      "input": "دیدگاه‌هایشان",
+      "profile": "ijmes_full",
+      "category": "MORPHOLOGY",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "dīdgāh-hā-yi-shān",
+        "renderedOutput": "dīdgāh-hā-yi-shān"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Lazard, A Grammar of Contemporary Persian (1992), p. 78",
+            "locator": "p. 78; plural/linker/enclitic chain",
+            "note": "Original source label: Lazard; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "The productive chain plural -hā + linker -yi + possessive -shān is represented segment by segment. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-b",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-mrp-009",
+      "input": "دانشمندان",
+      "profile": "ijmes_full",
+      "category": "MORPHOLOGY",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "dānishmand-ān",
+        "renderedOutput": "dānishmand-ān"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Lazard, A Grammar of Contemporary Persian (1992), p. 46",
+            "locator": "p. 46; plural -ān",
+            "note": "Original source label: Lazard; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Productive human plural -ān is represented with an explicit morphological boundary. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-b",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-mrp-010",
+      "input": "گزارش‌های",
+      "profile": "ijmes_full",
+      "category": "MORPHOLOGY",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "guzārish-hā-yi",
+        "renderedOutput": "guzārish-hā-yi"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Lazard, A Grammar of Contemporary Persian (1992), p. 50",
+            "locator": "p. 50; plural/linker morphology",
+            "note": "Original source label: Lazard; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Plural -hā followed by the explicit linker -yi is preserved; IJMES Persian u gives guzārish. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-b",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-izf-001",
+      "input": "تاریخ ادبیات",
+      "profile": "ijmes_full",
+      "category": "IZAFAT",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "tārīkh-i adabīyāt",
+        "renderedOutput": "tārīkh-i adabīyāt"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "Thackston, An Introduction to Persian (1993), p. 18; Cambridge IJMES Guide, izafat rule",
+            "locator": "p. 18; IJMES izafat rule",
+            "note": "Original source label: Thackston + IJMES; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Consonant-final host takes Persian izāfat -i. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-b",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-izf-002",
+      "input": "زبان مادری",
+      "profile": "ijmes_full",
+      "category": "IZAFAT",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "zabān-i mādarī",
+        "renderedOutput": "zabān-i mādarī"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Thackston, An Introduction to Persian (1993), p. 19",
+            "locator": "p. 19; izafat",
+            "note": "Original source label: Thackston; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Consonant-final zabān takes izāfat -i. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-b",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-izf-003",
+      "input": "حقوق بشر",
+      "profile": "ijmes_full",
+      "category": "IZAFAT",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "ḥuqūq-i bashar",
+        "renderedOutput": "ḥuqūq-i bashar"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Thackston, An Introduction to Persian (1993), p. 21",
+            "locator": "p. 21; izafat",
+            "note": "Original source label: Thackston; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Consonant-final ḥuqūq takes izāfat -i; technical scholarly consonantal diacritics are preserved. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-b",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-izf-004",
+      "input": "خانه پدری",
+      "profile": "ijmes_full",
+      "category": "IZAFAT",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "khāna-yi pidarī",
+        "renderedOutput": "khāna-yi pidarī"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Thackston, An Introduction to Persian (1993), p. 22",
+            "locator": "p. 22; vowel-final izafat",
+            "note": "Original source label: Thackston; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Vowel-final khāna takes the project explicit post-vocalic linker -yi. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-b",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-izf-005",
+      "input": "صدای باران",
+      "profile": "ijmes_full",
+      "category": "IZAFAT",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "ṣidā-yi bārān",
+        "renderedOutput": "ṣidā-yi bārān"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Thackston, An Introduction to Persian (1993), p. 23",
+            "locator": "p. 23; vowel-final izafat",
+            "note": "Original source label: Thackston; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Vowel-final ṣidā takes explicit post-vocalic -yi. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-b",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-izf-006",
+      "input": "نسیم صبح",
+      "profile": "ijmes_full",
+      "category": "IZAFAT",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "nasīm-i ṣubḥ",
+        "renderedOutput": "nasīm-i ṣubḥ"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Thackston, An Introduction to Persian (1993), p. 24",
+            "locator": "p. 24; izafat",
+            "note": "Original source label: Thackston; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Consonant-final nasīm takes -i; the technical scholarly layer preserves ṣubḥ. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-b",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-izf-007",
+      "input": "دیوان حافظ",
+      "profile": "ijmes_full",
+      "category": "IZAFAT",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "dīvān-i ḥāfiẓ",
+        "renderedOutput": "dīvān-i ḥāfiẓ"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Loghatnameh-ye Dehkhoda (1998), entry دیوان حافظ",
+            "locator": "entry دیوان حافظ",
+            "note": "Original source label: Dehkhoda; evidence role: reading."
+          },
+          {
+            "kind": "ENCYCLOPEDIA",
+            "citation": "HAFEZ i. An Overview",
+            "locator": "Dīvān-e Ḥāfeẓ reading/identity evidence",
+            "note": "Original source label: Iranica; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Iranica -e is converted to IJMES Persian izāfat -i; the technical layer preserves ḥ/ẓ. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-b",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-izf-008",
+      "input": "درخت دانش",
+      "profile": "ijmes_full",
+      "category": "IZAFAT",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "dirakht-i dānish",
+        "renderedOutput": "dirakht-i dānish"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "ACADEMIC_SOURCE",
+            "citation": "Thackston, An Introduction to Persian (1993), p. 25",
+            "locator": "p. 25; izafat",
+            "note": "Original source label: Thackston; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide (Cambridge University Press)",
+            "locator": "Persian transliteration chart; technical terms; izafat rule",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Consonant-final dirakht takes Persian izāfat -i; dānish preserves IJMES Persian i. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-b",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-amb-001",
+      "input": "مهر",
+      "profile": "ijmes_full",
+      "category": "AMBIGUITY",
+      "expected": {
+        "disposition": "REVIEW_REQUIRED",
+        "requiredIssueTypes": [
+          "LEXICAL_AMBIGUITY"
+        ]
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 1353",
+            "locator": "p. 1353; مهر",
+            "note": "Original source label: Steingass; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide and Persian Transliteration Chart (Cambridge University Press)",
+            "locator": "Persian i/u, consonant mappings, and written-form transliteration rules",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "The unvocalized source supports materially distinct readings: mihr (love/sun/Mithra-related senses) and muhr (seal/stamp). Context is required; no single authoritative canonical is safe. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-e",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-amb-002",
+      "input": "شیر",
+      "profile": "ijmes_full",
+      "category": "AMBIGUITY",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "shīr",
+        "renderedOutput": "shīr"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 773",
+            "locator": "p. 773; شیر",
+            "note": "Original source label: Steingass; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide and Persian Transliteration Chart (Cambridge University Press)",
+            "locator": "Persian i/u, consonant mappings, and written-form transliteration rules",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Steingass attests semantic/historical pronunciation distinctions (including lion vs milk), but under the project IJMES Persian system the material benchmark output collapses to shīr; no transliteration-level choice remains. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-e",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-amb-003",
+      "input": "سر",
+      "profile": "ijmes_full",
+      "category": "AMBIGUITY",
+      "expected": {
+        "disposition": "REVIEW_REQUIRED",
+        "requiredIssueTypes": [
+          "LEXICAL_AMBIGUITY"
+        ]
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 671",
+            "locator": "p. 671; سر",
+            "note": "Original source label: Steingass; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide and Persian Transliteration Chart (Cambridge University Press)",
+            "locator": "Persian i/u, consonant mappings, and written-form transliteration rules",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "The same Persian surface can represent native Persian sar (head/top) or Arabic-derived sirr (secret). These remain materially distinct in IJMES, so context is required. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-e",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-amb-004",
+      "input": "باد",
+      "profile": "ijmes_full",
+      "category": "AMBIGUITY",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "bād",
+        "renderedOutput": "bād"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 138",
+            "locator": "p. 138; باد",
+            "note": "Original source label: Steingass; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide and Persian Transliteration Chart (Cambridge University Press)",
+            "locator": "Persian i/u, consonant mappings, and written-form transliteration rules",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Distinct senses/grammatical uses share the same scholarly transliteration bād; semantic ambiguity does not create a transliteration-level ambiguity. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-e",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-amb-005",
+      "input": "بار",
+      "profile": "ijmes_full",
+      "category": "AMBIGUITY",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "bār",
+        "renderedOutput": "bār"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 142",
+            "locator": "p. 142; بار",
+            "note": "Original source label: Steingass; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide and Persian Transliteration Chart (Cambridge University Press)",
+            "locator": "Persian i/u, consonant mappings, and written-form transliteration rules",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "The attested senses share the same scholarly transliteration bār; no output-level ambiguity remains. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-e",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-amb-006",
+      "input": "داد",
+      "profile": "ijmes_full",
+      "category": "AMBIGUITY",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "dād",
+        "renderedOutput": "dād"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 496",
+            "locator": "p. 496; داد",
+            "note": "Original source label: Steingass; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide and Persian Transliteration Chart (Cambridge University Press)",
+            "locator": "Persian i/u, consonant mappings, and written-form transliteration rules",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Noun and verbal/past-stem readings represented by this surface converge on dād in the benchmark transliteration system. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-e",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-amb-007",
+      "input": "گل",
+      "profile": "ijmes_full",
+      "category": "AMBIGUITY",
+      "expected": {
+        "disposition": "REVIEW_REQUIRED",
+        "requiredIssueTypes": [
+          "LEXICAL_AMBIGUITY"
+        ]
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 1092",
+            "locator": "p. 1092; گل",
+            "note": "Original source label: Steingass; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide and Persian Transliteration Chart (Cambridge University Press)",
+            "locator": "Persian i/u, consonant mappings, and written-form transliteration rules",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "The unvocalized surface represents at least gul (flower/rose) and gil (clay/mud). IJMES preserves the u/i distinction, so context is required. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-e",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-amb-008",
+      "input": "گوش",
+      "profile": "ijmes_full",
+      "category": "AMBIGUITY",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "gūsh",
+        "renderedOutput": "gūsh"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 1105",
+            "locator": "p. 1105; گوش",
+            "note": "Original source label: Steingass; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide and Persian Transliteration Chart (Cambridge University Press)",
+            "locator": "Persian i/u, consonant mappings, and written-form transliteration rules",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Attested senses represented by this surface retain the same scholarly reading gūsh; no transliteration-level ambiguity remains. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-e",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-amb-009",
+      "input": "شور",
+      "profile": "ijmes_full",
+      "category": "AMBIGUITY",
+      "expected": {
+        "disposition": "REVIEW_REQUIRED",
+        "requiredIssueTypes": [
+          "LEXICAL_AMBIGUITY"
+        ]
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 764",
+            "locator": "p. 764; شور",
+            "note": "Original source label: Steingass; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide and Persian Transliteration Chart (Cambridge University Press)",
+            "locator": "Persian i/u, consonant mappings, and written-form transliteration rules",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "The surface can represent Persian shūr (salty/excitement/modal-system senses) and the distinct counsel/consultation reading represented as shawr under the project IJMES written-diphthong policy. Context is required. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-e",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-amb-010",
+      "input": "راست",
+      "profile": "ijmes_full",
+      "category": "AMBIGUITY",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "rāst",
+        "renderedOutput": "rāst"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 563",
+            "locator": "p. 563; راست",
+            "note": "Original source label: Steingass; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide and Persian Transliteration Chart (Cambridge University Press)",
+            "locator": "Persian i/u, consonant mappings, and written-form transliteration rules",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "Directional, adjectival, truth-related, and modal senses share the same scholarly reading rāst; semantic breadth alone does not require review. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-e",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-amb-011",
+      "input": "روی",
+      "profile": "ijmes_full",
+      "category": "AMBIGUITY",
+      "expected": {
+        "disposition": "REVIEW_REQUIRED",
+        "requiredIssueTypes": [
+          "LEXICAL_AMBIGUITY"
+        ]
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 598",
+            "locator": "p. 598; روی",
+            "note": "Original source label: Steingass; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide and Persian Transliteration Chart (Cambridge University Press)",
+            "locator": "Persian i/u, consonant mappings, and written-form transliteration rules",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "The unvocalized surface supports rūy (face/on/zinc and related native readings) and Arabic-derived ravī (rhyme-letter/related reading). These remain materially distinct in IJMES, so context is required. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-e",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    },
+    {
+      "id": "cand-amb-012",
+      "input": "گاو",
+      "profile": "ijmes_full",
+      "category": "AMBIGUITY",
+      "expected": {
+        "disposition": "FINAL",
+        "scholarlyCanonical": "gāv",
+        "renderedOutput": "gāv"
+      },
+      "provenance": {
+        "sources": [
+          {
+            "kind": "SCHOLARLY_DICTIONARY",
+            "citation": "Steingass, Comprehensive Persian-English Dictionary (1892), p. 1078",
+            "locator": "p. 1078; گاو",
+            "note": "Original source label: Steingass; evidence role: reading."
+          },
+          {
+            "kind": "IJMES_GUIDE",
+            "citation": "IJMES Translation and Transliteration Guide and Persian Transliteration Chart (Cambridge University Press)",
+            "locator": "Persian i/u, consonant mappings, and written-form transliteration rules",
+            "note": "Original source label: IJMES; evidence role: rendering."
+          }
+        ],
+        "reviewNote": "The attested lexical senses share the scholarly reading gāv; no transliteration-level ambiguity remains. Reviewer provenance: OpenAI GPT-5.6 Sol / AI_SPECIALIST; reviewedAt 2026-10-05."
+      },
+      "tags": [
+        "phase4.6b",
+        "external-benchmark-v3",
+        "batch-e",
+        "ai-specialist-reviewed",
+        "human-signoff-pending"
+      ]
+    }
+  ]
+}

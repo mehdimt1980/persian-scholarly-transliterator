@@ -34,7 +34,7 @@ type AssistStatusType = 'idle' | 'loading' | 'available' | 'error' | 'stale' | '
 
 export default function Home() {
   const [input, setInput] = useState(fixture);
-  const [profile, setProfile] = useState<ProfileId>('ijmes_title');
+  const [profile, setProfile] = useState<ProfileId>('ijmes_citation_title');
   const [decisions, setDecisions] = useState<ReviewDecision[]>([]);
   const [copied, setCopied] = useState(false);
   const [acceptedPhraseDecision, setAcceptedPhraseDecision] = useState<AcceptedPhraseDecision | null>(null);
@@ -164,7 +164,7 @@ export default function Home() {
                 value={profile}
                 onChange={(event) => setProfile(event.target.value as ProfileId)}
               >
-                <option value="ijmes_title">Book / article title</option>
+                <option value="ijmes_citation_title">Book / article title (fully diacritized citation)</option>
                 <option value="ijmes_full">Full scholarly / technical term</option>
               </select>
             </label>
@@ -194,7 +194,7 @@ export default function Home() {
 
           <div className="output-footer">
             <span className="profile-tag">
-              {profile === 'ijmes_title' ? 'IJMES · Title' : 'IJMES · Scholarly'}
+              {profile === 'ijmes_citation_title' ? 'IJMES · Scholarly citation title' : 'IJMES · Scholarly'}
             </span>
             <button
               type="button"

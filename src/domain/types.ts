@@ -4,7 +4,7 @@ import type { MorphologicalAnalysis } from './morphology/types';
 
 export type ResultStatus = 'DETERMINISTIC' | 'LEXICON_RESOLVED' | 'AMBIGUOUS' | 'UNRESOLVED' | 'USER_OVERRIDE';
 export type TokenType = 'persian-word' | 'punctuation' | 'whitespace' | 'number' | 'latin' | 'unknown';
-export type ProfileId = 'ijmes_full' | 'ijmes_title';
+export type ProfileId = 'ijmes_full' | 'ijmes_citation_title';
 export type AuthorityCategory = 'chart' | 'current-guide' | 'linguistic-convention' | 'lexical-data' | 'editorial' | 'user-decision';
 export type RelationStatus = 'CONFIRMED' | 'CANDIDATE';
 export type EvidenceCompatibility = 'MATCH' | 'CONFLICT' | 'UNKNOWN';
