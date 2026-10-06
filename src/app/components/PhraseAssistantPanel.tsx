@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReviewDecision, TransliterationResult } from '../../domain/types';
 import {
   AcceptedPhraseDecision,
@@ -40,15 +40,8 @@ export default function PhraseAssistantPanel({
   const [canonicalDraft, setCanonicalDraft] = useState('');
   const [renderedDraft, setRenderedDraft] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
-  const lastAutomaticAttempt = useRef<string | null>(null);
-
-  const meaningfulPersianTokens = useMemo(
-    () => result.tokens.filter((token) => token.tokenType === 'persian-word').length,
-    [result.tokens]
-  );
 
   const eligible = !result.copyable && result.reviewIssues.length > 0;
-  const automaticEligible = eligible && meaningfulPersianTokens >= 2;
   const acceptedApplicable = acceptedDecision
     ? checkAcceptedPhraseApplicability(acceptedDecision, result).applicable
     : false;
@@ -95,6 +88,7 @@ export default function PhraseAssistantPanel({
     setCanonicalDraft('');
     setRenderedDraft('');
     setStatus('idle');
+    setIsExpanded(false);
 
     if (acceptedDecision && !acceptedApplicable) {
       onAcceptedDecision(null);
@@ -151,18 +145,6 @@ export default function PhraseAssistantPanel({
     }
   }, [eligible, result.originalInput, result.profile, reviewDecisions]);
 
-  useEffect(() => {
-    if (!automaticEligible || configured !== true || acceptedApplicable) return;
-    if (lastAutomaticAttempt.current === requestKey) return;
-
-    const timer = window.setTimeout(() => {
-      lastAutomaticAttempt.current = requestKey;
-      void requestPhraseResolution();
-    }, 900);
-
-    return () => window.clearTimeout(timer);
-  }, [automaticEligible, configured, acceptedApplicable, requestKey, requestPhraseResolution]);
-
   function acceptResolution() {
     if (!resolution) return;
     try {
@@ -187,7 +169,7 @@ export default function PhraseAssistantPanel({
     setEditing(false);
     setError(null);
     setStatus('rejected');
-    lastAutomaticAttempt.current = requestKey;
+    setIsExpanded(false);
     onAcceptedDecision(null);
   }
 
@@ -244,7 +226,7 @@ export default function PhraseAssistantPanel({
     );
   }
 
-  // Quiet callout state when not yet expanded/queried and no resolution active
+  // Quiet callout state: default collapsed when not yet explicitly requested
   if (!isExpanded && !resolution && status !== 'loading') {
     return (
       <div className={styles.callout}>
@@ -258,13 +240,12 @@ export default function PhraseAssistantPanel({
           type="button"
           className={styles.primaryButton}
           onClick={() => {
-            setIsExpanded(true);
-            lastAutomaticAttempt.current = requestKey;
             void requestPhraseResolution();
           }}
           disabled={configured === false}
+          aria-label={configured === false ? 'Assistant unavailable' : 'Ask assistant'}
         >
-          Ask assistant
+          {configured === false ? 'Assistant unavailable' : 'Ask assistant'}
         </button>
       </div>
     );
@@ -417,7 +398,6 @@ export default function PhraseAssistantPanel({
             type="button"
             className={styles.primaryButton}
             onClick={() => {
-              lastAutomaticAttempt.current = requestKey;
               void requestPhraseResolution();
             }}
             disabled={configured === false}
