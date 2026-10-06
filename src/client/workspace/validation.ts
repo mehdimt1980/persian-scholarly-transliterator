@@ -1,39 +1,238 @@
-import type { ProfileId } from '../../domain/types';
+import type { ProfileId, ReviewDecision, ReviewActionType } from '../../domain/types';
 import type { AcceptedPhraseDecision } from '../../domain/assistance/phraseTypes';
 import type {
   BibliographyRecord,
-  BibliographyReviewDecision
+  BibliographyRecordType,
+  BibliographyReviewDecision,
+  BibliographyFieldPath,
+  BibliographyCreator,
+  BibliographySourceCell
 } from '../../domain/bibliography/types';
 import type { ScholarlyExportMode } from '../../domain/bibliography/export/types';
 import type {
   TransliterationWorkspaceV1,
+  PersistedAcceptedPhraseDecisionV1,
   BibliographyWorkspaceV1,
-  BibliographyFilterType
+  BibliographyFilterType,
+  WorkspaceValidationResult
 } from './types';
 import {
   createDefaultTransliterationWorkspace,
   createDefaultBibliographyWorkspace
 } from './defaults';
+import { renderCanonicalForProfile } from '../../domain/profiles';
+import { validateManualTransliteration } from '../../domain/review/validation';
 
 const VALID_PROFILES = new Set<string>(['ijmes_full', 'ijmes_citation_title']);
 const VALID_FILTERS = new Set<string>(['ALL', 'READY', 'REVIEW_REQUIRED', 'INVALID']);
 const VALID_EXPORT_MODES = new Set<string>(['STRICT_ALL', 'READY_ONLY']);
+const VALID_RECORD_TYPES = new Set<string>(['BOOK', 'JOURNAL_ARTICLE', 'BOOK_CHAPTER', 'THESIS', 'OTHER']);
+const VALID_REVIEW_ACTIONS = new Set<string>([
+  'SELECT_LEXICAL_READING',
+  'MANUAL_CANONICAL_OVERRIDE',
+  'ACCEPT_IZAFAT',
+  'REJECT_IZAFAT',
+  'SELECT_MORPHOLOGY'
+]);
 
 function isObject(val: unknown): val is Record<string, any> {
   return typeof val === 'object' && val !== null && !Array.isArray(val);
 }
 
-export function validateAndMigrateTransliterationWorkspace(
-  data: unknown
-): TransliterationWorkspaceV1 {
-  if (!isObject(data)) {
-    return createDefaultTransliterationWorkspace();
+function isValidIsoDate(str: unknown): boolean {
+  if (typeof str !== 'string' || str.trim().length === 0) return false;
+  const time = Date.parse(str);
+  return !Number.isNaN(time);
+}
+
+export function toPersistedAcceptedPhraseDecision(
+  decision: AcceptedPhraseDecision | PersistedAcceptedPhraseDecisionV1
+): PersistedAcceptedPhraseDecisionV1 {
+  const {
+    source,
+    acceptance,
+    originalInput,
+    normalizedInput,
+    profile,
+    scholarlyCanonical,
+    provider,
+    model,
+    promptVersion,
+    requestFingerprint,
+    modelConfidence,
+    acceptedAt
+  } = decision;
+
+  return {
+    source,
+    acceptance,
+    originalInput,
+    normalizedInput,
+    profile,
+    scholarlyCanonical,
+    provider,
+    model,
+    promptVersion,
+    requestFingerprint,
+    modelConfidence: typeof modelConfidence === 'number' && Number.isFinite(modelConfidence) ? modelConfidence : null,
+    acceptedAt
+  };
+}
+
+export function fromPersistedAcceptedPhraseDecision(
+  persisted: PersistedAcceptedPhraseDecisionV1,
+  currentProfile?: ProfileId
+): AcceptedPhraseDecision {
+  const profile = currentProfile ?? persisted.profile;
+  return {
+    ...persisted,
+    profile,
+    renderedOutput: renderCanonicalForProfile(persisted.scholarlyCanonical, profile)
+  };
+}
+
+function validateSingleReviewDecision(d: unknown): ReviewDecision | null {
+  if (!isObject(d)) return null;
+  if (typeof d.issueId !== 'string' || d.issueId.trim().length === 0) return null;
+  if (typeof d.action !== 'string' || !VALID_REVIEW_ACTIONS.has(d.action)) return null;
+
+  const action = d.action as ReviewActionType;
+
+  if (action === 'SELECT_LEXICAL_READING' || action === 'SELECT_MORPHOLOGY') {
+    if (typeof d.selectedAlternativeId !== 'string' || d.selectedAlternativeId.trim().length === 0) {
+      return null;
+    }
+    const res: ReviewDecision = {
+      issueId: d.issueId,
+      action,
+      selectedAlternativeId: d.selectedAlternativeId
+    };
+    if (typeof d.note === 'string') res.note = d.note;
+    return res;
   }
 
-  // Schema version handling (currently v1)
-  const schemaVersion = data.schemaVersion === 1 ? 1 : 1;
+  if (action === 'MANUAL_CANONICAL_OVERRIDE') {
+    if (typeof d.manualCanonicalTransliteration !== 'string') return null;
+    const manualValidation = validateManualTransliteration(d.manualCanonicalTransliteration);
+    if (!manualValidation.valid || !manualValidation.normalized) return null;
 
-  const updatedAt = typeof data.updatedAt === 'string' ? data.updatedAt : new Date().toISOString();
+    const res: ReviewDecision = {
+      issueId: d.issueId,
+      action,
+      manualCanonicalTransliteration: manualValidation.normalized
+    };
+    if (typeof d.note === 'string') res.note = d.note;
+    return res;
+  }
+
+  if (action === 'ACCEPT_IZAFAT' || action === 'REJECT_IZAFAT') {
+    const res: ReviewDecision = {
+      issueId: d.issueId,
+      action
+    };
+    if (typeof d.note === 'string') res.note = d.note;
+    return res;
+  }
+
+  return null;
+}
+
+function validatePersistedAcceptedPhraseDecision(
+  data: unknown,
+  fallbackInput: string
+): PersistedAcceptedPhraseDecisionV1 | null {
+  if (!isObject(data)) return null;
+
+  if (data.source !== 'AI_ASSISTED_PHRASE') return null;
+  if (
+    data.acceptance !== 'HUMAN_ACCEPTED_AI_SUGGESTION' &&
+    data.acceptance !== 'HUMAN_EDITED_AI_SUGGESTION'
+  ) {
+    return null;
+  }
+
+  const originalInput = typeof data.originalInput === 'string' && data.originalInput.length > 0
+    ? data.originalInput
+    : fallbackInput;
+  const normalizedInput = typeof data.normalizedInput === 'string'
+    ? data.normalizedInput
+    : '';
+
+  // Profile validation with legacy ijmes_title migration
+  let profile: ProfileId;
+  if (data.profile === 'ijmes_title') {
+    profile = 'ijmes_citation_title';
+  } else if (typeof data.profile === 'string' && VALID_PROFILES.has(data.profile)) {
+    profile = data.profile as ProfileId;
+  } else {
+    return null;
+  }
+
+  if (typeof data.scholarlyCanonical !== 'string' || data.scholarlyCanonical.trim().length === 0) {
+    return null;
+  }
+  const canonicalVal = validateManualTransliteration(data.scholarlyCanonical);
+  if (!canonicalVal.valid || !canonicalVal.normalized) {
+    return null;
+  }
+
+  // Provenance must NEVER be fabricated
+  if (typeof data.provider !== 'string' || data.provider.trim().length === 0) return null;
+  if (typeof data.model !== 'string' || data.model.trim().length === 0) return null;
+  if (typeof data.promptVersion !== 'string' || data.promptVersion.trim().length === 0) return null;
+  if (typeof data.requestFingerprint !== 'string' || data.requestFingerprint.trim().length === 0) return null;
+
+  let modelConfidence: number | null = null;
+  if (data.modelConfidence === null || data.modelConfidence === undefined) {
+    modelConfidence = null;
+  } else if (
+    typeof data.modelConfidence === 'number' &&
+    Number.isFinite(data.modelConfidence) &&
+    data.modelConfidence >= 0 &&
+    data.modelConfidence <= 1
+  ) {
+    modelConfidence = data.modelConfidence;
+  } else {
+    return null;
+  }
+
+  if (!isValidIsoDate(data.acceptedAt)) {
+    return null;
+  }
+
+  return {
+    source: 'AI_ASSISTED_PHRASE',
+    acceptance: data.acceptance,
+    originalInput,
+    normalizedInput,
+    profile,
+    scholarlyCanonical: canonicalVal.normalized,
+    provider: data.provider,
+    model: data.model,
+    promptVersion: data.promptVersion,
+    requestFingerprint: data.requestFingerprint,
+    modelConfidence,
+    acceptedAt: data.acceptedAt
+  };
+}
+
+export function parseTransliterationWorkspace(
+  data: unknown
+): WorkspaceValidationResult<TransliterationWorkspaceV1> {
+  if (!isObject(data)) {
+    return { success: false, reason: 'CORRUPTED_DATA' };
+  }
+
+  // Check schema version: must not coerce unknown future versions
+  if (data.schemaVersion !== undefined && data.schemaVersion !== 1) {
+    return {
+      success: false,
+      reason: 'UNSUPPORTED_SCHEMA',
+      rawVersion: data.schemaVersion
+    };
+  }
+
+  const updatedAt = isValidIsoDate(data.updatedAt) ? (data.updatedAt as string) : new Date().toISOString();
   const input = typeof data.input === 'string' ? data.input : createDefaultTransliterationWorkspace().input;
 
   // Profile migration: legacy ijmes_title -> ijmes_citation_title
@@ -45,88 +244,221 @@ export function validateAndMigrateTransliterationWorkspace(
   }
 
   // Review decisions
-  const reviewDecisions = Array.isArray(data.reviewDecisions)
-    ? data.reviewDecisions.filter(
-        (d: any) =>
-          isObject(d) &&
-          typeof d.issueId === 'string' &&
-          typeof d.action === 'string'
-      )
-    : [];
-
-  // Accepted phrase decision
-  let acceptedPhraseDecision: AcceptedPhraseDecision | null = null;
-  if (
-    isObject(data.acceptedPhraseDecision) &&
-    typeof data.acceptedPhraseDecision.scholarlyCanonical === 'string' &&
-    typeof data.acceptedPhraseDecision.renderedOutput === 'string' &&
-    typeof data.acceptedPhraseDecision.requestFingerprint === 'string'
-  ) {
-    let decProfile: ProfileId = 'ijmes_citation_title';
-    if (data.acceptedPhraseDecision.profile === 'ijmes_title') {
-      decProfile = 'ijmes_citation_title';
-    } else if (VALID_PROFILES.has(data.acceptedPhraseDecision.profile)) {
-      decProfile = data.acceptedPhraseDecision.profile as ProfileId;
+  const reviewDecisions: ReviewDecision[] = [];
+  if (Array.isArray(data.reviewDecisions)) {
+    for (const item of data.reviewDecisions) {
+      const validated = validateSingleReviewDecision(item);
+      if (validated) {
+        reviewDecisions.push(validated);
+      }
     }
-
-    acceptedPhraseDecision = {
-      source: 'AI_ASSISTED_PHRASE',
-      acceptance:
-        data.acceptedPhraseDecision.acceptance === 'HUMAN_EDITED_AI_SUGGESTION'
-          ? 'HUMAN_EDITED_AI_SUGGESTION'
-          : 'HUMAN_ACCEPTED_AI_SUGGESTION',
-      originalInput: typeof data.acceptedPhraseDecision.originalInput === 'string' ? data.acceptedPhraseDecision.originalInput : input,
-      normalizedInput: typeof data.acceptedPhraseDecision.normalizedInput === 'string' ? data.acceptedPhraseDecision.normalizedInput : input,
-      profile: decProfile,
-      scholarlyCanonical: data.acceptedPhraseDecision.scholarlyCanonical,
-      renderedOutput: data.acceptedPhraseDecision.renderedOutput,
-      provider: typeof data.acceptedPhraseDecision.provider === 'string' ? data.acceptedPhraseDecision.provider : 'openai',
-      model: typeof data.acceptedPhraseDecision.model === 'string' ? data.acceptedPhraseDecision.model : 'gpt-4o',
-      promptVersion: typeof data.acceptedPhraseDecision.promptVersion === 'string' ? data.acceptedPhraseDecision.promptVersion : 'v1',
-      requestFingerprint: data.acceptedPhraseDecision.requestFingerprint,
-      modelConfidence: typeof data.acceptedPhraseDecision.modelConfidence === 'number' ? data.acceptedPhraseDecision.modelConfidence : 1,
-      acceptedAt: typeof data.acceptedPhraseDecision.acceptedAt === 'string' ? data.acceptedPhraseDecision.acceptedAt : updatedAt
-    };
   }
 
+  // Accepted phrase decision: validated strictly without fabricating provenance
+  const acceptedPhraseDecision = validatePersistedAcceptedPhraseDecision(
+    data.acceptedPhraseDecision,
+    input
+  );
+
   return {
-    schemaVersion,
-    updatedAt,
-    input,
-    profile,
-    reviewDecisions,
-    acceptedPhraseDecision
+    success: true,
+    data: {
+      schemaVersion: 1,
+      updatedAt,
+      input,
+      profile,
+      reviewDecisions,
+      acceptedPhraseDecision
+    }
   };
 }
 
-export function validateAndMigrateBibliographyWorkspace(
+export function validateAndMigrateTransliterationWorkspace(
   data: unknown
-): BibliographyWorkspaceV1 {
-  if (!isObject(data)) {
-    return createDefaultBibliographyWorkspace();
+): TransliterationWorkspaceV1 {
+  const result = parseTransliterationWorkspace(data);
+  if (result.success) {
+    return result.data;
+  }
+  return createDefaultTransliterationWorkspace();
+}
+
+function validateBibliographyCreator(c: unknown): BibliographyCreator | null {
+  if (!isObject(c)) return null;
+  if (typeof c.literal !== 'string') return null;
+  const creator: BibliographyCreator = { literal: c.literal };
+  if (typeof c.given === 'string') creator.given = c.given;
+  if (typeof c.family === 'string') creator.family = c.family;
+  return creator;
+}
+
+function validateBibliographySourceCell(s: unknown): BibliographySourceCell | null {
+  if (!isObject(s)) return null;
+  if (typeof s.header !== 'string' || typeof s.value !== 'string') return null;
+  return {
+    header: s.header,
+    value: s.value
+  };
+}
+
+function validateBibliographyRecord(r: unknown): BibliographyRecord | null {
+  if (!isObject(r)) return null;
+  if (typeof r.id !== 'string' || r.id.trim().length === 0) return null;
+  if (typeof r.type !== 'string' || !VALID_RECORD_TYPES.has(r.type)) return null;
+  if (typeof r.title !== 'string') return null;
+  if (typeof r.sourceRowIndex !== 'number' || !Number.isInteger(r.sourceRowIndex) || r.sourceRowIndex < 0) return null;
+
+  const authors: BibliographyCreator[] = [];
+  if (Array.isArray(r.authors)) {
+    for (const a of r.authors) {
+      const validCreator = validateBibliographyCreator(a);
+      if (validCreator) authors.push(validCreator);
+      else return null;
+    }
+  } else {
+    return null;
   }
 
-  const schemaVersion = data.schemaVersion === 1 ? 1 : 1;
-  const updatedAt = typeof data.updatedAt === 'string' ? data.updatedAt : new Date().toISOString();
+  const editors: BibliographyCreator[] = [];
+  if (Array.isArray(r.editors)) {
+    for (const e of r.editors) {
+      const validCreator = validateBibliographyCreator(e);
+      if (validCreator) editors.push(validCreator);
+      else return null;
+    }
+  } else {
+    return null;
+  }
+
+  const translators: BibliographyCreator[] = [];
+  if (Array.isArray(r.translators)) {
+    for (const t of r.translators) {
+      const validCreator = validateBibliographyCreator(t);
+      if (validCreator) translators.push(validCreator);
+      else return null;
+    }
+  } else {
+    return null;
+  }
+
+  const sourceColumns: BibliographySourceCell[] = [];
+  if (Array.isArray(r.sourceColumns)) {
+    for (const sc of r.sourceColumns) {
+      const cell = validateBibliographySourceCell(sc);
+      if (cell) sourceColumns.push(cell);
+      else return null;
+    }
+  } else {
+    return null;
+  }
+
+  const passthrough: Record<string, string> = {};
+  if (isObject(r.passthrough)) {
+    for (const [k, v] of Object.entries(r.passthrough)) {
+      if (typeof v === 'string') {
+        passthrough[k] = v;
+      }
+    }
+  }
+
+  const record: BibliographyRecord = {
+    id: r.id,
+    type: r.type as BibliographyRecordType,
+    title: r.title,
+    authors,
+    editors,
+    translators,
+    sourceRowIndex: r.sourceRowIndex,
+    sourceColumns,
+    passthrough
+  };
+
+  const optionalStringFields: Array<keyof BibliographyRecord> = [
+    'containerTitle',
+    'year',
+    'publisher',
+    'place',
+    'volume',
+    'issue',
+    'pageStart',
+    'pageEnd',
+    'doi',
+    'url',
+    'isbn',
+    'issn',
+    'language',
+    'notes'
+  ];
+
+  for (const field of optionalStringFields) {
+    if (r[field] !== undefined) {
+      if (typeof r[field] === 'string') {
+        (record as any)[field] = r[field];
+      } else {
+        return null;
+      }
+    }
+  }
+
+  return record;
+}
+
+const FIELD_PATH_REGEX = /^(title|containerTitle|publisher|place|(authors|editors|translators)\.\d+\.literal)$/;
+
+function validateBibliographyReviewDecision(d: unknown): BibliographyReviewDecision | null {
+  if (!isObject(d)) return null;
+  if (typeof d.recordId !== 'string' || d.recordId.trim().length === 0) return null;
+  if (typeof d.fieldPath !== 'string' || !FIELD_PATH_REGEX.test(d.fieldPath)) return null;
+
+  const validDecision = validateSingleReviewDecision(d.decision);
+  if (!validDecision) return null;
+
+  return {
+    recordId: d.recordId,
+    fieldPath: d.fieldPath as BibliographyFieldPath,
+    decision: validDecision
+  };
+}
+
+export function parseBibliographyWorkspace(
+  data: unknown
+): WorkspaceValidationResult<BibliographyWorkspaceV1> {
+  if (!isObject(data)) {
+    return { success: false, reason: 'CORRUPTED_DATA' };
+  }
+
+  // Schema version: do not coerce unknown future versions
+  if (data.schemaVersion !== undefined && data.schemaVersion !== 1) {
+    return {
+      success: false,
+      reason: 'UNSUPPORTED_SCHEMA',
+      rawVersion: data.schemaVersion
+    };
+  }
+
+  const updatedAt = isValidIsoDate(data.updatedAt) ? (data.updatedAt as string) : new Date().toISOString();
   const csvText = typeof data.csvText === 'string' ? data.csvText : createDefaultBibliographyWorkspace().csvText;
 
-  // Records validation
-  let records: BibliographyRecord[] = [];
+  // Records validation: strict validation of each record
+  const records: BibliographyRecord[] = [];
   if (Array.isArray(data.records)) {
-    records = data.records.filter((r: any) => isObject(r) && typeof r.id === 'string' && typeof r.type === 'string');
+    for (const r of data.records) {
+      const validRecord = validateBibliographyRecord(r);
+      if (validRecord) {
+        records.push(validRecord);
+      }
+    }
   }
 
-  // Review decisions
-  let reviewDecisions: BibliographyReviewDecision[] = [];
+  // Review decisions validation
+  const reviewDecisions: BibliographyReviewDecision[] = [];
   if (Array.isArray(data.reviewDecisions)) {
-    reviewDecisions = data.reviewDecisions.filter(
-      (d: any) =>
-        isObject(d) &&
-        typeof d.recordId === 'string' &&
-        typeof d.fieldPath === 'string' &&
-        isObject(d.decision) &&
-        typeof d.decision.issueId === 'string'
-    );
+    for (const d of data.reviewDecisions) {
+      const validReview = validateBibliographyReviewDecision(d);
+      if (validReview) {
+        reviewDecisions.push(validReview);
+      }
+    }
   }
 
   // Filter validation
@@ -155,13 +487,26 @@ export function validateAndMigrateBibliographyWorkspace(
   }
 
   return {
-    schemaVersion,
-    updatedAt,
-    csvText,
-    records,
-    reviewDecisions,
-    selectedRecordId,
-    filter,
-    exportMode
+    success: true,
+    data: {
+      schemaVersion: 1,
+      updatedAt,
+      csvText,
+      records,
+      reviewDecisions,
+      selectedRecordId,
+      filter,
+      exportMode
+    }
   };
+}
+
+export function validateAndMigrateBibliographyWorkspace(
+  data: unknown
+): BibliographyWorkspaceV1 {
+  const result = parseBibliographyWorkspace(data);
+  if (result.success) {
+    return result.data;
+  }
+  return createDefaultBibliographyWorkspace();
 }

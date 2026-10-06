@@ -6,13 +6,33 @@ import type {
 } from '../../domain/bibliography/types';
 import type { ScholarlyExportMode } from '../../domain/bibliography/export/types';
 
+export interface PersistedAcceptedPhraseDecisionV1 {
+  source: 'AI_ASSISTED_PHRASE';
+  acceptance:
+    | 'HUMAN_ACCEPTED_AI_SUGGESTION'
+    | 'HUMAN_EDITED_AI_SUGGESTION';
+
+  originalInput: string;
+  normalizedInput: string;
+  profile: ProfileId;
+
+  scholarlyCanonical: string;
+
+  provider: string;
+  model: string;
+  promptVersion: string;
+  requestFingerprint: string;
+  modelConfidence: number | null;
+  acceptedAt: string;
+}
+
 export interface TransliterationWorkspaceV1 {
   schemaVersion: 1;
   updatedAt: string;
   input: string;
   profile: ProfileId;
   reviewDecisions: ReviewDecision[];
-  acceptedPhraseDecision: AcceptedPhraseDecision | null;
+  acceptedPhraseDecision: PersistedAcceptedPhraseDecisionV1 | null;
 }
 
 export type BibliographyFilterType = 'ALL' | 'READY' | 'REVIEW_REQUIRED' | 'INVALID';
@@ -30,15 +50,34 @@ export interface BibliographyWorkspaceV1 {
 
 export type PersistenceStatus = 'restoring' | 'saved' | 'saving' | 'error';
 
+export type WorkspaceLoadResult<T> =
+  | { status: 'ok'; value: T | null }
+  | { status: 'unavailable' }
+  | { status: 'error'; error: unknown }
+  | { status: 'unsupported-schema'; rawVersion: unknown };
+
+export type WorkspaceValidationResult<T> =
+  | { success: true; data: T }
+  | { success: false; reason: 'CORRUPTED_DATA' | 'UNSUPPORTED_SCHEMA'; rawVersion?: unknown };
+
+export interface RuntimeTransliterationWorkspace {
+  schemaVersion: 1;
+  updatedAt: string;
+  input: string;
+  profile: ProfileId;
+  reviewDecisions: ReviewDecision[];
+  acceptedPhraseDecision: AcceptedPhraseDecision | null;
+}
+
 export interface ResearchWorkspaceContextValue {
   ready: boolean;
   persistenceStatus: PersistenceStatus;
 
-  transliteration: TransliterationWorkspaceV1;
+  transliteration: RuntimeTransliterationWorkspace;
   updateTransliteration: (
     updater:
-      | Partial<Omit<TransliterationWorkspaceV1, 'schemaVersion' | 'updatedAt'>>
-      | ((prev: TransliterationWorkspaceV1) => TransliterationWorkspaceV1)
+      | Partial<Omit<RuntimeTransliterationWorkspace, 'schemaVersion' | 'updatedAt'>>
+      | ((prev: RuntimeTransliterationWorkspace) => RuntimeTransliterationWorkspace)
   ) => void;
   resetTransliteration: () => Promise<void>;
 
@@ -57,3 +96,4 @@ export interface ResearchWorkspaceContextValue {
   dismissCrossTabNotice: (workspace: 'transliteration' | 'bibliography') => void;
   reloadFromStorage: (workspace: 'transliteration' | 'bibliography') => Promise<void>;
 }
+

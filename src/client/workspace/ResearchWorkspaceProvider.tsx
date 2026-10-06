@@ -2,15 +2,20 @@
 
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type {
-  TransliterationWorkspaceV1,
   BibliographyWorkspaceV1,
   PersistenceStatus,
-  ResearchWorkspaceContextValue
+  ResearchWorkspaceContextValue,
+  RuntimeTransliterationWorkspace,
+  TransliterationWorkspaceV1
 } from './types';
 import {
   createDefaultTransliterationWorkspace,
   createDefaultBibliographyWorkspace
 } from './defaults';
+import {
+  fromPersistedAcceptedPhraseDecision,
+  toPersistedAcceptedPhraseDecision
+} from './validation';
 import { workspaceRepository } from './workspaceRepository';
 
 export const ResearchWorkspaceContext = createContext<ResearchWorkspaceContextValue | null>(null);
@@ -18,12 +23,43 @@ export const ResearchWorkspaceContext = createContext<ResearchWorkspaceContextVa
 const BROADCAST_CHANNEL_NAME = 'persian-scholarly-transliterator-sync';
 const AUTOSAVE_DEBOUNCE_MS = 300;
 
+function toRuntimeTransliterationWorkspace(
+  persisted: TransliterationWorkspaceV1
+): RuntimeTransliterationWorkspace {
+  return {
+    schemaVersion: 1,
+    updatedAt: persisted.updatedAt,
+    input: persisted.input,
+    profile: persisted.profile,
+    reviewDecisions: persisted.reviewDecisions,
+    acceptedPhraseDecision: persisted.acceptedPhraseDecision
+      ? fromPersistedAcceptedPhraseDecision(persisted.acceptedPhraseDecision, persisted.profile)
+      : null
+  };
+}
+
+function toSerializableTransliterationJson(
+  runtime: RuntimeTransliterationWorkspace
+): string {
+  const serializable: TransliterationWorkspaceV1 = {
+    schemaVersion: 1,
+    updatedAt: runtime.updatedAt,
+    input: runtime.input,
+    profile: runtime.profile,
+    reviewDecisions: runtime.reviewDecisions,
+    acceptedPhraseDecision: runtime.acceptedPhraseDecision
+      ? toPersistedAcceptedPhraseDecision(runtime.acceptedPhraseDecision)
+      : null
+  };
+  return JSON.stringify(serializable);
+}
+
 export function ResearchWorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   const [persistenceStatus, setPersistenceStatus] = useState<PersistenceStatus>('restoring');
 
-  const [transliteration, setTransliteration] = useState<TransliterationWorkspaceV1>(
-    createDefaultTransliterationWorkspace
+  const [transliteration, setTransliteration] = useState<RuntimeTransliterationWorkspace>(() =>
+    toRuntimeTransliterationWorkspace(createDefaultTransliterationWorkspace())
   );
   const [bibliography, setBibliography] = useState<BibliographyWorkspaceV1>(
     createDefaultBibliographyWorkspace
@@ -39,11 +75,18 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
 
   const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const latestTransliterationRef = useRef<TransliterationWorkspaceV1>(transliteration);
+  const latestTransliterationRef = useRef<RuntimeTransliterationWorkspace>(transliteration);
   const latestBibliographyRef = useRef<BibliographyWorkspaceV1>(bibliography);
   const lastSavedTransliterationJsonRef = useRef<string>('');
   const lastSavedBibliographyJsonRef = useRef<string>('');
   const isRestoringRef = useRef<boolean>(true);
+  const unsupportedSchemaRef = useRef<{
+    transliteration: boolean;
+    bibliography: boolean;
+  }>({
+    transliteration: false,
+    bibliography: false
+  });
 
   latestTransliterationRef.current = transliteration;
   latestBibliographyRef.current = bibliography;
@@ -54,30 +97,52 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
 
     async function restore() {
       try {
-        const [savedTrans, savedBib] = await Promise.all([
+        const [transRes, bibRes] = await Promise.all([
           workspaceRepository.getTransliterationWorkspace(),
           workspaceRepository.getBibliographyWorkspace()
         ]);
 
         if (cancelled) return;
 
-        if (savedTrans) {
-          setTransliteration(savedTrans);
-          lastSavedTransliterationJsonRef.current = JSON.stringify(savedTrans);
+        let hasUnavailable = false;
+
+        // Transliteration restore evaluation
+        if (transRes.status === 'unavailable') {
+          hasUnavailable = true;
+        } else if (transRes.status === 'unsupported-schema') {
+          unsupportedSchemaRef.current.transliteration = true;
+        } else if (transRes.status === 'ok' && transRes.value) {
+          const runtime = toRuntimeTransliterationWorkspace(transRes.value);
+          setTransliteration(runtime);
+          lastSavedTransliterationJsonRef.current = toSerializableTransliterationJson(runtime);
         } else {
-          lastSavedTransliterationJsonRef.current = JSON.stringify(latestTransliterationRef.current);
+          lastSavedTransliterationJsonRef.current = toSerializableTransliterationJson(
+            latestTransliterationRef.current
+          );
         }
 
-        if (savedBib) {
-          setBibliography(savedBib);
-          lastSavedBibliographyJsonRef.current = JSON.stringify(savedBib);
+        // Bibliography restore evaluation
+        if (bibRes.status === 'unavailable') {
+          hasUnavailable = true;
+        } else if (bibRes.status === 'unsupported-schema') {
+          unsupportedSchemaRef.current.bibliography = true;
+        } else if (bibRes.status === 'ok' && bibRes.value) {
+          setBibliography(bibRes.value);
+          lastSavedBibliographyJsonRef.current = JSON.stringify(bibRes.value);
         } else {
-          lastSavedBibliographyJsonRef.current = JSON.stringify(latestBibliographyRef.current);
+          lastSavedBibliographyJsonRef.current = JSON.stringify(
+            latestBibliographyRef.current
+          );
         }
 
         isRestoringRef.current = false;
         setReady(true);
-        setPersistenceStatus('saved');
+
+        if (hasUnavailable || transRes.status === 'error' || bibRes.status === 'error') {
+          setPersistenceStatus('error');
+        } else {
+          setPersistenceStatus('saved');
+        }
       } catch {
         if (cancelled) return;
         isRestoringRef.current = false;
@@ -94,7 +159,7 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
         const channel = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
         channel.onmessage = (event) => {
           const data = event.data;
-          if (data && typeof data === 'object' && data.type === 'WORKSPACE_SAVED') {
+          if (data && typeof data === 'object' && (data.type === 'WORKSPACE_SAVED' || data.type === 'WORKSPACE_CLEARED')) {
             if (data.workspace === 'transliteration') {
               setCrossTabNotice((prev) => ({ ...prev, transliteration: true }));
             } else if (data.workspace === 'bibliography') {
@@ -123,11 +188,15 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
 
     const currentTrans = latestTransliterationRef.current;
     const currentBib = latestBibliographyRef.current;
-    const transJson = JSON.stringify(currentTrans);
+    const transJson = toSerializableTransliterationJson(currentTrans);
     const bibJson = JSON.stringify(currentBib);
 
-    const transChanged = transJson !== lastSavedTransliterationJsonRef.current;
-    const bibChanged = bibJson !== lastSavedBibliographyJsonRef.current;
+    const transChanged =
+      !unsupportedSchemaRef.current.transliteration &&
+      transJson !== lastSavedTransliterationJsonRef.current;
+    const bibChanged =
+      !unsupportedSchemaRef.current.bibliography &&
+      bibJson !== lastSavedBibliographyJsonRef.current;
 
     if (!transChanged && !bibChanged) return;
 
@@ -168,11 +237,15 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
   useEffect(() => {
     if (!ready || isRestoringRef.current) return;
 
-    const transJson = JSON.stringify(transliteration);
+    const transJson = toSerializableTransliterationJson(transliteration);
     const bibJson = JSON.stringify(bibliography);
 
-    const transChanged = transJson !== lastSavedTransliterationJsonRef.current;
-    const bibChanged = bibJson !== lastSavedBibliographyJsonRef.current;
+    const transChanged =
+      !unsupportedSchemaRef.current.transliteration &&
+      transJson !== lastSavedTransliterationJsonRef.current;
+    const bibChanged =
+      !unsupportedSchemaRef.current.bibliography &&
+      bibJson !== lastSavedBibliographyJsonRef.current;
 
     if (!transChanged && !bibChanged) return;
 
@@ -193,23 +266,33 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
     };
   }, [transliteration, bibliography, ready]);
 
-  // 3. Lifecycle listeners for pagehide & visibilitychange
+  // 3. Lifecycle listeners for pagehide & document visibilitychange
   useEffect(() => {
+    if (!ready) return;
+
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+          saveTimeoutRef.current = null;
+        }
         flushSave();
       }
     };
 
     const handlePageHide = () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
+      }
       flushSave();
     };
 
-    window.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('pagehide', handlePageHide);
 
     return () => {
-      window.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('pagehide', handlePageHide);
     };
   }, [ready]);
@@ -217,8 +300,8 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
   // Context methods
   const updateTransliteration = (
     updater:
-      | Partial<Omit<TransliterationWorkspaceV1, 'schemaVersion' | 'updatedAt'>>
-      | ((prev: TransliterationWorkspaceV1) => TransliterationWorkspaceV1)
+      | Partial<Omit<RuntimeTransliterationWorkspace, 'schemaVersion' | 'updatedAt'>>
+      | ((prev: RuntimeTransliterationWorkspace) => RuntimeTransliterationWorkspace)
   ) => {
     setTransliteration((prev) => {
       if (typeof updater === 'function') {
@@ -239,12 +322,28 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
   };
 
   const resetTransliteration = async () => {
-    const defaultWorkspace = createDefaultTransliterationWorkspace();
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+    const defaultWorkspace = toRuntimeTransliterationWorkspace(
+      createDefaultTransliterationWorkspace()
+    );
     setTransliteration(defaultWorkspace);
-    lastSavedTransliterationJsonRef.current = JSON.stringify(defaultWorkspace);
+    lastSavedTransliterationJsonRef.current = toSerializableTransliterationJson(defaultWorkspace);
+    unsupportedSchemaRef.current.transliteration = false;
     setCrossTabNotice((prev) => ({ ...prev, transliteration: false }));
+
     try {
       await workspaceRepository.clearTransliterationWorkspace();
+      try {
+        broadcastChannelRef.current?.postMessage({
+          type: 'WORKSPACE_CLEARED',
+          workspace: 'transliteration'
+        });
+      } catch {
+        // ignore
+      }
       setPersistenceStatus('saved');
     } catch {
       setPersistenceStatus('error');
@@ -275,12 +374,26 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
   };
 
   const resetBibliography = async () => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
     const defaultWorkspace = createDefaultBibliographyWorkspace();
     setBibliography(defaultWorkspace);
     lastSavedBibliographyJsonRef.current = JSON.stringify(defaultWorkspace);
+    unsupportedSchemaRef.current.bibliography = false;
     setCrossTabNotice((prev) => ({ ...prev, bibliography: false }));
+
     try {
       await workspaceRepository.clearBibliographyWorkspace();
+      try {
+        broadcastChannelRef.current?.postMessage({
+          type: 'WORKSPACE_CLEARED',
+          workspace: 'bibliography'
+        });
+      } catch {
+        // ignore
+      }
       setPersistenceStatus('saved');
     } catch {
       setPersistenceStatus('error');
@@ -292,18 +405,24 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
   };
 
   const reloadFromStorage = async (workspace: 'transliteration' | 'bibliography') => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+
     if (workspace === 'transliteration') {
-      const saved = await workspaceRepository.getTransliterationWorkspace();
-      if (saved) {
-        setTransliteration(saved);
-        lastSavedTransliterationJsonRef.current = JSON.stringify(saved);
+      const res = await workspaceRepository.getTransliterationWorkspace();
+      if (res.status === 'ok' && res.value) {
+        const runtime = toRuntimeTransliterationWorkspace(res.value);
+        setTransliteration(runtime);
+        lastSavedTransliterationJsonRef.current = toSerializableTransliterationJson(runtime);
       }
       setCrossTabNotice((prev) => ({ ...prev, transliteration: false }));
     } else if (workspace === 'bibliography') {
-      const saved = await workspaceRepository.getBibliographyWorkspace();
-      if (saved) {
-        setBibliography(saved);
-        lastSavedBibliographyJsonRef.current = JSON.stringify(saved);
+      const res = await workspaceRepository.getBibliographyWorkspace();
+      if (res.status === 'ok' && res.value) {
+        setBibliography(res.value);
+        lastSavedBibliographyJsonRef.current = JSON.stringify(res.value);
       }
       setCrossTabNotice((prev) => ({ ...prev, bibliography: false }));
     }
