@@ -4,7 +4,6 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import type {
   BibliographyWorkspaceV1,
   CrossTabConflictType,
-  PersistenceStatus,
   ResearchWorkspaceContextValue,
   RuntimeTransliterationWorkspace,
   TransliterationWorkspaceV1,
