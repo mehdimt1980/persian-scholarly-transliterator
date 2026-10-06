@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "lint": "oxlint src",
+    "lint": "node node_modules/oxlint/bin/oxlint src",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "validate:corpus": "tsx src/validation/cli.ts",
