@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Synthetic edge-case MARCXML records for offline unit testing.
+  Explicitly marked as synthetic.
+-->
+<collection xmlns="http://www.loc.gov/MARC21/slim">
+
+  <!-- Case 1: Occurrence Mismatch (245-02 in regular vs 245-03 in 880) -->
+  <record>
+    <leader>01000nam a2200250 i 4500</leader>
+    <controlfield tag="001">syn-mismatch-01</controlfield>
+    <controlfield tag="008">240101s2024    ir            000 0 per  </controlfield>
+    <datafield tag="010" ind1=" " ind2=" ">
+      <subfield code="a">syn0001</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="6">880-02</subfield>
+      <subfield code="a">Dīvān-i Ḥāfiẓ.</subfield>
+    </datafield>
+    <datafield tag="880" ind1="1" ind2="0">
+      <subfield code="6">245-03/(3/r</subfield>
+      <subfield code="a">دیوان حافظ.</subfield>
+    </datafield>
+  </record>
+
+  <!-- Case 2: Occurrence 00 Orphan (880 with occurrence 00, no romanized counterpart) -->
+  <record>
+    <leader>01000nam a2200250 i 4500</leader>
+    <controlfield tag="001">syn-orphan-00</controlfield>
+    <controlfield tag="008">240101s2024    ir            000 0 per  </controlfield>
+    <datafield tag="010" ind1=" " ind2=" ">
+      <subfield code="a">syn0002</subfield>
+    </datafield>
+    <datafield tag="880" ind1="1" ind2="0">
+      <subfield code="6">245-00/(3/r</subfield>
+      <subfield code="a">رباعیات خیام.</subfield>
+    </datafield>
+  </record>
+
+  <!-- Case 3: Non-Persian Alternate Script (Cyrillic script in 880) -->
+  <record>
+    <leader>01000nam a2200250 i 4500</leader>
+    <controlfield tag="001">syn-cyrillic-880</controlfield>
+    <controlfield tag="008">240101s2024    ru            000 0 per  </controlfield>
+    <datafield tag="010" ind1=" " ind2=" ">
+      <subfield code="a">syn0003</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="6">880-01</subfield>
+      <subfield code="a">Shedevry persidskoĭ poėzii.</subfield>
+    </datafield>
+    <datafield tag="880" ind1="1" ind2="0">
+      <subfield code="6">245-01/(N/r</subfield>
+      <subfield code="a">Шедевры персидской поэзии.</subfield>
+    </datafield>
+  </record>
+
+  <!-- Case 4: No Persian Language Evidence (Arabic language 'ara' without Persian markers) -->
+  <record>
+    <leader>01000nam a2200250 i 4500</leader>
+    <controlfield tag="001">syn-arabic-lang</controlfield>
+    <controlfield tag="008">240101s2024    eg            000 0 ara  </controlfield>
+    <datafield tag="010" ind1=" " ind2=" ">
+      <subfield code="a">syn0004</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="6">880-01</subfield>
+      <subfield code="a">Muqaddimah fī ʻilm al-kalām.</subfield>
+    </datafield>
+    <datafield tag="880" ind1="1" ind2="0">
+      <subfield code="6">245-01/(3/r</subfield>
+      <subfield code="a">مقدمة في علم الكلام.</subfield>
+    </datafield>
+  </record>
+
+  <!-- Case 5: Exact Raw Preservation (diacritics, ZWNJ, mixed punctuation) -->
+  <record>
+    <leader>01000nam a2200250 i 4500</leader>
+    <controlfield tag="001">syn-raw-preservation</controlfield>
+    <controlfield tag="008">240101s2024    ir            000 0 per  </controlfield>
+    <datafield tag="010" ind1=" " ind2=" ">
+      <subfield code="a">syn0005</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="6">880-01</subfield>
+      <subfield code="a">Ḥāfiẓ,</subfield>
+      <subfield code="d">14th cent.</subfield>
+    </datafield>
+    <datafield tag="880" ind1="1" ind2=" ">
+      <subfield code="6">100-01/(3/r</subfield>
+      <subfield code="a">حافظ،</subfield>
+      <subfield code="d">قرن ۱۴</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="6">880-02</subfield>
+      <subfield code="a">Ghazalīyāt-i Khvājah Ḥāfiẓ-i Shīrāzī /</subfield>
+      <subfield code="b">bā muqaddamah-&#x2BC;i Duktur Mu&#x1E25;ammad Mu&#x2BB;&#x12B;n.</subfield>
+    </datafield>
+    <datafield tag="880" ind1="1" ind2="0">
+      <subfield code="6">245-02/(3/r</subfield>
+      <subfield code="a">غزلیات خواجه حافظ شیرازی /</subfield>
+      <subfield code="b">با مقدمهٔ دکتر محمد معین.</subfield>
+    </datafield>
+  </record>
+
+</collection>

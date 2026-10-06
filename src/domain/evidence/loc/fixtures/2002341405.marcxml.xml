@@ -1,0 +1,181 @@
+<?xml version="1.0"?>
+<zs:searchRetrieveResponse xmlns:zs="http://www.loc.gov/zing/srw/"><zs:version>1.1</zs:version><zs:numberOfRecords>1</zs:numberOfRecords><zs:records><zs:record><zs:recordSchema>marcxml</zs:recordSchema><zs:recordPacking>xml</zs:recordPacking><zs:recordData><record xmlns="http://www.loc.gov/MARC21/slim">
+  <leader>04478cam a2200565 i 4500</leader>
+  <controlfield tag="001">13034235</controlfield>
+  <controlfield tag="008">021029s1883    ii            000 0 per  </controlfield>
+  <controlfield tag="005">20260615131604.4</controlfield>
+  <datafield tag="010" ind1=" " ind2=" ">
+    <subfield code="a">  2002341405</subfield>
+  </datafield>
+  <datafield tag="025" ind1=" " ind2=" ">
+    <subfield code="a">I-P-2002341405</subfield>
+  </datafield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="a">(CStRLIN)DCLN02-B6708</subfield>
+  </datafield>
+  <datafield tag="040" ind1=" " ind2=" ">
+    <subfield code="a">DLC</subfield>
+    <subfield code="b">eng</subfield>
+    <subfield code="e">rda</subfield>
+    <subfield code="c">DLC</subfield>
+  </datafield>
+  <datafield tag="042" ind1=" " ind2=" ">
+    <subfield code="a">lcode</subfield>
+    <subfield code="a">pcc</subfield>
+  </datafield>
+  <datafield tag="050" ind1="0" ind2="0">
+    <subfield code="a">R128.7</subfield>
+    <subfield code="b">.S52 1883</subfield>
+  </datafield>
+  <datafield tag="066" ind1=" " ind2=" ">
+    <subfield code="c">(3</subfield>
+    <subfield code="c">(4</subfield>
+  </datafield>
+  <datafield tag="100" ind1="1" ind2=" ">
+    <subfield code="6">880-01</subfield>
+    <subfield code="a">Sh&#x101;h Arz&#x101;n&#x12B;, Mu&#x1E25;ammad Akbar ibn Mu&#x1E25;ammad,</subfield>
+    <subfield code="d">active 18th century,</subfield>
+    <subfield code="e">author.</subfield>
+  </datafield>
+  <datafield tag="245" ind1="1" ind2="0">
+    <subfield code="6">880-02</subfield>
+    <subfield code="a">M&#x12B;z&#x101;n al-&#x1E6D;ibb /</subfield>
+    <subfield code="c">Mu&#x1E25;ammad Arz&#x101;n&#x12B; al-musamm&#xE1; bih Mu&#x1E25;ammad Akbar.</subfield>
+  </datafield>
+  <datafield tag="264" ind1=" " ind2="1">
+    <subfield code="6">880-03</subfield>
+    <subfield code="a">[Lucknow] :</subfield>
+    <subfield code="b">Munsh&#x12B; Naval Kish&#x16B;r,</subfield>
+    <subfield code="c">1301 [1883 or 1884]</subfield>
+  </datafield>
+  <datafield tag="300" ind1=" " ind2=" ">
+    <subfield code="a">2, 8, 208, 4 pages ;</subfield>
+    <subfield code="c">27 cm</subfield>
+  </datafield>
+  <datafield tag="336" ind1=" " ind2=" ">
+    <subfield code="a">text</subfield>
+    <subfield code="2">rdacontent</subfield>
+  </datafield>
+  <datafield tag="337" ind1=" " ind2=" ">
+    <subfield code="a">unmediated</subfield>
+    <subfield code="2">rdamedia</subfield>
+  </datafield>
+  <datafield tag="338" ind1=" " ind2=" ">
+    <subfield code="a">volume</subfield>
+    <subfield code="2">rdacarrier</subfield>
+  </datafield>
+  <datafield tag="500" ind1=" " ind2=" ">
+    <subfield code="a">Lithographed.</subfield>
+  </datafield>
+  <datafield tag="505" ind1="0" ind2=" ">
+    <subfield code="6">880-04</subfield>
+    <subfield code="a">M&#x12B;z&#x101;n al-&#x1E6D;ibb -- Ris&#x101;lah-&#x2BC;i dal&#x101;&#x2BC;il al-nabz&#x324;  --  Ris&#x101;lah-&#x2BC;i dal&#x101;&#x2BC;il al-bawl -- Ris&#x101;lah-&#x2BC;i bu&#x1E25;r&#x101;n / Mu&#x1E25;ammad Badr al-D&#x12B;n ibn Jam&#x101;l al-D&#x12B;n.</subfield>
+  </datafield>
+  <datafield tag="520" ind1=" " ind2=" ">
+    <subfield code="a">M&#x12B;z&#x101;n al-&#x1E6D;ibb (The measure of medicine) is a popular medical work written by Muhammad Akbar Arzani (died 1772). Scholars differ as to whether Arzani was born in Persia or in India, but he is generally considered the first physician of the Mughal Empire to systematically translate Arabic medical works into Persian. His medical texts enjoyed great popularity in India and Persia and served as instructional texts for medical students throughout these lands. It is also known that Arzani was a Sufi and that he belonged to the Qadiriyya order. In the introduction to M&#x12B;z&#x101;n al-&#x1E6D;ibb Arzani states that his purpose in composing this text was to serve destitute students who desired to study medicine as did others of greater means. The clarity of Arzani's text and its abridged but comprehensive nature are likely what contributed to its becoming the principal work to be mastered by beginning medical students from the 18th century onwards. The work is written in three sections: the first on kayfiyat-i chahar ganah (the four qualities, i.e., heat, cold, moistness, and dryness): the second on dar bay&#x101;n adw&#x12B;yah mufrada wa murakabba wa aghz&#x332;&#x12B;ya (the simple and compound drugs and food); and the third on dar bayan amraz wa 'alaj-i an (diseases and their cures). The major part of the book is taken up by the third section, which is divided into chapters that primarily deal with the treatment of diseases of individual organs. Also included in this section are diseases specific to women and to men and sections on fevers and swellings. The present volume concludes with shorter treatises by other authors on the pulse and on urine. The book was published in 1884 by the famed Newal Kishore Press in Lucknow, India.</subfield>
+    <subfield code="c">World Digital Library.</subfield>
+  </datafield>
+  <datafield tag="530" ind1=" " ind2=" ">
+    <subfield code="a">Also available in digital form on the Library of Congress Web site.</subfield>
+  </datafield>
+  <datafield tag="546" ind1=" " ind2=" ">
+    <subfield code="a">In Persian.</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+    <subfield code="a">Medicine, Arab.</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+    <subfield code="a">Traditional medicine</subfield>
+    <subfield code="v">Early works to 1800.</subfield>
+  </datafield>
+  <datafield tag="700" ind1="0" ind2="2">
+    <subfield code="6">880-05</subfield>
+    <subfield code="a">Mu&#x1E25;ammad Badr al-D&#x12B;n ibn Jam&#x101;l al-D&#x12B;n.</subfield>
+    <subfield code="t">Ris&#x101;lah-&#x2BC;i bu&#x1E25;r&#x101;n.</subfield>
+  </datafield>
+  <datafield tag="740" ind1="0" ind2="2">
+    <subfield code="6">880-06</subfield>
+    <subfield code="a">Ris&#x101;lah-&#x2BC;i dal&#x101;&#x2BC;il al-nabz&#x324;.</subfield>
+  </datafield>
+  <datafield tag="740" ind1="0" ind2="2">
+    <subfield code="6">880-07</subfield>
+    <subfield code="a">Ris&#x101;lah-&#x2BC;i dal&#x101;&#x2BC;il al-bawl.</subfield>
+  </datafield>
+  <datafield tag="752" ind1=" " ind2=" ">
+    <subfield code="a">India</subfield>
+  </datafield>
+  <datafield tag="880" ind1="1" ind2=" ">
+    <subfield code="6">100-01/(3/r</subfield>
+    <subfield code="a">&#x634;&#x627;&#x647; &#x627;&#x631;&#x632;&#x627;&#x646;&#x649;&#x60C; &#x645;&#x62D;&#x645;&#x62F; &#x627;&#x6A9;&#x628;&#x631; &#x628;&#x646; &#x645;&#x62D;&#x645;&#x62F;.</subfield>
+  </datafield>
+  <datafield tag="880" ind1="1" ind2="0">
+    <subfield code="6">245-02/(3/r</subfield>
+    <subfield code="a">&#x645;&#x64A;&#x632;&#x627;&#x646; &#x627;&#x644;&#x637;&#x628; /</subfield>
+    <subfield code="c">&#x645;&#x62D;&#x645;&#x62F; &#x627;&#x631;&#x632;&#x627;&#x646;&#x649; &#x627;&#x644;&#x645;&#x633;&#x645;&#x649; &#x628;&#x647; &#x645;&#x62D;&#x645;&#x62F; &#x627;&#x6A9;&#x628;&#x631;.</subfield>
+  </datafield>
+  <datafield tag="880" ind1=" " ind2="1">
+    <subfield code="6">264-03/(3/r</subfield>
+    <subfield code="a">[Lucknow] :</subfield>
+    <subfield code="b">&#x645;&#x646;&#x634;&#x649; &#x646;&#x648;&#x644; &#x6A9;&#x634;&#x648;&#x631;&#x60C;</subfield>
+    <subfield code="c">1301 [1883 or 1884].</subfield>
+  </datafield>
+  <datafield tag="880" ind1="0" ind2=" ">
+    <subfield code="6">505-04/(3/r</subfield>
+    <subfield code="a">&#x645;&#x64A;&#x632;&#x627;&#x646; &#x627;&#x644;&#x637;&#x628; -- &#x631;&#x633;&#x627;&#x644;&#x6C0; &#x62F;&#x644;&#x627;&#x626;&#x644; &#x627;&#x644;&#x646;&#x628;&#x636; -- &#x631;&#x633;&#x627;&#x644;&#x6C0; &#x62F;&#x644;&#x627;&#x626;&#x644; &#x627;&#x644;&#x628;&#x648;&#x644; -- &#x631;&#x633;&#x627;&#x644;&#x6C0; &#x628;&#x62D;&#x631;&#x627;&#x646; / &#x645;&#x62D;&#x645;&#x62F; &#x628;&#x62F;&#x631; &#x627;&#x644;&#x62F;&#x64A;&#x646; &#x628;&#x646; &#x62C;&#x645;&#x627;&#x644; &#x627;&#x644;&#x62F;&#x64A;&#x646;.</subfield>
+  </datafield>
+  <datafield tag="880" ind1="0" ind2="2">
+    <subfield code="6">700-05/(3/r</subfield>
+    <subfield code="a">&#x645;&#x62D;&#x645;&#x62F; &#x628;&#x62F;&#x631; &#x627;&#x644;&#x62F;&#x64A;&#x646; &#x628;&#x646; &#x62C;&#x645;&#x627;&#x644; &#x627;&#x644;&#x62F;&#x64A;&#x646;.</subfield>
+    <subfield code="t">&#x631;&#x633;&#x627;&#x644;&#x6C0; &#x628;&#x62D;&#x631;&#x627;&#x646;.</subfield>
+  </datafield>
+  <datafield tag="880" ind1="0" ind2="2">
+    <subfield code="6">740-06/(3/r</subfield>
+    <subfield code="a">&#x631;&#x633;&#x627;&#x644;&#x6C0; &#x62F;&#x644;&#x627;&#x626;&#x644; &#x627;&#x644;&#x646;&#x628;&#x636;.</subfield>
+  </datafield>
+  <datafield tag="880" ind1="0" ind2="2">
+    <subfield code="6">740-07/(3/r</subfield>
+    <subfield code="a">&#x631;&#x633;&#x627;&#x644;&#x6C0; &#x62F;&#x644;&#x627;&#x626;&#x644; &#x627;&#x644;&#x628;&#x648;&#x644;.</subfield>
+  </datafield>
+  <datafield tag="856" ind1="4" ind2="1">
+    <subfield code="3">World Digital Library</subfield>
+    <subfield code="u">http://hdl.loc.gov/loc.wdl/wdl.17676</subfield>
+  </datafield>
+  <datafield tag="856" ind1="4" ind2="1">
+    <subfield code="u">https://hdl.loc.gov/loc.amed/amedpllc.00277334458</subfield>
+    <subfield code="y">View online content for this title.</subfield>
+  </datafield>
+  <datafield tag="906" ind1=" " ind2=" ">
+    <subfield code="a">7</subfield>
+    <subfield code="b">cbc</subfield>
+    <subfield code="c">origode</subfield>
+    <subfield code="d">3</subfield>
+    <subfield code="e">ncip</subfield>
+    <subfield code="f">20</subfield>
+    <subfield code="g">y-nonroman</subfield>
+  </datafield>
+  <datafield tag="925" ind1="0" ind2=" ">
+    <subfield code="a">acquire</subfield>
+    <subfield code="b">1 shelf copy</subfield>
+    <subfield code="x">policy default</subfield>
+  </datafield>
+  <datafield tag="952" ind1=" " ind2=" ">
+    <subfield code="a">Acquired for LC only.</subfield>
+  </datafield>
+  <datafield tag="955" ind1=" " ind2=" ">
+    <subfield code="b">wk29 2015-02-25 to ASME/ME; ce04 2015-05-18 to Conservation;</subfield>
+    <subfield code="i">ce04 2018-01-23 to H.Dinavari for PersLangDigitProj</subfield>
+  </datafield>
+  <datafield tag="985" ind1=" " ind2=" ">
+    <subfield code="a">amed/amedpllc</subfield>
+    <subfield code="e">amedpllc</subfield>
+  </datafield>
+  <datafield tag="985" ind1=" " ind2=" ">
+    <subfield code="a">miscpull</subfield>
+  </datafield>
+  <datafield tag="985" ind1=" " ind2=" ">
+    <subfield code="a">wdl</subfield>
+  </datafield>
+  <datafield tag="985" ind1=" " ind2=" ">
+    <subfield code="e">ODE-is</subfield>
+  </datafield>
+</record></zs:recordData><zs:recordPosition>1</zs:recordPosition></zs:record></zs:records><zs:echoedSearchRetrieveRequest><zs:version>1.1</zs:version><zs:query>bath.lccn="2002341405"</zs:query><zs:startRecord>1</zs:startRecord><zs:maximumRecords>1</zs:maximumRecords><zs:recordPacking>xml</zs:recordPacking><zs:recordSchema>marcxml</zs:recordSchema></zs:echoedSearchRetrieveRequest></zs:searchRetrieveResponse>

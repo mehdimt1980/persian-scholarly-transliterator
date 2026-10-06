@@ -1,0 +1,345 @@
+<?xml version="1.0"?>
+<zs:searchRetrieveResponse xmlns:zs="http://www.loc.gov/zing/srw/"><zs:version>1.1</zs:version><zs:numberOfRecords>1</zs:numberOfRecords><zs:records><zs:record><zs:recordSchema>marcxml</zs:recordSchema><zs:recordPacking>xml</zs:recordPacking><zs:recordData><record xmlns="http://www.loc.gov/MARC21/slim">
+  <leader>07857cam a2200853 i 4500</leader>
+  <controlfield tag="001">in00024331435</controlfield>
+  <controlfield tag="003">DLC</controlfield>
+  <controlfield tag="005">20260513183629.2</controlfield>
+  <controlfield tag="007">t|</controlfield>
+  <controlfield tag="008">250924s1984    ir a          000 0cper  </controlfield>
+  <datafield tag="906" ind1=" " ind2=" ">
+    <subfield code="a">7</subfield>
+    <subfield code="b">cbc</subfield>
+    <subfield code="c">orignew</subfield>
+    <subfield code="d">3</subfield>
+    <subfield code="e">ncip</subfield>
+    <subfield code="f">20</subfield>
+    <subfield code="g">y-nonroman</subfield>
+  </datafield>
+  <datafield tag="925" ind1="0" ind2=" ">
+    <subfield code="a">acquire</subfield>
+    <subfield code="b">1 shelf copy</subfield>
+    <subfield code="x">policy default</subfield>
+  </datafield>
+  <datafield tag="955" ind1=" " ind2=" ">
+    <subfield code="b">tj18 2025-09-24 to ti80</subfield>
+    <subfield code="u">ti80 2025-09-25 to AMED</subfield>
+  </datafield>
+  <datafield tag="010" ind1=" " ind2=" ">
+    <subfield code="a">  2025364468</subfield>
+  </datafield>
+  <datafield tag="040" ind1=" " ind2=" ">
+    <subfield code="a">DLC</subfield>
+    <subfield code="b">eng</subfield>
+    <subfield code="e">rda</subfield>
+    <subfield code="c">DLC</subfield>
+    <subfield code="d">DLC-MRC</subfield>
+    <subfield code="d">DLC</subfield>
+    <subfield code="d">DLC-MRC</subfield>
+    <subfield code="d">DLC</subfield>
+  </datafield>
+  <datafield tag="042" ind1=" " ind2=" ">
+    <subfield code="a">pcc</subfield>
+  </datafield>
+  <datafield tag="043" ind1=" " ind2=" ">
+    <subfield code="a">a-ir---</subfield>
+    <subfield code="0">http://id.loc.gov/vocabulary/geographicAreas/a-ir</subfield>
+  </datafield>
+  <datafield tag="050" ind1="0" ind2="0">
+    <subfield code="a">AP95.P34</subfield>
+    <subfield code="b">D39 1984</subfield>
+  </datafield>
+  <datafield tag="066" ind1=" " ind2=" ">
+    <subfield code="c">(3</subfield>
+    <subfield code="c">(4</subfield>
+  </datafield>
+  <datafield tag="245" ind1="0" ind2="0">
+    <subfield code="6">880-03</subfield>
+    <subfield code="a">Dawrah-&#x2BC;i r&#x16B;zn&#x101;mah h&#x101;-yi Sharaf va Shar&#x101;fat /</subfield>
+    <subfield code="c">naqq&#x101;sh&#x12B;h&#x101; az M&#x12B;rz&#x101; Ab&#x16B; Tur&#x101;b Ghaff&#x101;r&#x12B;, M&#x12B;rz&#x101; M&#x16B;s&#xE1;, M&#x12B;rz&#x101; Mahd&#x12B; Mu&#x1E63;&#x1E63;vvar al-Mulk ; kha&#x1E6D;&#x1E6D;-i Mu&#x1E25;ammad Riz&#x324;&#x101; Kalhur va M&#x12B;rz&#x101; Zayn al-&#x2BB;&#x100;bid&#x12B;n (Malik al-Kha&#x1E6D;&#x1E6D;&#x101;&#x1E6D;&#x12B;n).</subfield>
+  </datafield>
+  <datafield tag="880" ind1="0" ind2="0">
+    <subfield code="6">245-03/(3/r</subfield>
+    <subfield code="a">&#x62F;&#x648;&#x631;&#x6C0; &#x631;&#x648;&#x632;&#x646;&#x627;&#x645;&#x647; &#x647;&#x627;&#x649; &#x634;&#x631;&#x641; &#x648; &#x634;&#x631;&#x627;&#x641;&#x62A; /</subfield>
+    <subfield code="c">&#x646;&#x642;&#x627;&#x634;&#x64A;&#x647;&#x627; &#x627;&#x632; &#x645;&#x64A;&#x631;&#x632;&#x627; &#x627;&#x628;&#x648; &#x62A;&#x631;&#x627;&#x628; &#x63A;&#x641;&#x627;&#x631;&#x649;&#x60C; &#x645;&#x64A;&#x631;&#x632;&#x627; &#x645;&#x648;&#x633;&#x649;&#x60C; &#x645;&#x64A;&#x631;&#x632;&#x627; &#x645;&#x647;&#x62F;&#x649; &#x645;&#x635;&#x648;&#x631; &#x627;&#x644;&#x645;&#x644;&#x6A9; &#x61B; &#x62E;&#x637; &#x645;&#x62D;&#x645;&#x62F; &#x631;&#x636;&#x627; &#x6A9;&#x644;&#x647;&#x631; &#x648; &#x645;&#x64A;&#x631;&#x632;&#x627; &#x632;&#x64A;&#x646; &#x627;&#x644;&#x639;&#x627;&#x628;&#x62F;&#x64A;&#x646; (&#x645;&#x644;&#x6A9; &#x627;&#x644;&#x62E;&#x637;&#x627;&#x637;&#x64A;&#x646;).</subfield>
+  </datafield>
+  <datafield tag="246" ind1="3" ind2=" ">
+    <subfield code="6">880-04</subfield>
+    <subfield code="a">Sharaf</subfield>
+  </datafield>
+  <datafield tag="880" ind1="3" ind2=" ">
+    <subfield code="6">246-04/(3/r</subfield>
+    <subfield code="a">&#x634;&#x631;&#x641;</subfield>
+  </datafield>
+  <datafield tag="246" ind1="3" ind2=" ">
+    <subfield code="6">880-05</subfield>
+    <subfield code="a">Shar&#x101;fat</subfield>
+  </datafield>
+  <datafield tag="880" ind1="3" ind2=" ">
+    <subfield code="6">246-05/(3/r</subfield>
+    <subfield code="a">&#x634;&#x631;&#x627;&#x641;&#x62A;</subfield>
+  </datafield>
+  <datafield tag="264" ind1=" " ind2="1">
+    <subfield code="6">880-22</subfield>
+    <subfield code="a">[Tihr&#x101;n] :</subfield>
+    <subfield code="b">Intish&#x101;r&#x101;t-i Yas&#x101;vul&#x12B; Farhang sar&#x101;,</subfield>
+    <subfield code="c">[13]63 [1984]</subfield>
+  </datafield>
+  <datafield tag="880" ind1=" " ind2="1">
+    <subfield code="6">264-22/(3/r</subfield>
+    <subfield code="a">[&#x62A;&#x647;&#x631;&#x627;&#x646;] :</subfield>
+    <subfield code="b">&#x627;&#x646;&#x62A;&#x634;&#x627;&#x631;&#x627;&#x62A; &#x64A;&#x633;&#x627;&#x648;&#x644;&#x649; &#x641;&#x631;&#x647;&#x646;&#x6AF; &#x633;&#x631;&#x627;</subfield>
+  </datafield>
+  <datafield tag="300" ind1=" " ind2=" ">
+    <subfield code="a">[24], 646 pages</subfield>
+    <subfield code="b">illustrations, portraits</subfield>
+    <subfield code="c">35 cm</subfield>
+  </datafield>
+  <datafield tag="334" ind1=" " ind2=" ">
+    <subfield code="a">single unit</subfield>
+    <subfield code="b">mono</subfield>
+    <subfield code="0">http://id.loc.gov/vocabulary/issuance/mono</subfield>
+  </datafield>
+  <datafield tag="336" ind1=" " ind2=" ">
+    <subfield code="a">text</subfield>
+    <subfield code="b">txt</subfield>
+    <subfield code="2">rdacontent</subfield>
+    <subfield code="0">http://id.loc.gov/vocabulary/contentTypes/txt</subfield>
+  </datafield>
+  <datafield tag="336" ind1=" " ind2=" ">
+    <subfield code="a">still image</subfield>
+    <subfield code="b">sti</subfield>
+    <subfield code="2">rdacontent</subfield>
+    <subfield code="0">http://id.loc.gov/vocabulary/contentTypes/sti</subfield>
+  </datafield>
+  <datafield tag="337" ind1=" " ind2=" ">
+    <subfield code="a">unmediated</subfield>
+    <subfield code="b">n</subfield>
+    <subfield code="2">rdamedia</subfield>
+    <subfield code="0">http://id.loc.gov/vocabulary/mediaTypes/n</subfield>
+  </datafield>
+  <datafield tag="338" ind1=" " ind2=" ">
+    <subfield code="a">volume</subfield>
+    <subfield code="b">nc</subfield>
+    <subfield code="2">rdacarrier</subfield>
+    <subfield code="0">http://id.loc.gov/vocabulary/carriers/nc</subfield>
+  </datafield>
+  <datafield tag="340" ind1=" " ind2=" ">
+    <subfield code="p">illustrations</subfield>
+    <subfield code="0">http://id.loc.gov/vocabulary/millus/ill</subfield>
+  </datafield>
+  <datafield tag="490" ind1="0" ind2=" ">
+    <subfield code="6">880-36</subfield>
+    <subfield code="a">Nashr-i T&#x101;r&#x12B;kh va Farhang-i &#x12A;r&#x101;n zam&#x12B;n ;</subfield>
+    <subfield code="v">7</subfield>
+  </datafield>
+  <datafield tag="880" ind1="0" ind2=" ">
+    <subfield code="6">490-36/(3/r</subfield>
+    <subfield code="a">&#x646;&#x634;&#x631; &#x62A;&#x627;&#x631;&#x64A;&#x62E; &#x648; &#x641;&#x631;&#x647;&#x646;&#x6AF; &#x627;&#x64A;&#x631;&#x627;&#x646; &#x632;&#x645;&#x64A;&#x646;</subfield>
+  </datafield>
+  <datafield tag="500" ind1=" " ind2=" ">
+    <subfield code="6">880-50</subfield>
+    <subfield code="a">"Intish&#x101;r&#x101;t-i Yas&#x101;vul&#x12B;"--Cover.</subfield>
+  </datafield>
+  <datafield tag="880" ind1=" " ind2=" ">
+    <subfield code="6">500-50/(3/r</subfield>
+    <subfield code="a">"&#x627;&#x646;&#x62A;&#x634;&#x627;&#x631;&#x627;&#x62A; &#x64A;&#x633;&#x627;&#x648;&#x644;&#x649;"----Cover.</subfield>
+  </datafield>
+  <datafield tag="500" ind1=" " ind2=" ">
+    <subfield code="6">880-51</subfield>
+    <subfield code="a">"Tajd&#x12B;d-i ch&#x101;p ufsit az nuskhah-&#x2BC;i ch&#x101;p-i sang&#x12B;"--Cover.</subfield>
+  </datafield>
+  <datafield tag="880" ind1=" " ind2=" ">
+    <subfield code="6">500-51/(3/r</subfield>
+    <subfield code="a">"&#x62A;&#x62C;&#x62F;&#x64A;&#x62F; &#x686;&#x627;&#x67E; &#x627;&#x641;&#x633;&#x62A; &#x627;&#x632; &#x646;&#x633;&#x62E;&#x6C0; &#x686;&#x627;&#x67E; &#x633;&#x646;&#x6AF;&#x649;"----Cover.</subfield>
+  </datafield>
+  <datafield tag="500" ind1=" " ind2=" ">
+    <subfield code="6">880-52</subfield>
+    <subfield code="a">"B&#x101; muqaddimah va-fah&#x101;ris-i &#x100;q&#x101;-yi Jav&#x101;d &#x1E62;af&#x12B; nizh&#x101;d ; kha&#x1E6D;-i muqaddamah az ust&#x101;d Ghul&#x101;m&#x1E25;usayn Am&#x12B;rkh&#x101;n&#x12B;"--Title page verso.</subfield>
+  </datafield>
+  <datafield tag="880" ind1=" " ind2=" ">
+    <subfield code="6">500-52/(3/r</subfield>
+    <subfield code="a">"&#x628;&#x627; &#x645;&#x642;&#x62F;&#x645;&#x647; &#x648;-&#x641;&#x647;&#x627;&#x631;&#x633; &#x622;&#x642;&#x627;&#x649; &#x62C;&#x648;&#x627;&#x62F; &#x635;&#x641;&#x649; &#x646;&#x698;&#x627;&#x62F; &#x61B; &#x62E;&#x637; &#x645;&#x642;&#x62F;&#x645;&#x647; &#x627;&#x632; &#x627;&#x633;&#x62A;&#x627;&#x62F; &#x63A;&#x644;&#x627;&#x645;&#x62D;&#x633;&#x64A;&#x646; &#x627;&#x645;&#x64A;&#x631;&#x62E;&#x627;&#x646;&#x649;"--Title page verso.</subfield>
+  </datafield>
+  <datafield tag="500" ind1=" " ind2=" ">
+    <subfield code="a">Reprint. Sharaf, shum&#x101;rah&#x301;h&#x101;-yi 1-87, s&#x101;lh&#x101;-yi 1300-1309 hijr&#x12B; qamar&#x12B; [1882-1891], originally published in Tehran by Id&#x101;rah-&#x2BC;i Viz&#x101;rat-i In&#x1E6D;ib&#x101;&#x2BB;&#x101;t ; and Shar&#x101;fat, shum&#x101;rah&#x301;h&#x101;-yi 1-66, s&#x101;lh&#x101;-yi 1314-1321 hijr&#x12B;-i qamar&#x12B; [1896-1903], originally published in Tehran.</subfield>
+  </datafield>
+  <datafield tag="500" ind1=" " ind2=" ">
+    <subfield code="a">Sharaf edited by Mu&#x1E25;ammad &#x1E24;asan Kh&#x101;n &#x30C;I&#x2BB;timad al-Sal&#x1E6D;anah; Shar&#x101;fat edited by Mu&#x1E25;ammad B&#x101;qir I&#x2BB;tim&#x101;d al-Sal&#x1E6D;anah.</subfield>
+  </datafield>
+  <datafield tag="520" ind1=" " ind2=" ">
+    <subfield code="a">This volume brings together issues 1 to 87 of the newspaper Sharaf (1882&#x2013;1899) and issues 1 to 66 of the newspaper Sharafat (1896&#x2013;1904). The primary purpose of both periodicals was to record the biographies of contemporary figures and to publish news concerning them. As such, they serve as a valuable source for the study of Iranian and foreign political elites of the time. According to their editor, these newspapers were &#x201C;devoted to the writing of the biographies of the noble figures of the world,&#x201D; with each issue containing the life story of one individual accompanied by his or her portrait. Beyond their biographical content, both Sharaf and Sharafat are noteworthy for their artistic merit in the fields of calligraphy and painting, having provided a forum for the display of works by some of the finest artists and calligraphers of the era. Sharaf belongs to the late reign of N&#x101;&#x1E63;er al-D&#x12B;n Sh&#x101;h Q&#x101;j&#x101;r, while Sharafat is associated with the early years of the reign of Mo&#x1E93;affar al-D&#x12B;n Sh&#x101;h Q&#x101;j&#x101;r.</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+    <subfield code="a">Newspapers</subfield>
+    <subfield code="0">http://id.loc.gov/authorities/subjects/sh85091588</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+    <subfield code="a">Illustrators</subfield>
+    <subfield code="z">Iran</subfield>
+    <subfield code="v">Periodicals</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+    <subfield code="a">Calligraphers</subfield>
+    <subfield code="z">Iran</subfield>
+    <subfield code="v">Periodicals</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+    <subfield code="a">Muslim calligraphers</subfield>
+    <subfield code="z">Iran</subfield>
+    <subfield code="v">Periodicals</subfield>
+  </datafield>
+  <datafield tag="651" ind1=" " ind2="0">
+    <subfield code="a">Iran</subfield>
+    <subfield code="v">Periodicals</subfield>
+  </datafield>
+  <datafield tag="651" ind1=" " ind2="0">
+    <subfield code="a">Iran</subfield>
+    <subfield code="x">History</subfield>
+    <subfield code="y">Qajar dynasty, 1794-1925</subfield>
+    <subfield code="v">Sources</subfield>
+    <subfield code="0">http://id.loc.gov/authorities/subjects/sh85067900</subfield>
+  </datafield>
+  <datafield tag="651" ind1=" " ind2="0">
+    <subfield code="a">Iran</subfield>
+    <subfield code="x">History</subfield>
+    <subfield code="y">Qajar dynasty, 1794-1925</subfield>
+    <subfield code="v">Biography</subfield>
+  </datafield>
+  <datafield tag="700" ind1="0" ind2=" ">
+    <subfield code="6">880-70</subfield>
+    <subfield code="a">Mu&#x1E25;ammad &#x1E24;asan Kh&#x101;n,</subfield>
+    <subfield code="c">I&#x2BB;tim&#x101;d al-Sal&#x1E6D;anah,</subfield>
+    <subfield code="d">-1896</subfield>
+    <subfield code="e">editor</subfield>
+    <subfield code="4">http://id.loc.gov/vocabulary/relators/edt</subfield>
+    <subfield code="0">http://id.loc.gov/authorities/names/n88605646</subfield>
+    <subfield code="1">http://id.loc.gov/rwo/agents/n88605646</subfield>
+  </datafield>
+  <datafield tag="880" ind1="0" ind2=" ">
+    <subfield code="6">700-70/(3/r</subfield>
+    <subfield code="a">&#x645;&#x62D;&#x645;&#x62F; &#x62D;&#x633;&#x646; &#x62E;&#x627;&#x646;,</subfield>
+    <subfield code="c">&#x627;&#x639;&#x62A;&#x645;&#x627;&#x62F; &#x627;&#x644;&#x633;&#x644;&#x637;&#x646;&#x647;,</subfield>
+    <subfield code="d">-1896</subfield>
+    <subfield code="e">editor</subfield>
+    <subfield code="4">http://id.loc.gov/vocabulary/relators/edt</subfield>
+    <subfield code="0">http://id.loc.gov/authorities/names/n88605646</subfield>
+    <subfield code="1">http://id.loc.gov/rwo/agents/n88605646</subfield>
+  </datafield>
+  <datafield tag="700" ind1="1" ind2=" ">
+    <subfield code="6">880-71</subfield>
+    <subfield code="a">I&#x2BB;tim&#x101;d al-Sal&#x1E6D;anah, Mu&#x1E25;ammad B&#x101;qir</subfield>
+    <subfield code="e">editor</subfield>
+    <subfield code="4">http://id.loc.gov/vocabulary/relators/edt</subfield>
+    <subfield code="0">http://id.loc.gov/authorities/names/n2012067663</subfield>
+    <subfield code="1">http://id.loc.gov/rwo/agents/n2012067663</subfield>
+  </datafield>
+  <datafield tag="880" ind1="1" ind2=" ">
+    <subfield code="6">700-71/(3/r</subfield>
+    <subfield code="a">&#x200F;&#x627;&#x639;&#x62A;&#x645;&#x627;&#x62F; &#x627;&#x644;&#x633;&#x644;&#x637;&#x646;&#x647;&#x60C; &#x645;&#x62D;&#x645;&#x62F; &#x628;&#x627;&#x642;&#x631;</subfield>
+    <subfield code="e">editor</subfield>
+    <subfield code="4">http://id.loc.gov/vocabulary/relators/edt</subfield>
+    <subfield code="0">http://id.loc.gov/authorities/names/n2012067663</subfield>
+    <subfield code="1">http://id.loc.gov/rwo/agents/n2012067663</subfield>
+  </datafield>
+  <datafield tag="700" ind1="1" ind2=" ">
+    <subfield code="6">880-72</subfield>
+    <subfield code="a">Kalhur, Mu&#x1E25;ammad Riz&#x324;&#x101;,</subfield>
+    <subfield code="d">1829 or 1830-1892 or 1893</subfield>
+    <subfield code="e">calligrapher</subfield>
+    <subfield code="4">http://id.loc.gov/vocabulary/relators/cll</subfield>
+    <subfield code="0">http://id.loc.gov/authorities/names/n89615364</subfield>
+    <subfield code="1">http://id.loc.gov/rwo/agents/n89615364</subfield>
+  </datafield>
+  <datafield tag="880" ind1="1" ind2=" ">
+    <subfield code="6">700-72/(3/r</subfield>
+    <subfield code="a">&#x643;&#x644;&#x647;&#x631;&#x60C; &#x645;&#x62D;&#x645;&#x62F; &#x631;&#x636;&#x627;,</subfield>
+    <subfield code="d">1829 or 1830-1892 or 1893</subfield>
+    <subfield code="e">calligrapher</subfield>
+    <subfield code="4">http://id.loc.gov/vocabulary/relators/cll</subfield>
+    <subfield code="0">http://id.loc.gov/authorities/names/n89615364</subfield>
+    <subfield code="1">http://id.loc.gov/rwo/agents/n89615364</subfield>
+  </datafield>
+  <datafield tag="700" ind1="1" ind2=" ">
+    <subfield code="6">880-73</subfield>
+    <subfield code="a">&#x1E62;af&#x12B;&#x2B9;nizh&#x101;d, Jav&#x101;d</subfield>
+    <subfield code="e">editor</subfield>
+    <subfield code="4">http://id.loc.gov/vocabulary/relators/edt</subfield>
+    <subfield code="0">http://id.loc.gov/authorities/names/n80161811</subfield>
+    <subfield code="1">http://id.loc.gov/rwo/agents/n80161811</subfield>
+  </datafield>
+  <datafield tag="880" ind1="1" ind2=" ">
+    <subfield code="6">700-73/(3/r</subfield>
+    <subfield code="a">&#x635;&#x641;&#x649;&#x200C;&#x646;&#x698;&#x627;&#x62F;&#x60C; &#x62C;&#x648;&#x627;&#x62F;</subfield>
+    <subfield code="e">editor</subfield>
+    <subfield code="4">http://id.loc.gov/vocabulary/relators/edt</subfield>
+    <subfield code="0">http://id.loc.gov/authorities/names/n80161811</subfield>
+    <subfield code="1">http://id.loc.gov/rwo/agents/n80161811</subfield>
+  </datafield>
+  <datafield tag="720" ind1="2" ind2=" ">
+    <subfield code="a">Ghaff&#x101;r&#x12B;,Ab&#x16B; Tur&#x101;b</subfield>
+    <subfield code="e">illustrator</subfield>
+    <subfield code="4">ill</subfield>
+    <subfield code="4">http://id.loc.gov/vocabulary/relators/ill</subfield>
+  </datafield>
+  <datafield tag="720" ind1="2" ind2=" ">
+    <subfield code="a">M&#x12B;rz&#x101; M&#x16B;s&#xE1;</subfield>
+    <subfield code="e">illustrator</subfield>
+    <subfield code="4">ill</subfield>
+    <subfield code="4">http://id.loc.gov/vocabulary/relators/ill</subfield>
+  </datafield>
+  <datafield tag="720" ind1="2" ind2=" ">
+    <subfield code="a">Mu&#x1E63;avvar al-Mulk, Mahd&#x12B;</subfield>
+    <subfield code="e">illustrator</subfield>
+    <subfield code="4">ill</subfield>
+    <subfield code="4">http://id.loc.gov/vocabulary/relators/ill</subfield>
+  </datafield>
+  <datafield tag="720" ind1="2" ind2=" ">
+    <subfield code="a">Shar&#x12B;f&#x12B; Qazv&#x12B;n&#x12B;, Malik al-Kha&#x1E6D;&#x1E6D;&#x101;t&#x12B;nZayn al-&#x2BB;&#x100;bid&#x12B;n Malik al-Kha&#x1E6D;&#x1E6D;&#x101;t&#x12B;n</subfield>
+    <subfield code="e">calligrapher</subfield>
+    <subfield code="4">cll</subfield>
+    <subfield code="4">http://id.loc.gov/vocabulary/relators/cll</subfield>
+  </datafield>
+  <datafield tag="720" ind1="2" ind2=" ">
+    <subfield code="a">Am&#x12B;rkh&#x101;n&#x12B;, Ghul&#x101;m&#x1E25;usayn</subfield>
+    <subfield code="e">calligrapher</subfield>
+    <subfield code="4">cll</subfield>
+    <subfield code="4">http://id.loc.gov/vocabulary/relators/cll</subfield>
+  </datafield>
+  <datafield tag="730" ind1="0" ind2=" ">
+    <subfield code="a">Sharaf.</subfield>
+    <subfield code="1">http://id.loc.gov/resources/hubs/5d130db6-e51d-3cc9-bee3-837ea13e5862</subfield>
+  </datafield>
+  <datafield tag="730" ind1="0" ind2=" ">
+    <subfield code="a">Shar&#x101;fat</subfield>
+    <subfield code="1">http://id.loc.gov/resources/hubs/9ba19553-3f2e-941b-ce52-7b14fa0f9c73</subfield>
+  </datafield>
+  <datafield tag="758" ind1=" " ind2=" ">
+    <subfield code="1">http://id.loc.gov/resources/instances/in00024331435</subfield>
+  </datafield>
+  <datafield tag="758" ind1=" " ind2=" ">
+    <subfield code="4">http://id.loc.gov/ontologies/bibframe/instanceOf</subfield>
+    <subfield code="1">http://id.loc.gov/resources/works/in00024331435</subfield>
+  </datafield>
+  <datafield tag="775" ind1="1" ind2=" ">
+    <subfield code="a">Sharaf (Tehran, Iran : 1882)</subfield>
+    <subfield code="t">Dawrah-&#x2BC;i r&#x16B;zn&#x101;mah&#x2B9;h&#x101;-yi Sharaf va Sharafat</subfield>
+    <subfield code="c">Original</subfield>
+  </datafield>
+  <datafield tag="884" ind1=" " ind2=" ">
+    <subfield code="a">DLC bibframe2marc v3.0-dev</subfield>
+    <subfield code="g">20250924</subfield>
+    <subfield code="q">DLC</subfield>
+    <subfield code="u">https://github.com/lcnetdev/bibframe2marc/tree/v3.0-dev</subfield>
+  </datafield>
+  <datafield tag="985" ind1=" " ind2=" ">
+    <subfield code="e">BIBFRAME</subfield>
+    <subfield code="d">2025-09-24T14:20:43</subfield>
+  </datafield>
+  <datafield tag="985" ind1=" " ind2=" ">
+    <subfield code="e">PCSC contract</subfield>
+  </datafield>
+  <datafield tag="856" ind1="4" ind2="1">
+    <subfield code="u">https://hdl.loc.gov/loc.amed/2025364468</subfield>
+    <subfield code="y">View online content for this title.</subfield>
+  </datafield>
+</record></zs:recordData><zs:recordPosition>1</zs:recordPosition></zs:record></zs:records><zs:echoedSearchRetrieveRequest><zs:version>1.1</zs:version><zs:query>bath.lccn="2025364468"</zs:query><zs:startRecord>1</zs:startRecord><zs:maximumRecords>1</zs:maximumRecords><zs:recordPacking>xml</zs:recordPacking><zs:recordSchema>marcxml</zs:recordSchema></zs:echoedSearchRetrieveRequest></zs:searchRetrieveResponse>
