@@ -14,8 +14,8 @@
 12. **v1.0.0-rc1 — future:** only after signed-off independent benchmark evaluation satisfies safety gates and agreed usefulness/coverage thresholds.
 13. **Phase 5A — Lexical Evidence Foundation (complete):** source-neutral external evidence models, candidate semantics, and connector boundaries (`docs/LEXICAL_EVIDENCE_MODEL.md`).
 14. **Phase 5B — Library of Congress Pilot Connector (complete):** source adapter for Library of Congress catalog records, non-authoritative evidence extraction (`docs/LOC_EVIDENCE_CONNECTOR.md`).
-15. **Phase 5C — Alignment & Candidate Extraction (current):** provenance-safe positional alignment, derived lexical segment evidence, span integrity enforcement, and non-authoritative candidate extraction (`docs/LEXICAL_ALIGNMENT_MODEL.md`).
-16. **Phase 5D — Scheme-Aware Evidence Aggregation (future):** multi-scheme normalization analysis (ALA-LC to IJMES mapping) and conflict reporting.
+15. **Phase 5C — Alignment & Candidate Extraction (complete):** provenance-safe positional alignment, derived lexical segment evidence, span integrity enforcement, and non-authoritative candidate extraction (`docs/LEXICAL_ALIGNMENT_MODEL.md`).
+16. **Phase 5D — Scheme-Aware Evidence Aggregation (current):** multi-scheme interpretation analysis (ALA-LC to IJMES mapping), deterministic consensus aggregation, structural blockers, and policy audit (`docs/SCHEME_AWARE_EVIDENCE.md`).
 17. **Phase 5E — Human Adjudication & Explicit Lexicon Promotion (future):** specialist human review workflow and explicit promotion into `LexiconRepository`.
 18. **Phase 6 — Multi-Source Expansion (future):** VIAF, BnF, GND, and additional scholarly source adapters.
 19. **Phase 7 — Training Corpus & Small Transformer (future):** verified scholarly training corpus curation and domain model distillation.
