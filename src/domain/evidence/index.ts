@@ -5,4 +5,4 @@ export * from './repository';
 export * from './loc';
 export * from './alignment';
 export * from './scheme';
-
+export * from './adjudication';

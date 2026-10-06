@@ -47,3 +47,16 @@ recordId + ":" + fieldPath + ":" + issueId
 ```
 A review decision applied to one record's title will never resolve another record's title or author field.
 
+## Reusable Lexical Authority (Phase 5E)
+
+While Phase 2C `ReviewDecision` records session-scoped overrides and Phase 4 handles field-scoped bibliography decisions, Phase 5E introduces explicit, auditable promotion into reusable lexicon repositories:
+
+```text
+EVIDENCE ≠ SCHEME HYPOTHESIS ≠ HUMAN DECISION ≠ LEXICON PROMOTION
+```
+
+1. **Non-Authoritative Evidence & Hypotheses**: External evidence observations and Phase 5D target-scheme hypotheses carry **zero automatic authority**.
+2. **Explicit Human Adjudication**: A human reviewer explicitly records `ACCEPT`, `REJECT`, or `DEFER` on an immutable `CandidateReviewPacket`. For `ACCEPT`, the reviewer explicitly selects or manually supplies a canonical transliteration.
+3. **Explicit Lexicon Promotion**: Promotion is a separate transaction from adjudication. Executing promotion creates a new `LexiconRepository` snapshot with attached `PromotionReceipt` and confidence `1.0` under `REVIEWED_PROJECT_ENTRY`. The default static lexicon (`DEFAULT_LEXICON_REPOSITORY`) is never automatically mutated.
+
+
