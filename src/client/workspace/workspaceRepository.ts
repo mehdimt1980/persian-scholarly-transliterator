@@ -346,7 +346,7 @@ async function clearWorkspaceAtomicCAS(
         const currentEnvelope = unwrapEnvelope(raw);
         const currentRevision = currentEnvelope ? currentEnvelope.storageRevision : null;
 
-        if (expectedRevision !== null && currentRevision !== expectedRevision) {
+        if (currentRevision !== expectedRevision) {
           clearOutcome = {
             status: 'conflict',
             actualRevision: currentRevision

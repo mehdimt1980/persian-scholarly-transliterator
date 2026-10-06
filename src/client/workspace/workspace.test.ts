@@ -463,7 +463,7 @@ describe('Local Research Workspace Persistence', () => {
 
         async clear(expectedRevision: number | null): Promise<{ status: 'cleared' | 'conflict'; actualRevision?: number | null }> {
           const currentRev = this.slot.envelope ? this.slot.envelope.storageRevision : null;
-          if (expectedRevision !== null && currentRev !== expectedRevision) {
+          if (currentRev !== expectedRevision) {
             return { status: 'conflict', actualRevision: currentRev };
           }
           this.slot.envelope = null;
@@ -515,6 +515,61 @@ describe('Local Research Workspace Persistence', () => {
       expect(tabBForceSave.status).toBe('saved');
       expect(tabBForceSave.revision).toBe(3);
       expect((await repo.get()).value).toBe('Tab B Force Keep');
+    });
+
+    it('rejects stale clear when workspace was created by another tab (expectedRevision = null vs currentRevision = 1)', async () => {
+      interface StoreSlot<T> {
+        envelope: { storageRevision: number; value: T } | null;
+      }
+
+      class MemoryCasRepository<T> {
+        private slot: StoreSlot<T> = { envelope: null };
+
+        async get(): Promise<{ value: T | null; revision: number | null }> {
+          if (!this.slot.envelope) return { value: null, revision: null };
+          return { value: this.slot.envelope.value, revision: this.slot.envelope.storageRevision };
+        }
+
+        async save(value: T, expectedRevision: number | null): Promise<{ status: 'saved' | 'conflict'; revision?: number; actualRevision?: number | null }> {
+          const currentRev = this.slot.envelope ? this.slot.envelope.storageRevision : null;
+          if (currentRev !== expectedRevision) {
+            return { status: 'conflict', actualRevision: currentRev };
+          }
+          const nextRev = (currentRev ?? 0) + 1;
+          this.slot.envelope = { storageRevision: nextRev, value };
+          return { status: 'saved', revision: nextRev };
+        }
+
+        async clear(expectedRevision: number | null): Promise<{ status: 'cleared' | 'conflict'; actualRevision?: number | null }> {
+          const currentRev = this.slot.envelope ? this.slot.envelope.storageRevision : null;
+          if (currentRev !== expectedRevision) {
+            return { status: 'conflict', actualRevision: currentRev };
+          }
+          this.slot.envelope = null;
+          return { status: 'cleared' };
+        }
+      }
+
+      const repo = new MemoryCasRepository<string>();
+
+      // Tab B loads when workspace does not exist -> expectedRevision = null
+      const tabBExpectedRevision: number | null = null;
+
+      // Tab A creates workspace revision 1
+      const createRes = await repo.save('Tab A Initial Content', null);
+      expect(createRes.status).toBe('saved');
+      expect(createRes.revision).toBe(1);
+
+      // Tab B attempts normal CAS clear with expectedRevision = null
+      const clearRes = await repo.clear(tabBExpectedRevision);
+
+      // Expect conflict with actualRevision = 1, and revision 1 remains durable
+      expect(clearRes.status).toBe('conflict');
+      expect(clearRes.actualRevision).toBe(1);
+
+      const durableState = await repo.get();
+      expect(durableState.value).toBe('Tab A Initial Content');
+      expect(durableState.revision).toBe(1);
     });
 
     it('guarantees sequential commit order with the production OperationQueue class', async () => {
