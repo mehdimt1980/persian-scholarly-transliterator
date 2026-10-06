@@ -9,7 +9,6 @@ import { LexicalCandidate, LexicalEvidence } from '../types';
 import {
   analyzeCandidateSchemeEvidence,
   auditIjmesRuntimePolicy,
-  generateCandidateAnalysisId,
   generateInterpretationId,
   getAllSchemeRules,
   getAllTargetPolicies,
@@ -62,6 +61,69 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
       status: 'OBSERVED',
       ...overrides
     };
+  };
+
+  const createAlignedPair = (
+    parentOverrides?: Partial<LexicalEvidence>,
+    childOverrides?: Partial<LexicalEvidence>
+  ): { parent: LexicalEvidence; child: LexicalEvidence } => {
+    const parent = createTestEvidence({
+      persianForm: 'گلستان سعدی',
+      observedRomanization: 'Gulistān-i Saʻdī',
+      ...parentOverrides
+    });
+
+    const childPersian = childOverrides?.persianForm ?? 'گلستان';
+    const childRoman =
+      childOverrides?.observedRomanization !== undefined
+        ? childOverrides.observedRomanization
+        : 'Gulistān';
+
+    const pStart = parent.persianForm.indexOf(childPersian);
+    const pEnd = pStart >= 0 ? pStart + childPersian.length : childPersian.length;
+    const rStart = parent.observedRomanization && childRoman ? parent.observedRomanization.indexOf(childRoman) : 0;
+    const rEnd = rStart >= 0 && childRoman ? rStart + childRoman.length : (childRoman?.length ?? 0);
+
+    const child = createTestEvidence({
+      sourceType: parent.sourceType,
+      sourceRecordId: parent.sourceRecordId,
+      sourceUri: parent.sourceUri,
+      sourceField: parent.sourceField,
+      persianForm: childPersian,
+      observedRomanization: childRoman,
+      romanizationScheme: parent.romanizationScheme,
+      provenance: parent.provenance,
+      derivation: {
+        kind: 'ALIGNED_SEGMENT',
+        parentEvidenceId: parent.id,
+        segmentIndex: 0,
+        persianSpan: { start: Math.max(0, pStart), end: Math.max(0, pEnd) },
+        romanizationSpan: { start: Math.max(0, rStart), end: Math.max(0, rEnd) },
+        alignmentStrategy: 'POSITIONAL_EQUAL_COUNT',
+        candidateEligibility: 'ELIGIBLE',
+        ...childOverrides?.derivation
+      },
+      ...childOverrides
+    });
+
+    return { parent, child };
+  };
+
+  const createAlignedCandidate = (
+    persian: string,
+    supportingEvidence: LexicalEvidence[],
+    overrides?: Partial<LexicalCandidate>
+  ): LexicalCandidate => {
+    const cand = synthesizeCandidateFromEvidence(persian, supportingEvidence, {
+      proposedCanonical: null,
+      ...overrides
+    });
+    cand.derivationProvenance = {
+      derivedAt: '2026-10-06T12:00:00Z',
+      strategy: 'ALIGNED_SEGMENT_SYNTHESIS',
+      ...overrides?.derivationProvenance
+    };
+    return cand;
   };
 
   describe('1. Raw Evidence Immutability & Target-Scheme Separation', () => {
@@ -379,20 +441,25 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
   });
 
   describe('5. Candidate-Level Scheme Consensus & Exact Evidence Set Closure', () => {
-    it('computes UNANIMOUS_DETERMINISTIC consensus when all evidence agrees on IJMES hypothesis', () => {
-      const evi1 = createTestEvidence({
-        sourceRecordId: 'rec-01',
-        persianForm: 'گلستان',
-        observedRomanization: 'Gulistān'
-      });
-      const evi2 = createTestEvidence({
-        sourceRecordId: 'rec-02',
-        persianForm: 'گلستان',
-        observedRomanization: 'gulistān'
-      });
+    it('computes UNANIMOUS_DETERMINISTIC consensus when all aligned evidence agrees on IJMES hypothesis', () => {
+      const { parent: p1, child: c1 } = createAlignedPair(
+        { sourceRecordId: 'rec-01', persianForm: 'گلستان', observedRomanization: 'Gulistān' },
+        { persianForm: 'گلستان', observedRomanization: 'Gulistān' }
+      );
+      const { parent: p2, child: c2 } = createAlignedPair(
+        { sourceRecordId: 'rec-02', persianForm: 'گلستان', observedRomanization: 'gulistān' },
+        { persianForm: 'گلستان', observedRomanization: 'gulistān' }
+      );
 
-      const candidate = synthesizeCandidateFromEvidence('گلستان', [evi1, evi2]);
-      const analysis = analyzeCandidateSchemeEvidence(candidate, [evi1, evi2]);
+      const candidate = createAlignedCandidate('گلستان', [c1, c2]);
+      const parentMap = new Map([
+        [p1.id, p1],
+        [p2.id, p2]
+      ]);
+
+      const analysis = analyzeCandidateSchemeEvidence(candidate, [c1, c2], {
+        parentLookup: (id) => parentMap.get(id)
+      });
 
       expect(analysis.consensusStatus).toBe('UNANIMOUS_DETERMINISTIC');
       expect(analysis.consensusTargetHypothesis).toBe('gulistān');
@@ -404,42 +471,67 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
     });
 
     it('fails closed when an evidence subset is supplied (missing candidate evidence ID)', () => {
-      const evi1 = createTestEvidence({
-        sourceRecordId: 'rec-01',
-        persianForm: 'گلستان',
-        observedRomanization: 'Gulistān'
-      });
-      const evi2 = createTestEvidence({
-        sourceRecordId: 'rec-02',
-        persianForm: 'گلستان',
-        observedRomanization: 'Golistān' // Conflict in rec-02
-      });
+      const { parent: p1, child: c1 } = createAlignedPair(
+        { sourceRecordId: 'rec-01', persianForm: 'گلستان', observedRomanization: 'Gulistān' },
+        { persianForm: 'گلستان', observedRomanization: 'Gulistān' }
+      );
+      const { parent: p2, child: c2 } = createAlignedPair(
+        { sourceRecordId: 'rec-02', persianForm: 'گلستان', observedRomanization: 'Golistān' },
+        { persianForm: 'گلستان', observedRomanization: 'Golistān' }
+      );
 
-      const candidate = synthesizeCandidateFromEvidence('گلستان', [evi1, evi2]);
+      const candidate = createAlignedCandidate('گلستان', [c1, c2]);
+      const parentMap = new Map([
+        [p1.id, p1],
+        [p2.id, p2]
+      ]);
 
-      // Attempting to analyze only [evi1] to hide the conflict in evi2 must fail closed
+      // Attempting to analyze only [c1] to hide the conflict in c2 must fail closed
       expect(() => {
-        analyzeCandidateSchemeEvidence(candidate, [evi1]);
+        analyzeCandidateSchemeEvidence(candidate, [c1], {
+          parentLookup: (id) => parentMap.get(id)
+        });
       }).toThrow(/missing supporting evidence/i);
     });
 
     it('fails closed when extra/injected evidence is supplied in array input', () => {
-      const evi1 = createTestEvidence({
-        sourceRecordId: 'rec-01',
-        persianForm: 'گلستان',
-        observedRomanization: 'Gulistān'
-      });
-      const foreignEvi = createTestEvidence({
-        sourceRecordId: 'rec-99',
-        persianForm: 'گلستان',
-        observedRomanization: 'Gulistān'
-      });
+      const { parent: p1, child: c1 } = createAlignedPair(
+        { sourceRecordId: 'rec-01', persianForm: 'گلستان', observedRomanization: 'Gulistān' },
+        { persianForm: 'گلستان', observedRomanization: 'Gulistān' }
+      );
+      const { parent: pForeign, child: cForeign } = createAlignedPair(
+        { sourceRecordId: 'rec-99', persianForm: 'گلستان', observedRomanization: 'Gulistān' },
+        { persianForm: 'گلستان', observedRomanization: 'Gulistān' }
+      );
 
-      const candidate = synthesizeCandidateFromEvidence('گلستان', [evi1]);
+      const candidate = createAlignedCandidate('گلستان', [c1]);
+      const parentMap = new Map([
+        [p1.id, p1],
+        [pForeign.id, pForeign]
+      ]);
 
       expect(() => {
-        analyzeCandidateSchemeEvidence(candidate, [evi1, foreignEvi]);
+        analyzeCandidateSchemeEvidence(candidate, [c1, cForeign], {
+          parentLookup: (id) => parentMap.get(id)
+        });
       }).toThrow(/contains extra unreferenced evidence/i);
+    });
+
+    it('fails closed when duplicate evidence IDs are present in the supplied evidence array', () => {
+      const { parent: p1, child: c1 } = createAlignedPair(
+        { sourceRecordId: 'rec-01', persianForm: 'گلستان', observedRomanization: 'Gulistān' },
+        { persianForm: 'گلستان', observedRomanization: 'Gulistān' }
+      );
+
+      const candidate = createAlignedCandidate('گلستان', [c1]);
+      const parentMap = new Map([[p1.id, p1]]);
+
+      // Passing duplicate elements with the same ID in the array must throw immediately
+      expect(() => {
+        analyzeCandidateSchemeEvidence(candidate, [c1, c1], {
+          parentLookup: (id) => parentMap.get(id)
+        });
+      }).toThrow(/duplicate evidence ID/i);
     });
 
     it('fails closed when candidate references non-existent evidence ID in lookup source', () => {
@@ -454,7 +546,7 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
         proposedCanonical: null,
         derivationProvenance: {
           derivedAt: '2026-10-06T12:00:00Z',
-          strategy: 'SINGLE_EVIDENCE'
+          strategy: 'ALIGNED_SEGMENT_SYNTHESIS'
         }
       };
 
@@ -465,30 +557,120 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
     });
 
     it('fails closed when candidate contains duplicate evidence IDs', () => {
-      const evi1 = createTestEvidence({
-        sourceRecordId: 'rec-01',
-        persianForm: 'گلستان',
-        observedRomanization: 'Gulistān'
-      });
+      const { parent: p1, child: c1 } = createAlignedPair(
+        { sourceRecordId: 'rec-01', persianForm: 'گلستان', observedRomanization: 'Gulistān' },
+        { persianForm: 'گلستان', observedRomanization: 'Gulistān' }
+      );
 
       const candidate: LexicalCandidate = {
         id: 'cand-dup-test',
         normalizedForm: 'گلستان',
         persianForm: 'گلستان',
         entityType: 'WORD',
-        evidenceIds: [evi1.id, evi1.id], // duplicate
+        evidenceIds: [c1.id, c1.id], // duplicate in candidate.evidenceIds
         status: 'UNREVIEWED',
         conflicts: [],
         proposedCanonical: null,
         derivationProvenance: {
           derivedAt: '2026-10-06T12:00:00Z',
-          strategy: 'MULTI_EVIDENCE_SYNTHESIS'
+          strategy: 'ALIGNED_SEGMENT_SYNTHESIS'
         }
       };
 
+      const parentMap = new Map([[p1.id, p1]]);
+
       expect(() => {
-        analyzeCandidateSchemeEvidence(candidate, (id) => (id === evi1.id ? evi1 : undefined));
+        analyzeCandidateSchemeEvidence(candidate, (id) => (id === c1.id ? c1 : undefined), {
+          parentLookup: (id) => parentMap.get(id)
+        });
       }).toThrow(/contains duplicate evidence reference/i);
+    });
+
+    it('fails closed on same-ID derivation stripping attack', () => {
+      const { parent: p1, child: authenticChild } = createAlignedPair(
+        { sourceRecordId: 'rec-01', persianForm: 'گلستان', observedRomanization: 'Gulistān' },
+        { persianForm: 'گلستان', observedRomanization: 'Gulistān' }
+      );
+
+      const candidate = createAlignedCandidate('گلستان', [authenticChild]);
+
+      // Stripping derivation from the object with the same ID must be caught and rejected
+      const forgedChild: LexicalEvidence = {
+        ...authenticChild,
+        derivation: undefined
+      };
+
+      expect(() => {
+        analyzeCandidateSchemeEvidence(candidate, [forgedChild], {
+          parentLookup: (id) => (id === p1.id ? p1 : undefined)
+        });
+      }).toThrow(/missing required "ALIGNED_SEGMENT" derivation/i);
+    });
+
+    it('fails closed on same-ID romanization substitution attack', () => {
+      const { parent: p1, child: authenticChild } = createAlignedPair(
+        { sourceRecordId: 'rec-01', persianForm: 'گلستان', observedRomanization: 'Gulistān' },
+        { persianForm: 'گلستان', observedRomanization: 'Gulistān' }
+      );
+
+      const candidate = createAlignedCandidate('گلستان', [authenticChild]);
+
+      // Altering observedRomanization on the child while keeping parent as Gulistān
+      const forgedChild: LexicalEvidence = {
+        ...authenticChild,
+        observedRomanization: 'Golistān'
+      };
+
+      expect(() => {
+        analyzeCandidateSchemeEvidence(candidate, [forgedChild], {
+          parentLookup: (id) => (id === p1.id ? p1 : undefined)
+        });
+      }).toThrow(/does not match parent substring slice/i);
+    });
+
+    it('fails closed when candidate did not originate from ALIGNED_SEGMENT_SYNTHESIS', () => {
+      const { parent: p1, child: c1 } = createAlignedPair(
+        { sourceRecordId: 'rec-01', persianForm: 'گلستان', observedRomanization: 'Gulistān' },
+        { persianForm: 'گلستان', observedRomanization: 'Gulistān' }
+      );
+
+      const nonPhase5CStrategies = [
+        'SINGLE_EVIDENCE',
+        'MULTI_EVIDENCE_SYNTHESIS',
+        'MANUAL_DRAFT',
+        'SCHOLARLY_HEURISTIC'
+      ] as const;
+
+      for (const strategy of nonPhase5CStrategies) {
+        const candidate = createAlignedCandidate('گلستان', [c1], {
+          derivationProvenance: {
+            derivedAt: '2026-10-06T12:00:00Z',
+            strategy: strategy as any
+          }
+        });
+
+        expect(() => {
+          analyzeCandidateSchemeEvidence(candidate, [c1], {
+            parentLookup: (id) => (id === p1.id ? p1 : undefined)
+          });
+        }).toThrow(/unsupported derivation strategy/i);
+      }
+    });
+
+    it('fails closed when candidate has non-null proposedCanonical at Phase 5D boundary', () => {
+      const { parent: p1, child: c1 } = createAlignedPair(
+        { sourceRecordId: 'rec-01', persianForm: 'گلستان', observedRomanization: 'Gulistān' },
+        { persianForm: 'گلستان', observedRomanization: 'Gulistān' }
+      );
+
+      const candidate = createAlignedCandidate('گلستان', [c1]);
+      candidate.proposedCanonical = 'gulistān'; // Non-null violation
+
+      expect(() => {
+        analyzeCandidateSchemeEvidence(candidate, [c1], {
+          parentLookup: (id) => (id === p1.id ? p1 : undefined)
+        });
+      }).toThrow(/non-null proposedCanonical/i);
     });
 
     it('fails closed when forged child lineage is analyzed', () => {
@@ -512,7 +694,7 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
         }
       });
 
-      const candidate = synthesizeCandidateFromEvidence('گلستان', [forgedChild]);
+      const candidate = createAlignedCandidate('گلستان', [forgedChild]);
 
       const allMap = new Map<string, LexicalEvidence>([
         [parentEvi.id, parentEvi],
@@ -526,50 +708,62 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
       }).toThrow(/persianForm .* does not match parent substring slice/i);
     });
 
-    it('preserves raw source conflict dimension snapshot alongside target-scheme consensus', () => {
-      // Two raw observations disagree in case/presentation (or ALA-LC variants) but converge under IJMES
-      const evi1 = createTestEvidence({
-        sourceRecordId: 'rec-01',
-        persianForm: 'سعدی',
-        observedRomanization: 'Saʻdī' // Uppercase + ʻ
-      });
-      const evi2 = createTestEvidence({
-        sourceRecordId: 'rec-02',
-        persianForm: 'سعدی',
-        observedRomanization: 'saʻdī' // Lowercase + ʻ
-      });
+    it('preserves defensive isolation between rawSourceConflicts snapshot and candidate conflicts', () => {
+      const { parent: p1, child: c1 } = createAlignedPair(
+        { sourceRecordId: 'rec-01', persianForm: 'سعدی', observedRomanization: 'Saʻdī' },
+        { persianForm: 'سعدی', observedRomanization: 'Saʻdī' }
+      );
+      const { parent: p2, child: c2 } = createAlignedPair(
+        { sourceRecordId: 'rec-02', persianForm: 'سعدی', observedRomanization: 'saʻdī' },
+        { persianForm: 'سعدی', observedRomanization: 'saʻdī' }
+      );
 
-      const candidate = synthesizeCandidateFromEvidence('سعدی', [evi1, evi2]);
-      // candidate has raw conflict because 'Saʻdī' !== 'saʻdī'
+      const candidate = createAlignedCandidate('سعدی', [c1, c2]);
       expect(candidate.status).toBe('REVIEW_REQUIRED');
-      expect(candidate.conflicts.length).toBeGreaterThan(0);
+      expect(candidate.conflicts).toHaveLength(2);
 
-      const analysis = analyzeCandidateSchemeEvidence(candidate, [evi1, evi2]);
+      const parentMap = new Map([
+        [p1.id, p1],
+        [p2.id, p2]
+      ]);
 
-      // Both raw observations converge to IJMES 'saʿdī'
+      const analysis = analyzeCandidateSchemeEvidence(candidate, [c1, c2], {
+        parentLookup: (id) => parentMap.get(id)
+      });
+
       expect(analysis.consensusStatus).toBe('UNANIMOUS_DETERMINISTIC');
       expect(analysis.consensusTargetHypothesis).toBe('saʿdī');
-
-      // Crucial: Raw conflict snapshot is preserved and NOT cleared
       expect(analysis.rawCandidateStatus).toBe('REVIEW_REQUIRED');
       expect(analysis.rawSourceConflicts).toHaveLength(2);
-      expect(analysis.rawSourceConflicts.map((c) => c.observedRomanization)).toEqual(['Saʻdī', 'saʻdī']);
+
+      // Mutating analysis.rawSourceConflicts does NOT mutate candidate.conflicts
+      analysis.rawSourceConflicts[0].conflictReason = 'MUTATED_ANALYSIS_REASON';
+      expect(candidate.conflicts[0].conflictReason).not.toBe('MUTATED_ANALYSIS_REASON');
+
+      // Mutating candidate.conflicts does NOT mutate analysis.rawSourceConflicts
+      candidate.conflicts[1].conflictReason = 'MUTATED_CANDIDATE_REASON';
+      expect(analysis.rawSourceConflicts[1].conflictReason).not.toBe('MUTATED_CANDIDATE_REASON');
     });
 
     it('computes CONFLICTING_DETERMINISTIC when multiple distinct target hypotheses exist', () => {
-      const evi1 = createTestEvidence({
-        sourceRecordId: 'rec-01',
-        persianForm: 'گلستان',
-        observedRomanization: 'Gulistān'
-      });
-      const evi2 = createTestEvidence({
-        sourceRecordId: 'rec-02',
-        persianForm: 'گلستان',
-        observedRomanization: 'Golistān' // Disagreement in vowel
-      });
+      const { parent: p1, child: c1 } = createAlignedPair(
+        { sourceRecordId: 'rec-01', persianForm: 'گلستان', observedRomanization: 'Gulistān' },
+        { persianForm: 'گلستان', observedRomanization: 'Gulistān' }
+      );
+      const { parent: p2, child: c2 } = createAlignedPair(
+        { sourceRecordId: 'rec-02', persianForm: 'گلستان', observedRomanization: 'Golistān' },
+        { persianForm: 'گلستان', observedRomanization: 'Golistān' }
+      );
 
-      const candidate = synthesizeCandidateFromEvidence('گلستان', [evi1, evi2]);
-      const analysis = analyzeCandidateSchemeEvidence(candidate, [evi1, evi2]);
+      const candidate = createAlignedCandidate('گلستان', [c1, c2]);
+      const parentMap = new Map([
+        [p1.id, p1],
+        [p2.id, p2]
+      ]);
+
+      const analysis = analyzeCandidateSchemeEvidence(candidate, [c1, c2], {
+        parentLookup: (id) => parentMap.get(id)
+      });
 
       expect(analysis.consensusStatus).toBe('CONFLICTING_DETERMINISTIC');
       expect(analysis.consensusTargetHypothesis).toBeNull();
@@ -578,19 +772,24 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
     });
 
     it('computes PARTIAL when one evidence resolves but another is context-required', () => {
-      const evi1 = createTestEvidence({
-        sourceRecordId: 'rec-01',
-        persianForm: 'سعدی',
-        observedRomanization: 'Saʻdī'
-      });
-      const evi2 = createTestEvidence({
-        sourceRecordId: 'rec-02',
-        persianForm: 'سعدی',
-        observedRomanization: 'Ṣafīʹnizhād' // structural prime
-      });
+      const { parent: p1, child: c1 } = createAlignedPair(
+        { sourceRecordId: 'rec-01', persianForm: 'سعدی', observedRomanization: 'Saʻdī' },
+        { persianForm: 'سعدی', observedRomanization: 'Saʻdī' }
+      );
+      const { parent: p2, child: c2 } = createAlignedPair(
+        { sourceRecordId: 'rec-02', persianForm: 'سعدی', observedRomanization: 'Ṣafīʹnizhād' },
+        { persianForm: 'سعدی', observedRomanization: 'Ṣafīʹnizhād' }
+      );
 
-      const candidate = synthesizeCandidateFromEvidence('سعدی', [evi1, evi2]);
-      const analysis = analyzeCandidateSchemeEvidence(candidate, [evi1, evi2]);
+      const candidate = createAlignedCandidate('سعدی', [c1, c2]);
+      const parentMap = new Map([
+        [p1.id, p1],
+        [p2.id, p2]
+      ]);
+
+      const analysis = analyzeCandidateSchemeEvidence(candidate, [c1, c2], {
+        parentLookup: (id) => parentMap.get(id)
+      });
 
       expect(analysis.consensusStatus).toBe('PARTIAL');
       expect(analysis.consensusTargetHypothesis).toBeNull();
@@ -599,14 +798,17 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
     });
 
     it('computes BLOCKED when all supporting evidence requires context', () => {
-      const evi1 = createTestEvidence({
-        sourceRecordId: 'rec-01',
-        persianForm: 'خانه',
-        observedRomanization: 'khānah'
-      });
+      const { parent: p1, child: c1 } = createAlignedPair(
+        { sourceRecordId: 'rec-01', persianForm: 'خانه', observedRomanization: 'khānah' },
+        { persianForm: 'خانه', observedRomanization: 'khānah' }
+      );
 
-      const candidate = synthesizeCandidateFromEvidence('خانه', [evi1]);
-      const analysis = analyzeCandidateSchemeEvidence(candidate, [evi1]);
+      const candidate = createAlignedCandidate('خانه', [c1]);
+      const parentMap = new Map([[p1.id, p1]]);
+
+      const analysis = analyzeCandidateSchemeEvidence(candidate, [c1], {
+        parentLookup: (id) => parentMap.get(id)
+      });
 
       expect(analysis.consensusStatus).toBe('BLOCKED');
       expect(analysis.consensusTargetHypothesis).toBeNull();
@@ -614,21 +816,27 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
     });
 
     it('preserves input-order invariance in candidate scheme analysis', () => {
-      const eviA = createTestEvidence({
-        sourceRecordId: 'rec-01',
-        persianForm: 'سعدی',
-        observedRomanization: 'Saʻdī'
-      });
-      const eviB = createTestEvidence({
-        sourceRecordId: 'rec-02',
-        persianForm: 'سعدی',
-        observedRomanization: 'saʻdī'
-      });
+      const { parent: p1, child: c1 } = createAlignedPair(
+        { sourceRecordId: 'rec-01', persianForm: 'سعدی', observedRomanization: 'Saʻdī' },
+        { persianForm: 'سعدی', observedRomanization: 'Saʻdī' }
+      );
+      const { parent: p2, child: c2 } = createAlignedPair(
+        { sourceRecordId: 'rec-02', persianForm: 'سعدی', observedRomanization: 'saʻdī' },
+        { persianForm: 'سعدی', observedRomanization: 'saʻdī' }
+      );
 
-      const candidate = synthesizeCandidateFromEvidence('سعدی', [eviA, eviB]);
+      const candidate = createAlignedCandidate('سعدی', [c1, c2]);
+      const parentMap = new Map([
+        [p1.id, p1],
+        [p2.id, p2]
+      ]);
 
-      const analysisForward = analyzeCandidateSchemeEvidence(candidate, [eviA, eviB]);
-      const analysisReversed = analyzeCandidateSchemeEvidence(candidate, [eviB, eviA]);
+      const analysisForward = analyzeCandidateSchemeEvidence(candidate, [c1, c2], {
+        parentLookup: (id) => parentMap.get(id)
+      });
+      const analysisReversed = analyzeCandidateSchemeEvidence(candidate, [c2, c1], {
+        parentLookup: (id) => parentMap.get(id)
+      });
 
       expect(analysisForward.id).toBe(analysisReversed.id);
       expect(analysisForward.consensusStatus).toBe(analysisReversed.consensusStatus);
@@ -650,6 +858,7 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
 
       // Verify every policy entry has official source provenance and real policy ID
       const targetPolicies = getAllTargetPolicies();
+      expect(targetPolicies.length).toBeGreaterThanOrEqual(10);
       for (const entry of report.entries) {
         expect(entry.policyId).toMatch(/^IJMES_POLICY_/);
         expect(entry.sourceReferences.length).toBeGreaterThan(0);

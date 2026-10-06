@@ -13,11 +13,11 @@ Field-Level Raw LexicalEvidence (Phase 5B)
       ↓
 Validated Aligned Segment Evidence (Phase 5C: Lineage-Revalidated)
       ↓
-Candidate Extraction & Conflict Tracking (Phase 5C)
+Candidate Extraction & Conflict Tracking (Phase 5C: ALIGNED_SEGMENT_SYNTHESIS)
       ↓
 Scheme-Aware Interpretation (Phase 5D: Interpreter & Rules)
       ↓
-Candidate Scheme Consensus (Phase 5D: Exact Evidence Set Closure)
+Candidate Scheme Consensus (Phase 5D: Exact Evidence-Set & Lineage Closure)
       ↓
 Non-Authoritative Candidate Proposal (proposedCanonical: null)
 ```
@@ -35,11 +35,15 @@ AUTHORITATIVE CANONICAL FORM
 ```
 
 1. **Target Hypotheses are Non-Authoritative**: Phase 5D produces `targetHypothesis` and `consensusTargetHypothesis`, but NEVER writes to `LexicalCandidate.proposedCanonical` or the authoritative lexicon repository. `candidate.proposedCanonical` remains strictly `null`.
-2. **Exact Candidate Evidence Set Closure**: Candidate scheme analysis (`analyzeCandidateSchemeEvidence`) is computed from **exactly** `candidate.evidenceIds`. Analyzing an evidence subset (which could hide conflicts) or injecting external evidence (which could skew consensus) fails closed immediately.
-3. **Phase 5C Lineage Revalidation**: For derived aligned evidence records, candidate scheme analysis independently executes `validateDerivedEvidenceLineage()` against the parent evidence store to ensure parent existence, substring bounds, deterministic eligibility, and provenance are strictly verified.
-4. **Preservation of Raw Conflict Dimension**: Phase 5C raw source conflicts (`candidate.conflicts`, `candidate.status`) and Phase 5D target-scheme consensus (`consensusStatus`, `consensusTargetHypothesis`) are preserved as independent, explicit dimensions on `CandidateSchemeAnalysis` (`rawSourceConflicts`, `rawCandidateStatus`). Raw conflicts are NEVER silently cleared even when target hypotheses converge unanimously.
-5. **No Circularity**: The interpreter never invokes `transliterate()`, `DEFAULT_LEXICON_REPOSITORY`, `findFrozenReviewedAuthority()`, or AI language models as answer keys.
-6. **No Benchmark-Driven Mapping**: Rules are derived exclusively from published official transliteration standards and explicit Persian orthographic facts, never by overfitting to the frozen 108-case gold benchmark.
+2. **Phase 5C Candidate Origin Required**: Phase 5D automatic candidate scheme analysis accepts **Phase 5C `ALIGNED_SEGMENT_SYNTHESIS` candidates only**. Candidates synthesized under other strategies (`SINGLE_EVIDENCE`, `MULTI_EVIDENCE_SYNTHESIS`, `MANUAL_DRAFT`, `SCHOLARLY_HEURISTIC`) fail closed immediately.
+3. **Pre-Adjudication Boundary**: Candidates must have `candidate.proposedCanonical === null` when entering Phase 5D analysis. Phase 5D does not operate on already-adjudicated forms.
+4. **Dual Closure: Exact Evidence-Set Closure + Evidence-Lineage Closure**:
+   - **ID-Set Closure**: Candidate scheme analysis (`analyzeCandidateSchemeEvidence`) is computed from **exactly** `candidate.evidenceIds`. Subsets (which could hide conflicts) and supersets / foreign injections fail closed.
+   - **Evidence-Lineage Closure**: Every supporting evidence item MUST have `derivation.kind === 'ALIGNED_SEGMENT'`. Why is ID-set closure alone insufficient? If a caller could supply arbitrary in-memory objects bearing the same ID with stripped derivation or altered romanizations, identity-set equality alone would not prevent consensus tampering. Mandatory derivation validation independently re-executes `validateDerivedEvidenceLineage()` against parent catalog evidence, verifying parent existence, exact substring spans, and non-forgeable eligibility.
+5. **Duplicate Input Array Rejection**: Providing arrays with duplicate evidence IDs fails closed before lookup creation, preventing last-write-wins shadowing.
+6. **Defensive Isolation for Raw Conflicts**: Phase 5C raw source conflicts (`candidate.conflicts`, `candidate.status`) and Phase 5D target-scheme consensus (`consensusStatus`, `consensusTargetHypothesis`) are preserved as independent, explicit dimensions on `CandidateSchemeAnalysis` (`rawSourceConflicts`, `rawCandidateStatus`). `rawSourceConflicts` is an independent defensive deep clone—mutations to either structure never propagate to the other.
+7. **No Circularity**: The interpreter never invokes `transliterate()`, `DEFAULT_LEXICON_REPOSITORY`, `findFrozenReviewedAuthority()`, or AI language models as answer keys.
+8. **No Benchmark-Driven Mapping**: Rules are derived exclusively from published official transliteration standards and explicit Persian orthographic facts, never by overfitting to the frozen 108-case gold benchmark.
 
 ---
 
@@ -144,8 +148,8 @@ export type SchemeConsensusStatus =
 - `interpretations`: Array of individual evidence interpretations.
 - `deterministicTargetHypotheses`: Sorted unique list of non-null target hypotheses.
 - `consensusStatus`, `consensusTargetHypothesis`.
-- `rawSourceConflicts`: Immutable snapshot of Phase 5C raw conflicts (`candidate.conflicts`).
-- `rawCandidateStatus`: Immutable snapshot of Phase 5C candidate status (`candidate.status`).
+- `rawSourceConflicts`: Defensive cloned snapshot of Phase 5C raw conflicts (`candidate.conflicts`).
+- `rawCandidateStatus`: Scalar snapshot of Phase 5C candidate status (`candidate.status`).
 - `blockers`, `appliedRuleIds`, `aggregatorVersion`, `analyzedAt`.
 
 ---

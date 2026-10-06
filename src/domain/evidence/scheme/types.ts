@@ -8,11 +8,9 @@
  * LexicalCandidate.proposedCanonical remains strictly null.
  */
 
-import {
+import type {
   ConflictingObservation,
-  LexicalCandidate,
   LexicalCandidateStatus,
-  LexicalEvidence,
   RomanizationScheme
 } from '../types';
 

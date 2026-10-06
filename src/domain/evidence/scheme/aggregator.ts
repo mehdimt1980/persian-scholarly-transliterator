@@ -4,11 +4,17 @@
  * Core scholarly invariants:
  *   1. Exact evidence set closure: Analysis MUST use exactly candidate.evidenceIds.
  *      Subsets and supersets (injected evidence) fail closed immediately.
- *   2. Revalidates derived evidence lineage (parent existence, spans, eligibility, full provenance).
- *   3. Preserves both raw source conflict and target-scheme consensus dimensions explicitly.
- *   4. Pure analysis: does NOT mutate candidate or set candidate.proposedCanonical.
- *   5. Conservative consensus semantics: UNANIMOUS_DETERMINISTIC requires unambiguous agreement.
- *   6. Deterministic identity independent of evidence ordering.
+ *   2. Phase 5C candidate origin & pre-adjudication invariant:
+ *      Candidate MUST have derivationProvenance.strategy === 'ALIGNED_SEGMENT_SYNTHESIS'
+ *      and candidate.proposedCanonical === null.
+ *   3. Every supporting evidence item MUST have derivation.kind === 'ALIGNED_SEGMENT'
+ *      and pass full validateDerivedEvidenceLineage() revalidation.
+ *   4. Duplicate evidence IDs in supplied arrays are rejected immediately before lookup creation.
+ *   5. Preserves both raw source conflict and target-scheme consensus dimensions explicitly
+ *      with genuine defensive snapshot isolation for rawSourceConflicts.
+ *   6. Pure analysis: does NOT mutate candidate or set candidate.proposedCanonical.
+ *   7. Conservative consensus semantics: UNANIMOUS_DETERMINISTIC requires unambiguous agreement.
+ *   8. Deterministic identity independent of evidence ordering.
  */
 
 import { normalizePersian } from '../../normalization';
@@ -43,7 +49,15 @@ function toLookupFunction(source: SchemeEvidenceLookup): (id: string) => Lexical
     return source;
   }
   if (Array.isArray(source)) {
-    const map = new Map<string, LexicalEvidence>(source.map((e) => [e.id, e]));
+    const map = new Map<string, LexicalEvidence>();
+    for (const item of source) {
+      if (map.has(item.id)) {
+        throw new Error(
+          `Provided evidence array contains duplicate evidence ID "${item.id}". Duplicate evidence inputs are prohibited.`
+        );
+      }
+      map.set(item.id, item);
+    }
     return (id: string) => map.get(id);
   }
   if (source && typeof source.getEvidenceById === 'function') {
@@ -61,12 +75,25 @@ export function analyzeCandidateSchemeEvidence(
   evidenceSource: SchemeEvidenceLookup,
   options?: CandidateSchemeAnalysisOptions
 ): CandidateSchemeAnalysis {
+  // 1. Validate Phase 5C candidate origin and pre-adjudication invariant
+  if (candidate.derivationProvenance?.strategy !== 'ALIGNED_SEGMENT_SYNTHESIS') {
+    throw new Error(
+      `Candidate "${candidate.id}" has unsupported derivation strategy "${candidate.derivationProvenance?.strategy ?? 'UNKNOWN'}". Phase 5D scheme-aware candidate analysis strictly requires Phase 5C "ALIGNED_SEGMENT_SYNTHESIS" candidates.`
+    );
+  }
+
+  if (candidate.proposedCanonical !== null) {
+    throw new Error(
+      `Candidate "${candidate.id}" has non-null proposedCanonical ("${candidate.proposedCanonical}"). Phase 5D pre-adjudication scheme analysis strictly requires candidate.proposedCanonical === null.`
+    );
+  }
+
   const aggregatorVersion = options?.aggregatorVersion ?? SCHEME_AGGREGATOR_VERSION;
   const candidateNormalized = normalizePersian(candidate.persianForm).normalizedInput;
   const lookupFn = toLookupFunction(evidenceSource);
   const parentLookupFn = options?.parentLookup ?? lookupFn;
 
-  // 1. If evidenceSource was provided as an Array, enforce strict set equality with candidate.evidenceIds
+  // 2. If evidenceSource was provided as an Array, enforce strict set equality with candidate.evidenceIds
   if (Array.isArray(evidenceSource)) {
     const candidateIdSet = new Set(candidate.evidenceIds);
     const sourceIdSet = new Set(evidenceSource.map((e) => e.id));
@@ -87,7 +114,7 @@ export function analyzeCandidateSchemeEvidence(
     }
   }
 
-  // 2. Resolve every referenced evidence ID from candidate.evidenceIds
+  // 3. Resolve every referenced evidence ID from candidate.evidenceIds
   const resolvedEvidence: LexicalEvidence[] = [];
   const seenCandidateIds = new Set<string>();
 
@@ -106,6 +133,13 @@ export function analyzeCandidateSchemeEvidence(
       );
     }
 
+    // Require ALIGNED_SEGMENT derivation on every supporting evidence item
+    if (!evi.derivation || evi.derivation.kind !== 'ALIGNED_SEGMENT') {
+      throw new Error(
+        `Candidate "${candidate.id}" supporting evidence "${evi.id}" is missing required "ALIGNED_SEGMENT" derivation. Phase 5D scheme-aware analysis strictly requires validated Phase 5C aligned segment evidence.`
+      );
+    }
+
     // Validate Persian identity
     const evidenceNormalized = normalizePersian(evi.persianForm).normalizedInput;
     if (evidenceNormalized !== candidateNormalized) {
@@ -115,17 +149,15 @@ export function analyzeCandidateSchemeEvidence(
     }
 
     // Revalidate derived segment lineage against parent evidence
-    if (evi.derivation) {
-      validateDerivedEvidenceLineage(evi, parentLookupFn);
-    }
+    validateDerivedEvidenceLineage(evi, parentLookupFn);
 
     resolvedEvidence.push(evi);
   }
 
-  // 3. Deterministically sort evidence by immutable ID to guarantee input-order invariance
+  // 4. Deterministically sort evidence by immutable ID to guarantee input-order invariance
   const sortedEvidence = [...resolvedEvidence].sort((a, b) => a.id.localeCompare(b.id));
 
-  // 4. Interpret each external observation independently
+  // 5. Interpret each external observation independently
   const interpretations: SchemeInterpretation[] = sortedEvidence.map((evi) =>
     interpretEvidenceScheme(evi, {
       candidateId: candidate.id,
@@ -135,7 +167,7 @@ export function analyzeCandidateSchemeEvidence(
     })
   );
 
-  // 5. Collect deterministic hypotheses, blockers, and applied rules
+  // 6. Collect deterministic hypotheses, blockers, and applied rules
   const hypothesisSet = new Set<string>();
   const blockers: SchemeInterpretationBlocker[] = [];
   const appliedRulesSet = new Set<string>();
@@ -160,7 +192,7 @@ export function analyzeCandidateSchemeEvidence(
   const deterministicTargetHypotheses = Array.from(hypothesisSet).sort();
   const appliedRuleIds = Array.from(appliedRulesSet).sort();
 
-  // 6. Compute consensus status
+  // 7. Compute consensus status
   let consensusStatus: SchemeConsensusStatus;
   let consensusTargetHypothesis: string | null = null;
 
@@ -204,7 +236,7 @@ export function analyzeCandidateSchemeEvidence(
     deterministicTargetHypotheses,
     consensusStatus,
     consensusTargetHypothesis,
-    rawSourceConflicts: candidate.conflicts,
+    rawSourceConflicts: candidate.conflicts.map((conflict) => ({ ...conflict })),
     rawCandidateStatus: candidate.status,
     blockers,
     appliedRuleIds,
