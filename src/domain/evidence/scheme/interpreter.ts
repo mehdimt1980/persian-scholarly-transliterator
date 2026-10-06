@@ -6,7 +6,9 @@
  *   2. Raw evidence is NEVER mutated (preserves original bytes/Unicode).
  *   3. Presentation normalization (lowercasing, NFC) is strictly distinguished from scholarly rules.
  *   4. Structural/grammatical markers (izāfat, prime, indefinite, final-heh) fail closed as CONTEXT_REQUIRED.
- *   5. No circular engine/lexicon calls or benchmark fitting.
+ *   5. Unicode-exact marker enforcement: visually similar punctuation (U+2018, U+2019, ASCII ') fails closed.
+ *   6. Initial hamza fails closed as source-nonconformant / disallowed.
+ *   7. No hardcoded lexical allowlists or circular engine/lexicon calls.
  */
 
 import { LexicalEvidence } from '../types';
@@ -100,8 +102,39 @@ export function interpretEvidenceScheme(
 
   const blockers: SchemeInterpretationBlocker[] = [];
 
-  // 3. Check for hyphen-bound contextual marker (from Phase 5C derivation or internal hyphen)
-  if (
+  // 3. Check for unverified typographic punctuation variants (U+2018, U+2019, ASCII ', U+2032 prime)
+  // Official ALA-LC uses:
+  //   - 'ʻ' (U+02BB) for 'Ayn
+  //   - 'ʼ' (U+02BC) for Hamzah
+  //   - 'ʹ' (U+02B9) for affix prime
+  if (/[\u2018\u2019\u0027\u2032]/.test(rawObserved)) {
+    blockers.push({
+      kind: 'UNVERIFIED_TYPOGRAPHIC_VARIANT',
+      reason:
+        'Contains ambiguous typographic quotation/prime characters (U+2018, U+2019, ASCII \', U+2032) rather than verified ALA-LC modifier letters (ʻ U+02BB, ʼ U+02BC, ʹ U+02B9).',
+      token: rawObserved
+    });
+  }
+
+  // 4. Check for initial hamza (ALA-LC and IJMES drop initial hamza; initial ʼ is source-nonconformant)
+  if (/^[ʼ\u02BC]/i.test(rawObserved.trim())) {
+    blockers.push({
+      kind: 'INITIAL_HAMZA_DISALLOWED',
+      reason:
+        'Initial hamza marker (ʼ) is source-nonconformant in ALA-LC Persian and disallowed in IJMES word-initially.',
+      token: rawObserved
+    });
+  }
+
+  // 5. Check for structural izāfat vs generic hyphen context
+  if (/-(i|ʼi|yi)$/i.test(rawObserved) || evidence.derivation?.exclusionReason?.includes('izāfat')) {
+    blockers.push({
+      kind: 'STRUCTURAL_IZAFAT',
+      reason:
+        'Contains ALA-LC structural izāfat ending (-i, -ʼi, -yi) requiring grammatical context.',
+      token: rawObserved
+    });
+  } else if (
     evidence.derivation?.candidateEligibility === 'CONTEXT_BOUND' ||
     rawObserved.includes('-')
   ) {
@@ -109,13 +142,13 @@ export function interpretEvidenceScheme(
       kind: 'HYPHEN_CONTEXT_BOUND',
       reason:
         evidence.derivation?.exclusionReason ??
-        'Contains internal hyphen bound contextual marker (e.g. izāfat or Arabic article) requiring grammatical context.',
+        'Contains internal hyphen bound contextual marker (e.g. Arabic article) requiring grammatical context.',
       token: rawObserved
     });
   }
 
-  // 4. Check for ALA-LC structural prime separator (affix / compound prime ʹ / U+02B9 / U+2032)
-  if (/[ʹ\u02B9\u2032]/.test(rawObserved)) {
+  // 6. Check for ALA-LC structural prime separator (affix / compound prime ʹ / U+02B9)
+  if (/[ʹ\u02B9]/.test(rawObserved)) {
     blockers.push({
       kind: 'STRUCTURAL_PRIME',
       reason:
@@ -124,20 +157,19 @@ export function interpretEvidenceScheme(
     });
   }
 
-  // 5. Check for structural indefinite marker involving hamza-like notation (e.g. khānahʼi)
-  if (/[ʼ']i$/i.test(rawObserved) || /[ʼ']ī$/i.test(rawObserved)) {
+  // 7. Check for structural indefinite marker involving hamza-like notation (e.g. khānahʼi)
+  if (!rawObserved.includes('-') && (/[ʼ\u02BC]i$/i.test(rawObserved) || /[ʼ\u02BC]ī$/i.test(rawObserved))) {
     blockers.push({
       kind: 'STRUCTURAL_INDEFINITE',
       reason:
-        'Ends with structural indefinite marker pattern (-ʼi) requiring grammatical/morphological context.',
+        'Ends with structural indefinite marker pattern (ʼi) requiring grammatical/morphological context.',
       token: rawObserved
     });
   }
 
-  // 6. Check for ambiguous final -ah / -eh
-  if (/([aāeē]h)$/i.test(rawObserved) && !/^(allāh|shāh|māh|gāh|rāh|chāh|panāh|sipāh|nigāh|dastgāh|pādishāh)$/i.test(rawObserved)) {
-    // Unless proven purely consonantal root lexical item, ambiguous final -ah/-eh requires morphological context
-    if (/([a]h)$/i.test(rawObserved)) {
+  // 8. Check for ambiguous final -ah / -eh (strict fail-closed, no lexical allowlist)
+  if (/[aāeē]h$/i.test(rawObserved.trim())) {
+    if (/[a]h$/i.test(rawObserved.trim())) {
       blockers.push({
         kind: 'AMBIGUOUS_FINAL_HEH',
         reason:
@@ -149,7 +181,7 @@ export function interpretEvidenceScheme(
 
   const comparisonSourceForm = rawObserved.normalize('NFC').toLowerCase();
 
-  // If structural or contextual blockers were detected, fail closed as CONTEXT_REQUIRED
+  // If structural, typographic, or contextual blockers were detected, fail closed as CONTEXT_REQUIRED
   if (blockers.length > 0) {
     return {
       id,
@@ -169,17 +201,17 @@ export function interpretEvidenceScheme(
     };
   }
 
-  // 7. Apply deterministic scholarly rules on presentation-normalized form
+  // 9. Apply deterministic scholarly rules on presentation-normalized form
   let transformed = comparisonSourceForm;
   const appliedRuleIds: string[] = [];
 
-  // A. ALA-LC ʿayn (ʻ / U+02BB or ‘ / U+2018) -> IJMES ʿ (U+02BF)
-  if (/[ʻ\u02BB‘\u2018]/.test(transformed)) {
-    transformed = transformed.replace(/[ʻ\u02BB‘\u2018]/g, 'ʿ');
+  // A. ALA-LC ʿayn (ʻ / U+02BB) -> IJMES ʿ (U+02BF)
+  if (/[ʻ\u02BB]/.test(transformed)) {
+    transformed = transformed.replace(/[ʻ\u02BB]/g, 'ʿ');
     appliedRuleIds.push('ALA_LC_TO_IJMES_AYN');
   }
 
-  // B. ALA-LC lexical hamza (ʼ / U+02BC) -> IJMES ʾ (U+02BE)
+  // B. ALA-LC medial/final lexical hamza (ʼ / U+02BC) -> IJMES ʾ (U+02BE)
   if (/[ʼ\u02BC]/.test(transformed)) {
     transformed = transformed.replace(/[ʼ\u02BC]/g, 'ʾ');
     appliedRuleIds.push('ALA_LC_TO_IJMES_LEXICAL_HAMZA');

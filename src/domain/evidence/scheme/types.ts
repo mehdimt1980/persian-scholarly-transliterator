@@ -8,7 +8,13 @@
  * LexicalCandidate.proposedCanonical remains strictly null.
  */
 
-import { LexicalCandidate, LexicalEvidence, RomanizationScheme } from '../types';
+import {
+  ConflictingObservation,
+  LexicalCandidate,
+  LexicalCandidateStatus,
+  LexicalEvidence,
+  RomanizationScheme
+} from '../types';
 
 /**
  * High-level status of interpreting an individual external evidence observation
@@ -40,6 +46,8 @@ export type SchemeInterpretationBlockerKind =
   | 'STRUCTURAL_INDEFINITE'
   | 'STRUCTURAL_PRIME'
   | 'AMBIGUOUS_FINAL_HEH'
+  | 'INITIAL_HAMZA_DISALLOWED'
+  | 'UNVERIFIED_TYPOGRAPHIC_VARIANT'
   | 'UNSUPPORTED_SCHEME'
   | 'NO_ROMANIZATION';
 
@@ -162,6 +170,12 @@ export interface CandidateSchemeAnalysis {
    */
   consensusTargetHypothesis: string | null;
 
+  /** Snapshot of raw candidate conflict observations from Phase 5C */
+  rawSourceConflicts: ConflictingObservation[];
+
+  /** Raw lifecycle status from Phase 5C candidate (e.g. REVIEW_REQUIRED if raw observations disagreed) */
+  rawCandidateStatus: LexicalCandidateStatus;
+
   /** Aggregated list of all blockers encountered across supporting evidence */
   blockers: SchemeInterpretationBlocker[];
 
@@ -176,17 +190,30 @@ export interface CandidateSchemeAnalysis {
 }
 
 /**
+ * Definition of an official IJMES target standard policy entry for read-only audit.
+ */
+export interface IJMESPolicyDefinition {
+  policyId: string;
+  character: string;
+  persianLetterName: string;
+  targetSymbol: string;
+  sourceReferences: SchemeSourceReference[];
+  notes?: string;
+}
+
+/**
  * Result of comparing Phase 5D policy definitions against runtime project IJMES mappings.
  */
 export type PolicyAuditComparisonStatus = 'MATCH' | 'MISMATCH' | 'NOT_COMPARABLE';
 
 export interface PolicyAuditEntry {
+  policyId: string;
   character: string;
   persianLetterName: string;
-  schemeRuleId: string;
   schemeTargetSymbol: string;
   runtimeMappingSymbol: string | null;
   status: PolicyAuditComparisonStatus;
+  sourceReferences: SchemeSourceReference[];
   notes?: string;
 }
 
@@ -198,5 +225,5 @@ export interface PolicyAuditReport {
   mismatches: number;
   notComparable: number;
   entries: PolicyAuditEntry[];
-  summary: 'PASS' | 'DISCREPANCY_DETECTED';
+  summary: 'PASS' | 'PASS_WITH_NONCOMPARABLE' | 'DISCREPANCY_DETECTED';
 }

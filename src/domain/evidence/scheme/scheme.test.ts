@@ -5,13 +5,14 @@ import { generateEvidenceId, synthesizeCandidateFromEvidence } from '../candidat
 import { extractEvidenceFromMarcRecord } from '../loc/extractor';
 import { parseMarcXml } from '../loc/xmlParser';
 import { processEvidenceAlignmentBatch } from '../alignment/batchOrchestrator';
-import { LexicalEvidence } from '../types';
+import { LexicalCandidate, LexicalEvidence } from '../types';
 import {
   analyzeCandidateSchemeEvidence,
   auditIjmesRuntimePolicy,
   generateCandidateAnalysisId,
   generateInterpretationId,
   getAllSchemeRules,
+  getAllTargetPolicies,
   getSchemeRule,
   interpretEvidenceScheme,
   SCHEME_INTERPRETER_VERSION,
@@ -106,7 +107,7 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
   });
 
   describe('2. Initial Conservative ALA-LC → IJMES Rules', () => {
-    it('applies ALA_LC_TO_IJMES_AYN for modifier turned comma (ʻ / U+02BB)', () => {
+    it('applies ALA_LC_TO_IJMES_AYN for exact modifier turned comma (ʻ / U+02BB)', () => {
       const evidence = createTestEvidence({
         persianForm: 'معلم',
         observedRomanization: 'Muʻallim'
@@ -118,7 +119,8 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
       expect(interp.appliedRuleIds).toContain('ALA_LC_TO_IJMES_AYN');
     });
 
-    it('applies ALA_LC_TO_IJMES_LEXICAL_HAMZA for internal lexical hamza (ʼ / U+02BC)', () => {
+    it('applies ALA_LC_TO_IJMES_LEXICAL_HAMZA for internal and final lexical hamza (ʼ / U+02BC)', () => {
+      // Internal
       const evi1 = createTestEvidence({
         persianForm: 'موثر',
         observedRomanization: 'muʼassir'
@@ -138,6 +140,17 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
       expect(interp2.targetHypothesis).toBe('pāʾīn');
       expect(interp2.targetHypothesis?.charCodeAt(2)).toBe(0x02be);
       expect(interp2.appliedRuleIds).toContain('ALA_LC_TO_IJMES_LEXICAL_HAMZA');
+
+      // Final
+      const evi3 = createTestEvidence({
+        persianForm: 'خلفاء',
+        observedRomanization: 'khulafāʼ'
+      });
+      const interp3 = interpretEvidenceScheme(evi3);
+      expect(interp3.status).toBe('DETERMINISTIC_EQUIVALENT');
+      expect(interp3.targetHypothesis).toBe('khulafāʾ');
+      expect(interp3.targetHypothesis?.charCodeAt(7)).toBe(0x02be);
+      expect(interp3.appliedRuleIds).toContain('ALA_LC_TO_IJMES_LEXICAL_HAMZA');
     });
 
     it('applies ALA_LC_TO_IJMES_DAD for verified ALA-LC Persian ض (z + combining diaeresis below U+0324)', () => {
@@ -174,30 +187,110 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
     });
   });
 
-  describe('3. Structural & Contextual Blockers (Fail-Closed)', () => {
-    it('blocks structural izāfat with hyphen as CONTEXT_REQUIRED', () => {
-      const boundEvi = createTestEvidence({
-        persianForm: 'كتاب',
-        observedRomanization: 'Kitāb-i',
-        derivation: {
-          kind: 'ALIGNED_SEGMENT',
-          parentEvidenceId: 'evi-parent',
-          segmentIndex: 0,
-          persianSpan: { start: 0, end: 4 },
-          romanizationSpan: { start: 0, end: 7 },
-          alignmentStrategy: 'POSITIONAL_EQUAL_COUNT',
-          candidateEligibility: 'CONTEXT_BOUND',
-          exclusionReason: 'bound contextual marker'
-        }
+  describe('3. Unicode-Exact Markers, Blockers & Typographic Disambiguation', () => {
+    it('rejects U+2018 (left single quotation mark) without silently applying the scholarly ʿayn rule', () => {
+      const typoAyn = createTestEvidence({
+        persianForm: 'سعدی',
+        observedRomanization: 'Sa\u2018d\u012B' // Sa‘dī with U+2018
       });
 
-      const interp = interpretEvidenceScheme(boundEvi);
+      const interp = interpretEvidenceScheme(typoAyn);
       expect(interp.status).toBe('CONTEXT_REQUIRED');
       expect(interp.targetHypothesis).toBeNull();
-      expect(interp.blockers.some((b) => b.kind === 'HYPHEN_CONTEXT_BOUND')).toBe(true);
+      expect(interp.blockers.some((b) => b.kind === 'UNVERIFIED_TYPOGRAPHIC_VARIANT')).toBe(true);
+      expect(interp.appliedRuleIds).toHaveLength(0);
     });
 
-    it('blocks structural prime convention (ʹ / U+02B9) as CONTEXT_REQUIRED', () => {
+    it('rejects ASCII U+0027 apostrophe and U+2019 right single quote as UNVERIFIED_TYPOGRAPHIC_VARIANT', () => {
+      const asciiHamza = createTestEvidence({
+        persianForm: 'موثر',
+        observedRomanization: "mu'assir" // ASCII single quote U+0027
+      });
+      const interpAscii = interpretEvidenceScheme(asciiHamza);
+      expect(interpAscii.status).toBe('CONTEXT_REQUIRED');
+      expect(interpAscii.targetHypothesis).toBeNull();
+      expect(interpAscii.blockers.some((b) => b.kind === 'UNVERIFIED_TYPOGRAPHIC_VARIANT')).toBe(true);
+
+      const curlyHamza = createTestEvidence({
+        persianForm: 'موثر',
+        observedRomanization: 'mu\u2019assir' // U+2019
+      });
+      const interpCurly = interpretEvidenceScheme(curlyHamza);
+      expect(interpCurly.status).toBe('CONTEXT_REQUIRED');
+      expect(interpCurly.targetHypothesis).toBeNull();
+      expect(interpCurly.blockers.some((b) => b.kind === 'UNVERIFIED_TYPOGRAPHIC_VARIANT')).toBe(true);
+    });
+
+    it('fails closed on initial hamza marker (e.g. ʼamr)', () => {
+      const initHamza = createTestEvidence({
+        persianForm: 'امر',
+        observedRomanization: 'ʼamr' // U+02BC at word start
+      });
+
+      const interp = interpretEvidenceScheme(initHamza);
+      expect(interp.status).toBe('CONTEXT_REQUIRED');
+      expect(interp.targetHypothesis).toBeNull();
+      expect(interp.blockers.some((b) => b.kind === 'INITIAL_HAMZA_DISALLOWED')).toBe(true);
+      expect(interp.appliedRuleIds).toHaveLength(0);
+    });
+
+    it('distinguishes izāfat (-i, -ʼi, -yi) from generic hyphen context', () => {
+      // 1. -i izāfat
+      const izafat1 = createTestEvidence({
+        persianForm: 'کتاب',
+        observedRomanization: 'Kitāb-i'
+      });
+      const interp1 = interpretEvidenceScheme(izafat1);
+      expect(interp1.status).toBe('CONTEXT_REQUIRED');
+      expect(interp1.targetHypothesis).toBeNull();
+      expect(interp1.blockers.some((b) => b.kind === 'STRUCTURAL_IZAFAT')).toBe(true);
+
+      // 2. -ʼi izāfat
+      const izafat2 = createTestEvidence({
+        persianForm: 'خانه',
+        observedRomanization: 'khānah-ʼi'
+      });
+      const interp2 = interpretEvidenceScheme(izafat2);
+      expect(interp2.status).toBe('CONTEXT_REQUIRED');
+      expect(interp2.targetHypothesis).toBeNull();
+      expect(interp2.blockers.some((b) => b.kind === 'STRUCTURAL_IZAFAT')).toBe(true);
+
+      // 3. -yi izāfat
+      const izafat3 = createTestEvidence({
+        persianForm: 'دریا',
+        observedRomanization: 'Daryā-yi'
+      });
+      const interp3 = interpretEvidenceScheme(izafat3);
+      expect(interp3.status).toBe('CONTEXT_REQUIRED');
+      expect(interp3.targetHypothesis).toBeNull();
+      expect(interp3.blockers.some((b) => b.kind === 'STRUCTURAL_IZAFAT')).toBe(true);
+
+      // 4. Generic non-izāfat hyphen (e.g. Arabic article al-ṭibb)
+      const genericHyphen = createTestEvidence({
+        persianForm: 'الطب',
+        observedRomanization: 'al-ṭibb'
+      });
+      const interpGeneric = interpretEvidenceScheme(genericHyphen);
+      expect(interpGeneric.status).toBe('CONTEXT_REQUIRED');
+      expect(interpGeneric.targetHypothesis).toBeNull();
+      expect(interpGeneric.blockers.some((b) => b.kind === 'HYPHEN_CONTEXT_BOUND')).toBe(true);
+      expect(interpGeneric.blockers.some((b) => b.kind === 'STRUCTURAL_IZAFAT')).toBe(false);
+    });
+
+    it('blocks unhyphenated ʼi indefinite marker as STRUCTURAL_INDEFINITE', () => {
+      const indefEvi = createTestEvidence({
+        persianForm: 'خانه‌ای',
+        observedRomanization: 'khānahʼi' // unhyphenated ʼi
+      });
+
+      const interp = interpretEvidenceScheme(indefEvi);
+      expect(interp.status).toBe('CONTEXT_REQUIRED');
+      expect(interp.targetHypothesis).toBeNull();
+      expect(interp.blockers.some((b) => b.kind === 'STRUCTURAL_INDEFINITE')).toBe(true);
+      expect(interp.blockers.some((b) => b.kind === 'STRUCTURAL_IZAFAT')).toBe(false);
+    });
+
+    it('blocks structural prime convention (ʹ / U+02B9) as STRUCTURAL_PRIME', () => {
       const primeEvi = createTestEvidence({
         persianForm: 'صفی‌نژاد',
         observedRomanization: 'Ṣafīʹnizhād' // Contains prime ʹ
@@ -209,28 +302,20 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
       expect(interp.blockers.some((b) => b.kind === 'STRUCTURAL_PRIME')).toBe(true);
     });
 
-    it('blocks structural indefinite marker ending in -ʼi as CONTEXT_REQUIRED', () => {
-      const indefEvi = createTestEvidence({
-        persianForm: 'خانه‌ای',
-        observedRomanization: 'khānahʼi'
-      });
-
-      const interp = interpretEvidenceScheme(indefEvi);
-      expect(interp.status).toBe('CONTEXT_REQUIRED');
-      expect(interp.targetHypothesis).toBeNull();
-      expect(interp.blockers.some((b) => b.kind === 'STRUCTURAL_INDEFINITE')).toBe(true);
-    });
-
-    it('blocks ambiguous final -ah representation as CONTEXT_REQUIRED', () => {
-      const hehEvi = createTestEvidence({
-        persianForm: 'خانه',
-        observedRomanization: 'khānah'
-      });
-
-      const interp = interpretEvidenceScheme(hehEvi);
-      expect(interp.status).toBe('CONTEXT_REQUIRED');
-      expect(interp.targetHypothesis).toBeNull();
-      expect(interp.blockers.some((b) => b.kind === 'AMBIGUOUS_FINAL_HEH')).toBe(true);
+    it('blocks ambiguous final -ah representation without any lexical allowlists', () => {
+      const cases = ['khānah', 'rūznāmah', 'allāh', 'shāh'];
+      for (const word of cases) {
+        if (word.endsWith('ah')) {
+          const hehEvi = createTestEvidence({
+            persianForm: 'تست',
+            observedRomanization: word
+          });
+          const interp = interpretEvidenceScheme(hehEvi);
+          expect(interp.status).toBe('CONTEXT_REQUIRED');
+          expect(interp.targetHypothesis).toBeNull();
+          expect(interp.blockers.some((b) => b.kind === 'AMBIGUOUS_FINAL_HEH')).toBe(true);
+        }
+      }
     });
 
     it('fails closed on unsupported or unknown source scheme', () => {
@@ -293,7 +378,7 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
     });
   });
 
-  describe('5. Candidate-Level Scheme Consensus Aggregation', () => {
+  describe('5. Candidate-Level Scheme Consensus & Exact Evidence Set Closure', () => {
     it('computes UNANIMOUS_DETERMINISTIC consensus when all evidence agrees on IJMES hypothesis', () => {
       const evi1 = createTestEvidence({
         sourceRecordId: 'rec-01',
@@ -316,6 +401,159 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
 
       // Invariant: candidate.proposedCanonical remains strictly null
       expect(candidate.proposedCanonical).toBeNull();
+    });
+
+    it('fails closed when an evidence subset is supplied (missing candidate evidence ID)', () => {
+      const evi1 = createTestEvidence({
+        sourceRecordId: 'rec-01',
+        persianForm: 'گلستان',
+        observedRomanization: 'Gulistān'
+      });
+      const evi2 = createTestEvidence({
+        sourceRecordId: 'rec-02',
+        persianForm: 'گلستان',
+        observedRomanization: 'Golistān' // Conflict in rec-02
+      });
+
+      const candidate = synthesizeCandidateFromEvidence('گلستان', [evi1, evi2]);
+
+      // Attempting to analyze only [evi1] to hide the conflict in evi2 must fail closed
+      expect(() => {
+        analyzeCandidateSchemeEvidence(candidate, [evi1]);
+      }).toThrow(/missing supporting evidence/i);
+    });
+
+    it('fails closed when extra/injected evidence is supplied in array input', () => {
+      const evi1 = createTestEvidence({
+        sourceRecordId: 'rec-01',
+        persianForm: 'گلستان',
+        observedRomanization: 'Gulistān'
+      });
+      const foreignEvi = createTestEvidence({
+        sourceRecordId: 'rec-99',
+        persianForm: 'گلستان',
+        observedRomanization: 'Gulistān'
+      });
+
+      const candidate = synthesizeCandidateFromEvidence('گلستان', [evi1]);
+
+      expect(() => {
+        analyzeCandidateSchemeEvidence(candidate, [evi1, foreignEvi]);
+      }).toThrow(/contains extra unreferenced evidence/i);
+    });
+
+    it('fails closed when candidate references non-existent evidence ID in lookup source', () => {
+      const candidate: LexicalCandidate = {
+        id: 'cand-test',
+        normalizedForm: 'گلستان',
+        persianForm: 'گلستان',
+        entityType: 'WORD',
+        evidenceIds: ['non-existent-evi-id'],
+        status: 'UNREVIEWED',
+        conflicts: [],
+        proposedCanonical: null,
+        derivationProvenance: {
+          derivedAt: '2026-10-06T12:00:00Z',
+          strategy: 'SINGLE_EVIDENCE'
+        }
+      };
+
+      const lookupMap = new Map<string, LexicalEvidence>();
+      expect(() => {
+        analyzeCandidateSchemeEvidence(candidate, (id) => lookupMap.get(id));
+      }).toThrow(/references non-existent supporting evidence ID/i);
+    });
+
+    it('fails closed when candidate contains duplicate evidence IDs', () => {
+      const evi1 = createTestEvidence({
+        sourceRecordId: 'rec-01',
+        persianForm: 'گلستان',
+        observedRomanization: 'Gulistān'
+      });
+
+      const candidate: LexicalCandidate = {
+        id: 'cand-dup-test',
+        normalizedForm: 'گلستان',
+        persianForm: 'گلستان',
+        entityType: 'WORD',
+        evidenceIds: [evi1.id, evi1.id], // duplicate
+        status: 'UNREVIEWED',
+        conflicts: [],
+        proposedCanonical: null,
+        derivationProvenance: {
+          derivedAt: '2026-10-06T12:00:00Z',
+          strategy: 'MULTI_EVIDENCE_SYNTHESIS'
+        }
+      };
+
+      expect(() => {
+        analyzeCandidateSchemeEvidence(candidate, (id) => (id === evi1.id ? evi1 : undefined));
+      }).toThrow(/contains duplicate evidence reference/i);
+    });
+
+    it('fails closed when forged child lineage is analyzed', () => {
+      const parentEvi = createTestEvidence({
+        persianForm: 'کتاب گلستان',
+        observedRomanization: 'Kitāb-i Gulistān'
+      });
+
+      // Child has invalid forged span
+      const forgedChild = createTestEvidence({
+        persianForm: 'گلستان',
+        observedRomanization: 'Gulistān',
+        derivation: {
+          kind: 'ALIGNED_SEGMENT',
+          parentEvidenceId: parentEvi.id,
+          segmentIndex: 1,
+          persianSpan: { start: 0, end: 4 }, // INVALID SPAN for 'گلستان' in 'کتاب گلستان'
+          romanizationSpan: { start: 8, end: 16 },
+          alignmentStrategy: 'POSITIONAL_EQUAL_COUNT',
+          candidateEligibility: 'ELIGIBLE'
+        }
+      });
+
+      const candidate = synthesizeCandidateFromEvidence('گلستان', [forgedChild]);
+
+      const allMap = new Map<string, LexicalEvidence>([
+        [parentEvi.id, parentEvi],
+        [forgedChild.id, forgedChild]
+      ]);
+
+      expect(() => {
+        analyzeCandidateSchemeEvidence(candidate, [forgedChild], {
+          parentLookup: (id) => allMap.get(id)
+        });
+      }).toThrow(/persianForm .* does not match parent substring slice/i);
+    });
+
+    it('preserves raw source conflict dimension snapshot alongside target-scheme consensus', () => {
+      // Two raw observations disagree in case/presentation (or ALA-LC variants) but converge under IJMES
+      const evi1 = createTestEvidence({
+        sourceRecordId: 'rec-01',
+        persianForm: 'سعدی',
+        observedRomanization: 'Saʻdī' // Uppercase + ʻ
+      });
+      const evi2 = createTestEvidence({
+        sourceRecordId: 'rec-02',
+        persianForm: 'سعدی',
+        observedRomanization: 'saʻdī' // Lowercase + ʻ
+      });
+
+      const candidate = synthesizeCandidateFromEvidence('سعدی', [evi1, evi2]);
+      // candidate has raw conflict because 'Saʻdī' !== 'saʻdī'
+      expect(candidate.status).toBe('REVIEW_REQUIRED');
+      expect(candidate.conflicts.length).toBeGreaterThan(0);
+
+      const analysis = analyzeCandidateSchemeEvidence(candidate, [evi1, evi2]);
+
+      // Both raw observations converge to IJMES 'saʿdī'
+      expect(analysis.consensusStatus).toBe('UNANIMOUS_DETERMINISTIC');
+      expect(analysis.consensusTargetHypothesis).toBe('saʿdī');
+
+      // Crucial: Raw conflict snapshot is preserved and NOT cleared
+      expect(analysis.rawCandidateStatus).toBe('REVIEW_REQUIRED');
+      expect(analysis.rawSourceConflicts).toHaveLength(2);
+      expect(analysis.rawSourceConflicts.map((c) => c.observedRomanization)).toEqual(['Saʻdī', 'saʻdī']);
     });
 
     it('computes CONFLICTING_DETERMINISTIC when multiple distinct target hypotheses exist', () => {
@@ -399,34 +637,28 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
         analysisReversed.deterministicTargetHypotheses
       );
     });
-
-    it('preserves idempotency with respect to duplicate supporting evidence', () => {
-      const eviA = createTestEvidence({
-        sourceRecordId: 'rec-01',
-        persianForm: 'سعدی',
-        observedRomanization: 'Saʻdī'
-      });
-
-      const candidate = synthesizeCandidateFromEvidence('سعدی', [eviA]);
-
-      const analysisUnique = analyzeCandidateSchemeEvidence(candidate, [eviA]);
-      const analysisDups = analyzeCandidateSchemeEvidence(candidate, [eviA, eviA, eviA]);
-
-      expect(analysisUnique.id).toBe(analysisDups.id);
-      expect(analysisUnique.consensusStatus).toBe(analysisDups.consensusStatus);
-      expect(analysisUnique.consensusTargetHypothesis).toBe(analysisDups.consensusTargetHypothesis);
-      expect(analysisUnique.interpretations).toHaveLength(1);
-    });
   });
 
-  describe('6. Read-Only IJMES Runtime Policy Audit', () => {
-    it('successfully audits and reports exact matches against project IJMES tables', () => {
+  describe('6. Read-Only IJMES Runtime Policy Audit & Zero Ghost IDs', () => {
+    it('successfully audits and reports exact matches against project IJMES tables with zero ghost IDs', () => {
       const report = auditIjmesRuntimePolicy();
 
       expect(report.summary).toBe('PASS');
       expect(report.totalChecked).toBeGreaterThanOrEqual(10);
       expect(report.mismatches).toBe(0);
       expect(report.matches).toBe(report.totalChecked);
+
+      // Verify every policy entry has official source provenance and real policy ID
+      const targetPolicies = getAllTargetPolicies();
+      for (const entry of report.entries) {
+        expect(entry.policyId).toMatch(/^IJMES_POLICY_/);
+        expect(entry.sourceReferences.length).toBeGreaterThan(0);
+        for (const ref of entry.sourceReferences) {
+          expect(ref.authority).toBe('IJMES');
+          expect(ref.documentTitle).toBeDefined();
+          expect(ref.sectionOrTable).toBeDefined();
+        }
+      }
 
       // Explicit character verifications
       const ayn = report.entries.find((e) => e.character === 'ع');
@@ -445,7 +677,7 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
       expect(hamza?.runtimeMappingSymbol).toBe('ʾ');
     });
 
-    it('rule registry returns full source citations for all registered rules', () => {
+    it('scheme rule registry returns full source citations for all registered rules', () => {
       const rules = getAllSchemeRules();
       expect(rules.length).toBeGreaterThanOrEqual(3);
 
@@ -476,13 +708,18 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
 
       expect(batchResult.candidates).toHaveLength(2);
 
+      const parentMap = new Map(parentEvidence.map((p) => [p.id, p]));
+      const parentLookup = (id: string) => parentMap.get(id);
+
       // Candidate 1: سعدی
       const sadiCand = batchResult.candidates.find((c) => c.normalizedForm === 'سعدی');
       expect(sadiCand).toBeDefined();
       const sadiEvidence = batchResult.derivedEvidence.filter((e) =>
         sadiCand?.evidenceIds.includes(e.id)
       );
-      const sadiAnalysis = analyzeCandidateSchemeEvidence(sadiCand!, sadiEvidence);
+      const sadiAnalysis = analyzeCandidateSchemeEvidence(sadiCand!, sadiEvidence, {
+        parentLookup
+      });
 
       expect(sadiAnalysis.consensusStatus).toBe('UNANIMOUS_DETERMINISTIC');
       expect(sadiAnalysis.consensusTargetHypothesis).toBe('saʿdī');
@@ -495,7 +732,9 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
       const gulistanEvidence = batchResult.derivedEvidence.filter((e) =>
         gulistanCand?.evidenceIds.includes(e.id)
       );
-      const gulistanAnalysis = analyzeCandidateSchemeEvidence(gulistanCand!, gulistanEvidence);
+      const gulistanAnalysis = analyzeCandidateSchemeEvidence(gulistanCand!, gulistanEvidence, {
+        parentLookup
+      });
 
       expect(gulistanAnalysis.consensusStatus).toBe('UNANIMOUS_DETERMINISTIC');
       expect(gulistanAnalysis.consensusTargetHypothesis).toBe('gulistān');
@@ -513,11 +752,16 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
 
       expect(batchResult.candidates).toHaveLength(8);
 
+      const parentMap = new Map(parentEvidence.map((p) => [p.id, p]));
+      const parentLookup = (id: string) => parentMap.get(id);
+
       for (const cand of batchResult.candidates) {
         const supporting = batchResult.derivedEvidence.filter((e) =>
           cand.evidenceIds.includes(e.id)
         );
-        const analysis = analyzeCandidateSchemeEvidence(cand, supporting);
+        const analysis = analyzeCandidateSchemeEvidence(cand, supporting, {
+          parentLookup
+        });
         expect(cand.proposedCanonical).toBeNull();
         expect(analysis.consensusStatus).toBeDefined();
       }
@@ -528,7 +772,9 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
       const mizanSupporting = batchResult.derivedEvidence.filter((e) =>
         mizanCand?.evidenceIds.includes(e.id)
       );
-      const mizanAnalysis = analyzeCandidateSchemeEvidence(mizanCand!, mizanSupporting);
+      const mizanAnalysis = analyzeCandidateSchemeEvidence(mizanCand!, mizanSupporting, {
+        parentLookup
+      });
       expect(mizanAnalysis.consensusStatus).toBe('UNANIMOUS_DETERMINISTIC');
       expect(mizanAnalysis.consensusTargetHypothesis).toBe('mīzān');
     });
@@ -544,13 +790,18 @@ describe('Phase 5D: Scheme-Aware Evidence Aggregation', () => {
 
       expect(batchResult.candidates).toHaveLength(13);
 
+      const parentMap = new Map(parentEvidence.map((p) => [p.id, p]));
+      const parentLookup = (id: string) => parentMap.get(id);
+
       // Verify Riz̤ā candidate correctly interprets ALA-LC ض (z̤ -> ż)
       const rizaCand = batchResult.candidates.find((c) => c.normalizedForm === 'رضا');
       expect(rizaCand).toBeDefined();
       const rizaSupporting = batchResult.derivedEvidence.filter((e) =>
         rizaCand?.evidenceIds.includes(e.id)
       );
-      const rizaAnalysis = analyzeCandidateSchemeEvidence(rizaCand!, rizaSupporting);
+      const rizaAnalysis = analyzeCandidateSchemeEvidence(rizaCand!, rizaSupporting, {
+        parentLookup
+      });
       expect(rizaAnalysis.consensusStatus).toBe('UNANIMOUS_DETERMINISTIC');
       expect(rizaAnalysis.consensusTargetHypothesis).toBe('riżā');
       expect(rizaAnalysis.appliedRuleIds).toContain('ALA_LC_TO_IJMES_DAD');

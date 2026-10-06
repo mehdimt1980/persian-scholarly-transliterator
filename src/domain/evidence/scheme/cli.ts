@@ -81,13 +81,17 @@ async function main(): Promise<void> {
   let contextRequiredCount = 0;
   let unsupportedCount = 0;
 
+  const parentMap = new Map(allParentEvidence.map((p) => [p.id, p]));
+
   for (let cIdx = 0; cIdx < batchResult.candidates.length; cIdx++) {
     const candidate = batchResult.candidates[cIdx];
     const supportingEvidence = batchResult.derivedEvidence.filter((e) =>
       candidate.evidenceIds.includes(e.id)
     );
 
-    const schemeAnalysis = analyzeCandidateSchemeEvidence(candidate, supportingEvidence);
+    const schemeAnalysis = analyzeCandidateSchemeEvidence(candidate, supportingEvidence, {
+      parentLookup: (id) => parentMap.get(id)
+    });
 
     console.log(`------------------------------------------------------------------------`);
     console.log(`Candidate #${cIdx + 1}: "${candidate.persianForm}" (normalized: "${candidate.normalizedForm}")`);
