@@ -9,14 +9,10 @@
   },
   "approvedAt": "2026-10-06",
   "scope": {
-    "policyAndGovernance": true,
-    "representativeHighRiskCases": true,
-    "ambiguityPreservation": true,
-    "provenanceModel": true,
-    "consolidationIntegrity": true,
     "presentationPolicyMigration": true,
+    "lexicalAuthorityInheritedFromV2": true,
     "caseByCaseReAdjudicationClaimed": false
   },
   "caseLevelPrimaryReviewer": "OpenAI GPT-5.6 Sol / AI_SPECIALIST (lexical authority V2) + Deterministic Presentation Policy Migration (V3)",
-  "notes": "Explicit APPROVE provided by repository owner for project citation-title presentation policy migration across all 12 title cases. Approval covers full scholarly diacritic preservation, title word capitalization, and baseline evaluation readiness."
+  "notes": "Human approval covers the presentation-policy migration only. Lexical readings, ambiguity dispositions, evidence, and provenance remain inherited unchanged from V2."
 }

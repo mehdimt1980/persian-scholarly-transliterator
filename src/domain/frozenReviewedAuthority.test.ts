@@ -7,7 +7,7 @@ describe('human-approved frozen reviewed authority runtime layer', () => {
   it('loads exactly the 108 frozen reviewed authority cases', () => {
     expect(FROZEN_REVIEWED_AUTHORITY_METADATA.promotedGoldVersion).toBe('3.0.0');
     expect(FROZEN_REVIEWED_AUTHORITY_METADATA.sourceBenchmarkGitBlobSha1).toBe(
-      '769f281ef297d70da09b01de3ed15e201e8dab06'
+      '5f9cf089f5d9172692650e9704b83b46f7babbc0'
     );
     expect(FROZEN_REVIEWED_AUTHORITY_METADATA.entryCount).toBe(108);
     expect(FROZEN_REVIEWED_AUTHORITY_METADATA.exactMatchOnly).toBe(true);
@@ -28,6 +28,8 @@ describe('human-approved frozen reviewed authority runtime layer', () => {
     const r1 = transliterate('تاریخ بیداری ایرانیان', 'ijmes_citation_title');
     expect(r1.copyable).toBe(true);
     expect(r1.status).toBe('LEXICON_RESOLVED');
+    expect(r1.tokens[0].canonicalTransliteration).toBe('tārīkh-i bīdārī-yi īrānīyān');
+    expect(r1.tokens[0].rendered).toBe('Tārīkh-i Bīdārī-yi Īrānīyān');
     expect(r1.output).toBe('Tārīkh-i Bīdārī-yi Īrānīyān');
     expect(r1.output).not.toBe('Tarikh-i Bidari-yi Iraniyan');
 

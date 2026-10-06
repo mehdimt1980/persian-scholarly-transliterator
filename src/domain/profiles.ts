@@ -1,6 +1,8 @@
 import { RULES } from './provenance';
 import { ProfileId, TokenResult } from './types';
 
+export const SUPPORTED_PROFILES: readonly ProfileId[] = ['ijmes_full', 'ijmes_citation_title'] as const;
+
 export function renderCitationTitleWord(word: string): string {
   const hyphenIndex = word.indexOf('-');
   const first = hyphenIndex === -1 ? word : word.slice(0, hyphenIndex);

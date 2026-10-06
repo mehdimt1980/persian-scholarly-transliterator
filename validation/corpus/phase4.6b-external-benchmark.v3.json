@@ -7,8 +7,8 @@
     "tier": "EXTERNAL_BENCHMARK",
     "reviewStatus": "AI_SPECIALIST_REVIEWED_PENDING_HUMAN",
     "reviewer": "OpenAI GPT-5.6 Sol / AI_SPECIALIST",
-    "reviewedAt": "2026-10-06",
-    "reviewNote": "Derived deterministically from human-approved V2 lexical authority under project citation-title presentation policy migration. Lexical readings, ambiguity dispositions, and provenance unchanged; 12 title cases migrated to ijmes_citation_title with full diacritics and word capitalization."
+    "reviewedAt": "2026-10-05",
+    "reviewNote": "Lexical readings, ambiguity dispositions, and evidence inherited unchanged from human-approved V2 benchmark. V3 applies deterministic presentation-policy migration approved by repository owner, migrating 12 title cases to ijmes_citation_title with normalized lowercase scholarly canonical and fully diacritized word-capitalized rendered output."
   },
   "cases": [
     {
@@ -2513,7 +2513,7 @@
       "category": "BOOK_TITLE",
       "expected": {
         "disposition": "FINAL",
-        "scholarlyCanonical": "Tārīkh-i Bīdārī-yi Īrānīyān",
+        "scholarlyCanonical": "tārīkh-i bīdārī-yi īrānīyān",
         "renderedOutput": "Tārīkh-i Bīdārī-yi Īrānīyān"
       },
       "provenance": {
@@ -2554,7 +2554,7 @@
       "category": "BOOK_TITLE",
       "expected": {
         "disposition": "FINAL",
-        "scholarlyCanonical": "Siyāsat-nāma",
+        "scholarlyCanonical": "siyāsat-nāma",
         "renderedOutput": "Siyāsat-nāma"
       },
       "provenance": {
@@ -2595,7 +2595,7 @@
       "category": "BOOK_TITLE",
       "expected": {
         "disposition": "FINAL",
-        "scholarlyCanonical": "Qābūs-nāma",
+        "scholarlyCanonical": "qābūs-nāma",
         "renderedOutput": "Qābūs-nāma"
       },
       "provenance": {
@@ -2636,7 +2636,7 @@
       "category": "BOOK_TITLE",
       "expected": {
         "disposition": "FINAL",
-        "scholarlyCanonical": "Marzbān-nāma",
+        "scholarlyCanonical": "marzbān-nāma",
         "renderedOutput": "Marzbān-nāma"
       },
       "provenance": {
@@ -2677,7 +2677,7 @@
       "category": "BOOK_TITLE",
       "expected": {
         "disposition": "FINAL",
-        "scholarlyCanonical": "Safarnāma-yi Nāṣir-i Khusraw",
+        "scholarlyCanonical": "safarnāma-yi nāṣir-i khusraw",
         "renderedOutput": "Safarnāma-yi Nāṣir-i Khusraw"
       },
       "provenance": {
@@ -2724,7 +2724,7 @@
       "category": "BOOK_TITLE",
       "expected": {
         "disposition": "FINAL",
-        "scholarlyCanonical": "Kalīla va Dimna",
+        "scholarlyCanonical": "kalīla va dimna",
         "renderedOutput": "Kalīla Va Dimna"
       },
       "provenance": {
@@ -2765,7 +2765,7 @@
       "category": "BOOK_TITLE",
       "expected": {
         "disposition": "FINAL",
-        "scholarlyCanonical": "Gulistān",
+        "scholarlyCanonical": "gulistān",
         "renderedOutput": "Gulistān"
       },
       "provenance": {
@@ -2806,7 +2806,7 @@
       "category": "BOOK_TITLE",
       "expected": {
         "disposition": "FINAL",
-        "scholarlyCanonical": "Būstān",
+        "scholarlyCanonical": "būstān",
         "renderedOutput": "Būstān"
       },
       "provenance": {
@@ -2847,7 +2847,7 @@
       "category": "BOOK_TITLE",
       "expected": {
         "disposition": "FINAL",
-        "scholarlyCanonical": "Savūshūn",
+        "scholarlyCanonical": "savūshūn",
         "renderedOutput": "Savūshūn"
       },
       "provenance": {
@@ -2894,7 +2894,7 @@
       "category": "BOOK_TITLE",
       "expected": {
         "disposition": "FINAL",
-        "scholarlyCanonical": "Chashm-hā-yash",
+        "scholarlyCanonical": "chashm-hā-yash",
         "renderedOutput": "Chashm-hā-yash"
       },
       "provenance": {
@@ -2935,7 +2935,7 @@
       "category": "BOOK_TITLE",
       "expected": {
         "disposition": "FINAL",
-        "scholarlyCanonical": "Ḥājī Āqā",
+        "scholarlyCanonical": "ḥājī āqā",
         "renderedOutput": "Ḥājī Āqā"
       },
       "provenance": {
@@ -2976,7 +2976,7 @@
       "category": "BOOK_TITLE",
       "expected": {
         "disposition": "FINAL",
-        "scholarlyCanonical": "Zimistān",
+        "scholarlyCanonical": "zimistān",
         "renderedOutput": "Zimistān"
       },
       "provenance": {

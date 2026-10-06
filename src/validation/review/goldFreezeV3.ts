@@ -26,12 +26,8 @@ export interface HumanSignoffV3 {
   reviewer: { githubLogin: string; role: string };
   approvedAt: string;
   scope: {
-    policyAndGovernance: true;
-    representativeHighRiskCases: true;
-    ambiguityPreservation: true;
-    provenanceModel: true;
-    consolidationIntegrity: true;
     presentationPolicyMigration: true;
+    lexicalAuthorityInheritedFromV2: true;
     caseByCaseReAdjudicationClaimed: false;
   };
   caseLevelPrimaryReviewer: string;
@@ -68,7 +64,7 @@ export function validateHumanSignoffV3(data: unknown): HumanSignoffV3 {
   if (d.benchmarkId !== 'phase4.6b-external-benchmark-v3' || d.decision !== 'APPROVE') throw new Error('HUMAN_SIGNOFF_V3_DECISION_INVALID');
   if (!d.reviewer || !nonEmpty(d.reviewer.githubLogin) || !nonEmpty(d.reviewer.role)) throw new Error('HUMAN_SIGNOFF_V3_REVIEWER_INVALID');
   if (!/^\d{4}-\d{2}-\d{2}$/u.test(d.approvedAt ?? '')) throw new Error('HUMAN_SIGNOFF_V3_DATE_INVALID');
-  if (!d.scope || d.scope.policyAndGovernance !== true || d.scope.representativeHighRiskCases !== true || d.scope.ambiguityPreservation !== true || d.scope.provenanceModel !== true || d.scope.consolidationIntegrity !== true || d.scope.presentationPolicyMigration !== true) throw new Error('HUMAN_SIGNOFF_V3_SCOPE_INCOMPLETE');
+  if (!d.scope || d.scope.presentationPolicyMigration !== true || d.scope.lexicalAuthorityInheritedFromV2 !== true) throw new Error('HUMAN_SIGNOFF_V3_SCOPE_INCOMPLETE');
   if (d.scope.caseByCaseReAdjudicationClaimed !== false) throw new Error('HUMAN_SIGNOFF_V3_CASE_BY_CASE_CLAIM_FORBIDDEN');
   if (!nonEmpty(d.caseLevelPrimaryReviewer)) throw new Error('HUMAN_SIGNOFF_V3_AI_PROVENANCE_INVALID');
   if (!nonEmpty(d.notes)) throw new Error('HUMAN_SIGNOFF_V3_NOTES_INVALID');

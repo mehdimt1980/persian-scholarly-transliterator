@@ -13,7 +13,7 @@ import type {
 } from './types';
 
 const FROZEN_GOLD_VERSION = '3.0.0';
-const FROZEN_BENCHMARK_GIT_BLOB = '769f281ef297d70da09b01de3ed15e201e8dab06';
+const FROZEN_BENCHMARK_GIT_BLOB = '5f9cf089f5d9172692650e9704b83b46f7babbc0';
 
 interface FrozenSource {
   citation: string;

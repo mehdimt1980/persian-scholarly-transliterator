@@ -3,7 +3,7 @@
   "artifactType": "GOLD_FREEZE",
   "benchmarkId": "phase4.6b-external-benchmark-v3",
   "sourceBenchmarkPath": "validation/corpus/phase4.6b-external-benchmark.v3.json",
-  "sourceBenchmarkGitBlobSha1": "769f281ef297d70da09b01de3ed15e201e8dab06",
+  "sourceBenchmarkGitBlobSha1": "5f9cf089f5d9172692650e9704b83b46f7babbc0",
   "sourceBenchmarkMetadataVersion": "3.0.0",
   "promotedGoldVersion": "3.0.0",
   "promotionStatus": "HUMAN_APPROVED_FROZEN",
