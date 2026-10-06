@@ -36,6 +36,15 @@ export function decodeXmlEntities(text: string): string {
 }
 
 /**
+ * Check for prohibited DTD or external entity declarations.
+ */
+function assertNoDtdOrEntities(xml: string): void {
+  if (/<!DOCTYPE\b/i.test(xml) || /<!ENTITY\b/i.test(xml)) {
+    throw new MarcXmlParseError('Document Type Definitions (DTD) and external entity declarations are strictly prohibited.');
+  }
+}
+
+/**
  * Parse a raw XML attribute value.
  */
 function getAttribute(tagSnippet: string, attrName: string): string | undefined {
@@ -49,6 +58,38 @@ function getAttribute(tagSnippet: string, attrName: string): string | undefined 
 export function parseSingleMarcXmlRecord(recordXml: string): MarcRecord {
   if (!recordXml || typeof recordXml !== 'string') {
     throw new MarcXmlParseError('Cannot parse empty record XML.');
+  }
+
+  assertNoDtdOrEntities(recordXml);
+
+  // Verify opening and closing <record> tags
+  if (!/<record\b[^>]*>/i.test(recordXml) || !/<\/record>/i.test(recordXml)) {
+    throw new MarcXmlParseError('Malformed MARC record: missing opening or closing <record> tag.');
+  }
+
+  // Check for mismatched datafield / controlfield / subfield tags
+  const openDataFields = (recordXml.match(/<datafield\b[^>]*>/gi) || []).length;
+  const closeDataFields = (recordXml.match(/<\/datafield>/gi) || []).length;
+  if (openDataFields !== closeDataFields) {
+    throw new MarcXmlParseError(
+      `Malformed MARC record: mismatched <datafield> tags (${openDataFields} opened, ${closeDataFields} closed).`
+    );
+  }
+
+  const openControlFields = (recordXml.match(/<controlfield\b[^>]*>/gi) || []).length;
+  const closeControlFields = (recordXml.match(/<\/controlfield>/gi) || []).length;
+  if (openControlFields !== closeControlFields) {
+    throw new MarcXmlParseError(
+      `Malformed MARC record: mismatched <controlfield> tags (${openControlFields} opened, ${closeControlFields} closed).`
+    );
+  }
+
+  const openSubfields = (recordXml.match(/<subfield\b[^>]*>/gi) || []).length;
+  const closeSubfields = (recordXml.match(/<\/subfield>/gi) || []).length;
+  if (openSubfields !== closeSubfields) {
+    throw new MarcXmlParseError(
+      `Malformed MARC record: mismatched <subfield> tags (${openSubfields} opened, ${closeSubfields} closed).`
+    );
   }
 
   let leader: string | undefined;
@@ -149,6 +190,16 @@ export function parseMarcXml(xmlString: string): MarcRecord[] {
     return [];
   }
 
+  assertNoDtdOrEntities(xmlString);
+
+  const openRecords = (xmlString.match(/<record\b[^>]*>/gi) || []).length;
+  const closeRecords = (xmlString.match(/<\/record>/gi) || []).length;
+  if (openRecords !== closeRecords) {
+    throw new MarcXmlParseError(
+      `Malformed XML: mismatched <record> tags (${openRecords} opened, ${closeRecords} closed).`
+    );
+  }
+
   const recordRegex = /<record\b[^>]*>([\s\S]*?)<\/record>/gi;
   const records: MarcRecord[] = [];
   let match: RegExpExecArray | null;
@@ -168,16 +219,32 @@ export function parseMarcXml(xmlString: string): MarcRecord[] {
  *   - valid records
  *   - valid empty response (numberOfRecords === 0)
  *   - server diagnostics (<diag:diagnostic>)
- *   - malformed/non-XML payloads
+ *   - malformed/truncated/non-XML payloads (fails closed with MarcXmlParseError)
  */
 export function parseSruResponse(xmlString: string): SruResponse {
   if (!xmlString || typeof xmlString !== 'string' || xmlString.trim() === '') {
     throw new MarcXmlParseError('Received empty XML string for SRU response.');
   }
 
-  // Verify XML envelope presence
-  if (!xmlString.includes('<') || !xmlString.includes('>')) {
-    throw new MarcXmlParseError('Malformed response: payload is not valid XML.');
+  assertNoDtdOrEntities(xmlString);
+
+  // Verify complete SRU envelope presence
+  const hasOpenEnvelope = /<(?:\w+:)?searchRetrieveResponse\b[^>]*>/i.test(xmlString);
+  const hasCloseEnvelope = /<\/(?:\w+:)?searchRetrieveResponse>/i.test(xmlString);
+
+  if (!hasOpenEnvelope || !hasCloseEnvelope) {
+    throw new MarcXmlParseError(
+      'Malformed SRU response: missing or unclosed searchRetrieveResponse envelope.'
+    );
+  }
+
+  // Check for mismatched records envelope tags
+  const openRecordsTags = (xmlString.match(/<(?:\w+:)?records\b[^>]*>/gi) || []).length;
+  const closeRecordsTags = (xmlString.match(/<\/(?:\w+:)?records>/gi) || []).length;
+  if (openRecordsTags !== closeRecordsTags) {
+    throw new MarcXmlParseError(
+      `Malformed SRU response: mismatched <records> tags (${openRecordsTags} opened, ${closeRecordsTags} closed).`
+    );
   }
 
   // 1. Version
@@ -216,6 +283,14 @@ export function parseSruResponse(xmlString: string): SruResponse {
   }
 
   // 4. Records
+  const openRecordTags = (xmlString.match(/<record\b[^>]*>/gi) || []).length;
+  const closeRecordTags = (xmlString.match(/<\/record>/gi) || []).length;
+  if (openRecordTags !== closeRecordTags) {
+    throw new MarcXmlParseError(
+      `Malformed SRU response: mismatched <record> tags (${openRecordTags} opened, ${closeRecordTags} closed).`
+    );
+  }
+
   const rawRecords: string[] = [];
   const records: MarcRecord[] = [];
   const recordRegex = /<record\b[^>]*>([\s\S]*?)<\/record>/gi;
@@ -230,6 +305,14 @@ export function parseSruResponse(xmlString: string): SruResponse {
   // If numberOfRecords tag was omitted but records are present, sync count
   if (numRecordsMatch === null && records.length > 0) {
     numberOfRecords = records.length;
+  }
+
+  // Invariant: If numberOfRecords > 0 and no diagnostics were reported, but 0 valid records were parsed,
+  // this indicates a truncated/missing record body, NOT a valid zero-result response!
+  if (numberOfRecords > 0 && diagnostics.length === 0 && records.length === 0) {
+    throw new MarcXmlParseError(
+      `SRU response declared numberOfRecords=${numberOfRecords} but contained 0 valid <record> elements.`
+    );
   }
 
   return {

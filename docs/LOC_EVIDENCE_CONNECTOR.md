@@ -40,10 +40,12 @@ The connector interfaces with the official machine-readable services of the Libr
 
 MARCXML records and SRU responses are parsed using a pure TypeScript, zero-dependency parser ([`xmlParser.ts`](file:///d:/persian-scholarly-transliterator/src/domain/evidence/loc/xmlParser.ts)):
 
-- **XXE Prevention:** Implements a direct character/regex scanner with zero external entity resolution, eliminating XML External Entity (XXE) attack vectors.
+- **Explicit DTD & XXE Prevention:** Rejects payloads containing `<!DOCTYPE` or `<!ENTITY` declarations with `MarcXmlParseError`, eliminating XML External Entity (XXE) and billion-laughs attack vectors.
 - **Entity Decoding:** Automatically decodes XML predefined entities (`&amp;`, `&lt;`, `&gt;`, `&quot;`, `&apos;`) and numeric character entities (`&#x1E25;` $\rightarrow$ `ḥ`, `&#x6AF;` $\rightarrow$ `گ`, `&#x200C;` $\rightarrow$ ZWNJ).
 - **Envelope & Diagnostic Validation:**
-  - Explicitly inspects `numberOfRecords`.
+  - Enforces complete `<zs:searchRetrieveResponse>` opening and closing envelope structure.
+  - Validates opening/closing tags for `<records>`, `<record>`, `<datafield>`, `<controlfield>`, and `<subfield>`.
+  - Explicitly inspects `numberOfRecords`. If `numberOfRecords > 0` and no diagnostics exist, requires parsed records to be present; missing record bodies throw `MarcXmlParseError` rather than masquerading as zero-result queries.
   - Detects and parses SRU diagnostics (`<zs:diagnostics>`), surfacing `LocSruDiagnosticError` with diagnostic URI, message, and detail.
   - Distinguishes valid zero-result queries (`numberOfRecords == 0`) from protocol failures and malformed payloads.
   - Verifies that `fetchLccn` returns a record whose `001`/`010` identifier matches the requested LCCN.
@@ -109,10 +111,15 @@ Administrative subfields (dates, relator codes, pagination, LCCNs, ISBNs) are ex
 To prevent non-Persian records or corrupted linkages from entering the repository:
 
 1. **Record-Level Language Evidence:**
-   - Fixed-field `008` (bytes 35-37) must equal `per`.
-   - Content language subfields in `041` (`$a` primary/content language, `$d` sung/spoken, `$e` libretto, `$j` subtitles) or an unambiguous `546$a` language note.
-   - **Translation vs. Content Distinction:** Subfield `041$h` designates original source language before translation. A record with `041$a=ara` and `041$h=per` represents an Arabic translation of a Persian work; its cataloged content is Arabic and it is strictly rejected.
-   - Records lacking affirmative Persian content language (e.g. pure Arabic `ara`, Ottoman Turkish `ota`) are conservatively skipped.
+   - **Strong Content Evidence:**
+     - Fixed-field `008` (bytes 35-37) equals `per`.
+     - Subfield `041$a` equals `per` (primary textual content language).
+     - Subfield `041$d` equals `per` (spoken / sung soundtrack content language).
+   - **Subsidiary / Non-Content Evidence (Insufficient Alone):**
+     - Subfield `041$e` (libretto) or `041$j` (subtitles) does **not** independently establish that cataloged text is Persian.
+     - Subfield `041$h` (original language of translation) specifies translation origin; an Arabic translation of a Persian work (`041$a=ara`, `041$h=per`) is Arabic content and is strictly rejected.
+   - **Language Notes (`546$a`):** Direct affirmative statements of primary Persian content (e.g. "Persian") are accepted only if fixed/variable fields are not contradictory. Translation notes are ignored.
+   - Records lacking affirmative Persian content language (e.g. pure Arabic `ara`, Ottoman Turkish `ota`, English `eng`) are conservatively skipped.
 2. **Script Direction & Distinction:**
    - The alternate graphic field must contain actual Arabic/Persian script characters (`containsArabicScript(text) === true`).
    - Arabic-script text is not classified as Persian based solely on Unicode script; affirmative language metadata is mandatory.

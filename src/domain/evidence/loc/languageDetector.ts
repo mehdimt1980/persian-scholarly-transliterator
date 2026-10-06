@@ -24,15 +24,18 @@ export function extractMarcLanguageCodes(value: string): string[] {
  * Check whether a MARC record exhibits affirmative Persian language content evidence.
  *
  * MARC language semantics:
- *   1. 008/35-37: Primary language of resource. 'per' is affirmative. Other specific codes
- *      (e.g. 'ara', 'eng', 'fre') indicate non-Persian primary content.
- *   2. 041$a, $d, $e, $j: Codes for text/audio content. 'per' is affirmative.
- *   3. 041$h: Language of ORIGINAL work from which resource was translated.
- *      CRITICAL: 041$h='per' specifies translation source (e.g. an Arabic translation of a Persian text).
- *      It does NOT establish that the cataloged item's content is Persian.
- *   4. 546$a: Language notes. Notes describing translation origins (e.g. "Translated from Persian")
- *      are not content evidence and must not override non-Persian 008/041 codes.
- *   5. Ambiguous/mixed records lacking explicit Persian content codes fail closed.
+ *   1. Strong content-language evidence:
+ *      - 008/35-37 = 'per'
+ *      - 041$a = 'per' (Primary text / content language)
+ *      - 041$d = 'per' (Sung or spoken soundtrack / content language)
+ *   2. Supporting / subsidiary language evidence (NOT sufficient by itself):
+ *      - 041$e = 'per' (Language of librettos)
+ *      - 041$j = 'per' (Language of subtitles / captions)
+ *      - 041$h = 'per' (Language of original work before translation)
+ *   3. Field 546$a (Language Note):
+ *      - Direct statements of primary content (e.g. "Persian") are accepted only if 008/041 is not contradictory.
+ *      - Notes indicating translations ("Translated from Persian") are strictly rejected.
+ *   4. Ambiguous/mixed records lacking strong affirmative Persian content codes fail closed.
  */
 export function hasPersianLanguageEvidence(record: MarcRecord): boolean {
   // 1. Inspect fixed-field 008 (bytes 35-37)
@@ -44,40 +47,38 @@ export function hasPersianLanguageEvidence(record: MarcRecord): boolean {
     lang008 = record.language.trim().toLowerCase();
   }
 
-  // Collect content languages from 041 ($a, $d, $e, $j)
-  const content041Languages = new Set<string>();
-  const original041Languages = new Set<string>();
+  // Strong content languages from 041 ($a = text/primary, $d = spoken/sung/soundtrack)
+  const strong041Languages = new Set<string>();
 
   for (const df of record.dataFields) {
     if (df.tag === '041') {
       for (const sf of df.subfields) {
-        const codes = extractMarcLanguageCodes(sf.value);
-        if (['a', 'd', 'e', 'j'].includes(sf.code)) {
-          for (const c of codes) content041Languages.add(c);
-        } else if (sf.code === 'h') {
-          for (const c of codes) original041Languages.add(c);
+        if (sf.code === 'a' || sf.code === 'd') {
+          const codes = extractMarcLanguageCodes(sf.value);
+          for (const c of codes) strong041Languages.add(c);
         }
       }
     }
   }
 
-  // If 041 specifies content languages:
-  if (content041Languages.size > 0) {
-    // If 'per' is explicitly in content languages, affirmative
-    if (content041Languages.has('per')) {
-      return true;
-    }
-    // If 041 has non-Persian content languages (e.g. 'ara') and does not include 'per',
-    // even if 041$h is 'per' (translation from Persian), content is NOT Persian!
+  // 1. Strong 041 content language evidence:
+  if (strong041Languages.has('per')) {
+    return true;
+  }
+
+  // If 041 explicitly specifies non-Persian strong content languages (e.g. 'ara', 'eng') without 'per',
+  // the content is definitively non-Persian even if 008 or subsidiary 041 codes mention Persian.
+  if (strong041Languages.size > 0 && !strong041Languages.has('per')) {
     return false;
   }
 
-  // If 008 explicitly specifies 'per', affirmative
+  // 2. Fixed-field 008 evidence:
   if (lang008 === 'per') {
     return true;
   }
 
-  // If 008 explicitly specifies a known non-Persian language (e.g. 'ara', 'eng', 'ota', 'urd'), reject
+  // If 008 explicitly specifies a known non-Persian language (e.g. 'ara', 'eng', 'ota', 'urd'),
+  // subsidiary codes ($e, $j, $h) cannot override this to establish Persian content.
   if (lang008 && lang008 !== 'mul' && lang008 !== 'und' && lang008 !== 'zxx' && lang008 !== '   ') {
     return false;
   }
@@ -88,11 +89,13 @@ export function hasPersianLanguageEvidence(record: MarcRecord): boolean {
       for (const sf of df.subfields) {
         if (sf.code === 'a') {
           const val = sf.value.trim().toLowerCase();
-          // Exclude translation notes
+          // Exclude translation, subtitle, or libretto notes
           if (
             val.includes('translated from') ||
             val.includes('translation of') ||
-            val.includes('tarjamah')
+            val.includes('tarjamah') ||
+            val.includes('subtitles') ||
+            val.includes('libretto')
           ) {
             continue;
           }

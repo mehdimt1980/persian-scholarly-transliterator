@@ -13,6 +13,7 @@ import {
   LocEvidenceConnector,
   LocRateLimitError,
   LocSruDiagnosticError,
+  MarcRecord,
   MarcXmlParseError,
   OFFICIAL_LOC_HTTPS_SRU_URL,
   parseMarcXml,
@@ -52,7 +53,7 @@ describe('Library of Congress Pilot Evidence Connector', () => {
     });
   });
 
-  describe('2. SRU Response Parsing, Diagnostics, & Zero-Result Detection', () => {
+  describe('2. SRU Response Parsing, Structural Validation, & Security Invariants', () => {
     it('parses valid SRU response and extracts individual raw record XML payloads', () => {
       const sru = parseSruResponse(genuine2016404617Xml);
       expect(sru.numberOfRecords).toBe(1);
@@ -62,7 +63,27 @@ describe('Library of Congress Pilot Evidence Connector', () => {
       expect(sru.records[0].lccn).toBe('2016404617');
     });
 
-    it('correctly detects valid empty SRU search results (numberOfRecords = 0)', () => {
+    it('A. throws MarcXmlParseError on truncated SRU envelope missing closing tag', () => {
+      const truncatedXml = `<zs:searchRetrieveResponse xmlns:zs="http://www.loc.gov/zing/srw/">
+  <zs:version>1.1</zs:version>
+  <zs:numberOfRecords>1</zs:numberOfRecords>`;
+      expect(() => parseSruResponse(truncatedXml)).toThrow(MarcXmlParseError);
+    });
+
+    it('B. throws MarcXmlParseError when numberOfRecords > 0 but record body is missing or truncated', () => {
+      const missingRecordXml = `<?xml version="1.0"?>
+<zs:searchRetrieveResponse xmlns:zs="http://www.loc.gov/zing/srw/">
+  <zs:version>1.1</zs:version>
+  <zs:numberOfRecords>1</zs:numberOfRecords>
+  <zs:records>
+  </zs:records>
+</zs:searchRetrieveResponse>`;
+      expect(() => parseSruResponse(missingRecordXml)).toThrow(
+        /SRU response declared numberOfRecords=1 but contained 0 valid <record> elements/
+      );
+    });
+
+    it('C. correctly preserves legitimate zero-result response (numberOfRecords = 0)', () => {
       const emptySruXml = `<?xml version="1.0"?>
 <zs:searchRetrieveResponse xmlns:zs="http://www.loc.gov/zing/srw/">
   <zs:version>1.1</zs:version>
@@ -75,7 +96,7 @@ describe('Library of Congress Pilot Evidence Connector', () => {
       expect(sru.diagnostics.length).toBe(0);
     });
 
-    it('detects SRU server diagnostics and throws LocSruDiagnosticError in client', async () => {
+    it('D. surfaces LocSruDiagnosticError on valid SRU diagnostic response', async () => {
       const diagnosticXml = `<?xml version="1.0"?>
 <zs:searchRetrieveResponse xmlns:zs="http://www.loc.gov/zing/srw/">
   <zs:diagnostics xmlns:diag="http://www.loc.gov/zing/srw/diagnostic/">
@@ -91,6 +112,29 @@ describe('Library of Congress Pilot Evidence Connector', () => {
       const client = new LocClient({ fetchFn: mockFetch as any });
 
       await expect(client.searchSru('invalid_cql=foo')).rejects.toThrow(LocSruDiagnosticError);
+    });
+
+    it('E. throws MarcXmlParseError on malformed/unclosed MARC <record> or <datafield> tags', () => {
+      const malformedRecordTagXml = `<record><controlfield tag="001">123</controlfield>`;
+      expect(() => parseMarcXml(malformedRecordTagXml)).toThrow(MarcXmlParseError);
+
+      const malformedDatafieldXml = `<record><datafield tag="245" ind1="1" ind2="0"><subfield code="a">Unclosed</subfield></record>`;
+      expect(() => parseMarcXml(malformedDatafieldXml)).toThrow(/mismatched <datafield> tags/);
+    });
+
+    it('rejects DTD and entity declarations (XXE protection) with MarcXmlParseError', () => {
+      const dtdPayload = `<?xml version="1.0"?>
+<!DOCTYPE test [<!ENTITY xxe SYSTEM "file:///etc/passwd">]>
+<zs:searchRetrieveResponse xmlns:zs="http://www.loc.gov/zing/srw/">
+  <zs:numberOfRecords>0</zs:numberOfRecords>
+</zs:searchRetrieveResponse>`;
+
+      expect(() => parseSruResponse(dtdPayload)).toThrow(
+        /Document Type Definitions \(DTD\) and external entity declarations are strictly prohibited/
+      );
+      expect(() => parseMarcXml(dtdPayload)).toThrow(
+        /Document Type Definitions \(DTD\) and external entity declarations are strictly prohibited/
+      );
     });
 
     it('throws 404 when fetchLccn encounters a valid zero-result response', async () => {
@@ -203,7 +247,7 @@ describe('Library of Congress Pilot Evidence Connector', () => {
     });
   });
 
-  describe('4. Tightened Persian Language Identification', () => {
+  describe('4. Tightened Persian Language Identification & MARC 041 Semantics', () => {
     const syntheticRecords = parseMarcXml(syntheticXml);
 
     it('accepts records with 008/35-37 set to per', () => {
@@ -211,7 +255,7 @@ describe('Library of Congress Pilot Evidence Connector', () => {
       expect(hasPersianLanguageEvidence(rec)).toBe(true);
     });
 
-    it('accepts records with 041$a set to per in mixed-language records', () => {
+    it('accepts records with 041$a set to per (strong content language)', () => {
       const rec = syntheticRecords.find((r) => r.lccn === 'syn0010')!;
       expect(hasPersianLanguageEvidence(rec)).toBe(true);
 
@@ -220,13 +264,71 @@ describe('Library of Congress Pilot Evidence Connector', () => {
       expect(evidence[0].persianForm).toBe('فرهنگ فارسی و انگلیسی.');
     });
 
-    it('rejects Arabic translation of Persian work (041$a=ara, 041$h=per)', () => {
+    it('accepts records with 041$d set to per (strong spoken/sung soundtrack language)', () => {
+      const rec: MarcRecord = {
+        controlFields: [{ tag: '008', value: '260101s2026    xx            000 u eng d' }],
+        dataFields: [
+          {
+            tag: '041',
+            ind1: '0',
+            ind2: ' ',
+            subfields: [{ code: 'd', value: 'per' }]
+          }
+        ]
+      };
+      expect(hasPersianLanguageEvidence(rec)).toBe(true);
+    });
+
+    it('rejects records where only subsidiary subtitles (041$j=per) are Persian (008=eng)', () => {
+      const rec: MarcRecord = {
+        controlFields: [{ tag: '008', value: '260101s2026    xx            000 u eng d' }],
+        dataFields: [
+          {
+            tag: '041',
+            ind1: '1',
+            ind2: ' ',
+            subfields: [{ code: 'j', value: 'per' }]
+          }
+        ]
+      };
+      expect(hasPersianLanguageEvidence(rec)).toBe(false);
+    });
+
+    it('rejects records where only subsidiary libretto (041$e=per) is Persian (008=eng)', () => {
+      const rec: MarcRecord = {
+        controlFields: [{ tag: '008', value: '260101s2026    xx            000 u eng d' }],
+        dataFields: [
+          {
+            tag: '041',
+            ind1: '1',
+            ind2: ' ',
+            subfields: [{ code: 'e', value: 'per' }]
+          }
+        ]
+      };
+      expect(hasPersianLanguageEvidence(rec)).toBe(false);
+    });
+
+    it('rejects Arabic translation of Persian work (041$a=ara, 041$h=per or 008=eng, 041$h=per)', () => {
       const rec = syntheticRecords.find((r) => r.lccn === 'syn0008')!;
       // 041$h='per' indicates source of translation, not content language
       expect(hasPersianLanguageEvidence(rec)).toBe(false);
 
       const evidence = extractEvidenceFromMarcRecord(rec);
       expect(evidence.length).toBe(0);
+
+      const rec2: MarcRecord = {
+        controlFields: [{ tag: '008', value: '260101s2026    xx            000 u eng d' }],
+        dataFields: [
+          {
+            tag: '041',
+            ind1: '1',
+            ind2: ' ',
+            subfields: [{ code: 'h', value: 'per' }]
+          }
+        ]
+      };
+      expect(hasPersianLanguageEvidence(rec2)).toBe(false);
     });
 
     it('rejects records with misleading 546 translation notes and non-Persian language code', () => {

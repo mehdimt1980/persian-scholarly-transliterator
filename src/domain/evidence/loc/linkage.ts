@@ -1,6 +1,5 @@
 import {
   LinkedMarcFieldPair,
-  LinkageStatus,
   MarcDataField,
   MarcRecord,
   ParsedSubfield6
