@@ -1,8 +1,7 @@
 import {
   CandidateEligibility,
   LexicalCandidate,
-  LexicalEvidence,
-  LexicalEvidenceDerivation
+  LexicalEvidence
 } from '../types';
 
 /**
@@ -72,7 +71,8 @@ export interface AlignmentResult {
  * Options for configuring the alignment engine.
  */
 export interface AlignmentOptions {
-  extractorVersion?: string;
+  alignerVersion?: string;
+  derivedAt?: string;
   now?: () => string;
 }
 
@@ -87,12 +87,35 @@ export interface CandidateExtractionOptions {
 
 /**
  * Aggregated summary and candidates resulting from cross-record candidate extraction.
+ * Contains only truthful metrics computed directly from the provided derived evidence list.
  */
 export interface CandidateExtractionResult {
   candidates: LexicalCandidate[];
-  parentObservationsCount: number;
   derivedSegmentsCount: number;
   eligibleSegmentsCount: number;
   contextBoundSegmentsCount: number;
+  candidateGroupsCount: number;
+}
+
+/**
+ * Options for whole-batch parent evidence alignment and candidate extraction orchestration.
+ */
+export interface BatchAlignmentOptions {
+  alignerOptions?: AlignmentOptions;
+  candidateOptions?: CandidateExtractionOptions;
+}
+
+/**
+ * Complete summary resulting from batch orchestration across parent evidence observations.
+ */
+export interface BatchAlignmentResult {
+  parentObservationsCount: number;
   unalignedObservationsCount: number;
+  derivedSegmentsCount: number;
+  eligibleSegmentsCount: number;
+  contextBoundSegmentsCount: number;
+  candidateGroupsCount: number;
+  candidates: LexicalCandidate[];
+  derivedEvidence: LexicalEvidence[];
+  alignmentResults: AlignmentResult[];
 }

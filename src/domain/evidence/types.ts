@@ -121,6 +121,10 @@ export interface LexicalEvidenceDerivation {
   candidateEligibility: CandidateEligibility;
   /** Optional reason if the segment is excluded or context-bound */
   exclusionReason?: string;
+  /** Version or identifier of the alignment engine software that derived this segment */
+  alignerVersion?: string;
+  /** ISO 8601 timestamp of when the alignment derivation occurred */
+  derivedAt?: string;
 }
 
 /**

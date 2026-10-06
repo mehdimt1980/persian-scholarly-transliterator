@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { normalizePersian } from '../../normalization';
 import { generateEvidenceId } from '../candidate';
 import { extractEvidenceFromMarcRecord } from '../loc/extractor';
 import { parseMarcXml } from '../loc/xmlParser';
@@ -10,7 +9,9 @@ import {
   LexicalEvidence,
   LexicalEvidenceDerivation
 } from '../types';
+import { processEvidenceAlignmentBatch } from './batchOrchestrator';
 import { extractCandidatesFromAlignedEvidence } from './candidateExtractor';
+import { CONTEXT_BOUND_HYPHEN_REASON } from './eligibilityClassifier';
 import { tokenizePersianLexicalTokens } from './persianLexicalTokenizer';
 import { alignLexicalEvidence } from './positionalAligner';
 import { tokenizeRomanLexemes } from './romanLexemeTokenizer';
@@ -18,10 +19,10 @@ import { tokenizeRomanLexemes } from './romanLexemeTokenizer';
 describe('Phase 5C: Lexical Alignment & Candidate Extraction', () => {
   const createParentEvidence = (overrides?: Partial<LexicalEvidence>): LexicalEvidence => {
     const persianForm = overrides?.persianForm ?? 'كتاب گلستان.';
-    const observedRomanization = overrides?.observedRomanization ?? 'Kitāb-i Gulistān.';
+    const observedRomanization = overrides?.observedRomanization !== undefined ? overrides.observedRomanization : 'Kitāb-i Gulistān.';
     const sourceId = overrides?.provenance?.sourceId ?? 'LOC';
-    const sourceRecordId = overrides?.sourceRecordId ?? '2016404617';
-    const sourceField = overrides?.sourceField ?? '245$a';
+    const sourceRecordId = overrides?.sourceRecordId !== undefined ? overrides.sourceRecordId : '2016404617';
+    const sourceField = overrides?.sourceField !== undefined ? overrides.sourceField : '245$a';
     const romanizationScheme = overrides?.romanizationScheme ?? 'ALA_LC';
 
     const id = generateEvidenceId({
@@ -35,9 +36,9 @@ describe('Phase 5C: Lexical Alignment & Candidate Extraction', () => {
 
     return {
       id,
-      sourceType: 'LIBRARY_CATALOG',
+      sourceType: overrides?.sourceType ?? 'LIBRARY_CATALOG',
       sourceRecordId,
-      sourceUri: `https://lccn.loc.gov/${sourceRecordId}`,
+      sourceUri: sourceRecordId ? `https://lccn.loc.gov/${sourceRecordId}` : null,
       sourceField,
       persianForm,
       observedRomanization,
@@ -50,7 +51,8 @@ describe('Phase 5C: Lexical Alignment & Candidate Extraction', () => {
         sourceOrganization: 'Library of Congress',
         retrievalMethod: 'API',
         retrievedAt: '2026-10-06T12:00:00Z',
-        extractorVersion: '1.0.0-test'
+        extractorVersion: '1.0.0-test',
+        ...overrides?.provenance
       },
       status: 'OBSERVED',
       ...overrides
@@ -67,7 +69,8 @@ describe('Phase 5C: Lexical Alignment & Candidate Extraction', () => {
         persianSpan: { start: 0, end: 4 },
         romanizationSpan: { start: 0, end: 7 },
         alignmentStrategy: 'POSITIONAL_EQUAL_COUNT',
-        candidateEligibility: 'ELIGIBLE'
+        candidateEligibility: 'CONTEXT_BOUND',
+        exclusionReason: CONTEXT_BOUND_HYPHEN_REASON
       };
 
       const childId = generateEvidenceId({
@@ -93,15 +96,54 @@ describe('Phase 5C: Lexical Alignment & Candidate Extraction', () => {
         context: 'Test context',
         provenance: {
           sourceId: 'LOC',
-          sourceTitle: 'Library of Congress',
+          sourceTitle: 'Library of Congress Online Catalog',
+          sourceOrganization: 'Library of Congress',
           retrievalMethod: 'API',
-          retrievedAt: '2026-10-06T12:00:00Z'
+          retrievedAt: '2026-10-06T12:00:00Z',
+          extractorVersion: '1.0.0-test'
         },
         status: 'OBSERVED',
         derivation
       };
 
       expect(() => repo.addEvidence(child)).toThrow(/references non-existent parent evidence/);
+    });
+
+    it('fails closed when parent has no observed romanization', () => {
+      const repo = new LexicalEvidenceRepository();
+      const parent = createParentEvidence({
+        persianForm: 'متن بدون نویسه‌گردانی',
+        observedRomanization: null
+      });
+      repo.addEvidence(parent);
+
+      const derivation: LexicalEvidenceDerivation = {
+        kind: 'ALIGNED_SEGMENT',
+        parentEvidenceId: parent.id,
+        segmentIndex: 0,
+        persianSpan: { start: 0, end: 3 },
+        romanizationSpan: { start: 0, end: 3 },
+        alignmentStrategy: 'POSITIONAL_EQUAL_COUNT',
+        candidateEligibility: 'ELIGIBLE'
+      };
+
+      const child: LexicalEvidence = {
+        id: 'evi-align-no-rom-child',
+        sourceType: parent.sourceType,
+        sourceRecordId: parent.sourceRecordId,
+        sourceUri: parent.sourceUri,
+        sourceField: parent.sourceField,
+        persianForm: 'متن',
+        observedRomanization: 'matn',
+        romanizationScheme: parent.romanizationScheme,
+        entityType: 'WORD',
+        context: 'Test context',
+        provenance: parent.provenance,
+        status: 'OBSERVED',
+        derivation
+      };
+
+      expect(() => repo.addEvidence(child)).toThrow(/cannot derive aligned segment evidence from parent.*because parent has no observed romanization/);
     });
 
     it('fails closed when child Persian substring does not match parent span slice', () => {
@@ -116,7 +158,8 @@ describe('Phase 5C: Lexical Alignment & Candidate Extraction', () => {
         persianSpan: { start: 0, end: 4 }, // parent.persianForm.slice(0, 4) is 'كتاب'
         romanizationSpan: { start: 0, end: 7 },
         alignmentStrategy: 'POSITIONAL_EQUAL_COUNT',
-        candidateEligibility: 'ELIGIBLE'
+        candidateEligibility: 'CONTEXT_BOUND',
+        exclusionReason: CONTEXT_BOUND_HYPHEN_REASON
       };
 
       const forgedChild: LexicalEvidence = {
@@ -172,38 +215,141 @@ describe('Phase 5C: Lexical Alignment & Candidate Extraction', () => {
       expect(() => repo.addEvidence(forgedChild)).toThrow(/observedRomanization.*does not match parent substring slice/);
     });
 
-    it('fails closed when child silently alters sourceId, sourceRecordId, romanizationScheme, or sourceUri', () => {
+    it('fails closed when derived evidence falsely claims ELIGIBLE for context-bound form', () => {
       const repo = new LexicalEvidenceRepository();
       const parent = createParentEvidence();
       repo.addEvidence(parent);
 
-      const derivation: LexicalEvidenceDerivation = {
+      // Child observedRomanization is 'Kitāb-i' (contains hyphen), but falsely claims candidateEligibility: 'ELIGIBLE'
+      const forgedDerivation: LexicalEvidenceDerivation = {
         kind: 'ALIGNED_SEGMENT',
         parentEvidenceId: parent.id,
         segmentIndex: 0,
         persianSpan: { start: 0, end: 4 },
         romanizationSpan: { start: 0, end: 7 },
         alignmentStrategy: 'POSITIONAL_EQUAL_COUNT',
-        candidateEligibility: 'ELIGIBLE'
+        candidateEligibility: 'ELIGIBLE' // Forged!
       };
 
-      const mismatchSchemeChild: LexicalEvidence = {
-        id: 'evi-align-mismatch-scheme',
+      const forgedChild: LexicalEvidence = {
+        id: 'evi-align-forged-eligible',
         sourceType: parent.sourceType,
         sourceRecordId: parent.sourceRecordId,
         sourceUri: parent.sourceUri,
         sourceField: parent.sourceField,
         persianForm: 'كتاب',
         observedRomanization: 'Kitāb-i',
-        romanizationScheme: 'IJMES', // Mismatch! Parent is ALA_LC
+        romanizationScheme: parent.romanizationScheme,
         entityType: 'WORD',
         context: 'Test context',
         provenance: parent.provenance,
         status: 'OBSERVED',
-        derivation
+        derivation: forgedDerivation
       };
 
-      expect(() => repo.addEvidence(mismatchSchemeChild)).toThrow(/romanizationScheme.*does not match parent/);
+      expect(() => repo.addEvidence(forgedChild)).toThrow(/declared candidateEligibility "ELIGIBLE" does not match deterministic classification "CONTEXT_BOUND"/);
+    });
+
+    it('fails closed when derived evidence falsely claims CONTEXT_BOUND for simple eligible form', () => {
+      const repo = new LexicalEvidenceRepository();
+      const parent = createParentEvidence();
+      repo.addEvidence(parent);
+
+      // Child observedRomanization is 'Gulistān' (simple), but falsely claims candidateEligibility: 'CONTEXT_BOUND'
+      const forgedDerivation: LexicalEvidenceDerivation = {
+        kind: 'ALIGNED_SEGMENT',
+        parentEvidenceId: parent.id,
+        segmentIndex: 1,
+        persianSpan: { start: 5, end: 11 },
+        romanizationSpan: { start: 8, end: 16 },
+        alignmentStrategy: 'POSITIONAL_EQUAL_COUNT',
+        candidateEligibility: 'CONTEXT_BOUND', // Forged!
+        exclusionReason: CONTEXT_BOUND_HYPHEN_REASON
+      };
+
+      const forgedChild: LexicalEvidence = {
+        id: 'evi-align-forged-bound',
+        sourceType: parent.sourceType,
+        sourceRecordId: parent.sourceRecordId,
+        sourceUri: parent.sourceUri,
+        sourceField: parent.sourceField,
+        persianForm: 'گلستان',
+        observedRomanization: 'Gulistān',
+        romanizationScheme: parent.romanizationScheme,
+        entityType: 'WORD',
+        context: 'Test context',
+        provenance: parent.provenance,
+        status: 'OBSERVED',
+        derivation: forgedDerivation
+      };
+
+      expect(() => repo.addEvidence(forgedChild)).toThrow(/declared candidateEligibility "CONTEXT_BOUND" does not match deterministic classification "ELIGIBLE"/);
+    });
+
+    it('fails closed when child alters sourceType, sourceField, sourceRecordId, romanizationScheme, or provenance', () => {
+      const repo = new LexicalEvidenceRepository();
+      const parent = createParentEvidence();
+      repo.addEvidence(parent);
+
+      const baseDerivation: LexicalEvidenceDerivation = {
+        kind: 'ALIGNED_SEGMENT',
+        parentEvidenceId: parent.id,
+        segmentIndex: 1,
+        persianSpan: { start: 5, end: 11 },
+        romanizationSpan: { start: 8, end: 16 },
+        alignmentStrategy: 'POSITIONAL_EQUAL_COUNT',
+        candidateEligibility: 'ELIGIBLE'
+      };
+
+      // 1. Mismatched sourceType
+      const mismatchType: LexicalEvidence = {
+        id: 'evi-align-mismatch-type',
+        sourceType: 'ENCYCLOPEDIA', // Parent is LIBRARY_CATALOG
+        sourceRecordId: parent.sourceRecordId,
+        sourceUri: parent.sourceUri,
+        sourceField: parent.sourceField,
+        persianForm: 'گلستان',
+        observedRomanization: 'Gulistān',
+        romanizationScheme: parent.romanizationScheme,
+        entityType: 'WORD',
+        context: 'Test context',
+        provenance: parent.provenance,
+        status: 'OBSERVED',
+        derivation: baseDerivation
+      };
+      expect(() => repo.addEvidence(mismatchType)).toThrow(/sourceType.*does not match parent/);
+
+      // 2. Mismatched sourceField
+      const mismatchField: LexicalEvidence = {
+        ...mismatchType,
+        id: 'evi-align-mismatch-field',
+        sourceType: parent.sourceType,
+        sourceField: '650$a' // Parent is 245$a
+      };
+      expect(() => repo.addEvidence(mismatchField)).toThrow(/sourceField.*does not match parent/);
+
+      // 3. Mismatched romanizationScheme
+      const mismatchScheme: LexicalEvidence = {
+        ...mismatchType,
+        id: 'evi-align-mismatch-scheme',
+        sourceType: parent.sourceType,
+        sourceField: parent.sourceField,
+        romanizationScheme: 'IJMES' // Parent is ALA_LC
+      };
+      expect(() => repo.addEvidence(mismatchScheme)).toThrow(/romanizationScheme.*does not match parent/);
+
+      // 4. Mismatched extractorVersion
+      const mismatchExtractor: LexicalEvidence = {
+        ...mismatchType,
+        id: 'evi-align-mismatch-extractor',
+        sourceType: parent.sourceType,
+        sourceField: parent.sourceField,
+        provenance: {
+          ...parent.provenance,
+          extractorVersion: 'overwritten-version-2.0'
+        }
+      };
+      expect(() => repo.addEvidence(mismatchExtractor)).toThrow(/extractorVersion.*does not match parent/);
     });
 
     it('strictly prohibits recursive derivation (child deriving from another derived segment)', () => {
@@ -213,7 +359,7 @@ describe('Phase 5C: Lexical Alignment & Candidate Extraction', () => {
 
       const alignResult = alignLexicalEvidence(parent);
       expect(alignResult.success).toBe(true);
-      const child1 = alignResult.derivedEvidence[0];
+      const child1 = alignResult.derivedEvidence[1]; // Gulistān
       repo.addEvidence(child1);
 
       // Attempt to derive from child1
@@ -221,8 +367,8 @@ describe('Phase 5C: Lexical Alignment & Candidate Extraction', () => {
         kind: 'ALIGNED_SEGMENT',
         parentEvidenceId: child1.id,
         segmentIndex: 0,
-        persianSpan: { start: 0, end: 4 },
-        romanizationSpan: { start: 0, end: 7 },
+        persianSpan: { start: 0, end: 6 },
+        romanizationSpan: { start: 0, end: 8 },
         alignmentStrategy: 'POSITIONAL_EQUAL_COUNT',
         candidateEligibility: 'ELIGIBLE'
       };
@@ -349,6 +495,34 @@ describe('Phase 5C: Lexical Alignment & Candidate Extraction', () => {
       expect(seg2.derivedEvidence.entityType).toBe('WORD');
     });
 
+    it('preserves external extraction provenance in child.provenance while derivation records aligner metadata', () => {
+      const parent = createParentEvidence({
+        provenance: {
+          sourceId: 'LOC',
+          sourceTitle: 'Library of Congress Catalog',
+          retrievalMethod: 'API',
+          retrievedAt: '2026-10-06T10:00:00Z',
+          extractorVersion: 'loc-connector-1.0.0'
+        }
+      });
+
+      const res = alignLexicalEvidence(parent, {
+        alignerVersion: 'positional-aligner-1.0.0',
+        derivedAt: '2026-10-06T11:00:00Z'
+      });
+
+      expect(res.success).toBe(true);
+      const child = res.derivedEvidence[0];
+
+      // External provenance is strictly preserved
+      expect(child.provenance.extractorVersion).toBe('loc-connector-1.0.0');
+      expect(child.provenance.retrievedAt).toBe('2026-10-06T10:00:00Z');
+
+      // Derivation provenance records alignment details
+      expect(child.derivation?.alignerVersion).toBe('positional-aligner-1.0.0');
+      expect(child.derivation?.derivedAt).toBe('2026-10-06T11:00:00Z');
+    });
+
     it('correctly tokenizes scholarly modifier characters and combining diacritics', () => {
       const text = 'Saʻdī Ḥāfiẓ Muḥammad Riz̤ā ʻAbd Ṣafīʹnizhād';
       const tokens = tokenizeRomanLexemes(text);
@@ -403,7 +577,7 @@ describe('Phase 5C: Lexical Alignment & Candidate Extraction', () => {
   });
 
   describe('3. Cross-Record Candidate Extraction & Invariants', () => {
-    it('groups eligible segments by normalized Persian form while proposedCanonical remains strictly null', () => {
+    it('guarantees input-order invariance and stable normalized candidate identity', () => {
       const parent1 = createParentEvidence({
         sourceRecordId: 'rec-01',
         persianForm: 'سعدى.',
@@ -418,19 +592,85 @@ describe('Phase 5C: Lexical Alignment & Candidate Extraction', () => {
       const align1 = alignLexicalEvidence(parent1);
       const align2 = alignLexicalEvidence(parent2);
 
-      const allDerived = [...align1.derivedEvidence, ...align2.derivedEvidence];
-      const extraction = extractCandidatesFromAlignedEvidence(allDerived);
+      const eviA = align1.derivedEvidence[0];
+      const eviB = align2.derivedEvidence[0];
 
-      expect(extraction.candidates).toHaveLength(1);
-      const cand = extraction.candidates[0];
+      // Forward order
+      const extForward = extractCandidatesFromAlignedEvidence([eviA, eviB], {
+        derivedAt: '2026-10-06T12:00:00Z'
+      });
 
-      // Invariant checks
-      expect(cand.proposedCanonical).toBeNull();
-      expect(cand.normalizedForm).toBe(normalizePersian('سعدى').normalizedInput);
-      expect(cand.normalizedForm).toBe('سعدی');
-      expect(cand.evidenceIds).toHaveLength(2);
-      expect(cand.status).toBe('UNREVIEWED');
-      expect(cand.derivationProvenance?.strategy).toBe('ALIGNED_SEGMENT_SYNTHESIS');
+      // Reversed order
+      const extReversed = extractCandidatesFromAlignedEvidence([eviB, eviA], {
+        derivedAt: '2026-10-06T12:00:00Z'
+      });
+
+      expect(extForward.candidates).toHaveLength(1);
+      expect(extReversed.candidates).toHaveLength(1);
+
+      const candF = extForward.candidates[0];
+      const candR = extReversed.candidates[0];
+
+      // Strict identity and ordering invariance
+      expect(candF.id).toBe(candR.id);
+      expect(candF.persianForm).toBe('سعدی');
+      expect(candR.persianForm).toBe('سعدی');
+      expect(candF.normalizedForm).toBe('سعدی');
+      expect(candR.normalizedForm).toBe('سعدی');
+      expect(candF.evidenceIds).toEqual(candR.evidenceIds);
+      expect(candF.status).toBe(candR.status);
+      expect(candF.proposedCanonical).toBeNull();
+      expect(candR.proposedCanonical).toBeNull();
+    });
+
+    it('guarantees idempotency with respect to duplicate evidence in input', () => {
+      const parent1 = createParentEvidence({
+        sourceRecordId: 'rec-01',
+        persianForm: 'سعدى.',
+        observedRomanization: 'Saʻdī,'
+      });
+      const parent2 = createParentEvidence({
+        sourceRecordId: 'rec-02',
+        persianForm: 'سعدی',
+        observedRomanization: 'Saʻdī'
+      });
+
+      const align1 = alignLexicalEvidence(parent1);
+      const align2 = alignLexicalEvidence(parent2);
+
+      const eviA = align1.derivedEvidence[0];
+      const eviB = align2.derivedEvidence[0];
+
+      const extUnique = extractCandidatesFromAlignedEvidence([eviA, eviB], {
+        derivedAt: '2026-10-06T12:00:00Z'
+      });
+      const extDuplicates = extractCandidatesFromAlignedEvidence([eviA, eviB, eviA, eviB, eviA], {
+        derivedAt: '2026-10-06T12:00:00Z'
+      });
+
+      expect(extUnique.candidates).toHaveLength(1);
+      expect(extDuplicates.candidates).toHaveLength(1);
+
+      expect(extDuplicates.candidates[0].id).toBe(extUnique.candidates[0].id);
+      expect(extDuplicates.candidates[0].evidenceIds).toEqual(extUnique.candidates[0].evidenceIds);
+      expect(extDuplicates.candidates[0].evidenceIds).toHaveLength(2);
+    });
+
+    it('fails closed when candidate extractor receives forged or malformed derived evidence', () => {
+      const parent = createParentEvidence();
+      const align = alignLexicalEvidence(parent);
+      const child = align.derivedEvidence[0]; // Kitāb-i (CONTEXT_BOUND)
+
+      // Forge child with declared ELIGIBLE
+      const forgedChild: LexicalEvidence = {
+        ...child,
+        derivation: {
+          ...child.derivation!,
+          candidateEligibility: 'ELIGIBLE'
+        }
+      };
+
+      expect(() => extractCandidatesFromAlignedEvidence([forgedChild])).toThrow(/forged or mismatched candidateEligibility/);
     });
 
     it('reconciles entity types: unanimous type is preserved, conflicting types fall back to WORD', () => {
@@ -499,6 +739,29 @@ describe('Phase 5C: Lexical Alignment & Candidate Extraction', () => {
         expect(c.proposedCanonical).toBeNull();
       }
     });
+
+    it('batch orchestrator processEvidenceAlignmentBatch returns truthful batch-level metrics', () => {
+      const parent1 = createParentEvidence({
+        persianForm: 'سعدى.',
+        observedRomanization: 'Saʻdī,'
+      });
+      const parent2 = createParentEvidence({
+        persianForm: 'دو واژه',
+        observedRomanization: 'three separate words' // Token count mismatch
+      });
+
+      const batchResult = processEvidenceAlignmentBatch([parent1, parent2]);
+
+      expect(batchResult.parentObservationsCount).toBe(2);
+      expect(batchResult.unalignedObservationsCount).toBe(1);
+      expect(batchResult.derivedSegmentsCount).toBe(1);
+      expect(batchResult.eligibleSegmentsCount).toBe(1);
+      expect(batchResult.contextBoundSegmentsCount).toBe(0);
+      expect(batchResult.candidateGroupsCount).toBe(1);
+      expect(batchResult.candidates).toHaveLength(1);
+      expect(batchResult.candidates[0].persianForm).toBe('سعدی');
+      expect(batchResult.candidates[0].proposedCanonical).toBeNull();
+    });
   });
 
   describe('4. Genuine LoC Catalog Fixture Assertions', () => {
@@ -513,36 +776,27 @@ describe('Phase 5C: Lexical Alignment & Candidate Extraction', () => {
       const parentEvidence = extractEvidenceFromMarcRecord(records[0]);
       expect(parentEvidence).toHaveLength(3);
 
-      const allDerived: LexicalEvidence[] = [];
-      let unaligned = 0;
+      const batchResult = processEvidenceAlignmentBatch(parentEvidence);
 
-      for (const parent of parentEvidence) {
-        const res = alignLexicalEvidence(parent);
-        if (res.success) {
-          allDerived.push(...res.derivedEvidence);
-        } else {
-          unaligned++;
-        }
-      }
-
-      const extraction = extractCandidatesFromAlignedEvidence(allDerived);
-
-      expect(parentEvidence).toHaveLength(3);
-      expect(extraction.derivedSegmentsCount).toBe(4);
-      expect(extraction.eligibleSegmentsCount).toBe(3);
-      expect(extraction.contextBoundSegmentsCount).toBe(1);
-      expect(unaligned).toBe(0);
-      expect(extraction.candidates).toHaveLength(2);
+      expect(batchResult.parentObservationsCount).toBe(3);
+      expect(batchResult.derivedSegmentsCount).toBe(4);
+      expect(batchResult.eligibleSegmentsCount).toBe(3);
+      expect(batchResult.contextBoundSegmentsCount).toBe(1);
+      expect(batchResult.unalignedObservationsCount).toBe(0);
+      expect(batchResult.candidateGroupsCount).toBe(2);
+      expect(batchResult.candidates).toHaveLength(2);
 
       // Verify specific candidates
-      const sadiCand = extraction.candidates.find((c) => c.normalizedForm === 'سعدی');
+      const sadiCand = batchResult.candidates.find((c) => c.normalizedForm === 'سعدی');
       expect(sadiCand).toBeDefined();
+      expect(sadiCand?.persianForm).toBe('سعدی');
       expect(sadiCand?.proposedCanonical).toBeNull();
       expect(sadiCand?.entityType).toBe('PERSON');
       expect(sadiCand?.evidenceIds).toHaveLength(1);
 
-      const gulistanCand = extraction.candidates.find((c) => c.normalizedForm === 'گلستان');
+      const gulistanCand = batchResult.candidates.find((c) => c.normalizedForm === 'گلستان');
       expect(gulistanCand).toBeDefined();
+      expect(gulistanCand?.persianForm).toBe('گلستان');
       expect(gulistanCand?.proposedCanonical).toBeNull();
       expect(gulistanCand?.evidenceIds).toHaveLength(2);
     });
@@ -556,28 +810,17 @@ describe('Phase 5C: Lexical Alignment & Candidate Extraction', () => {
       const parentEvidence = extractEvidenceFromMarcRecord(records[0]);
       expect(parentEvidence).toHaveLength(3);
 
-      const allDerived: LexicalEvidence[] = [];
-      let unaligned = 0;
+      const batchResult = processEvidenceAlignmentBatch(parentEvidence);
 
-      for (const parent of parentEvidence) {
-        const res = alignLexicalEvidence(parent);
-        if (res.success) {
-          allDerived.push(...res.derivedEvidence);
-        } else {
-          unaligned++;
-        }
-      }
+      expect(batchResult.parentObservationsCount).toBe(3);
+      expect(batchResult.derivedSegmentsCount).toBe(14);
+      expect(batchResult.eligibleSegmentsCount).toBe(11);
+      expect(batchResult.contextBoundSegmentsCount).toBe(3); // al-ṭibb, al-Dīn, al-Dīn
+      expect(batchResult.unalignedObservationsCount).toBe(0);
+      expect(batchResult.candidateGroupsCount).toBe(8);
+      expect(batchResult.candidates).toHaveLength(8);
 
-      const extraction = extractCandidatesFromAlignedEvidence(allDerived);
-
-      expect(parentEvidence).toHaveLength(3);
-      expect(extraction.derivedSegmentsCount).toBe(14);
-      expect(extraction.eligibleSegmentsCount).toBe(11);
-      expect(extraction.contextBoundSegmentsCount).toBe(3); // al-ṭibb, al-Dīn, al-Dīn
-      expect(unaligned).toBe(0);
-      expect(extraction.candidates).toHaveLength(8);
-
-      for (const c of extraction.candidates) {
+      for (const c of batchResult.candidates) {
         expect(c.proposedCanonical).toBeNull();
       }
     });
@@ -591,28 +834,17 @@ describe('Phase 5C: Lexical Alignment & Candidate Extraction', () => {
       const parentEvidence = extractEvidenceFromMarcRecord(records[0]);
       expect(parentEvidence).toHaveLength(7);
 
-      const allDerived: LexicalEvidence[] = [];
-      let unaligned = 0;
+      const batchResult = processEvidenceAlignmentBatch(parentEvidence);
 
-      for (const parent of parentEvidence) {
-        const res = alignLexicalEvidence(parent);
-        if (res.success) {
-          allDerived.push(...res.derivedEvidence);
-        } else {
-          unaligned++;
-        }
-      }
+      expect(batchResult.parentObservationsCount).toBe(7);
+      expect(batchResult.derivedSegmentsCount).toBe(20);
+      expect(batchResult.eligibleSegmentsCount).toBe(17);
+      expect(batchResult.contextBoundSegmentsCount).toBe(3);
+      expect(batchResult.unalignedObservationsCount).toBe(0);
+      expect(batchResult.candidateGroupsCount).toBe(13);
+      expect(batchResult.candidates).toHaveLength(13);
 
-      const extraction = extractCandidatesFromAlignedEvidence(allDerived);
-
-      expect(parentEvidence).toHaveLength(7);
-      expect(extraction.derivedSegmentsCount).toBe(20);
-      expect(extraction.eligibleSegmentsCount).toBe(17);
-      expect(extraction.contextBoundSegmentsCount).toBe(3);
-      expect(unaligned).toBe(0);
-      expect(extraction.candidates).toHaveLength(13);
-
-      for (const c of extraction.candidates) {
+      for (const c of batchResult.candidates) {
         expect(c.proposedCanonical).toBeNull();
       }
     });

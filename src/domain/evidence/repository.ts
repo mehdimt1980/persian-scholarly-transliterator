@@ -1,5 +1,6 @@
 import { normalizePersian } from '../normalization';
 import { validateCandidateLifecycle } from './candidate';
+import { classifyAlignedSegmentEligibility } from './alignment/eligibilityClassifier';
 import {
   LexicalCandidate,
   LexicalCandidateStatus,
@@ -93,6 +94,8 @@ export function isExactSameEvidence(a: LexicalEvidence, b: LexicalEvidence): boo
   if (da.alignmentStrategy !== db.alignmentStrategy) return false;
   if (da.candidateEligibility !== db.candidateEligibility) return false;
   if ((da.exclusionReason ?? null) !== (db.exclusionReason ?? null)) return false;
+  if ((da.alignerVersion ?? null) !== (db.alignerVersion ?? null)) return false;
+  if ((da.derivedAt ?? null) !== (db.derivedAt ?? null)) return false;
 
   return true;
 }
@@ -128,7 +131,14 @@ export function validateDerivedEvidenceLineage(
     );
   }
 
-  // 1. Validate Persian span
+  // 1. Parent must have observed romanization for ALIGNED_SEGMENT derivation
+  if (parent.observedRomanization === null) {
+    throw new Error(
+      `Evidence "${child.id}" cannot derive aligned segment evidence from parent "${parent.id}" because parent has no observed romanization.`
+    );
+  }
+
+  // 2. Validate Persian span
   const { start: pStart, end: pEnd } = d.persianSpan;
   if (pStart < 0 || pEnd < pStart || pEnd > parent.persianForm.length) {
     throw new Error(
@@ -142,32 +152,42 @@ export function validateDerivedEvidenceLineage(
     );
   }
 
-  // 2. Validate Romanization span
-  if (parent.observedRomanization !== null) {
-    const { start: rStart, end: rEnd } = d.romanizationSpan;
-    if (rStart < 0 || rEnd < rStart || rEnd > parent.observedRomanization.length) {
-      throw new Error(
-        `Evidence "${child.id}" romanizationSpan [${rStart}, ${rEnd}] is out of bounds for parent observedRomanization length ${parent.observedRomanization.length}.`
-      );
-    }
-    const expectedRoman = parent.observedRomanization.slice(rStart, rEnd);
-    if (expectedRoman !== child.observedRomanization) {
-      throw new Error(
-        `Evidence "${child.id}" observedRomanization "${child.observedRomanization}" does not match parent substring slice [${rStart}, ${rEnd}] "${expectedRoman}".`
-      );
-    }
-  } else {
-    if (child.observedRomanization !== null) {
-      throw new Error(
-        `Evidence "${child.id}" specifies observedRomanization "${child.observedRomanization}" but parent "${parent.id}" has no observed romanization.`
-      );
-    }
+  // 3. Validate Romanization span
+  const { start: rStart, end: rEnd } = d.romanizationSpan;
+  if (rStart < 0 || rEnd < rStart || rEnd > parent.observedRomanization.length) {
+    throw new Error(
+      `Evidence "${child.id}" romanizationSpan [${rStart}, ${rEnd}] is out of bounds for parent observedRomanization length ${parent.observedRomanization.length}.`
+    );
+  }
+  const expectedRoman = parent.observedRomanization.slice(rStart, rEnd);
+  if (expectedRoman !== child.observedRomanization) {
+    throw new Error(
+      `Evidence "${child.id}" observedRomanization "${child.observedRomanization}" does not match parent substring slice [${rStart}, ${rEnd}] "${expectedRoman}".`
+    );
   }
 
-  // 3. Validate consistency of source metadata
-  if (child.provenance.sourceId !== parent.provenance.sourceId) {
+  // 4. Validate non-forgeable candidate eligibility classification
+  const expectedClassification = classifyAlignedSegmentEligibility(child.observedRomanization);
+  if (d.candidateEligibility !== expectedClassification.candidateEligibility) {
     throw new Error(
-      `Evidence "${child.id}" sourceId "${child.provenance.sourceId}" does not match parent sourceId "${parent.provenance.sourceId}".`
+      `Evidence "${child.id}" declared candidateEligibility "${d.candidateEligibility}" does not match deterministic classification "${expectedClassification.candidateEligibility}" for observed romanization "${child.observedRomanization}".`
+    );
+  }
+  if ((d.exclusionReason ?? null) !== (expectedClassification.exclusionReason ?? null)) {
+    throw new Error(
+      `Evidence "${child.id}" declared exclusionReason "${d.exclusionReason ?? 'undefined'}" does not match deterministic classification reason "${expectedClassification.exclusionReason ?? 'undefined'}".`
+    );
+  }
+
+  // 5. Validate strict consistency of parent/child source identity
+  if (child.sourceType !== parent.sourceType) {
+    throw new Error(
+      `Evidence "${child.id}" sourceType "${child.sourceType}" does not match parent sourceType "${parent.sourceType}".`
+    );
+  }
+  if (child.sourceField !== parent.sourceField) {
+    throw new Error(
+      `Evidence "${child.id}" sourceField "${child.sourceField}" does not match parent sourceField "${parent.sourceField}".`
     );
   }
   if (child.sourceRecordId !== parent.sourceRecordId) {
@@ -175,14 +195,34 @@ export function validateDerivedEvidenceLineage(
       `Evidence "${child.id}" sourceRecordId "${child.sourceRecordId}" does not match parent sourceRecordId "${parent.sourceRecordId}".`
     );
   }
+  if (child.sourceUri !== parent.sourceUri) {
+    throw new Error(
+      `Evidence "${child.id}" sourceUri "${child.sourceUri}" does not match parent sourceUri "${parent.sourceUri}".`
+    );
+  }
   if (child.romanizationScheme !== parent.romanizationScheme) {
     throw new Error(
       `Evidence "${child.id}" romanizationScheme "${child.romanizationScheme}" does not match parent romanizationScheme "${parent.romanizationScheme}".`
     );
   }
-  if (child.sourceUri !== parent.sourceUri) {
+  if (child.provenance.sourceId !== parent.provenance.sourceId) {
     throw new Error(
-      `Evidence "${child.id}" sourceUri "${child.sourceUri}" does not match parent sourceUri "${parent.sourceUri}".`
+      `Evidence "${child.id}" provenance.sourceId "${child.provenance.sourceId}" does not match parent sourceId "${parent.provenance.sourceId}".`
+    );
+  }
+  if ((child.provenance.sourceTitle ?? null) !== (parent.provenance.sourceTitle ?? null)) {
+    throw new Error(
+      `Evidence "${child.id}" provenance.sourceTitle "${child.provenance.sourceTitle}" does not match parent sourceTitle "${parent.provenance.sourceTitle}".`
+    );
+  }
+  if ((child.provenance.sourceOrganization ?? null) !== (parent.provenance.sourceOrganization ?? null)) {
+    throw new Error(
+      `Evidence "${child.id}" provenance.sourceOrganization "${child.provenance.sourceOrganization}" does not match parent sourceOrganization "${parent.provenance.sourceOrganization}".`
+    );
+  }
+  if ((child.provenance.extractorVersion ?? null) !== (parent.provenance.extractorVersion ?? null)) {
+    throw new Error(
+      `Evidence "${child.id}" provenance.extractorVersion "${child.provenance.extractorVersion}" does not match parent extractorVersion "${parent.provenance.extractorVersion}".`
     );
   }
 }

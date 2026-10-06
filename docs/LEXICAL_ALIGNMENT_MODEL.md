@@ -15,7 +15,7 @@ Source-Neutral Alignment Engine (POSITIONAL_EQUAL_COUNT)
       ↓
 Derived Aligned Lexical Evidence (exact parent substring slices + lineage)
       ↓
-Cross-Record Candidate Grouping (keyed by normalizePersian)
+Cross-Record Candidate Grouping (keyed by normalizePersian with deduplication)
       ↓
 Lexical Candidate Proposals (proposedCanonical: null)
 ```
@@ -62,23 +62,37 @@ Derived segment evidence records preserve exact substrings from parent observati
 For every derived segment evidence record added to `LexicalEvidenceRepository`:
 
 1. **Parent Existence**: `parentEvidenceId` must reference an existing evidence record in the repository.
-2. **No Self-Derivation**: `parentEvidenceId !== child.id`.
-3. **No Recursive Derivation**: Phase 5C derived segments cannot derive from other derived segments (`parent.derivation === undefined`).
-4. **Exact Persian Span Integrity**:
+2. **Parent Romanization Requirement**: `parent.observedRomanization !== null` (a parent without Romanization cannot produce aligned segment evidence).
+3. **No Self-Derivation**: `parentEvidenceId !== child.id`.
+4. **No Recursive Derivation**: Phase 5C derived segments cannot derive from other derived segments (`parent.derivation === undefined`).
+5. **Exact Persian Span Integrity**:
    ```text
    parent.persianForm.slice(persianSpan.start, persianSpan.end) === child.persianForm
    ```
-5. **Exact Romanization Span Integrity**:
+6. **Exact Romanization Span Integrity**:
    ```text
    parent.observedRomanization.slice(romanizationSpan.start, romanizationSpan.end) === child.observedRomanization
    ```
-6. **Metadata Consistency**: `sourceId`, `sourceRecordId`, `romanizationScheme`, and `sourceUri` must remain strictly consistent between child and parent.
+7. **Non-Forgeable Eligibility Integrity**:
+   `child.derivation.candidateEligibility` and `child.derivation.exclusionReason` must match the deterministic classification of `classifyAlignedSegmentEligibility(child.observedRomanization)`.
+8. **Strict Source Identity Preservation**:
+   `sourceType`, `sourceField`, `sourceRecordId`, `sourceUri`, `romanizationScheme`, `provenance.sourceId`, `provenance.sourceTitle`, `provenance.sourceOrganization`, and `provenance.extractorVersion` must remain strictly identical between parent and child.
 
 Any violation fails closed immediately at repository insertion time and during deserialization integrity validation.
 
 ---
 
-## 4. Deterministic Alignment Algorithm (`POSITIONAL_EQUAL_COUNT`)
+## 4. Provenance Architecture: External Extraction vs. Computational Derivation
+
+Phase 5C strictly separates external source provenance from computational alignment derivation:
+
+1. **`child.provenance`**: Preserves the parent observation's external extraction metadata (`sourceId: 'LOC'`, `extractorVersion: '1.0.0'`, `retrievedAt: '...'`). The alignment engine NEVER overwrites the source extractor version.
+2. **`child.derivation`**: Records the alignment event (`alignerVersion`, `derivedAt`, `alignmentStrategy`, `persianSpan`, `romanizationSpan`, `candidateEligibility`, `exclusionReason`).
+3. **Deterministic Evidence ID**: Includes `parentEvidenceId`, `segmentIndex`, `persianSpan`, `romanizationSpan`, `alignmentStrategy`, and `alignerVersion`, ensuring that re-running identical semantic alignment remains idempotent without creating spurious duplicate IDs due to wall-clock time.
+
+---
+
+## 5. Deterministic Alignment Algorithm (`POSITIONAL_EQUAL_COUNT`)
 
 Phase 5C implements a conservative, high-transparency alignment strategy:
 
@@ -95,7 +109,8 @@ POSITIONAL_EQUAL_COUNT
    - If Persian token count $\neq$ Roman token count: alignment **fails closed** with diagnostic `TOKEN_COUNT_MISMATCH`. No guessing, Levenshtein distance, or fuzzy matching is attempted.
    - If Persian token count $=$ Roman token count: tokens are paired 1-to-1 by ordinal position.
 5. **Eligibility & Context-Bound Classification**:
-   - If the Romanized token contains an internal hyphen or bound marker (e.g. `Kitāb-i`, `al-ṭibb`, `Dawrah-ʼi`), it is classified as `CONTEXT_BOUND` and excluded from candidate generation.
+   - Shared deterministic classifier `classifyAlignedSegmentEligibility(observedRomanization)`.
+   - If the Romanized token contains an internal hyphen (e.g. `Kitāb-i`, `al-ṭibb`, `Dawrah-ʼi`), it is classified as `CONTEXT_BOUND` and excluded from candidate generation.
    - Otherwise, the segment is marked `ELIGIBLE`.
 6. **Entity Type Semantics**:
    - Single-token parent heading $\rightarrow$ preserves parent entity type (e.g. `PERSON` for `100$a`).
@@ -103,32 +118,56 @@ POSITIONAL_EQUAL_COUNT
 
 ---
 
-## 5. Why Fuzzy & AI Alignment Are Strictly Prohibited
-
-1. **Grounded Auditable Evidence**: Library catalog data serves as external grounding. Fuzzy or heuristic alignment creates synthetic pairings not attested by the source structure.
-2. **Non-Circularity**: Using the internal transliteration engine or AI embeddings to align external data creates circular reinforcement of existing engine errors or biases.
-3. **Fail-Safe Conservatism**: Unaligned multi-word titles remain safely unaligned until explicit multi-word scholarly models are introduced in later phases.
-
----
-
-## 6. Cross-Record Candidate Grouping & Invariants
+## 6. Cross-Record Candidate Extraction & Invariants
 
 Once candidate-eligible derived segments exist:
 
-1. **Grouping Key**: Grouped deterministically by `normalizePersian(persianForm).normalizedInput`.
-   - Allows orthographic variants (e.g. `سعدى` and `سعدی`) to aggregate under the same normalized candidate identity.
-   - Raw observations remain unchanged in the underlying evidence repository.
-2. **Entity Type Reconciliation**:
+1. **Input-Order Invariance**:
+   - Candidate `persianForm` and `normalizedForm` are strictly set to the normalized grouping key (`normalizePersian(persianForm).normalizedInput`).
+   - Sibling evidence records (`[eviA, eviB]` vs `[eviB, eviA]`) produce the exact same candidate identity and candidate ID.
+   - Raw historical orthographies (`سعدى` vs `سعدی`) remain unmutated in the supporting evidence records.
+2. **Evidence Deduplication**:
+   - Supporting evidence records are deduplicated by immutable evidence ID prior to synthesis.
+   - Duplicate inputs (`[eviA, eviB]` vs `[eviA, eviB, eviA]`) produce identical candidates.
+   - Supporting evidence IDs are sorted deterministically.
+3. **Entity Type Reconciliation**:
    - If all supporting evidence records agree on an entity type (e.g. `PERSON`), the candidate inherits that type.
    - If supporting records differ (e.g. `WORK` vs `WORD`), the candidate falls back to `WORD`.
-3. **Same-Scheme Conflict Preservation**:
+4. **Same-Scheme Conflict Preservation**:
    - Disagreements under the same comparable scheme (e.g. `Gulistān` vs `Golistān` under `ALA_LC`) flag `CONFLICT_WITHIN_SCHEME` and assign status `REVIEW_REQUIRED`.
-4. **`proposedCanonical: null`**:
+5. **`proposedCanonical: null`**:
    - The candidate proposal leaves `proposedCanonical` null. ALA-LC strings are never copied into the project canonical field.
+6. **Candidate Derivation Strategy**:
+   - Automatically synthesized candidates carry `strategy: 'ALIGNED_SEGMENT_SYNTHESIS'`.
 
 ---
 
-## 7. Relationship to Future Phases
+## 7. Truthful Metrics Architecture
+
+The domain model avoids hard-coding zero telemetry in pure functions:
+
+1. **`extractCandidatesFromAlignedEvidence(derivedEvidence)`**:
+   Returns metrics truth-computable directly from derived evidence:
+   - `derivedSegmentsCount`
+   - `eligibleSegmentsCount`
+   - `contextBoundSegmentsCount`
+   - `candidateGroupsCount`
+   - `candidates`
+2. **`processEvidenceAlignmentBatch(parentEvidenceList)`**:
+   Whole-batch orchestrator that truthfully computes:
+   - `parentObservationsCount`
+   - `unalignedObservationsCount`
+   - `derivedSegmentsCount`
+   - `eligibleSegmentsCount`
+   - `contextBoundSegmentsCount`
+   - `candidateGroupsCount`
+   - `candidates`
+   - `derivedEvidence`
+   - `alignmentResults`
+
+---
+
+## 8. Relationship to Future Phases
 
 - **Phase 5C (Current)**: Provenance-safe alignment and candidate proposal extraction (`proposedCanonical: null`).
 - **Phase 5D (Future)**: Scheme-aware interpretation (e.g. explicit scholarly ALA-LC to IJMES mapping rules and morphological unbinding).

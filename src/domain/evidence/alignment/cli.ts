@@ -118,7 +118,7 @@ async function main(): Promise<void> {
   console.log(`  Candidate-eligible segments: ${extractionResult.eligibleSegmentsCount}`);
   console.log(`  Context-bound segments:      ${extractionResult.contextBoundSegmentsCount}`);
   console.log(`  Unaligned observations:      ${unalignedCount}`);
-  console.log(`  Synthesized candidate groups:${extractionResult.candidates.length}\n`);
+  console.log(`  Synthesized candidate groups:${extractionResult.candidateGroupsCount}\n`);
 
   for (let cIdx = 0; cIdx < extractionResult.candidates.length; cIdx++) {
     const cand = extractionResult.candidates[cIdx];

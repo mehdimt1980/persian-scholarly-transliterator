@@ -1,10 +1,10 @@
 import { generateEvidenceId } from '../candidate';
 import {
-  CandidateEligibility,
   LexicalEntityType,
   LexicalEvidence,
   LexicalEvidenceDerivation
 } from '../types';
+import { classifyAlignedSegmentEligibility } from './eligibilityClassifier';
 import { tokenizePersianLexicalTokens } from './persianLexicalTokenizer';
 import { tokenizeRomanLexemes } from './romanLexemeTokenizer';
 import {
@@ -23,6 +23,7 @@ import {
  *   3. Exact substrings: Children retain exact raw slices of parent strings.
  *   4. Context-bound detection: Hyphenated / bound forms are marked CONTEXT_BOUND and excluded from candidates.
  *   5. Entity typing: Single-token parents retain parent entityType; multi-token segments default to WORD.
+ *   6. Provenance separation: Preserves parent external provenance while recording derivation metadata in derivation.
  */
 export function alignLexicalEvidence(
   parentEvidence: LexicalEvidence,
@@ -101,15 +102,13 @@ export function alignLexicalEvidence(
   const pairs: AlignedSegmentPair[] = [];
   const derivedEvidence: LexicalEvidence[] = [];
 
+  const derivationTimestamp = options?.derivedAt ?? (options?.now ? options.now() : undefined);
+
   for (let i = 0; i < persianTokens.length; i++) {
     const pToken = persianTokens[i];
     const rToken = romanTokens[i];
 
-    const isContextBound = rToken.hasBoundMarker;
-    const candidateEligibility: CandidateEligibility = isContextBound ? 'CONTEXT_BOUND' : 'ELIGIBLE';
-    const exclusionReason = isContextBound
-      ? 'Contains bound contextual marker or hyphen'
-      : undefined;
+    const { candidateEligibility, exclusionReason } = classifyAlignedSegmentEligibility(rToken.text);
 
     // Entity classification: 1-token parent preserves entity type; multi-token defaults to WORD
     const entityType: LexicalEntityType =
@@ -129,7 +128,9 @@ export function alignLexicalEvidence(
       },
       alignmentStrategy: 'POSITIONAL_EQUAL_COUNT',
       candidateEligibility,
-      exclusionReason
+      exclusionReason,
+      alignerVersion: options?.alignerVersion,
+      derivedAt: derivationTimestamp
     };
 
     const id = generateEvidenceId({
@@ -154,9 +155,7 @@ export function alignLexicalEvidence(
       entityType,
       context: parentEvidence.context ?? parentEvidence.persianForm,
       provenance: {
-        ...parentEvidence.provenance,
-        extractorVersion: options?.extractorVersion ?? parentEvidence.provenance.extractorVersion,
-        retrievedAt: parentEvidence.provenance.retrievedAt
+        ...parentEvidence.provenance
       },
       status: 'OBSERVED',
       derivation
