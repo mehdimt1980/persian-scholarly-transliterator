@@ -198,6 +198,9 @@ export interface PromotionReceipt {
   /** ID of the promotion plan */
   promotionPlanId: string;
 
+  /** Defensive immutable snapshot of the exact promotion plan that was executed */
+  promotionPlanSnapshot: LexiconPromotionPlan;
+
   /** ID of the review packet */
   reviewPacketId: string;
 

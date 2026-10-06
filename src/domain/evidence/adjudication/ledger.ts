@@ -15,6 +15,7 @@ import { deepClone } from '../repository';
 import { computeReviewBasisFingerprint } from './fingerprint';
 import { generatePromotionReceiptId } from './identity';
 import { validateAdjudicationDecisionIntegrity } from './decision';
+import { validatePromotionPlanIntegrity } from './promotion';
 import type {
   CandidateAdjudicationDecision,
   PromotionReceipt,
@@ -111,17 +112,42 @@ function isExactSameReceipt(a: PromotionReceipt, b: PromotionReceipt): boolean {
   if (a.promotedAt !== b.promotedAt) return false;
   if (a.promotionVersion !== b.promotionVersion) return false;
 
+  const planA = a.promotionPlanSnapshot;
+  const planB = b.promotionPlanSnapshot;
+  if (!planA && !planB) {
+    // Both null
+  } else if (!planA || !planB) {
+    return false;
+  } else {
+    if (planA.id !== planB.id) return false;
+    if (planA.decisionId !== planB.decisionId) return false;
+    if (planA.candidateId !== planB.candidateId) return false;
+    if (planA.canonical !== planB.canonical) return false;
+    if (planA.normalizedPersian !== planB.normalizedPersian) return false;
+    if (planA.persianSurface !== planB.persianSurface) return false;
+    if (planA.action !== planB.action) return false;
+    if (planA.targetEntryId !== planB.targetEntryId) return false;
+    if (planA.targetReadingId !== planB.targetReadingId) return false;
+    if (planA.expectedBaseLexiconFingerprint !== planB.expectedBaseLexiconFingerprint) return false;
+    if (planA.reviewBasisFingerprint !== planB.reviewBasisFingerprint) return false;
+    if (planA.planVersion !== planB.planVersion) return false;
+  }
+
   return true;
 }
 
 /**
  * Validate that a promotion receipt satisfies all integrity and governance reference constraints
- * relative to its referenced decision.
+ * relative to its referenced decision and embedded promotion plan snapshot.
  */
 export function validatePromotionReceiptIntegrity(
   receipt: PromotionReceipt,
   referencedDecision?: CandidateAdjudicationDecision
 ): void {
+  if (!receipt || typeof receipt !== 'object') {
+    throw new InvalidPromotionReceiptError('Promotion receipt must be a non-null object.');
+  }
+
   if (!receipt.id || receipt.id.trim() === '') {
     throw new InvalidPromotionReceiptError('Promotion receipt must have a non-empty id.');
   }
@@ -144,6 +170,91 @@ export function validatePromotionReceiptIntegrity(
     );
   }
 
+  if (!receipt.promotedAt || receipt.promotedAt.trim() === '') {
+    throw new InvalidPromotionReceiptError(
+      `Receipt "${receipt.id}" must specify non-empty promotedAt.`
+    );
+  }
+
+  if (!receipt.promotionVersion || receipt.promotionVersion.trim() === '') {
+    throw new InvalidPromotionReceiptError(
+      `Receipt "${receipt.id}" must specify non-empty promotionVersion.`
+    );
+  }
+
+  // 1. Verify promotion plan snapshot
+  if (!receipt.promotionPlanSnapshot || typeof receipt.promotionPlanSnapshot !== 'object') {
+    throw new InvalidPromotionReceiptError(
+      `Receipt "${receipt.id}" must contain a non-null promotionPlanSnapshot.`
+    );
+  }
+
+  const plan = receipt.promotionPlanSnapshot;
+  validatePromotionPlanIntegrity(plan);
+
+  if (receipt.promotionPlanId !== plan.id) {
+    throw new InvalidPromotionReceiptError(
+      `Receipt "${receipt.id}" promotionPlanId "${receipt.promotionPlanId}" does not match plan snapshot ID "${plan.id}".`
+    );
+  }
+
+  // 2. Verify receipt fields match embedded plan snapshot
+  if (receipt.decisionId !== plan.decisionId) {
+    throw new InvalidPromotionReceiptError(
+      `Receipt "${receipt.id}" decisionId "${receipt.decisionId}" does not match plan decisionId "${plan.decisionId}".`
+    );
+  }
+
+  if (receipt.candidateId !== plan.candidateId) {
+    throw new InvalidPromotionReceiptError(
+      `Receipt "${receipt.id}" candidateId "${receipt.candidateId}" does not match plan candidateId "${plan.candidateId}".`
+    );
+  }
+
+  if (receipt.canonical !== plan.canonical) {
+    throw new InvalidPromotionReceiptError(
+      `Receipt "${receipt.id}" canonical "${receipt.canonical}" does not match plan canonical "${plan.canonical}".`
+    );
+  }
+
+  if (receipt.action !== plan.action) {
+    throw new InvalidPromotionReceiptError(
+      `Receipt "${receipt.id}" action "${receipt.action}" does not match plan action "${plan.action}".`
+    );
+  }
+
+  if (receipt.lexiconEntryId !== plan.targetEntryId) {
+    throw new InvalidPromotionReceiptError(
+      `Receipt "${receipt.id}" lexiconEntryId "${receipt.lexiconEntryId}" does not match plan targetEntryId "${plan.targetEntryId}".`
+    );
+  }
+
+  if (receipt.lexicalReadingId !== plan.targetReadingId) {
+    throw new InvalidPromotionReceiptError(
+      `Receipt "${receipt.id}" lexicalReadingId "${receipt.lexicalReadingId}" does not match plan targetReadingId "${plan.targetReadingId}".`
+    );
+  }
+
+  if (receipt.baseLexiconFingerprint !== plan.expectedBaseLexiconFingerprint) {
+    throw new InvalidPromotionReceiptError(
+      `Receipt "${receipt.id}" baseLexiconFingerprint "${receipt.baseLexiconFingerprint}" does not match plan expectedBaseLexiconFingerprint "${plan.expectedBaseLexiconFingerprint}".`
+    );
+  }
+
+  if (receipt.reviewBasisFingerprint !== plan.reviewBasisFingerprint) {
+    throw new InvalidPromotionReceiptError(
+      `Receipt "${receipt.id}" reviewBasisFingerprint "${receipt.reviewBasisFingerprint}" does not match plan reviewBasisFingerprint "${plan.reviewBasisFingerprint}".`
+    );
+  }
+
+  // 3. For ALREADY_PRESENT action, resulting lexicon fingerprint must equal base fingerprint
+  if (receipt.action === 'ALREADY_PRESENT' && receipt.resultLexiconFingerprint !== receipt.baseLexiconFingerprint) {
+    throw new InvalidPromotionReceiptError(
+      `Receipt "${receipt.id}" has action ALREADY_PRESENT but resultLexiconFingerprint "${receipt.resultLexiconFingerprint}" differs from baseLexiconFingerprint "${receipt.baseLexiconFingerprint}".`
+    );
+  }
+
+  // 4. Verify referenced decision
   if (!referencedDecision) {
     throw new InvalidPromotionReceiptError(
       `Receipt "${receipt.id}" references non-existent decision "${receipt.decisionId}". Orphaned promotion receipts are prohibited.`
@@ -192,13 +303,23 @@ export function validatePromotionReceiptIntegrity(
     );
   }
 
-  // Recompute receipt ID
+  // 5. Recompute complete receipt ID
   const recomputedId = generatePromotionReceiptId({
     decisionId: receipt.decisionId,
-    planId: receipt.promotionPlanId,
+    promotionPlanId: receipt.promotionPlanId,
+    candidateId: receipt.candidateId,
+    reviewPacketId: receipt.reviewPacketId,
+    reviewBasisFingerprint: receipt.reviewBasisFingerprint,
+    schemeAnalysisId: receipt.schemeAnalysisId,
+    canonical: receipt.canonical,
+    action: receipt.action,
+    lexiconEntryId: receipt.lexiconEntryId,
+    lexicalReadingId: receipt.lexicalReadingId,
     baseLexiconFingerprint: receipt.baseLexiconFingerprint,
+    resultLexiconFingerprint: receipt.resultLexiconFingerprint,
     promoterRef: receipt.promoterRef,
-    promotedAt: receipt.promotedAt
+    promotedAt: receipt.promotedAt,
+    promotionVersion: receipt.promotionVersion
   });
 
   if (recomputedId !== receipt.id) {

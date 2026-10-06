@@ -19,6 +19,7 @@ import {
   assertExactSamePromotionPlan,
   validateAdjudicationDecisionIntegrity,
   validatePromotionReceiptIntegrity,
+  validatePromotionPlanIntegrity,
   generateDecisionId,
   generatePromotionPlanId,
   generatePromotionReceiptId,
@@ -33,6 +34,7 @@ import {
   DecisionImmutabilityViolationError,
   ReceiptImmutabilityViolationError,
   CandidateAdjudicationDecision,
+  LexiconPromotionPlan,
   PromotionReceipt,
   SerializedAdjudicationStore
 } from './index';
@@ -168,6 +170,60 @@ function createValidSyntheticDecision(
   const ctx = createValidSyntheticContext('valid-helper-1');
   return {
     ...ctx.decision,
+    ...overrides
+  };
+}
+
+function createValidSyntheticReceipt(
+  decision: CandidateAdjudicationDecision,
+  plan: LexiconPromotionPlan,
+  overrides?: Partial<PromotionReceipt>
+): PromotionReceipt {
+  const promoterRef = 'promoter@example.edu';
+  const promotedAt = '2026-01-01T00:00:00Z';
+  const promotionVersion = '1.0.0';
+  const resultLexiconFingerprint = plan.action === 'ALREADY_PRESENT'
+    ? plan.expectedBaseLexiconFingerprint
+    : 'lex-result-fp-1';
+
+  const baseParams = {
+    decisionId: decision.id,
+    promotionPlanId: plan.id,
+    candidateId: plan.candidateId,
+    reviewPacketId: decision.reviewPacketId,
+    reviewBasisFingerprint: decision.reviewBasisFingerprint,
+    schemeAnalysisId: decision.schemeAnalysisId,
+    canonical: plan.canonical,
+    action: plan.action,
+    lexiconEntryId: plan.targetEntryId,
+    lexicalReadingId: plan.targetReadingId,
+    baseLexiconFingerprint: plan.expectedBaseLexiconFingerprint,
+    resultLexiconFingerprint,
+    promoterRef,
+    promotedAt,
+    promotionVersion
+  };
+
+  const id = generatePromotionReceiptId(baseParams);
+
+  return {
+    id,
+    decisionId: decision.id,
+    promotionPlanId: plan.id,
+    promotionPlanSnapshot: { ...plan },
+    reviewPacketId: decision.reviewPacketId,
+    reviewBasisFingerprint: decision.reviewBasisFingerprint,
+    candidateId: plan.candidateId,
+    schemeAnalysisId: decision.schemeAnalysisId,
+    canonical: plan.canonical,
+    action: plan.action,
+    lexiconEntryId: plan.targetEntryId,
+    lexicalReadingId: plan.targetReadingId,
+    baseLexiconFingerprint: plan.expectedBaseLexiconFingerprint,
+    resultLexiconFingerprint,
+    promoterRef,
+    promotedAt,
+    promotionVersion,
     ...overrides
   };
 }
@@ -621,37 +677,10 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
     });
 
     it('round-trips serialization and deserialization with integrity validation', () => {
-      const ledger = new AdjudicationLedger();
-      const decision = createValidSyntheticDecision();
-      ledger.addDecision(decision);
-
-      const receiptId = generatePromotionReceiptId({
-        decisionId: decision.id,
-        planId: 'prom-plan-test1',
-        baseLexiconFingerprint: 'lex-fp-1',
-        promoterRef: 'promoter@example.edu',
-        promotedAt: '2026-01-01T00:00:00Z'
-      });
-
-      const receipt: PromotionReceipt = {
-        id: receiptId,
-        decisionId: decision.id,
-        promotionPlanId: 'prom-plan-test1',
-        reviewPacketId: decision.reviewPacketId,
-        reviewBasisFingerprint: decision.reviewBasisFingerprint,
-        candidateId: decision.candidateId,
-        schemeAnalysisId: decision.schemeAnalysisId,
-        canonical: decision.canonicalSelection!.canonical,
-        action: 'CREATE_ENTRY',
-        lexiconEntryId: 'lex:promoted:1',
-        lexicalReadingId: 'read:promoted:1',
-        baseLexiconFingerprint: 'lex-fp-1',
-        resultLexiconFingerprint: 'lex-fp-2',
-        promoterRef: 'promoter@example.edu',
-        promotedAt: '2026-01-01T00:00:00Z',
-        promotionVersion: '1.0.0'
-      };
-
+      const { decision, repo, ledger } = createValidSyntheticContext('roundtrip-1');
+      const lex = new LexiconRepository([]);
+      const plan = preparePromotionPlan(decision.id, repo, ledger, lex);
+      const receipt = createValidSyntheticReceipt(decision, plan);
       ledger.addReceipt(receipt);
 
       const serialized = ledger.serialize();
@@ -1213,136 +1242,70 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
     });
 
     it('Attack K: rejects orphan receipt insertion immediately', () => {
-      const ledger = new AdjudicationLedger();
-      const receipt: PromotionReceipt = {
-        id: 'prom-rcpt-orphan',
-        decisionId: 'adj-dec-non-existent',
-        promotionPlanId: 'prom-plan-1',
-        reviewPacketId: 'rev-packet-1',
-        reviewBasisFingerprint: 'rev-basis-1',
-        candidateId: 'cand-1',
-        schemeAnalysisId: 'analysis-1',
-        canonical: 'test',
-        action: 'CREATE_ENTRY',
-        lexiconEntryId: 'lex:1',
-        lexicalReadingId: 'read:1',
-        baseLexiconFingerprint: 'lex-fp-1',
-        resultLexiconFingerprint: 'lex-fp-2',
-        promoterRef: 'promoter@example.edu',
-        promotedAt: '2026-01-01T00:00:00Z',
-        promotionVersion: '1.0.0'
-      };
+      const { decision, repo } = createValidSyntheticContext('atk-k-1');
+      const lex = new LexiconRepository([]);
+      const dummyLedger = new AdjudicationLedger();
+      dummyLedger.addDecision(decision);
+      const plan = preparePromotionPlan(decision.id, repo, dummyLedger, lex);
 
-      expect(() => ledger.addReceipt(receipt)).toThrow(InvalidPromotionReceiptError);
+      const orphanReceipt = createValidSyntheticReceipt(decision, plan, {
+        decisionId: 'adj-dec-non-existent'
+      });
+
+      const emptyLedger = new AdjudicationLedger();
+      expect(() => emptyLedger.addReceipt(orphanReceipt)).toThrow(InvalidPromotionReceiptError);
     });
 
     it('Attack L: rejects receipt referencing REJECT/DEFER decision', () => {
-      const validDecision = createValidSyntheticDecision();
-      const deferDecision = {
+      const { decision: validDecision, repo, ledger } = createValidSyntheticContext('atk-l-1');
+      const lex = new LexiconRepository([]);
+      const plan = preparePromotionPlan(validDecision.id, repo, ledger, lex);
+
+      const deferId = generateDecisionId({
+        reviewPacketId: validDecision.reviewPacketId,
+        candidateId: validDecision.candidateId,
+        reviewerRef: validDecision.reviewerRef,
+        disposition: 'DEFER',
+        canonicalSelection: null,
+        decidedAt: validDecision.decidedAt
+      });
+
+      const deferDecision: CandidateAdjudicationDecision = {
         ...validDecision,
-        id: generateDecisionId({
-          reviewPacketId: validDecision.reviewPacketId,
-          candidateId: validDecision.candidateId,
-          reviewerRef: validDecision.reviewerRef,
-          disposition: 'DEFER',
-          canonicalSelection: null,
-          decidedAt: validDecision.decidedAt
-        }),
-        disposition: 'DEFER' as const,
+        id: deferId,
+        disposition: 'DEFER',
         canonicalSelection: null
       };
 
-      const ledger = new AdjudicationLedger();
-      ledger.addDecision(deferDecision);
+      const deferLedger = new AdjudicationLedger();
+      deferLedger.addDecision(deferDecision);
 
-      const receiptId = generatePromotionReceiptId({
-        decisionId: deferDecision.id,
-        planId: 'prom-plan-1',
-        baseLexiconFingerprint: 'lex-fp-1',
-        promoterRef: 'promoter@example.edu',
-        promotedAt: '2026-01-01T00:00:00Z'
-      });
+      const receipt = createValidSyntheticReceipt(
+        validDecision,
+        plan,
+        { decisionId: deferDecision.id }
+      );
 
-      const receipt: PromotionReceipt = {
-        id: receiptId,
-        decisionId: deferDecision.id,
-        promotionPlanId: 'prom-plan-1',
-        reviewPacketId: deferDecision.reviewPacketId,
-        reviewBasisFingerprint: deferDecision.reviewBasisFingerprint,
-        candidateId: deferDecision.candidateId,
-        schemeAnalysisId: deferDecision.schemeAnalysisId,
-        canonical: 'test',
-        action: 'CREATE_ENTRY',
-        lexiconEntryId: 'lex:1',
-        lexicalReadingId: 'read:1',
-        baseLexiconFingerprint: 'lex-fp-1',
-        resultLexiconFingerprint: 'lex-fp-2',
-        promoterRef: 'promoter@example.edu',
-        promotedAt: '2026-01-01T00:00:00Z',
-        promotionVersion: '1.0.0'
-      };
-
-      expect(() => ledger.addReceipt(receipt)).toThrow(InvalidPromotionReceiptError);
+      expect(() => deferLedger.addReceipt(receipt)).toThrow(InvalidPromotionReceiptError);
     });
 
     it('Attack M: rejects forged receipt ID at insertion', () => {
-      const decision = createValidSyntheticDecision();
-      const ledger = new AdjudicationLedger();
-      ledger.addDecision(decision);
+      const { decision, repo, ledger } = createValidSyntheticContext('atk-m-1');
+      const lex = new LexiconRepository([]);
+      const plan = preparePromotionPlan(decision.id, repo, ledger, lex);
+      const validReceipt = createValidSyntheticReceipt(decision, plan);
 
-      const receipt: PromotionReceipt = {
-        id: 'prom-rcpt-forged-fake-id',
-        decisionId: decision.id,
-        promotionPlanId: 'prom-plan-1',
-        reviewPacketId: decision.reviewPacketId,
-        reviewBasisFingerprint: decision.reviewBasisFingerprint,
-        candidateId: decision.candidateId,
-        schemeAnalysisId: decision.schemeAnalysisId,
-        canonical: decision.canonicalSelection!.canonical,
-        action: 'CREATE_ENTRY',
-        lexiconEntryId: 'lex:1',
-        lexicalReadingId: 'read:1',
-        baseLexiconFingerprint: 'lex-fp-1',
-        resultLexiconFingerprint: 'lex-fp-2',
-        promoterRef: 'promoter@example.edu',
-        promotedAt: '2026-01-01T00:00:00Z',
-        promotionVersion: '1.0.0'
-      };
-
-      expect(() => ledger.addReceipt(receipt)).toThrow(InvalidPromotionReceiptError);
+      const forged = { ...validReceipt, id: 'prom-rcpt-forged-fake-id' };
+      expect(() => ledger.addReceipt(forged)).toThrow(InvalidPromotionReceiptError);
     });
 
     it('Attack N: rejects receipt canonical mismatch with decision', () => {
-      const decision = createValidSyntheticDecision();
-      const ledger = new AdjudicationLedger();
-      ledger.addDecision(decision);
-
-      const receiptId = generatePromotionReceiptId({
-        decisionId: decision.id,
-        planId: 'prom-plan-1',
-        baseLexiconFingerprint: 'lex-fp-1',
-        promoterRef: 'promoter@example.edu',
-        promotedAt: '2026-01-01T00:00:00Z'
+      const { decision, repo, ledger } = createValidSyntheticContext('atk-n-1');
+      const lex = new LexiconRepository([]);
+      const plan = preparePromotionPlan(decision.id, repo, ledger, lex);
+      const receipt = createValidSyntheticReceipt(decision, plan, {
+        canonical: 'mismatched-canonical'
       });
-
-      const receipt: PromotionReceipt = {
-        id: receiptId,
-        decisionId: decision.id,
-        promotionPlanId: 'prom-plan-1',
-        reviewPacketId: decision.reviewPacketId,
-        reviewBasisFingerprint: decision.reviewBasisFingerprint,
-        candidateId: decision.candidateId,
-        schemeAnalysisId: decision.schemeAnalysisId,
-        canonical: 'mismatched-canonical',
-        action: 'CREATE_ENTRY',
-        lexiconEntryId: 'lex:1',
-        lexicalReadingId: 'read:1',
-        baseLexiconFingerprint: 'lex-fp-1',
-        resultLexiconFingerprint: 'lex-fp-2',
-        promoterRef: 'promoter@example.edu',
-        promotedAt: '2026-01-01T00:00:00Z',
-        promotionVersion: '1.0.0'
-      };
 
       expect(() => ledger.addReceipt(receipt)).toThrow(InvalidPromotionReceiptError);
     });
@@ -1356,6 +1319,149 @@ describe('Phase 5E: Human Adjudication & Explicit Lexicon Promotion', () => {
       };
 
       expect(() => AdjudicationLedger.deserialize(malformedStore)).toThrow();
+    });
+
+    it('Attack P: rejects forged promotionPlanId in receipt', () => {
+      const { decision, repo, ledger } = createValidSyntheticContext('atk-p-1');
+      const lex = new LexiconRepository([]);
+      const plan = preparePromotionPlan(decision.id, repo, ledger, lex);
+      const receipt = createValidSyntheticReceipt(decision, plan, {
+        promotionPlanId: 'prom-plan-forged-fake'
+      });
+
+      expect(() => ledger.addReceipt(receipt)).toThrow(InvalidPromotionReceiptError);
+    });
+
+    it('Attack Q: rejects tampered receipt action differing from plan snapshot', () => {
+      const { decision, repo, ledger } = createValidSyntheticContext('atk-q-1');
+      const lex = new LexiconRepository([]);
+      const plan = preparePromotionPlan(decision.id, repo, ledger, lex);
+      expect(plan.action).toBe('CREATE_ENTRY');
+
+      const receipt = createValidSyntheticReceipt(decision, plan, {
+        action: 'ADD_READING'
+      });
+
+      expect(() => ledger.addReceipt(receipt)).toThrow(InvalidPromotionReceiptError);
+    });
+
+    it('Attack R: rejects tampered lexical entry ID differing from plan snapshot', () => {
+      const { decision, repo, ledger } = createValidSyntheticContext('atk-r-1');
+      const lex = new LexiconRepository([]);
+      const plan = preparePromotionPlan(decision.id, repo, ledger, lex);
+
+      const receipt = createValidSyntheticReceipt(decision, plan, {
+        lexiconEntryId: 'lex:promoted:tampered-entry-id'
+      });
+
+      expect(() => ledger.addReceipt(receipt)).toThrow(InvalidPromotionReceiptError);
+    });
+
+    it('Attack S: rejects tampered lexical reading ID differing from plan snapshot', () => {
+      const { decision, repo, ledger } = createValidSyntheticContext('atk-s-1');
+      const lex = new LexiconRepository([]);
+      const plan = preparePromotionPlan(decision.id, repo, ledger, lex);
+
+      const receipt = createValidSyntheticReceipt(decision, plan, {
+        lexicalReadingId: 'read:promoted:tampered-reading-id'
+      });
+
+      expect(() => ledger.addReceipt(receipt)).toThrow(InvalidPromotionReceiptError);
+    });
+
+    it('Attack T: rejects tampered result lexicon fingerprint and ALREADY_PRESENT divergence', () => {
+      const { decision, repo, ledger } = createValidSyntheticContext('atk-t-1');
+      const lex = new LexiconRepository([]);
+      const plan = preparePromotionPlan(decision.id, repo, ledger, lex);
+
+      // 1. Result fingerprint tampered
+      const receipt = createValidSyntheticReceipt(decision, plan, {
+        resultLexiconFingerprint: 'lex-tampered-fp'
+      });
+      expect(() => ledger.addReceipt(receipt)).toThrow(InvalidPromotionReceiptError);
+
+      // 2. ALREADY_PRESENT requires resultLexiconFingerprint === baseLexiconFingerprint
+      const alreadyPresentPlan = { ...plan, action: 'ALREADY_PRESENT' as const };
+      alreadyPresentPlan.id = generatePromotionPlanId(alreadyPresentPlan);
+      const invalidAlreadyPresentReceipt = createValidSyntheticReceipt(decision, alreadyPresentPlan, {
+        baseLexiconFingerprint: 'lex-base-fp-1',
+        resultLexiconFingerprint: 'lex-different-result-fp-2'
+      });
+      expect(() => ledger.addReceipt(invalidAlreadyPresentReceipt)).toThrow(InvalidPromotionReceiptError);
+    });
+
+    it('Attack U: rejects tampered canonical across plan/receipt/decision chain', () => {
+      const { decision, repo, ledger } = createValidSyntheticContext('atk-u-1');
+      const lex = new LexiconRepository([]);
+      const plan = preparePromotionPlan(decision.id, repo, ledger, lex);
+
+      const tamperedPlan = { ...plan, canonical: 'tampered-canonical' };
+      const receipt = createValidSyntheticReceipt(decision, tamperedPlan);
+
+      expect(() => ledger.addReceipt(receipt)).toThrow(
+        /Plan ID.*does not match|Plan ID mismatch|does not match decision canonical|Canonical substitution|Plan identity tampering detected/
+      );
+    });
+
+    it('Attack V: rejects altered promotion-plan snapshot under same receipt ID (ReceiptImmutabilityViolationError)', () => {
+      const { decision, repo, ledger } = createValidSyntheticContext('atk-v-1');
+      const lex = new LexiconRepository([]);
+      const plan = preparePromotionPlan(decision.id, repo, ledger, lex);
+
+      const receipt1 = createValidSyntheticReceipt(decision, plan);
+      ledger.addReceipt(receipt1);
+
+      // Re-inserting identical receipt is idempotent
+      expect(() => ledger.addReceipt(receipt1)).not.toThrow();
+
+      // Re-inserting with altered plan snapshot fails
+      const alteredSnapshot = { ...plan, canonical: 'tampered-canonical' };
+      const alteredReceipt = { ...receipt1, promotionPlanSnapshot: alteredSnapshot };
+      expect(() => ledger.addReceipt(alteredReceipt)).toThrow();
+    });
+
+    it('Attack W: fails closed on deserialization of forged plan/receipt chain', () => {
+      const { decision, repo, ledger } = createValidSyntheticContext('atk-w-1');
+      const lex = new LexiconRepository([]);
+      const plan = preparePromotionPlan(decision.id, repo, ledger, lex);
+      const validReceipt = createValidSyntheticReceipt(decision, plan);
+
+      // Valid store deserializes cleanly
+      const validStore: SerializedAdjudicationStore = {
+        version: 1,
+        decisions: [decision],
+        receipts: [validReceipt]
+      };
+      expect(() => AdjudicationLedger.deserialize(validStore)).not.toThrow();
+
+      // Forged plan ID in receipt snapshot
+      const forgedStore1: SerializedAdjudicationStore = {
+        version: 1,
+        decisions: [decision],
+        receipts: [
+          {
+            ...validReceipt,
+            promotionPlanSnapshot: { ...plan, id: 'prom-plan-forged' }
+          }
+        ]
+      };
+      expect(() => AdjudicationLedger.deserialize(forgedStore1)).toThrow();
+
+      // Tampered action in receipt
+      const forgedStore2: SerializedAdjudicationStore = {
+        version: 1,
+        decisions: [decision],
+        receipts: [{ ...validReceipt, action: 'ADD_READING' }]
+      };
+      expect(() => AdjudicationLedger.deserialize(forgedStore2)).toThrow();
+
+      // Tampered result fingerprint in receipt
+      const forgedStore3: SerializedAdjudicationStore = {
+        version: 1,
+        decisions: [decision],
+        receipts: [{ ...validReceipt, resultLexiconFingerprint: 'tampered-fp' }]
+      };
+      expect(() => AdjudicationLedger.deserialize(forgedStore3)).toThrow();
     });
   });
 

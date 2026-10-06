@@ -79,12 +79,96 @@ export interface ExecutePromotionOptions {
 }
 
 /**
+ * Validate that a promotion plan satisfies intrinsic integrity constraints
+ * and has an untampered deterministic plan ID matching all executable fields.
+ */
+export function validatePromotionPlanIntegrity(plan: LexiconPromotionPlan): void {
+  if (!plan || typeof plan !== 'object') {
+    throw new InvalidPromotionPlanError('Promotion plan must be a non-null object.');
+  }
+
+  if (!plan.id || typeof plan.id !== 'string' || plan.id.trim() === '') {
+    throw new InvalidPromotionPlanError('Promotion plan must specify a non-empty id.');
+  }
+
+  if (!plan.decisionId || typeof plan.decisionId !== 'string' || plan.decisionId.trim() === '') {
+    throw new InvalidPromotionPlanError(`Plan "${plan.id}" must specify a non-empty decisionId.`);
+  }
+
+  if (!plan.candidateId || typeof plan.candidateId !== 'string' || plan.candidateId.trim() === '') {
+    throw new InvalidPromotionPlanError(`Plan "${plan.id}" must specify a non-empty candidateId.`);
+  }
+
+  if (!plan.canonical || typeof plan.canonical !== 'string' || plan.canonical.trim() === '') {
+    throw new InvalidPromotionPlanError(`Plan "${plan.id}" must specify a non-empty canonical.`);
+  }
+
+  if (!plan.normalizedPersian || typeof plan.normalizedPersian !== 'string' || plan.normalizedPersian.trim() === '') {
+    throw new InvalidPromotionPlanError(`Plan "${plan.id}" must specify a non-empty normalizedPersian.`);
+  }
+
+  if (!plan.persianSurface || typeof plan.persianSurface !== 'string' || plan.persianSurface.trim() === '') {
+    throw new InvalidPromotionPlanError(`Plan "${plan.id}" must specify a non-empty persianSurface.`);
+  }
+
+  const validActions = ['CREATE_ENTRY', 'ADD_READING', 'ALREADY_PRESENT'];
+  if (!validActions.includes(plan.action)) {
+    throw new InvalidPromotionPlanError(
+      `Plan "${plan.id}" specifies invalid action "${plan.action}". Must be one of: ${validActions.join(', ')}.`
+    );
+  }
+
+  if (!plan.targetEntryId || typeof plan.targetEntryId !== 'string' || plan.targetEntryId.trim() === '') {
+    throw new InvalidPromotionPlanError(`Plan "${plan.id}" must specify a non-empty targetEntryId.`);
+  }
+
+  if (!plan.targetReadingId || typeof plan.targetReadingId !== 'string' || plan.targetReadingId.trim() === '') {
+    throw new InvalidPromotionPlanError(`Plan "${plan.id}" must specify a non-empty targetReadingId.`);
+  }
+
+  if (!plan.expectedBaseLexiconFingerprint || typeof plan.expectedBaseLexiconFingerprint !== 'string' || plan.expectedBaseLexiconFingerprint.trim() === '') {
+    throw new InvalidPromotionPlanError(`Plan "${plan.id}" must specify a non-empty expectedBaseLexiconFingerprint.`);
+  }
+
+  if (!plan.reviewBasisFingerprint || typeof plan.reviewBasisFingerprint !== 'string' || plan.reviewBasisFingerprint.trim() === '') {
+    throw new InvalidPromotionPlanError(`Plan "${plan.id}" must specify a non-empty reviewBasisFingerprint.`);
+  }
+
+  if (!plan.planVersion || typeof plan.planVersion !== 'string' || plan.planVersion.trim() === '') {
+    throw new InvalidPromotionPlanError(`Plan "${plan.id}" must specify a non-empty planVersion.`);
+  }
+
+  const recomputedId = generatePromotionPlanId({
+    decisionId: plan.decisionId,
+    candidateId: plan.candidateId,
+    canonical: plan.canonical,
+    normalizedPersian: plan.normalizedPersian,
+    persianSurface: plan.persianSurface,
+    action: plan.action,
+    targetEntryId: plan.targetEntryId,
+    targetReadingId: plan.targetReadingId,
+    expectedBaseLexiconFingerprint: plan.expectedBaseLexiconFingerprint,
+    reviewBasisFingerprint: plan.reviewBasisFingerprint,
+    planVersion: plan.planVersion
+  });
+
+  if (recomputedId !== plan.id) {
+    throw new InvalidPromotionPlanError(
+      `Plan ID "${plan.id}" does not match recomputed deterministic plan ID "${recomputedId}". Plan identity tampering detected.`
+    );
+  }
+}
+
+/**
  * Assert exact semantic equivalence across all executable fields of two PromotionPlans.
  */
 export function assertExactSamePromotionPlan(
   actual: LexiconPromotionPlan,
   expected: LexiconPromotionPlan
 ): void {
+  validatePromotionPlanIntegrity(actual);
+  validatePromotionPlanIntegrity(expected);
+
   if (actual.id !== expected.id) {
     throw new InvalidPromotionPlanError(
       `Plan ID mismatch: actual "${actual.id}" does not match expected "${expected.id}". Plan tampering detected.`
@@ -495,16 +579,27 @@ export function executePromotion(
 
   const receiptId = generatePromotionReceiptId({
     decisionId: plan.decisionId,
-    planId: plan.id,
+    promotionPlanId: plan.id,
+    candidateId: plan.candidateId,
+    reviewPacketId: decision.reviewPacketId,
+    reviewBasisFingerprint: decision.reviewBasisFingerprint,
+    schemeAnalysisId: decision.schemeAnalysisId,
+    canonical: plan.canonical,
+    action: plan.action,
+    lexiconEntryId: plan.targetEntryId,
+    lexicalReadingId: plan.targetReadingId,
     baseLexiconFingerprint: plan.expectedBaseLexiconFingerprint,
+    resultLexiconFingerprint,
     promoterRef: promoter.promoterRef.trim(),
-    promotedAt
+    promotedAt,
+    promotionVersion
   });
 
   const receipt: PromotionReceipt = {
     id: receiptId,
     decisionId: plan.decisionId,
     promotionPlanId: plan.id,
+    promotionPlanSnapshot: deepClone(plan),
     reviewPacketId: decision.reviewPacketId,
     reviewBasisFingerprint: decision.reviewBasisFingerprint,
     candidateId: plan.candidateId,

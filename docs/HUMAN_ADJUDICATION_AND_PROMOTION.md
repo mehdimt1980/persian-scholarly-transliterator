@@ -208,14 +208,38 @@ The `AdjudicationLedger` treats historical JSON input as an untrusted boundary. 
 ### 6.2 Full Promotion Plan Semantic Binding & Equivalence
 Every executable semantic field is bound into `generatePromotionPlanId()`:
 - `decisionId`, `candidateId`, `canonical`, `normalizedPersian`, `persianSurface`, `action`, `targetEntryId`, `targetReadingId`, `expectedBaseLexiconFingerprint`, `reviewBasisFingerprint`, `planVersion`.
-Tampering with ANY executable semantic field changes the plan ID. Furthermore, before promotion execution, `executePromotion()` recomputes the plan live and executes `assertExactSamePromotionPlan(plan, recomputedPlan)`, rejecting any deviation with `InvalidPromotionPlanError` and zero lexicon mutation.
+Tampering with ANY executable semantic field changes the plan ID. Pure intrinsic validator `validatePromotionPlanIntegrity(plan)` ensures the plan ID recomputes from its fields. Furthermore, before promotion execution, `executePromotion()` recomputes the live plan and executes `assertExactSamePromotionPlan(plan, recomputedPlan)`, rejecting any deviation with `InvalidPromotionPlanError` and zero lexicon mutation.
 
-### 6.3 Receipt Identity & Immediate Reference Validation
-`PromotionReceipt` contains `promotionPlanId`, enabling independent recomputation and verification of `receipt.id` via `generatePromotionReceiptId()`.
-`AdjudicationLedger.addReceipt()` validates governance references immediately upon insertion:
-- Referenced decision exists in ledger with `ACCEPT` disposition and matching canonical;
-- Receipt `candidateId`, `reviewPacketId`, `reviewBasisFingerprint`, and `schemeAnalysisId` match the decision;
-- Recomputed receipt ID matches `receipt.id`;
+### 6.3 Promotion Plan Snapshot & Complete Receipt Identity
+`PromotionReceipt` preserves an immutable defensive snapshot `promotionPlanSnapshot: LexiconPromotionPlan`.
+Deterministic `generatePromotionReceiptId()` binds the 15 executable semantic outcome fields into receipt identity:
+1. `decisionId`
+2. `promotionPlanId`
+3. `candidateId`
+4. `reviewPacketId`
+5. `reviewBasisFingerprint`
+6. `schemeAnalysisId`
+7. `canonical`
+8. `action`
+9. `lexiconEntryId`
+10. `lexicalReadingId`
+11. `baseLexiconFingerprint`
+12. `resultLexiconFingerprint`
+13. `promoterRef`
+14. `promotedAt`
+15. `promotionVersion`
+
+*(Note: `promoterDisplayName` is excluded from the cryptographic receipt ID hash as decorative display metadata, ensuring receipt identity depends purely on verifiable governance fields).*
+
+### 6.4 Receipt ↔ Plan ↔ Decision Governance Rules & Result Fingerprints
+`AdjudicationLedger.addReceipt()` validates governance references immediately on ingress:
+- `validatePromotionPlanIntegrity(receipt.promotionPlanSnapshot)` passes;
+- `receipt.promotionPlanId === receipt.promotionPlanSnapshot.id`;
+- Receipt fields (`decisionId`, `candidateId`, `canonical`, `action`, `lexiconEntryId`, `lexicalReadingId`, `baseLexiconFingerprint`, `reviewBasisFingerprint`) match the embedded `promotionPlanSnapshot` exactly;
+- Referenced decision exists in ledger with `ACCEPT` disposition, non-null `canonicalSelection`, and matching fields (`canonical`, `candidateId`, `reviewPacketId`, `reviewBasisFingerprint`, `schemeAnalysisId`);
+- For `ALREADY_PRESENT` action, `resultLexiconFingerprint === baseLexiconFingerprint` is strictly enforced;
+- Recomputed receipt ID strictly matches `receipt.id`;
+- Re-adding existing receipt with altered plan snapshot fails closed with `ReceiptImmutabilityViolationError`;
 - Rejects orphaned receipts and receipts for `REJECT` / `DEFER` decisions.
 
 ---

@@ -113,24 +113,56 @@ export function generatePromotionPlanId(params: {
 
 /**
  * Generate a deterministic identifier for a PromotionReceipt.
+ * Binds all semantic outcome fields into receipt identity.
+ * (promoterDisplayName is excluded as decorative non-authoritative display metadata).
  */
 export function generatePromotionReceiptId(params: {
   decisionId: string;
-  planId: string;
+  promotionPlanId: string;
+  candidateId: string;
+  reviewPacketId: string;
+  reviewBasisFingerprint: string;
+  schemeAnalysisId: string;
+  canonical: string;
+  action: string;
+  lexiconEntryId: string;
+  lexicalReadingId: string;
   baseLexiconFingerprint: string;
+  resultLexiconFingerprint: string;
   promoterRef: string;
   promotedAt: string;
+  promotionVersion: string;
 }): string {
   const hash = crypto.createHash('sha256');
   hash.update(params.decisionId);
   hash.update('\0');
-  hash.update(params.planId);
+  hash.update(params.promotionPlanId);
+  hash.update('\0');
+  hash.update(params.candidateId);
+  hash.update('\0');
+  hash.update(params.reviewPacketId);
+  hash.update('\0');
+  hash.update(params.reviewBasisFingerprint);
+  hash.update('\0');
+  hash.update(params.schemeAnalysisId);
+  hash.update('\0');
+  hash.update(params.canonical);
+  hash.update('\0');
+  hash.update(params.action);
+  hash.update('\0');
+  hash.update(params.lexiconEntryId);
+  hash.update('\0');
+  hash.update(params.lexicalReadingId);
   hash.update('\0');
   hash.update(params.baseLexiconFingerprint);
+  hash.update('\0');
+  hash.update(params.resultLexiconFingerprint);
   hash.update('\0');
   hash.update(params.promoterRef);
   hash.update('\0');
   hash.update(params.promotedAt);
+  hash.update('\0');
+  hash.update(params.promotionVersion);
 
   const digest = hash.digest('hex').slice(0, 16);
   return `prom-rcpt-${digest}`;
