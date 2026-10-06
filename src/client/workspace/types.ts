@@ -6,6 +6,11 @@ import type {
 } from '../../domain/bibliography/types';
 import type { ScholarlyExportMode } from '../../domain/bibliography/export/types';
 
+export interface StoredWorkspaceEnvelope<T> {
+  storageRevision: number;
+  value: T;
+}
+
 export interface PersistedAcceptedPhraseDecisionV1 {
   source: 'AI_ASSISTED_PHRASE';
   acceptance:
@@ -62,10 +67,18 @@ export type PersistenceStatus = WorkspacePersistenceStatus;
 export type CrossTabConflictType = 'UPDATED' | 'CLEARED' | null;
 
 export type WorkspaceLoadResult<T> =
-  | { status: 'ok'; value: T | null }
+  | { status: 'ok'; value: T | null; storageRevision: number | null }
   | { status: 'unavailable' }
   | { status: 'error'; error: unknown }
   | { status: 'unsupported-schema'; rawVersion: unknown };
+
+export type WorkspaceSaveResult =
+  | { status: 'saved'; revision: number }
+  | { status: 'conflict'; actualRevision: number | null };
+
+export type WorkspaceClearResult =
+  | { status: 'cleared' }
+  | { status: 'conflict'; actualRevision: number | null };
 
 export type WorkspaceValidationResult<T> =
   | { success: true; data: T }

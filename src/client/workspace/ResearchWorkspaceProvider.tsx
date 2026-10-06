@@ -17,7 +17,11 @@ import {
   fromPersistedAcceptedPhraseDecision,
   toPersistedAcceptedPhraseDecision
 } from './validation';
-import { workspaceRepository } from './workspaceRepository';
+import {
+  workspaceRepository,
+  transliterationQueue,
+  bibliographyQueue
+} from './workspaceRepository';
 
 export const ResearchWorkspaceContext = createContext<ResearchWorkspaceContextValue | null>(null);
 
@@ -84,6 +88,9 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
   const transliterationSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const bibliographySaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const transliterationRevisionRef = useRef<number | null>(null);
+  const bibliographyRevisionRef = useRef<number | null>(null);
+
   const latestTransliterationRef = useRef<RuntimeTransliterationWorkspace>(transliteration);
   const latestBibliographyRef = useRef<BibliographyWorkspaceV1>(bibliography);
   const lastSavedTransliterationJsonRef = useRef<string>('');
@@ -128,14 +135,17 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
           unsupportedSchemaRef.current.transliteration = true;
         } else if (transRes.status === 'error') {
           transStatus = 'error';
-        } else if (transRes.status === 'ok' && transRes.value) {
-          const runtime = toRuntimeTransliterationWorkspace(transRes.value);
-          setTransliteration(runtime);
-          lastSavedTransliterationJsonRef.current = toSerializableTransliterationJson(runtime);
-        } else {
-          lastSavedTransliterationJsonRef.current = toSerializableTransliterationJson(
-            latestTransliterationRef.current
-          );
+        } else if (transRes.status === 'ok') {
+          transliterationRevisionRef.current = transRes.storageRevision;
+          if (transRes.value) {
+            const runtime = toRuntimeTransliterationWorkspace(transRes.value);
+            setTransliteration(runtime);
+            lastSavedTransliterationJsonRef.current = toSerializableTransliterationJson(runtime);
+          } else {
+            lastSavedTransliterationJsonRef.current = toSerializableTransliterationJson(
+              latestTransliterationRef.current
+            );
+          }
         }
 
         // Bibliography restore evaluation
@@ -146,13 +156,16 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
           unsupportedSchemaRef.current.bibliography = true;
         } else if (bibRes.status === 'error') {
           bibStatus = 'error';
-        } else if (bibRes.status === 'ok' && bibRes.value) {
-          setBibliography(bibRes.value);
-          lastSavedBibliographyJsonRef.current = JSON.stringify(bibRes.value);
-        } else {
-          lastSavedBibliographyJsonRef.current = JSON.stringify(
-            latestBibliographyRef.current
-          );
+        } else if (bibRes.status === 'ok') {
+          bibliographyRevisionRef.current = bibRes.storageRevision;
+          if (bibRes.value) {
+            setBibliography(bibRes.value);
+            lastSavedBibliographyJsonRef.current = JSON.stringify(bibRes.value);
+          } else {
+            lastSavedBibliographyJsonRef.current = JSON.stringify(
+              latestBibliographyRef.current
+            );
+          }
         }
 
         isRestoringRef.current = false;
@@ -174,7 +187,7 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
 
     restore();
 
-    // BroadcastChannel setup for cross-tab notification
+    // BroadcastChannel setup for cross-tab advisory notification
     try {
       if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
         const channel = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
@@ -217,7 +230,7 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
     };
   }, []);
 
-  // Independent Transliteration Flush
+  // Independent Transliteration Flush with atomic Compare-And-Swap
   const flushTransliterationSave = async () => {
     if (
       isRestoringRef.current ||
@@ -234,23 +247,38 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
     if (transJson === lastSavedTransliterationJsonRef.current) return;
 
     try {
-      await workspaceRepository.saveTransliterationWorkspace(currentTrans);
-      lastSavedTransliterationJsonRef.current = transJson;
-      try {
-        broadcastChannelRef.current?.postMessage({
-          type: 'WORKSPACE_SAVED',
-          workspace: 'transliteration'
-        });
-      } catch {
-        // ignore
+      const saveRes = await workspaceRepository.saveTransliterationWorkspace(
+        currentTrans,
+        transliterationRevisionRef.current
+      );
+
+      if (saveRes.status === 'saved') {
+        transliterationRevisionRef.current = saveRes.revision;
+        lastSavedTransliterationJsonRef.current = transJson;
+        try {
+          broadcastChannelRef.current?.postMessage({
+            type: 'WORKSPACE_SAVED',
+            workspace: 'transliteration'
+          });
+        } catch {
+          // ignore
+        }
+        setPersistenceStatus((prev) => ({ ...prev, transliteration: 'saved' }));
+      } else if (saveRes.status === 'conflict') {
+        // Concurrency conflict: newer revision was written elsewhere
+        if (transliterationSaveTimeoutRef.current) {
+          clearTimeout(transliterationSaveTimeoutRef.current);
+          transliterationSaveTimeoutRef.current = null;
+        }
+        setCrossTabConflict((prev) => ({ ...prev, transliteration: 'UPDATED' }));
+        setPersistenceStatus((prev) => ({ ...prev, transliteration: 'conflict' }));
       }
-      setPersistenceStatus((prev) => ({ ...prev, transliteration: 'saved' }));
     } catch {
       setPersistenceStatus((prev) => ({ ...prev, transliteration: 'error' }));
     }
   };
 
-  // Independent Bibliography Flush
+  // Independent Bibliography Flush with atomic Compare-And-Swap
   const flushBibliographySave = async () => {
     if (
       isRestoringRef.current ||
@@ -267,17 +295,32 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
     if (bibJson === lastSavedBibliographyJsonRef.current) return;
 
     try {
-      await workspaceRepository.saveBibliographyWorkspace(currentBib);
-      lastSavedBibliographyJsonRef.current = bibJson;
-      try {
-        broadcastChannelRef.current?.postMessage({
-          type: 'WORKSPACE_SAVED',
-          workspace: 'bibliography'
-        });
-      } catch {
-        // ignore
+      const saveRes = await workspaceRepository.saveBibliographyWorkspace(
+        currentBib,
+        bibliographyRevisionRef.current
+      );
+
+      if (saveRes.status === 'saved') {
+        bibliographyRevisionRef.current = saveRes.revision;
+        lastSavedBibliographyJsonRef.current = bibJson;
+        try {
+          broadcastChannelRef.current?.postMessage({
+            type: 'WORKSPACE_SAVED',
+            workspace: 'bibliography'
+          });
+        } catch {
+          // ignore
+        }
+        setPersistenceStatus((prev) => ({ ...prev, bibliography: 'saved' }));
+      } else if (saveRes.status === 'conflict') {
+        // Concurrency conflict: newer revision was written elsewhere
+        if (bibliographySaveTimeoutRef.current) {
+          clearTimeout(bibliographySaveTimeoutRef.current);
+          bibliographySaveTimeoutRef.current = null;
+        }
+        setCrossTabConflict((prev) => ({ ...prev, bibliography: 'UPDATED' }));
+        setPersistenceStatus((prev) => ({ ...prev, bibliography: 'conflict' }));
       }
-      setPersistenceStatus((prev) => ({ ...prev, bibliography: 'saved' }));
     } catch {
       setPersistenceStatus((prev) => ({ ...prev, bibliography: 'error' }));
     }
@@ -415,25 +458,40 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
       clearTimeout(transliterationSaveTimeoutRef.current);
       transliterationSaveTimeoutRef.current = null;
     }
-    const defaultWorkspace = toRuntimeTransliterationWorkspace(
-      createDefaultTransliterationWorkspace()
-    );
-    setTransliteration(defaultWorkspace);
-    lastSavedTransliterationJsonRef.current = toSerializableTransliterationJson(defaultWorkspace);
-    unsupportedSchemaRef.current.transliteration = false;
-    setCrossTabConflict((prev) => ({ ...prev, transliteration: null }));
 
     try {
-      await workspaceRepository.clearTransliterationWorkspace();
-      try {
-        broadcastChannelRef.current?.postMessage({
-          type: 'WORKSPACE_CLEARED',
-          workspace: 'transliteration'
-        });
-      } catch {
-        // ignore
+      let clearRes;
+      if (unsupportedSchemaRef.current.transliteration) {
+        clearRes = await workspaceRepository.forceClearTransliterationWorkspace();
+      } else {
+        clearRes = await workspaceRepository.clearTransliterationWorkspace(
+          transliterationRevisionRef.current
+        );
       }
-      setPersistenceStatus((prev) => ({ ...prev, transliteration: 'saved' }));
+
+      if (clearRes.status === 'cleared') {
+        const defaultWorkspace = toRuntimeTransliterationWorkspace(
+          createDefaultTransliterationWorkspace()
+        );
+        transliterationRevisionRef.current = null;
+        setTransliteration(defaultWorkspace);
+        lastSavedTransliterationJsonRef.current = toSerializableTransliterationJson(defaultWorkspace);
+        unsupportedSchemaRef.current.transliteration = false;
+        setCrossTabConflict((prev) => ({ ...prev, transliteration: null }));
+        setPersistenceStatus((prev) => ({ ...prev, transliteration: 'saved' }));
+
+        try {
+          broadcastChannelRef.current?.postMessage({
+            type: 'WORKSPACE_CLEARED',
+            workspace: 'transliteration'
+          });
+        } catch {
+          // ignore
+        }
+      } else if (clearRes.status === 'conflict') {
+        setCrossTabConflict((prev) => ({ ...prev, transliteration: 'UPDATED' }));
+        setPersistenceStatus((prev) => ({ ...prev, transliteration: 'conflict' }));
+      }
     } catch {
       setPersistenceStatus((prev) => ({ ...prev, transliteration: 'error' }));
     }
@@ -467,23 +525,38 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
       clearTimeout(bibliographySaveTimeoutRef.current);
       bibliographySaveTimeoutRef.current = null;
     }
-    const defaultWorkspace = createDefaultBibliographyWorkspace();
-    setBibliography(defaultWorkspace);
-    lastSavedBibliographyJsonRef.current = JSON.stringify(defaultWorkspace);
-    unsupportedSchemaRef.current.bibliography = false;
-    setCrossTabConflict((prev) => ({ ...prev, bibliography: null }));
 
     try {
-      await workspaceRepository.clearBibliographyWorkspace();
-      try {
-        broadcastChannelRef.current?.postMessage({
-          type: 'WORKSPACE_CLEARED',
-          workspace: 'bibliography'
-        });
-      } catch {
-        // ignore
+      let clearRes;
+      if (unsupportedSchemaRef.current.bibliography) {
+        clearRes = await workspaceRepository.forceClearBibliographyWorkspace();
+      } else {
+        clearRes = await workspaceRepository.clearBibliographyWorkspace(
+          bibliographyRevisionRef.current
+        );
       }
-      setPersistenceStatus((prev) => ({ ...prev, bibliography: 'saved' }));
+
+      if (clearRes.status === 'cleared') {
+        const defaultWorkspace = createDefaultBibliographyWorkspace();
+        bibliographyRevisionRef.current = null;
+        setBibliography(defaultWorkspace);
+        lastSavedBibliographyJsonRef.current = JSON.stringify(defaultWorkspace);
+        unsupportedSchemaRef.current.bibliography = false;
+        setCrossTabConflict((prev) => ({ ...prev, bibliography: null }));
+        setPersistenceStatus((prev) => ({ ...prev, bibliography: 'saved' }));
+
+        try {
+          broadcastChannelRef.current?.postMessage({
+            type: 'WORKSPACE_CLEARED',
+            workspace: 'bibliography'
+          });
+        } catch {
+          // ignore
+        }
+      } else if (clearRes.status === 'conflict') {
+        setCrossTabConflict((prev) => ({ ...prev, bibliography: 'UPDATED' }));
+        setPersistenceStatus((prev) => ({ ...prev, bibliography: 'conflict' }));
+      }
     } catch {
       setPersistenceStatus((prev) => ({ ...prev, bibliography: 'error' }));
     }
@@ -499,12 +572,15 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
         transliterationSaveTimeoutRef.current = null;
       }
 
+      await transliterationQueue.settle();
+
       if (resolution === 'reload') {
         const res = await workspaceRepository.getTransliterationWorkspace();
         if (res.status === 'ok') {
           const runtime = res.value
             ? toRuntimeTransliterationWorkspace(res.value)
             : toRuntimeTransliterationWorkspace(createDefaultTransliterationWorkspace());
+          transliterationRevisionRef.current = res.storageRevision;
           setTransliteration(runtime);
           lastSavedTransliterationJsonRef.current = toSerializableTransliterationJson(runtime);
           setCrossTabConflict((prev) => ({ ...prev, transliteration: null }));
@@ -514,17 +590,20 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
         setCrossTabConflict((prev) => ({ ...prev, transliteration: null }));
         const currentTrans = latestTransliterationRef.current;
         try {
-          await workspaceRepository.saveTransliterationWorkspace(currentTrans);
-          lastSavedTransliterationJsonRef.current = toSerializableTransliterationJson(currentTrans);
-          try {
-            broadcastChannelRef.current?.postMessage({
-              type: 'WORKSPACE_SAVED',
-              workspace: 'transliteration'
-            });
-          } catch {
-            // ignore
+          const forceRes = await workspaceRepository.forceSaveTransliterationWorkspace(currentTrans);
+          if (forceRes.status === 'saved') {
+            transliterationRevisionRef.current = forceRes.revision;
+            lastSavedTransliterationJsonRef.current = toSerializableTransliterationJson(currentTrans);
+            try {
+              broadcastChannelRef.current?.postMessage({
+                type: 'WORKSPACE_SAVED',
+                workspace: 'transliteration'
+              });
+            } catch {
+              // ignore
+            }
+            setPersistenceStatus((prev) => ({ ...prev, transliteration: 'saved' }));
           }
-          setPersistenceStatus((prev) => ({ ...prev, transliteration: 'saved' }));
         } catch {
           setPersistenceStatus((prev) => ({ ...prev, transliteration: 'error' }));
         }
@@ -535,10 +614,13 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
         bibliographySaveTimeoutRef.current = null;
       }
 
+      await bibliographyQueue.settle();
+
       if (resolution === 'reload') {
         const res = await workspaceRepository.getBibliographyWorkspace();
         if (res.status === 'ok') {
           const bib = res.value ?? createDefaultBibliographyWorkspace();
+          bibliographyRevisionRef.current = res.storageRevision;
           setBibliography(bib);
           lastSavedBibliographyJsonRef.current = JSON.stringify(bib);
           setCrossTabConflict((prev) => ({ ...prev, bibliography: null }));
@@ -548,17 +630,20 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
         setCrossTabConflict((prev) => ({ ...prev, bibliography: null }));
         const currentBib = latestBibliographyRef.current;
         try {
-          await workspaceRepository.saveBibliographyWorkspace(currentBib);
-          lastSavedBibliographyJsonRef.current = JSON.stringify(currentBib);
-          try {
-            broadcastChannelRef.current?.postMessage({
-              type: 'WORKSPACE_SAVED',
-              workspace: 'bibliography'
-            });
-          } catch {
-            // ignore
+          const forceRes = await workspaceRepository.forceSaveBibliographyWorkspace(currentBib);
+          if (forceRes.status === 'saved') {
+            bibliographyRevisionRef.current = forceRes.revision;
+            lastSavedBibliographyJsonRef.current = JSON.stringify(currentBib);
+            try {
+              broadcastChannelRef.current?.postMessage({
+                type: 'WORKSPACE_SAVED',
+                workspace: 'bibliography'
+              });
+            } catch {
+              // ignore
+            }
+            setPersistenceStatus((prev) => ({ ...prev, bibliography: 'saved' }));
           }
-          setPersistenceStatus((prev) => ({ ...prev, bibliography: 'saved' }));
         } catch {
           setPersistenceStatus((prev) => ({ ...prev, bibliography: 'error' }));
         }

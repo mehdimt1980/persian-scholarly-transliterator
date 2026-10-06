@@ -213,8 +213,12 @@ function validatePersistedAcceptedPhraseDecision(
   if (typeof data.promptVersion !== 'string' || data.promptVersion.trim().length === 0) return null;
   if (typeof data.requestFingerprint !== 'string' || data.requestFingerprint.trim().length === 0) return null;
 
+  if (!('modelConfidence' in data)) {
+    return null;
+  }
+
   let modelConfidence: number | null = null;
-  if (data.modelConfidence === null || data.modelConfidence === undefined) {
+  if (data.modelConfidence === null) {
     modelConfidence = null;
   } else if (
     typeof data.modelConfidence === 'number' &&

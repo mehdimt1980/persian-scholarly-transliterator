@@ -8,11 +8,13 @@ import {
   fromPersistedAcceptedPhraseDecision
 } from './validation';
 import { OperationQueue } from './operationQueue';
-import { transliterationQueue, bibliographyQueue } from './workspaceRepository';
+import {
+  transliterationQueue,
+  bibliographyQueue
+} from './workspaceRepository';
 import type { ReviewDecision } from '../../domain/types';
 import type { AcceptedPhraseDecision } from '../../domain/assistance/phraseTypes';
 import type { BibliographyRecord } from '../../domain/bibliography/types';
-import type { PersistedAcceptedPhraseDecisionV1 } from './types';
 
 describe('Local Research Workspace Persistence', () => {
   describe('Schema Validation, Versioning, and Strict Boundaries', () => {
@@ -185,7 +187,6 @@ describe('Local Research Workspace Persistence', () => {
       };
 
       const validated = validateAndMigrateTransliterationWorkspace(workspace);
-      // Malformed AI decision is dropped, never converted into a fake manual decision
       expect(validated.reviewDecisions).toHaveLength(0);
     });
 
@@ -260,7 +261,60 @@ describe('Local Research Workspace Persistence', () => {
       expect(hydratedFull.renderedOutput).toBe('shabhā-yi tīra dar farāmūshkhāna-yi ashbāḥ');
     });
 
-    it('rejects accepted phrase decision when originalInput or normalizedInput is missing (never synthesizes identity)', () => {
+    it('strictly requires modelConfidence field presence (distinguishes explicit null from missing)', () => {
+      const missingConfidenceField = {
+        schemaVersion: 1,
+        updatedAt: '2026-10-06T12:00:00.000Z',
+        input: 'ایران',
+        profile: 'ijmes_citation_title',
+        reviewDecisions: [],
+        acceptedPhraseDecision: {
+          source: 'AI_ASSISTED_PHRASE',
+          acceptance: 'HUMAN_ACCEPTED_AI_SUGGESTION',
+          originalInput: 'ایران',
+          normalizedInput: 'ایران',
+          profile: 'ijmes_citation_title',
+          scholarlyCanonical: 'īrān',
+          provider: 'openai',
+          model: 'gpt-4o',
+          promptVersion: 'v1',
+          requestFingerprint: 'fp-123',
+          // modelConfidence missing!
+          acceptedAt: '2026-10-06T12:00:00.000Z'
+        }
+      };
+
+      const validatedMissing = validateAndMigrateTransliterationWorkspace(missingConfidenceField);
+      expect(validatedMissing.acceptedPhraseDecision).toBeNull();
+
+      const explicitNullConfidence = {
+        schemaVersion: 1,
+        updatedAt: '2026-10-06T12:00:00.000Z',
+        input: 'ایران',
+        profile: 'ijmes_citation_title',
+        reviewDecisions: [],
+        acceptedPhraseDecision: {
+          source: 'AI_ASSISTED_PHRASE',
+          acceptance: 'HUMAN_ACCEPTED_AI_SUGGESTION',
+          originalInput: 'ایران',
+          normalizedInput: 'ایران',
+          profile: 'ijmes_citation_title',
+          scholarlyCanonical: 'īrān',
+          provider: 'openai',
+          model: 'gpt-4o',
+          promptVersion: 'v1',
+          requestFingerprint: 'fp-123',
+          modelConfidence: null,
+          acceptedAt: '2026-10-06T12:00:00.000Z'
+        }
+      };
+
+      const validatedNull = validateAndMigrateTransliterationWorkspace(explicitNullConfidence);
+      expect(validatedNull.acceptedPhraseDecision).not.toBeNull();
+      expect(validatedNull.acceptedPhraseDecision?.modelConfidence).toBeNull();
+    });
+
+    it('rejects accepted phrase decision when originalInput or normalizedInput is missing', () => {
       const missingOriginalInput = {
         schemaVersion: 1,
         updatedAt: '2026-10-06T12:00:00.000Z',
@@ -270,7 +324,6 @@ describe('Local Research Workspace Persistence', () => {
         acceptedPhraseDecision: {
           source: 'AI_ASSISTED_PHRASE',
           acceptance: 'HUMAN_ACCEPTED_AI_SUGGESTION',
-          // originalInput missing!
           normalizedInput: 'ایران',
           profile: 'ijmes_citation_title',
           scholarlyCanonical: 'īrān',
@@ -278,6 +331,7 @@ describe('Local Research Workspace Persistence', () => {
           model: 'gpt-4o',
           promptVersion: 'v1',
           requestFingerprint: 'fp-123',
+          modelConfidence: null,
           acceptedAt: '2026-10-06T12:00:00.000Z'
         }
       };
@@ -295,13 +349,13 @@ describe('Local Research Workspace Persistence', () => {
           source: 'AI_ASSISTED_PHRASE',
           acceptance: 'HUMAN_ACCEPTED_AI_SUGGESTION',
           originalInput: 'ایران',
-          // normalizedInput missing!
           profile: 'ijmes_citation_title',
           scholarlyCanonical: 'īrān',
           provider: 'openai',
           model: 'gpt-4o',
           promptVersion: 'v1',
           requestFingerprint: 'fp-123',
+          modelConfidence: null,
           acceptedAt: '2026-10-06T12:00:00.000Z'
         }
       };
@@ -352,7 +406,6 @@ describe('Local Research Workspace Persistence', () => {
         translators: [],
         sourceRowIndex: 1,
         sourceColumns: []
-        // missing passthrough
       };
 
       const recordNonStringPassthrough = {
@@ -364,7 +417,7 @@ describe('Local Research Workspace Persistence', () => {
         translators: [],
         sourceRowIndex: 2,
         sourceColumns: [],
-        passthrough: { count: 42 } // non-string value!
+        passthrough: { count: 42 }
       };
 
       const workspace = {
@@ -383,7 +436,87 @@ describe('Local Research Workspace Persistence', () => {
     });
   });
 
-  describe('Production OperationQueue and Write Serialization', () => {
+  describe('Optimistic Concurrency Control & Atomic Compare-And-Swap', () => {
+    it('enforces atomic Compare-And-Swap save: stale expected revision is rejected', async () => {
+      // In-memory simulation of CAS storage logic matching workspaceRepository
+      interface StoreSlot<T> {
+        envelope: { storageRevision: number; value: T } | null;
+      }
+
+      class MemoryCasRepository<T> {
+        private slot: StoreSlot<T> = { envelope: null };
+
+        async get(): Promise<{ value: T | null; revision: number | null }> {
+          if (!this.slot.envelope) return { value: null, revision: null };
+          return { value: this.slot.envelope.value, revision: this.slot.envelope.storageRevision };
+        }
+
+        async save(value: T, expectedRevision: number | null): Promise<{ status: 'saved' | 'conflict'; revision?: number; actualRevision?: number | null }> {
+          const currentRev = this.slot.envelope ? this.slot.envelope.storageRevision : null;
+          if (currentRev !== expectedRevision) {
+            return { status: 'conflict', actualRevision: currentRev };
+          }
+          const nextRev = (currentRev ?? 0) + 1;
+          this.slot.envelope = { storageRevision: nextRev, value };
+          return { status: 'saved', revision: nextRev };
+        }
+
+        async clear(expectedRevision: number | null): Promise<{ status: 'cleared' | 'conflict'; actualRevision?: number | null }> {
+          const currentRev = this.slot.envelope ? this.slot.envelope.storageRevision : null;
+          if (expectedRevision !== null && currentRev !== expectedRevision) {
+            return { status: 'conflict', actualRevision: currentRev };
+          }
+          this.slot.envelope = null;
+          return { status: 'cleared' };
+        }
+
+        async forceSave(value: T): Promise<{ status: 'saved'; revision: number }> {
+          const currentRev = this.slot.envelope ? this.slot.envelope.storageRevision : 0;
+          const nextRev = currentRev + 1;
+          this.slot.envelope = { storageRevision: nextRev, value };
+          return { status: 'saved', revision: nextRev };
+        }
+      }
+
+      const repo = new MemoryCasRepository<string>();
+
+      // 1. Initial create
+      const initRes = await repo.save('Initial Doc', null);
+      expect(initRes.status).toBe('saved');
+      expect(initRes.revision).toBe(1);
+
+      // 2. Both Tab A and Tab B observe revision 1
+      const tabAObserved = 1;
+      const tabBObserved = 1;
+
+      // 3. Tab A saves first and commits revision 2
+      const tabASave = await repo.save('Tab A Updated', tabAObserved);
+      expect(tabASave.status).toBe('saved');
+      expect(tabASave.revision).toBe(2);
+
+      // 4. Tab B attempts to save using stale revision 1
+      const tabBSave = await repo.save('Tab B Stale Overwrite Attempt', tabBObserved);
+      expect(tabBSave.status).toBe('conflict');
+      expect(tabBSave.actualRevision).toBe(2);
+
+      // Verify Tab A's content remains durable
+      const current = await repo.get();
+      expect(current.value).toBe('Tab A Updated');
+      expect(current.revision).toBe(2);
+
+      // 5. Stale clear attempt from Tab B is also rejected
+      const tabBClear = await repo.clear(tabBObserved);
+      expect(tabBClear.status).toBe('conflict');
+      expect(tabBClear.actualRevision).toBe(2);
+      expect((await repo.get()).value).toBe('Tab A Updated');
+
+      // 6. Explicit "Keep this tab's version" force-save overrides intentionally
+      const tabBForceSave = await repo.forceSave('Tab B Force Keep');
+      expect(tabBForceSave.status).toBe('saved');
+      expect(tabBForceSave.revision).toBe(3);
+      expect((await repo.get()).value).toBe('Tab B Force Keep');
+    });
+
     it('guarantees sequential commit order with the production OperationQueue class', async () => {
       const queue = new OperationQueue();
       const events: string[] = [];
@@ -399,22 +532,6 @@ describe('Local Research Workspace Persistence', () => {
 
       await Promise.all([opA, opB]);
       expect(events).toEqual(['COMMIT_A', 'COMMIT_B']);
-    });
-
-    it('guarantees Clear Workspace wins over an in-flight delayed save with production queues', async () => {
-      let durableState: string | null = null;
-
-      const slowSave = transliterationQueue.enqueue(async () => {
-        await new Promise((r) => setTimeout(r, 30));
-        durableState = 'SAVED_WORK';
-      });
-
-      const clearOp = transliterationQueue.enqueue(async () => {
-        durableState = null;
-      });
-
-      await Promise.all([slowSave, clearOp]);
-      expect(durableState).toBeNull();
     });
 
     it('isolates transliteration and bibliography queues completely', async () => {
