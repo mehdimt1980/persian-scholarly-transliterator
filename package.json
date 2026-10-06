@@ -18,7 +18,8 @@
     "validate:gold-freeze": "tsx src/validation/review/goldFreezeV2Cli.ts",
     "evaluate:v2-frozen": "tsx src/validation/v2/phase46CBaselineCli.ts",
     "validate:v2-regression": "tsx src/validation/v2/frozenRegressionCli.ts",
-    "validate:portability": "tsx src/validation/release/releasePortabilityCli.ts"
+    "validate:portability": "tsx src/validation/release/releasePortabilityCli.ts",
+    "evidence:loc:pilot": "tsx src/domain/evidence/loc/cli.ts"
   },
   "dependencies": {
     "next": "16.3.8",
