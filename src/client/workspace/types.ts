@@ -48,7 +48,18 @@ export interface BibliographyWorkspaceV1 {
   exportMode: ScholarlyExportMode;
 }
 
-export type PersistenceStatus = 'restoring' | 'saved' | 'saving' | 'error';
+export type WorkspacePersistenceStatus =
+  | 'restoring'
+  | 'saving'
+  | 'saved'
+  | 'unavailable'
+  | 'error'
+  | 'unsupported-schema'
+  | 'conflict';
+
+export type PersistenceStatus = WorkspacePersistenceStatus;
+
+export type CrossTabConflictType = 'UPDATED' | 'CLEARED' | null;
 
 export type WorkspaceLoadResult<T> =
   | { status: 'ok'; value: T | null }
@@ -71,7 +82,10 @@ export interface RuntimeTransliterationWorkspace {
 
 export interface ResearchWorkspaceContextValue {
   ready: boolean;
-  persistenceStatus: PersistenceStatus;
+  persistenceStatus: {
+    transliteration: WorkspacePersistenceStatus;
+    bibliography: WorkspacePersistenceStatus;
+  };
 
   transliteration: RuntimeTransliterationWorkspace;
   updateTransliteration: (
@@ -89,11 +103,12 @@ export interface ResearchWorkspaceContextValue {
   ) => void;
   resetBibliography: () => Promise<void>;
 
-  crossTabNotice: {
-    transliteration: boolean;
-    bibliography: boolean;
+  crossTabConflict: {
+    transliteration: CrossTabConflictType;
+    bibliography: CrossTabConflictType;
   };
-  dismissCrossTabNotice: (workspace: 'transliteration' | 'bibliography') => void;
-  reloadFromStorage: (workspace: 'transliteration' | 'bibliography') => Promise<void>;
+  resolveCrossTabConflict: (
+    workspace: 'transliteration' | 'bibliography',
+    resolution: 'reload' | 'keep'
+  ) => Promise<void>;
 }
-

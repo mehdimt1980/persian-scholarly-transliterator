@@ -3,10 +3,12 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type {
   BibliographyWorkspaceV1,
+  CrossTabConflictType,
   PersistenceStatus,
   ResearchWorkspaceContextValue,
   RuntimeTransliterationWorkspace,
-  TransliterationWorkspaceV1
+  TransliterationWorkspaceV1,
+  WorkspacePersistenceStatus
 } from './types';
 import {
   createDefaultTransliterationWorkspace,
@@ -56,7 +58,13 @@ function toSerializableTransliterationJson(
 
 export function ResearchWorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
-  const [persistenceStatus, setPersistenceStatus] = useState<PersistenceStatus>('restoring');
+  const [persistenceStatus, setPersistenceStatus] = useState<{
+    transliteration: WorkspacePersistenceStatus;
+    bibliography: WorkspacePersistenceStatus;
+  }>({
+    transliteration: 'restoring',
+    bibliography: 'restoring'
+  });
 
   const [transliteration, setTransliteration] = useState<RuntimeTransliterationWorkspace>(() =>
     toRuntimeTransliterationWorkspace(createDefaultTransliterationWorkspace())
@@ -65,21 +73,24 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
     createDefaultBibliographyWorkspace
   );
 
-  const [crossTabNotice, setCrossTabNotice] = useState<{
-    transliteration: boolean;
-    bibliography: boolean;
+  const [crossTabConflict, setCrossTabConflict] = useState<{
+    transliteration: CrossTabConflictType;
+    bibliography: CrossTabConflictType;
   }>({
-    transliteration: false,
-    bibliography: false
+    transliteration: null,
+    bibliography: null
   });
 
   const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
-  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const transliterationSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bibliographySaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const latestTransliterationRef = useRef<RuntimeTransliterationWorkspace>(transliteration);
   const latestBibliographyRef = useRef<BibliographyWorkspaceV1>(bibliography);
   const lastSavedTransliterationJsonRef = useRef<string>('');
   const lastSavedBibliographyJsonRef = useRef<string>('');
   const isRestoringRef = useRef<boolean>(true);
+
   const unsupportedSchemaRef = useRef<{
     transliteration: boolean;
     bibliography: boolean;
@@ -87,6 +98,9 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
     transliteration: false,
     bibliography: false
   });
+
+  const crossTabConflictRef = useRef(crossTabConflict);
+  crossTabConflictRef.current = crossTabConflict;
 
   latestTransliterationRef.current = transliteration;
   latestBibliographyRef.current = bibliography;
@@ -104,13 +118,17 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
 
         if (cancelled) return;
 
-        let hasUnavailable = false;
+        let transStatus: WorkspacePersistenceStatus = 'saved';
+        let bibStatus: WorkspacePersistenceStatus = 'saved';
 
         // Transliteration restore evaluation
         if (transRes.status === 'unavailable') {
-          hasUnavailable = true;
+          transStatus = 'unavailable';
         } else if (transRes.status === 'unsupported-schema') {
+          transStatus = 'unsupported-schema';
           unsupportedSchemaRef.current.transliteration = true;
+        } else if (transRes.status === 'error') {
+          transStatus = 'error';
         } else if (transRes.status === 'ok' && transRes.value) {
           const runtime = toRuntimeTransliterationWorkspace(transRes.value);
           setTransliteration(runtime);
@@ -123,9 +141,12 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
 
         // Bibliography restore evaluation
         if (bibRes.status === 'unavailable') {
-          hasUnavailable = true;
+          bibStatus = 'unavailable';
         } else if (bibRes.status === 'unsupported-schema') {
+          bibStatus = 'unsupported-schema';
           unsupportedSchemaRef.current.bibliography = true;
+        } else if (bibRes.status === 'error') {
+          bibStatus = 'error';
         } else if (bibRes.status === 'ok' && bibRes.value) {
           setBibliography(bibRes.value);
           lastSavedBibliographyJsonRef.current = JSON.stringify(bibRes.value);
@@ -137,17 +158,18 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
 
         isRestoringRef.current = false;
         setReady(true);
-
-        if (hasUnavailable || transRes.status === 'error' || bibRes.status === 'error') {
-          setPersistenceStatus('error');
-        } else {
-          setPersistenceStatus('saved');
-        }
+        setPersistenceStatus({
+          transliteration: transStatus,
+          bibliography: bibStatus
+        });
       } catch {
         if (cancelled) return;
         isRestoringRef.current = false;
         setReady(true);
-        setPersistenceStatus('error');
+        setPersistenceStatus({
+          transliteration: 'error',
+          bibliography: 'error'
+        });
       }
     }
 
@@ -159,11 +181,25 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
         const channel = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
         channel.onmessage = (event) => {
           const data = event.data;
-          if (data && typeof data === 'object' && (data.type === 'WORKSPACE_SAVED' || data.type === 'WORKSPACE_CLEARED')) {
-            if (data.workspace === 'transliteration') {
-              setCrossTabNotice((prev) => ({ ...prev, transliteration: true }));
-            } else if (data.workspace === 'bibliography') {
-              setCrossTabNotice((prev) => ({ ...prev, bibliography: true }));
+          if (data && typeof data === 'object') {
+            if (data.type === 'WORKSPACE_SAVED' || data.type === 'WORKSPACE_CLEARED') {
+              const conflictKind: CrossTabConflictType =
+                data.type === 'WORKSPACE_SAVED' ? 'UPDATED' : 'CLEARED';
+              if (data.workspace === 'transliteration') {
+                if (transliterationSaveTimeoutRef.current) {
+                  clearTimeout(transliterationSaveTimeoutRef.current);
+                  transliterationSaveTimeoutRef.current = null;
+                }
+                setCrossTabConflict((prev) => ({ ...prev, transliteration: conflictKind }));
+                setPersistenceStatus((prev) => ({ ...prev, transliteration: 'conflict' }));
+              } else if (data.workspace === 'bibliography') {
+                if (bibliographySaveTimeoutRef.current) {
+                  clearTimeout(bibliographySaveTimeoutRef.current);
+                  bibliographySaveTimeoutRef.current = null;
+                }
+                setCrossTabConflict((prev) => ({ ...prev, bibliography: conflictKind }));
+                setPersistenceStatus((prev) => ({ ...prev, bibliography: 'conflict' }));
+              }
             }
           }
         };
@@ -182,110 +218,164 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
     };
   }, []);
 
-  // Flush helper
-  const flushSave = async () => {
-    if (isRestoringRef.current || !ready) return;
+  // Independent Transliteration Flush
+  const flushTransliterationSave = async () => {
+    if (
+      isRestoringRef.current ||
+      !ready ||
+      unsupportedSchemaRef.current.transliteration ||
+      crossTabConflictRef.current.transliteration !== null
+    ) {
+      return;
+    }
 
     const currentTrans = latestTransliterationRef.current;
-    const currentBib = latestBibliographyRef.current;
     const transJson = toSerializableTransliterationJson(currentTrans);
-    const bibJson = JSON.stringify(currentBib);
 
-    const transChanged =
-      !unsupportedSchemaRef.current.transliteration &&
-      transJson !== lastSavedTransliterationJsonRef.current;
-    const bibChanged =
-      !unsupportedSchemaRef.current.bibliography &&
-      bibJson !== lastSavedBibliographyJsonRef.current;
-
-    if (!transChanged && !bibChanged) return;
+    if (transJson === lastSavedTransliterationJsonRef.current) return;
 
     try {
-      if (transChanged) {
-        await workspaceRepository.saveTransliterationWorkspace(currentTrans);
-        lastSavedTransliterationJsonRef.current = transJson;
-        try {
-          broadcastChannelRef.current?.postMessage({
-            type: 'WORKSPACE_SAVED',
-            workspace: 'transliteration'
-          });
-        } catch {
-          // ignore
-        }
+      await workspaceRepository.saveTransliterationWorkspace(currentTrans);
+      lastSavedTransliterationJsonRef.current = transJson;
+      try {
+        broadcastChannelRef.current?.postMessage({
+          type: 'WORKSPACE_SAVED',
+          workspace: 'transliteration'
+        });
+      } catch {
+        // ignore
       }
-
-      if (bibChanged) {
-        await workspaceRepository.saveBibliographyWorkspace(currentBib);
-        lastSavedBibliographyJsonRef.current = bibJson;
-        try {
-          broadcastChannelRef.current?.postMessage({
-            type: 'WORKSPACE_SAVED',
-            workspace: 'bibliography'
-          });
-        } catch {
-          // ignore
-        }
-      }
-
-      setPersistenceStatus('saved');
+      setPersistenceStatus((prev) => ({ ...prev, transliteration: 'saved' }));
     } catch {
-      setPersistenceStatus('error');
+      setPersistenceStatus((prev) => ({ ...prev, transliteration: 'error' }));
     }
   };
 
-  // 2. Debounced Autosave (strictly disabled while not ready or restoring)
-  useEffect(() => {
-    if (!ready || isRestoringRef.current) return;
-
-    const transJson = toSerializableTransliterationJson(transliteration);
-    const bibJson = JSON.stringify(bibliography);
-
-    const transChanged =
-      !unsupportedSchemaRef.current.transliteration &&
-      transJson !== lastSavedTransliterationJsonRef.current;
-    const bibChanged =
-      !unsupportedSchemaRef.current.bibliography &&
-      bibJson !== lastSavedBibliographyJsonRef.current;
-
-    if (!transChanged && !bibChanged) return;
-
-    setPersistenceStatus('saving');
-
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
+  // Independent Bibliography Flush
+  const flushBibliographySave = async () => {
+    if (
+      isRestoringRef.current ||
+      !ready ||
+      unsupportedSchemaRef.current.bibliography ||
+      crossTabConflictRef.current.bibliography !== null
+    ) {
+      return;
     }
 
-    saveTimeoutRef.current = setTimeout(async () => {
-      await flushSave();
+    const currentBib = latestBibliographyRef.current;
+    const bibJson = JSON.stringify(currentBib);
+
+    if (bibJson === lastSavedBibliographyJsonRef.current) return;
+
+    try {
+      await workspaceRepository.saveBibliographyWorkspace(currentBib);
+      lastSavedBibliographyJsonRef.current = bibJson;
+      try {
+        broadcastChannelRef.current?.postMessage({
+          type: 'WORKSPACE_SAVED',
+          workspace: 'bibliography'
+        });
+      } catch {
+        // ignore
+      }
+      setPersistenceStatus((prev) => ({ ...prev, bibliography: 'saved' }));
+    } catch {
+      setPersistenceStatus((prev) => ({ ...prev, bibliography: 'error' }));
+    }
+  };
+
+  // 2. Independent Debounced Autosave for Transliteration
+  useEffect(() => {
+    if (
+      !ready ||
+      isRestoringRef.current ||
+      unsupportedSchemaRef.current.transliteration ||
+      crossTabConflict.transliteration !== null
+    ) {
+      return;
+    }
+
+    const transJson = toSerializableTransliterationJson(transliteration);
+    if (transJson === lastSavedTransliterationJsonRef.current) return;
+
+    setPersistenceStatus((prev) => ({ ...prev, transliteration: 'saving' }));
+
+    if (transliterationSaveTimeoutRef.current) {
+      clearTimeout(transliterationSaveTimeoutRef.current);
+    }
+
+    transliterationSaveTimeoutRef.current = setTimeout(async () => {
+      await flushTransliterationSave();
     }, AUTOSAVE_DEBOUNCE_MS);
 
     return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
+      if (transliterationSaveTimeoutRef.current) {
+        clearTimeout(transliterationSaveTimeoutRef.current);
       }
     };
-  }, [transliteration, bibliography, ready]);
+  }, [transliteration, ready, crossTabConflict.transliteration]);
 
-  // 3. Lifecycle listeners for pagehide & document visibilitychange
+  // 2b. Independent Debounced Autosave for Bibliography
+  useEffect(() => {
+    if (
+      !ready ||
+      isRestoringRef.current ||
+      unsupportedSchemaRef.current.bibliography ||
+      crossTabConflict.bibliography !== null
+    ) {
+      return;
+    }
+
+    const bibJson = JSON.stringify(bibliography);
+    if (bibJson === lastSavedBibliographyJsonRef.current) return;
+
+    setPersistenceStatus((prev) => ({ ...prev, bibliography: 'saving' }));
+
+    if (bibliographySaveTimeoutRef.current) {
+      clearTimeout(bibliographySaveTimeoutRef.current);
+    }
+
+    bibliographySaveTimeoutRef.current = setTimeout(async () => {
+      await flushBibliographySave();
+    }, AUTOSAVE_DEBOUNCE_MS);
+
+    return () => {
+      if (bibliographySaveTimeoutRef.current) {
+        clearTimeout(bibliographySaveTimeoutRef.current);
+      }
+    };
+  }, [bibliography, ready, crossTabConflict.bibliography]);
+
+  // 3. Independent Lifecycle Listeners for document visibilitychange & pagehide
   useEffect(() => {
     if (!ready) return;
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
-        if (saveTimeoutRef.current) {
-          clearTimeout(saveTimeoutRef.current);
-          saveTimeoutRef.current = null;
+        if (transliterationSaveTimeoutRef.current) {
+          clearTimeout(transliterationSaveTimeoutRef.current);
+          transliterationSaveTimeoutRef.current = null;
         }
-        flushSave();
+        if (bibliographySaveTimeoutRef.current) {
+          clearTimeout(bibliographySaveTimeoutRef.current);
+          bibliographySaveTimeoutRef.current = null;
+        }
+        flushTransliterationSave();
+        flushBibliographySave();
       }
     };
 
     const handlePageHide = () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-        saveTimeoutRef.current = null;
+      if (transliterationSaveTimeoutRef.current) {
+        clearTimeout(transliterationSaveTimeoutRef.current);
+        transliterationSaveTimeoutRef.current = null;
       }
-      flushSave();
+      if (bibliographySaveTimeoutRef.current) {
+        clearTimeout(bibliographySaveTimeoutRef.current);
+        bibliographySaveTimeoutRef.current = null;
+      }
+      flushTransliterationSave();
+      flushBibliographySave();
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -322,9 +412,9 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
   };
 
   const resetTransliteration = async () => {
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = null;
+    if (transliterationSaveTimeoutRef.current) {
+      clearTimeout(transliterationSaveTimeoutRef.current);
+      transliterationSaveTimeoutRef.current = null;
     }
     const defaultWorkspace = toRuntimeTransliterationWorkspace(
       createDefaultTransliterationWorkspace()
@@ -332,7 +422,7 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
     setTransliteration(defaultWorkspace);
     lastSavedTransliterationJsonRef.current = toSerializableTransliterationJson(defaultWorkspace);
     unsupportedSchemaRef.current.transliteration = false;
-    setCrossTabNotice((prev) => ({ ...prev, transliteration: false }));
+    setCrossTabConflict((prev) => ({ ...prev, transliteration: null }));
 
     try {
       await workspaceRepository.clearTransliterationWorkspace();
@@ -344,9 +434,9 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
       } catch {
         // ignore
       }
-      setPersistenceStatus('saved');
+      setPersistenceStatus((prev) => ({ ...prev, transliteration: 'saved' }));
     } catch {
-      setPersistenceStatus('error');
+      setPersistenceStatus((prev) => ({ ...prev, transliteration: 'error' }));
     }
   };
 
@@ -374,15 +464,15 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
   };
 
   const resetBibliography = async () => {
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = null;
+    if (bibliographySaveTimeoutRef.current) {
+      clearTimeout(bibliographySaveTimeoutRef.current);
+      bibliographySaveTimeoutRef.current = null;
     }
     const defaultWorkspace = createDefaultBibliographyWorkspace();
     setBibliography(defaultWorkspace);
     lastSavedBibliographyJsonRef.current = JSON.stringify(defaultWorkspace);
     unsupportedSchemaRef.current.bibliography = false;
-    setCrossTabNotice((prev) => ({ ...prev, bibliography: false }));
+    setCrossTabConflict((prev) => ({ ...prev, bibliography: null }));
 
     try {
       await workspaceRepository.clearBibliographyWorkspace();
@@ -394,37 +484,86 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
       } catch {
         // ignore
       }
-      setPersistenceStatus('saved');
+      setPersistenceStatus((prev) => ({ ...prev, bibliography: 'saved' }));
     } catch {
-      setPersistenceStatus('error');
+      setPersistenceStatus((prev) => ({ ...prev, bibliography: 'error' }));
     }
   };
 
-  const dismissCrossTabNotice = (workspace: 'transliteration' | 'bibliography') => {
-    setCrossTabNotice((prev) => ({ ...prev, [workspace]: false }));
-  };
-
-  const reloadFromStorage = async (workspace: 'transliteration' | 'bibliography') => {
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = null;
-    }
-
+  const resolveCrossTabConflict = async (
+    workspace: 'transliteration' | 'bibliography',
+    resolution: 'reload' | 'keep'
+  ) => {
     if (workspace === 'transliteration') {
-      const res = await workspaceRepository.getTransliterationWorkspace();
-      if (res.status === 'ok' && res.value) {
-        const runtime = toRuntimeTransliterationWorkspace(res.value);
-        setTransliteration(runtime);
-        lastSavedTransliterationJsonRef.current = toSerializableTransliterationJson(runtime);
+      if (transliterationSaveTimeoutRef.current) {
+        clearTimeout(transliterationSaveTimeoutRef.current);
+        transliterationSaveTimeoutRef.current = null;
       }
-      setCrossTabNotice((prev) => ({ ...prev, transliteration: false }));
+
+      if (resolution === 'reload') {
+        const res = await workspaceRepository.getTransliterationWorkspace();
+        if (res.status === 'ok') {
+          const runtime = res.value
+            ? toRuntimeTransliterationWorkspace(res.value)
+            : toRuntimeTransliterationWorkspace(createDefaultTransliterationWorkspace());
+          setTransliteration(runtime);
+          lastSavedTransliterationJsonRef.current = toSerializableTransliterationJson(runtime);
+          setCrossTabConflict((prev) => ({ ...prev, transliteration: null }));
+          setPersistenceStatus((prev) => ({ ...prev, transliteration: 'saved' }));
+        }
+      } else if (resolution === 'keep') {
+        setCrossTabConflict((prev) => ({ ...prev, transliteration: null }));
+        const currentTrans = latestTransliterationRef.current;
+        try {
+          await workspaceRepository.saveTransliterationWorkspace(currentTrans);
+          lastSavedTransliterationJsonRef.current = toSerializableTransliterationJson(currentTrans);
+          try {
+            broadcastChannelRef.current?.postMessage({
+              type: 'WORKSPACE_SAVED',
+              workspace: 'transliteration'
+            });
+          } catch {
+            // ignore
+          }
+          setPersistenceStatus((prev) => ({ ...prev, transliteration: 'saved' }));
+        } catch {
+          setPersistenceStatus((prev) => ({ ...prev, transliteration: 'error' }));
+        }
+      }
     } else if (workspace === 'bibliography') {
-      const res = await workspaceRepository.getBibliographyWorkspace();
-      if (res.status === 'ok' && res.value) {
-        setBibliography(res.value);
-        lastSavedBibliographyJsonRef.current = JSON.stringify(res.value);
+      if (bibliographySaveTimeoutRef.current) {
+        clearTimeout(bibliographySaveTimeoutRef.current);
+        bibliographySaveTimeoutRef.current = null;
       }
-      setCrossTabNotice((prev) => ({ ...prev, bibliography: false }));
+
+      if (resolution === 'reload') {
+        const res = await workspaceRepository.getBibliographyWorkspace();
+        if (res.status === 'ok') {
+          const bib = res.value ?? createDefaultBibliographyWorkspace();
+          setBibliography(bib);
+          lastSavedBibliographyJsonRef.current = JSON.stringify(bib);
+          setCrossTabConflict((prev) => ({ ...prev, bibliography: null }));
+          setPersistenceStatus((prev) => ({ ...prev, bibliography: 'saved' }));
+        }
+      } else if (resolution === 'keep') {
+        setCrossTabConflict((prev) => ({ ...prev, bibliography: null }));
+        const currentBib = latestBibliographyRef.current;
+        try {
+          await workspaceRepository.saveBibliographyWorkspace(currentBib);
+          lastSavedBibliographyJsonRef.current = JSON.stringify(currentBib);
+          try {
+            broadcastChannelRef.current?.postMessage({
+              type: 'WORKSPACE_SAVED',
+              workspace: 'bibliography'
+            });
+          } catch {
+            // ignore
+          }
+          setPersistenceStatus((prev) => ({ ...prev, bibliography: 'saved' }));
+        } catch {
+          setPersistenceStatus((prev) => ({ ...prev, bibliography: 'error' }));
+        }
+      }
     }
   };
 
@@ -437,9 +576,8 @@ export function ResearchWorkspaceProvider({ children }: { children: React.ReactN
     bibliography,
     updateBibliography,
     resetBibliography,
-    crossTabNotice,
-    dismissCrossTabNotice,
-    reloadFromStorage
+    crossTabConflict,
+    resolveCrossTabConflict
   };
 
   return (

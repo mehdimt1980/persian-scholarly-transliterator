@@ -15,6 +15,7 @@ import {
   createDefaultTransliterationWorkspace,
   createDefaultBibliographyWorkspace
 } from './defaults';
+import { OperationQueue } from './operationQueue';
 
 const DB_NAME = 'persian-scholarly-transliterator';
 const DB_VERSION = 1;
@@ -41,7 +42,6 @@ function getDatabase(): Promise<IDBDatabase | null> {
 
   if (cachedDb) {
     try {
-      // Check if connection is still usable
       if (cachedDb.objectStoreNames.contains(STORE_NAME)) {
         return Promise.resolve(cachedDb);
       }
@@ -102,21 +102,8 @@ function getDatabase(): Promise<IDBDatabase | null> {
   return dbOpenPromise;
 }
 
-class OperationQueue {
-  private currentPromise: Promise<unknown> = Promise.resolve();
-
-  enqueue<R>(op: () => Promise<R>): Promise<R> {
-    const nextPromise = this.currentPromise.then(
-      () => op(),
-      () => op()
-    );
-    this.currentPromise = nextPromise.catch(() => {});
-    return nextPromise;
-  }
-}
-
-const transliterationQueue = new OperationQueue();
-const bibliographyQueue = new OperationQueue();
+export const transliterationQueue = new OperationQueue();
+export const bibliographyQueue = new OperationQueue();
 
 async function getWorkspaceRawDirect<T>(key: string): Promise<WorkspaceLoadResult<T>> {
   if (!isIndexedDbAvailable()) {
@@ -259,7 +246,6 @@ export const workspaceRepository = {
     workspace: TransliterationWorkspaceV1 | RuntimeTransliterationWorkspace
   ): Promise<void> {
     return transliterationQueue.enqueue(async () => {
-      // Ensure accepted phrase decision has no renderedOutput persisted
       const serializable: TransliterationWorkspaceV1 = {
         schemaVersion: 1,
         updatedAt: workspace.updatedAt || new Date().toISOString(),

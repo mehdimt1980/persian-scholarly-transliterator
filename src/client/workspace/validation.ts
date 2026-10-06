@@ -1,4 +1,4 @@
-import type { ProfileId, ReviewDecision, ReviewActionType } from '../../domain/types';
+import type { ProfileId, ReviewDecision, ReviewActionType, AssistanceDecisionMetadata } from '../../domain/types';
 import type { AcceptedPhraseDecision } from '../../domain/assistance/phraseTypes';
 import type {
   BibliographyRecord,
@@ -91,12 +91,40 @@ export function fromPersistedAcceptedPhraseDecision(
   };
 }
 
+function validateAssistanceMetadata(a: unknown): AssistanceDecisionMetadata | null {
+  if (!isObject(a)) return null;
+  if (typeof a.suggestionId !== 'string' || a.suggestionId.trim().length === 0) return null;
+  if (typeof a.provider !== 'string' || a.provider.trim().length === 0) return null;
+  if (typeof a.model !== 'string' || a.model.trim().length === 0) return null;
+  if (typeof a.promptVersion !== 'string' || a.promptVersion.trim().length === 0) return null;
+  if (typeof a.requestFingerprint !== 'string' || a.requestFingerprint.trim().length === 0) return null;
+
+  return {
+    suggestionId: a.suggestionId,
+    provider: a.provider,
+    model: a.model,
+    promptVersion: a.promptVersion,
+    requestFingerprint: a.requestFingerprint
+  };
+}
+
 function validateSingleReviewDecision(d: unknown): ReviewDecision | null {
   if (!isObject(d)) return null;
   if (typeof d.issueId !== 'string' || d.issueId.trim().length === 0) return null;
   if (typeof d.action !== 'string' || !VALID_REVIEW_ACTIONS.has(d.action)) return null;
 
   const action = d.action as ReviewActionType;
+
+  // Validate assistance provenance when explicitly present
+  let assistance: AssistanceDecisionMetadata | undefined = undefined;
+  if (d.assistance !== undefined && d.assistance !== null) {
+    const validAssistance = validateAssistanceMetadata(d.assistance);
+    if (!validAssistance) {
+      // Reject decision rather than silently stripping provenance
+      return null;
+    }
+    assistance = validAssistance;
+  }
 
   if (action === 'SELECT_LEXICAL_READING' || action === 'SELECT_MORPHOLOGY') {
     if (typeof d.selectedAlternativeId !== 'string' || d.selectedAlternativeId.trim().length === 0) {
@@ -108,6 +136,7 @@ function validateSingleReviewDecision(d: unknown): ReviewDecision | null {
       selectedAlternativeId: d.selectedAlternativeId
     };
     if (typeof d.note === 'string') res.note = d.note;
+    if (assistance) res.assistance = assistance;
     return res;
   }
 
@@ -122,6 +151,7 @@ function validateSingleReviewDecision(d: unknown): ReviewDecision | null {
       manualCanonicalTransliteration: manualValidation.normalized
     };
     if (typeof d.note === 'string') res.note = d.note;
+    if (assistance) res.assistance = assistance;
     return res;
   }
 
@@ -131,6 +161,7 @@ function validateSingleReviewDecision(d: unknown): ReviewDecision | null {
       action
     };
     if (typeof d.note === 'string') res.note = d.note;
+    if (assistance) res.assistance = assistance;
     return res;
   }
 
@@ -138,8 +169,7 @@ function validateSingleReviewDecision(d: unknown): ReviewDecision | null {
 }
 
 function validatePersistedAcceptedPhraseDecision(
-  data: unknown,
-  fallbackInput: string
+  data: unknown
 ): PersistedAcceptedPhraseDecisionV1 | null {
   if (!isObject(data)) return null;
 
@@ -151,12 +181,13 @@ function validatePersistedAcceptedPhraseDecision(
     return null;
   }
 
-  const originalInput = typeof data.originalInput === 'string' && data.originalInput.length > 0
-    ? data.originalInput
-    : fallbackInput;
-  const normalizedInput = typeof data.normalizedInput === 'string'
-    ? data.normalizedInput
-    : '';
+  // Identity fields must be non-empty strings — do NOT synthesize
+  if (typeof data.originalInput !== 'string' || data.originalInput.trim().length === 0) {
+    return null;
+  }
+  if (typeof data.normalizedInput !== 'string' || data.normalizedInput.trim().length === 0) {
+    return null;
+  }
 
   // Profile validation with legacy ijmes_title migration
   let profile: ProfileId;
@@ -203,8 +234,8 @@ function validatePersistedAcceptedPhraseDecision(
   return {
     source: 'AI_ASSISTED_PHRASE',
     acceptance: data.acceptance,
-    originalInput,
-    normalizedInput,
+    originalInput: data.originalInput,
+    normalizedInput: data.normalizedInput,
     profile,
     scholarlyCanonical: canonicalVal.normalized,
     provider: data.provider,
@@ -223,24 +254,39 @@ export function parseTransliterationWorkspace(
     return { success: false, reason: 'CORRUPTED_DATA' };
   }
 
-  // Check schema version: must not coerce unknown future versions
-  if (data.schemaVersion !== undefined && data.schemaVersion !== 1) {
+  // Explicit schemaVersion required
+  if (data.schemaVersion === undefined || data.schemaVersion === null) {
+    return { success: false, reason: 'CORRUPTED_DATA' };
+  }
+  if (typeof data.schemaVersion === 'number' && data.schemaVersion !== 1) {
     return {
       success: false,
       reason: 'UNSUPPORTED_SCHEMA',
       rawVersion: data.schemaVersion
     };
   }
+  if (data.schemaVersion !== 1) {
+    return { success: false, reason: 'CORRUPTED_DATA' };
+  }
 
-  const updatedAt = isValidIsoDate(data.updatedAt) ? (data.updatedAt as string) : new Date().toISOString();
-  const input = typeof data.input === 'string' ? data.input : createDefaultTransliterationWorkspace().input;
+  if (!isValidIsoDate(data.updatedAt)) {
+    return { success: false, reason: 'CORRUPTED_DATA' };
+  }
+  const updatedAt = data.updatedAt as string;
 
-  // Profile migration: legacy ijmes_title -> ijmes_citation_title
-  let profile: ProfileId = 'ijmes_citation_title';
+  if (typeof data.input !== 'string') {
+    return { success: false, reason: 'CORRUPTED_DATA' };
+  }
+  const input = data.input;
+
+  // Profile validation with legacy migration; unknown profiles fail validation
+  let profile: ProfileId;
   if (data.profile === 'ijmes_title') {
     profile = 'ijmes_citation_title';
   } else if (typeof data.profile === 'string' && VALID_PROFILES.has(data.profile)) {
     profile = data.profile as ProfileId;
+  } else {
+    return { success: false, reason: 'CORRUPTED_DATA' };
   }
 
   // Review decisions
@@ -254,11 +300,10 @@ export function parseTransliterationWorkspace(
     }
   }
 
-  // Accepted phrase decision: validated strictly without fabricating provenance
-  const acceptedPhraseDecision = validatePersistedAcceptedPhraseDecision(
-    data.acceptedPhraseDecision,
-    input
-  );
+  // Accepted phrase decision: validated strictly without fabricating provenance or identity
+  const acceptedPhraseDecision = data.acceptedPhraseDecision
+    ? validatePersistedAcceptedPhraseDecision(data.acceptedPhraseDecision)
+    : null;
 
   return {
     success: true,
@@ -352,13 +397,16 @@ function validateBibliographyRecord(r: unknown): BibliographyRecord | null {
     return null;
   }
 
+  // passthrough is strictly required to be a plain string-to-string dictionary
+  if (!isObject(r.passthrough)) {
+    return null;
+  }
   const passthrough: Record<string, string> = {};
-  if (isObject(r.passthrough)) {
-    for (const [k, v] of Object.entries(r.passthrough)) {
-      if (typeof v === 'string') {
-        passthrough[k] = v;
-      }
+  for (const [k, v] of Object.entries(r.passthrough)) {
+    if (typeof v !== 'string') {
+      return null;
     }
+    passthrough[k] = v;
   }
 
   const record: BibliographyRecord = {
@@ -427,17 +475,30 @@ export function parseBibliographyWorkspace(
     return { success: false, reason: 'CORRUPTED_DATA' };
   }
 
-  // Schema version: do not coerce unknown future versions
-  if (data.schemaVersion !== undefined && data.schemaVersion !== 1) {
+  // Explicit schemaVersion required
+  if (data.schemaVersion === undefined || data.schemaVersion === null) {
+    return { success: false, reason: 'CORRUPTED_DATA' };
+  }
+  if (typeof data.schemaVersion === 'number' && data.schemaVersion !== 1) {
     return {
       success: false,
       reason: 'UNSUPPORTED_SCHEMA',
       rawVersion: data.schemaVersion
     };
   }
+  if (data.schemaVersion !== 1) {
+    return { success: false, reason: 'CORRUPTED_DATA' };
+  }
 
-  const updatedAt = isValidIsoDate(data.updatedAt) ? (data.updatedAt as string) : new Date().toISOString();
-  const csvText = typeof data.csvText === 'string' ? data.csvText : createDefaultBibliographyWorkspace().csvText;
+  if (!isValidIsoDate(data.updatedAt)) {
+    return { success: false, reason: 'CORRUPTED_DATA' };
+  }
+  const updatedAt = data.updatedAt as string;
+
+  if (typeof data.csvText !== 'string') {
+    return { success: false, reason: 'CORRUPTED_DATA' };
+  }
+  const csvText = data.csvText;
 
   // Records validation: strict validation of each record
   const records: BibliographyRecord[] = [];

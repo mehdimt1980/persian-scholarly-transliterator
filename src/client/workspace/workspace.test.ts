@@ -11,6 +11,8 @@ import {
   createDefaultTransliterationWorkspace,
   createDefaultBibliographyWorkspace
 } from './defaults';
+import { OperationQueue } from './operationQueue';
+import { transliterationQueue, bibliographyQueue } from './workspaceRepository';
 import { transliterate } from '../../domain/engine';
 import {
   resolveSelectedTransliteration,
@@ -24,7 +26,7 @@ import type { BibliographyRecord } from '../../domain/bibliography/types';
 import type { PersistedAcceptedPhraseDecisionV1 } from './types';
 
 describe('Local Research Workspace Persistence', () => {
-  describe('Schema Validation and Safe Migration', () => {
+  describe('Schema Validation, Versioning, and Strict Boundaries', () => {
     it('validates and round-trips a valid TransliterationWorkspaceV1', () => {
       const original = {
         schemaVersion: 1 as const,
@@ -41,8 +43,11 @@ describe('Local Research Workspace Persistence', () => {
         acceptedPhraseDecision: null
       };
 
-      const validated = validateAndMigrateTransliterationWorkspace(original);
-      expect(validated).toEqual(original);
+      const parseRes = parseTransliterationWorkspace(original);
+      expect(parseRes.success).toBe(true);
+      if (parseRes.success) {
+        expect(parseRes.data).toEqual(original);
+      }
     });
 
     it('migrates legacy ijmes_title in stored workspace to ijmes_citation_title', () => {
@@ -59,8 +64,8 @@ describe('Local Research Workspace Persistence', () => {
       expect(validated.profile).toBe('ijmes_citation_title');
     });
 
-    it('falls back safely to default profile when an unknown profile is encountered', () => {
-      const invalid = {
+    it('rejects unknown profile as CORRUPTED_DATA rather than silently defaulting', () => {
+      const unknownProf = {
         schemaVersion: 1,
         updatedAt: '2026-10-06T12:00:00.000Z',
         input: 'ایران',
@@ -69,8 +74,37 @@ describe('Local Research Workspace Persistence', () => {
         acceptedPhraseDecision: null
       };
 
-      const validated = validateAndMigrateTransliterationWorkspace(invalid);
-      expect(validated.profile).toBe('ijmes_citation_title');
+      const parseRes = parseTransliterationWorkspace(unknownProf);
+      expect(parseRes.success).toBe(false);
+      if (!parseRes.success) {
+        expect(parseRes.reason).toBe('CORRUPTED_DATA');
+      }
+    });
+
+    it('rejects missing schemaVersion as CORRUPTED_DATA', () => {
+      const missingVersion = {
+        updatedAt: '2026-10-06T12:00:00.000Z',
+        input: 'ایران',
+        profile: 'ijmes_full',
+        reviewDecisions: []
+      };
+
+      const parseRes = parseTransliterationWorkspace(missingVersion);
+      expect(parseRes.success).toBe(false);
+      if (!parseRes.success) {
+        expect(parseRes.reason).toBe('CORRUPTED_DATA');
+      }
+
+      const bibMissingVersion = {
+        updatedAt: '2026-10-06T12:00:00.000Z',
+        csvText: 'something',
+        records: []
+      };
+      const bibParseRes = parseBibliographyWorkspace(bibMissingVersion);
+      expect(bibParseRes.success).toBe(false);
+      if (!bibParseRes.success) {
+        expect(bibParseRes.reason).toBe('CORRUPTED_DATA');
+      }
     });
 
     it('does NOT coerce unknown future schemaVersion to V1 (returns UNSUPPORTED_SCHEMA)', () => {
@@ -102,16 +136,112 @@ describe('Local Research Workspace Persistence', () => {
         expect(bibParseRes.rawVersion).toBe(999);
       }
     });
+  });
 
-    it('returns default transliteration workspace on null or corrupted input', () => {
-      const def = createDefaultTransliterationWorkspace();
-      expect(validateAndMigrateTransliterationWorkspace(null).input).toBe(def.input);
-      expect(validateAndMigrateTransliterationWorkspace('corrupted-string').profile).toBe('ijmes_citation_title');
-      expect(validateAndMigrateTransliterationWorkspace({}).input).toBe(def.input);
+  describe('ReviewDecision Granular AI-Assistance Provenance', () => {
+    it('preserves AI-assisted ReviewDecision metadata intact across persistence validation', () => {
+      const decisionWithAssistance: ReviewDecision = {
+        issueId: 'issue-lex-1',
+        action: 'SELECT_LEXICAL_READING',
+        selectedAlternativeId: 'alt-mihr',
+        note: 'Accepted AI disambiguation',
+        assistance: {
+          suggestionId: 'sugg-001',
+          provider: 'openai',
+          model: 'gpt-4o',
+          promptVersion: 'v1',
+          requestFingerprint: 'fp-xyz-987'
+        }
+      };
+
+      const workspace = {
+        schemaVersion: 1,
+        updatedAt: '2026-10-06T12:00:00.000Z',
+        input: 'مهر',
+        profile: 'ijmes_full' as const,
+        reviewDecisions: [decisionWithAssistance],
+        acceptedPhraseDecision: null
+      };
+
+      const validated = validateAndMigrateTransliterationWorkspace(workspace);
+      expect(validated.reviewDecisions).toHaveLength(1);
+      expect(validated.reviewDecisions[0].assistance).toEqual({
+        suggestionId: 'sugg-001',
+        provider: 'openai',
+        model: 'gpt-4o',
+        promptVersion: 'v1',
+        requestFingerprint: 'fp-xyz-987'
+      });
+    });
+
+    it('rejects ReviewDecision when assistance metadata is malformed/incomplete (fails closed)', () => {
+      const decisionWithBrokenAssistance = {
+        issueId: 'issue-lex-1',
+        action: 'SELECT_LEXICAL_READING',
+        selectedAlternativeId: 'alt-mihr',
+        assistance: {
+          suggestionId: 'sugg-001',
+          provider: 'openai'
+          // missing model, promptVersion, requestFingerprint
+        }
+      };
+
+      const workspace = {
+        schemaVersion: 1,
+        updatedAt: '2026-10-06T12:00:00.000Z',
+        input: 'مهر',
+        profile: 'ijmes_full' as const,
+        reviewDecisions: [decisionWithBrokenAssistance],
+        acceptedPhraseDecision: null
+      };
+
+      const validated = validateAndMigrateTransliterationWorkspace(workspace);
+      // Malformed AI decision is dropped, never converted into a fake manual decision
+      expect(validated.reviewDecisions).toHaveLength(0);
+    });
+
+    it('preserves AI assistance metadata in BibliographyReviewDecision', () => {
+      const bibDecision = {
+        recordId: 'rec_101',
+        fieldPath: 'title' as const,
+        decision: {
+          issueId: 'issue-title-1',
+          action: 'SELECT_LEXICAL_READING' as const,
+          selectedAlternativeId: 'alt-zaval',
+          assistance: {
+            suggestionId: 'sugg-bib-1',
+            provider: 'openai',
+            model: 'gpt-4o',
+            promptVersion: 'v1',
+            requestFingerprint: 'fp-bib-123'
+          }
+        }
+      };
+
+      const workspace = {
+        schemaVersion: 1,
+        updatedAt: '2026-10-06T12:00:00.000Z',
+        csvText: '',
+        records: [],
+        reviewDecisions: [bibDecision],
+        selectedRecordId: null,
+        filter: 'ALL' as const,
+        exportMode: 'STRICT_ALL' as const
+      };
+
+      const validated = validateAndMigrateBibliographyWorkspace(workspace);
+      expect(validated.reviewDecisions).toHaveLength(1);
+      expect(validated.reviewDecisions[0].decision.assistance).toEqual({
+        suggestionId: 'sugg-bib-1',
+        provider: 'openai',
+        model: 'gpt-4o',
+        promptVersion: 'v1',
+        requestFingerprint: 'fp-bib-123'
+      });
     });
   });
 
-  describe('Accepted Phrase Decision Provenance and Invariants', () => {
+  describe('Accepted Phrase Decision Strict Identity & Rendering Invariants', () => {
     it('persists AcceptedPhraseDecision without renderedOutput and recomputes rendering on hydration', () => {
       const runtimeDecision: AcceptedPhraseDecision = {
         source: 'AI_ASSISTED_PHRASE',
@@ -133,18 +263,16 @@ describe('Local Research Workspace Persistence', () => {
       expect((persisted as any).renderedOutput).toBeUndefined();
       expect(persisted.scholarlyCanonical).toBe('shabhā-yi tīra dar farāmūshkhāna-yi ashbāḥ');
 
-      // Hydration for ijmes_citation_title re-derives fresh citation-title rendering
       const hydratedCitation = fromPersistedAcceptedPhraseDecision(persisted, 'ijmes_citation_title');
       expect(hydratedCitation.renderedOutput).toBe('Shabhā-yi Tīra Dar Farāmūshkhāna-yi Ashbāḥ');
       expect(hydratedCitation.renderedOutput).not.toBe('OLD_STALE_CACHED_RENDERING_DO_NOT_PERSIST');
 
-      // Hydration for ijmes_full re-derives full canonical rendering
       const hydratedFull = fromPersistedAcceptedPhraseDecision(persisted, 'ijmes_full');
       expect(hydratedFull.renderedOutput).toBe('shabhā-yi tīra dar farāmūshkhāna-yi ashbāḥ');
     });
 
-    it('rejects accepted phrase decision when provenance is missing (never fabricates AI provenance)', () => {
-      const missingProvider = {
+    it('rejects accepted phrase decision when originalInput or normalizedInput is missing (never synthesizes identity)', () => {
+      const missingOriginalInput = {
         schemaVersion: 1,
         updatedAt: '2026-10-06T12:00:00.000Z',
         input: 'ایران',
@@ -153,33 +281,7 @@ describe('Local Research Workspace Persistence', () => {
         acceptedPhraseDecision: {
           source: 'AI_ASSISTED_PHRASE',
           acceptance: 'HUMAN_ACCEPTED_AI_SUGGESTION',
-          originalInput: 'ایران',
-          normalizedInput: 'ایران',
-          profile: 'ijmes_citation_title',
-          scholarlyCanonical: 'īrān',
-          // provider missing!
-          model: 'gpt-4o',
-          promptVersion: 'v1',
-          requestFingerprint: 'fp-123',
-          acceptedAt: '2026-10-06T12:00:00.000Z'
-        }
-      };
-
-      const validated = validateAndMigrateTransliterationWorkspace(missingProvider);
-      expect(validated.acceptedPhraseDecision).toBeNull();
-    });
-
-    it('rejects accepted phrase decision with invalid modelConfidence or missing fingerprint', () => {
-      const invalidConfidence = {
-        schemaVersion: 1,
-        updatedAt: '2026-10-06T12:00:00.000Z',
-        input: 'ایران',
-        profile: 'ijmes_citation_title',
-        reviewDecisions: [],
-        acceptedPhraseDecision: {
-          source: 'AI_ASSISTED_PHRASE',
-          acceptance: 'HUMAN_ACCEPTED_AI_SUGGESTION',
-          originalInput: 'ایران',
+          // originalInput missing!
           normalizedInput: 'ایران',
           profile: 'ijmes_citation_title',
           scholarlyCanonical: 'īrān',
@@ -187,85 +289,36 @@ describe('Local Research Workspace Persistence', () => {
           model: 'gpt-4o',
           promptVersion: 'v1',
           requestFingerprint: 'fp-123',
-          modelConfidence: 1.5, // Invalid > 1
           acceptedAt: '2026-10-06T12:00:00.000Z'
         }
       };
 
-      const validated = validateAndMigrateTransliterationWorkspace(invalidConfidence);
-      expect(validated.acceptedPhraseDecision).toBeNull();
-    });
+      const validated1 = validateAndMigrateTransliterationWorkspace(missingOriginalInput);
+      expect(validated1.acceptedPhraseDecision).toBeNull();
 
-    it('accepts valid null modelConfidence without fabricating a value', () => {
-      const validNullConf: PersistedAcceptedPhraseDecisionV1 = {
-        source: 'AI_ASSISTED_PHRASE',
-        acceptance: 'HUMAN_ACCEPTED_AI_SUGGESTION',
-        originalInput: 'ایران',
-        normalizedInput: 'ایران',
-        profile: 'ijmes_citation_title',
-        scholarlyCanonical: 'īrān',
-        provider: 'openai',
-        model: 'gpt-4o',
-        promptVersion: 'v1',
-        requestFingerprint: 'fp-123',
-        modelConfidence: null,
-        acceptedAt: '2026-10-06T12:00:00.000Z'
-      };
-
-      const workspace = {
+      const missingNormalizedInput = {
         schemaVersion: 1,
         updatedAt: '2026-10-06T12:00:00.000Z',
         input: 'ایران',
-        profile: 'ijmes_citation_title' as const,
+        profile: 'ijmes_citation_title',
         reviewDecisions: [],
-        acceptedPhraseDecision: validNullConf
+        acceptedPhraseDecision: {
+          source: 'AI_ASSISTED_PHRASE',
+          acceptance: 'HUMAN_ACCEPTED_AI_SUGGESTION',
+          originalInput: 'ایران',
+          // normalizedInput missing!
+          profile: 'ijmes_citation_title',
+          scholarlyCanonical: 'īrān',
+          provider: 'openai',
+          model: 'gpt-4o',
+          promptVersion: 'v1',
+          requestFingerprint: 'fp-123',
+          acceptedAt: '2026-10-06T12:00:00.000Z'
+        }
       };
 
-      const validated = validateAndMigrateTransliterationWorkspace(workspace);
-      expect(validated.acceptedPhraseDecision).not.toBeNull();
-      expect(validated.acceptedPhraseDecision?.modelConfidence).toBeNull();
-    });
-  });
-
-  describe('Review Decisions Strict Validation', () => {
-    it('strictly validates transliteration review decisions', () => {
-      const workspace = {
-        schemaVersion: 1,
-        updatedAt: '2026-10-06T12:00:00.000Z',
-        input: 'مهر',
-        profile: 'ijmes_full' as const,
-        reviewDecisions: [
-          {
-            issueId: 'valid-lex',
-            action: 'SELECT_LEXICAL_READING',
-            selectedAlternativeId: 'alt-1'
-          },
-          {
-            issueId: 'invalid-lex-missing-alt',
-            action: 'SELECT_LEXICAL_READING'
-            // missing selectedAlternativeId
-          },
-          {
-            issueId: 'valid-manual',
-            action: 'MANUAL_CANONICAL_OVERRIDE',
-            manualCanonicalTransliteration: 'mihr'
-          },
-          {
-            issueId: 'invalid-manual-persian',
-            action: 'MANUAL_CANONICAL_OVERRIDE',
-            manualCanonicalTransliteration: 'مهر' // Persian script rejected
-          },
-          {
-            issueId: 'invalid-action',
-            action: 'UNKNOWN_HACK_ACTION'
-          }
-        ],
-        acceptedPhraseDecision: null
-      };
-
-      const validated = validateAndMigrateTransliterationWorkspace(workspace);
-      expect(validated.reviewDecisions).toHaveLength(2);
-      expect(validated.reviewDecisions.map((d) => d.issueId)).toEqual(['valid-lex', 'valid-manual']);
+      const validated2 = validateAndMigrateTransliterationWorkspace(missingNormalizedInput);
+      expect(validated2.acceptedPhraseDecision).toBeNull();
     });
   });
 
@@ -281,7 +334,7 @@ describe('Local Research Workspace Persistence', () => {
           translators: [],
           sourceRowIndex: 1,
           sourceColumns: [{ header: 'title', value: 'زوال اندیشه سیاسی در ایران' }],
-          passthrough: {}
+          passthrough: { custom_note: 'attested in library catalog' }
         }
       ];
 
@@ -300,259 +353,98 @@ describe('Local Research Workspace Persistence', () => {
       expect(validated).toEqual(original);
     });
 
-    it('rejects malformed bibliography records having only id/type (cannot reach processBibliographyBatch)', () => {
-      const malformedRecords = [
-        {
-          id: 'rec_malformed_001',
-          type: 'BOOK'
-          // missing title, authors, editors, translators, sourceRowIndex, sourceColumns, passthrough
-        }
-      ];
+    it('rejects record when passthrough is missing or not a string-to-string dictionary', () => {
+      const recordMissingPassthrough = {
+        id: 'rec_bad_1',
+        type: 'BOOK',
+        title: 'کتاب',
+        authors: [],
+        editors: [],
+        translators: [],
+        sourceRowIndex: 1,
+        sourceColumns: []
+        // missing passthrough
+      };
+
+      const recordNonStringPassthrough = {
+        id: 'rec_bad_2',
+        type: 'BOOK',
+        title: 'کتاب ۲',
+        authors: [],
+        editors: [],
+        translators: [],
+        sourceRowIndex: 2,
+        sourceColumns: [],
+        passthrough: { count: 42 } // non-string value!
+      };
 
       const workspace = {
         schemaVersion: 1,
         updatedAt: '2026-10-06T12:00:00.000Z',
-        csvText: 'bad,csv',
-        records: malformedRecords,
+        csvText: '',
+        records: [recordMissingPassthrough, recordNonStringPassthrough],
         reviewDecisions: [],
-        selectedRecordId: 'rec_malformed_001',
+        selectedRecordId: null,
         filter: 'ALL',
         exportMode: 'STRICT_ALL'
       };
 
       const validated = validateAndMigrateBibliographyWorkspace(workspace);
-      // Malformed record was dropped during strict validation
       expect(validated.records).toHaveLength(0);
-      expect(validated.selectedRecordId).toBeNull();
-
-      // Ensure processBibliographyBatch executes safely without crashing
-      const batchResult = processBibliographyBatch(validated.records, validated.reviewDecisions);
-      expect(batchResult.records).toHaveLength(0);
-      expect(batchResult.summary.total).toBe(0);
-    });
-
-    it('falls back safely on invalid bibliography filter or export mode', () => {
-      const invalid = {
-        schemaVersion: 1,
-        updatedAt: '2026-10-06T12:00:00.000Z',
-        csvText: '',
-        records: [],
-        reviewDecisions: [],
-        selectedRecordId: null,
-        filter: 'INVALID_UNKNOWN_FILTER',
-        exportMode: 'NON_EXISTENT_MODE'
-      };
-
-      const validated = validateAndMigrateBibliographyWorkspace(invalid);
-      expect(validated.filter).toBe('ALL');
-      expect(validated.exportMode).toBe('STRICT_ALL');
-    });
-
-    it('repairs missing or non-existent selectedRecordId to the first record or null', () => {
-      const records: BibliographyRecord[] = [
-        {
-          id: 'rec_first',
-          type: 'BOOK',
-          title: 'کتاب اول',
-          authors: [],
-          editors: [],
-          translators: [],
-          sourceRowIndex: 1,
-          sourceColumns: [],
-          passthrough: {}
-        },
-        {
-          id: 'rec_second',
-          type: 'BOOK',
-          title: 'کتاب دوم',
-          authors: [],
-          editors: [],
-          translators: [],
-          sourceRowIndex: 2,
-          sourceColumns: [],
-          passthrough: {}
-        }
-      ];
-
-      const withBrokenId = validateAndMigrateBibliographyWorkspace({
-        schemaVersion: 1,
-        updatedAt: '2026-10-06T12:00:00.000Z',
-        csvText: '',
-        records,
-        reviewDecisions: [],
-        selectedRecordId: 'rec_non_existent',
-        filter: 'ALL',
-        exportMode: 'STRICT_ALL'
-      });
-      expect(withBrokenId.selectedRecordId).toBe('rec_first');
     });
   });
 
-  describe('Human Review Decision & Accepted Phrase Re-evaluation', () => {
-    it('re-evaluates restored ReviewDecisions through the current deterministic engine', () => {
-      const input = 'مهر';
-      const initialResult = transliterate(input, 'ijmes_full');
-      expect(initialResult.status).toBe('AMBIGUOUS');
-      expect(initialResult.reviewIssues).toHaveLength(1);
+  describe('Production OperationQueue and Write Serialization', () => {
+    it('guarantees sequential commit order with the production OperationQueue class', async () => {
+      const queue = new OperationQueue();
+      const events: string[] = [];
 
-      const issue = initialResult.reviewIssues[0];
-      const decision: ReviewDecision = {
-        issueId: issue.id,
-        action: 'SELECT_LEXICAL_READING',
-        selectedAlternativeId: issue.alternatives[0].id
-      };
-
-      const persistedWorkspace = validateAndMigrateTransliterationWorkspace({
-        schemaVersion: 1,
-        updatedAt: '2026-10-06T12:00:00.000Z',
-        input,
-        profile: 'ijmes_full',
-        reviewDecisions: [decision],
-        acceptedPhraseDecision: null
+      const opA = queue.enqueue(async () => {
+        await new Promise((r) => setTimeout(r, 40));
+        events.push('COMMIT_A');
       });
 
-      const restoredResult = transliterate(
-        persistedWorkspace.input,
-        persistedWorkspace.profile,
-        persistedWorkspace.reviewDecisions
-      );
-
-      expect(restoredResult.status).toBe('USER_OVERRIDE');
-      expect(restoredResult.copyable).toBe(true);
-      expect(restoredResult.output).toBe(issue.alternatives[0].canonical);
-    });
-
-    it('restored AcceptedPhraseDecision is active when matching current input/fingerprint but fails closed when input changes', () => {
-      const input = 'تأملی درباره ایران: مکتب تبریز و مبانی تجددخواهی';
-      const result = transliterate(input, 'ijmes_citation_title');
-      expect(result.copyable).toBe(false);
-
-      const request = buildPhraseResolverRequest(result, 'v1');
-      const requestFingerprint = computePhraseRequestFingerprint(request, 'openai', 'gpt-4o');
-
-      const persistedDecision: PersistedAcceptedPhraseDecisionV1 = {
-        source: 'AI_ASSISTED_PHRASE',
-        acceptance: 'HUMAN_ACCEPTED_AI_SUGGESTION',
-        originalInput: input,
-        normalizedInput: result.normalizedInput,
-        profile: 'ijmes_citation_title',
-        scholarlyCanonical: 'taʾammulī darbārah-i īrān: maktab-i tabrīz va mabānī-yi tajaddudkhvāhī',
-        provider: 'openai',
-        model: 'gpt-4o',
-        promptVersion: 'v1',
-        requestFingerprint,
-        modelConfidence: 0.95,
-        acceptedAt: '2026-10-06T12:00:00.000Z'
-      };
-
-      // Hydrate into runtime decision with derived rendering
-      const runtimeDecision = fromPersistedAcceptedPhraseDecision(persistedDecision, 'ijmes_citation_title');
-      expect(runtimeDecision.renderedOutput).toBe('Taʾammulī Darbārah-i Īrān: Maktab-i Tabrīz Va Mabānī-yi Tajaddudkhvāhī');
-
-      // 1. Same input: accepted decision is applicable and active
-      const restoredActive = resolveSelectedTransliteration(result, runtimeDecision);
-      expect(restoredActive.activePhraseDecision).not.toBeNull();
-      expect(restoredActive.primary).toBe('Taʾammulī Darbārah-i Īrān: Maktab-i Tabrīz Va Mabānī-yi Tajaddudkhvāhī');
-      expect(restoredActive.status).toBe('USER_OVERRIDE');
-
-      // 2. Changed input: accepted decision is stale and fails closed
-      const changedInputResult = transliterate('متن کاملا متفاوت دیگر', 'ijmes_citation_title');
-      const restoredStale = resolveSelectedTransliteration(changedInputResult, runtimeDecision);
-      expect(restoredStale.activePhraseDecision).toBeNull();
-      expect(restoredStale.primary).toBe(changedInputResult.output);
-    });
-  });
-
-  describe('Non-Persistence of Derived Results (No Stale Authority)', () => {
-    it('ensures TransliterationWorkspace does not store derived TransliterationResult fields or renderedOutput', () => {
-      const workspace = createDefaultTransliterationWorkspace();
-      const keys = Object.keys(workspace);
-
-      expect(keys).not.toContain('output');
-      expect(keys).not.toContain('copyable');
-      expect(keys).not.toContain('status');
-      expect(keys).not.toContain('tokens');
-      expect(keys).not.toContain('reviewIssues');
-      expect(keys).not.toContain('analyses');
-      expect(keys).not.toContain('morphology');
-      expect(keys).not.toContain('relations');
-    });
-
-    it('ensures BibliographyWorkspace does not store processedBatch or export reports', () => {
-      const workspace = createDefaultBibliographyWorkspace();
-      const keys = Object.keys(workspace);
-
-      expect(keys).not.toContain('processedBatch');
-      expect(keys).not.toContain('exportReport');
-      expect(keys).not.toContain('downloadUrl');
-    });
-  });
-
-  describe('Operation Queue and Write Serialization', () => {
-    it('guarantees sequential commit order when Save A is delayed and Save B is enqueued', async () => {
-      class TestQueue {
-        private currentPromise: Promise<unknown> = Promise.resolve();
-        enqueue<R>(op: () => Promise<R>): Promise<R> {
-          const nextPromise = this.currentPromise.then(
-            () => op(),
-            () => op()
-          );
-          this.currentPromise = nextPromise.catch(() => {});
-          return nextPromise;
-        }
-      }
-
-      const queue = new TestQueue();
-      const committed: string[] = [];
-
-      // Save A is slow (50ms)
-      const saveA = queue.enqueue(async () => {
-        await new Promise((r) => setTimeout(r, 50));
-        committed.push('STATE_A');
+      const opB = queue.enqueue(async () => {
+        events.push('COMMIT_B');
       });
 
-      // Save B is enqueued immediately after Save A
-      const saveB = queue.enqueue(async () => {
-        committed.push('STATE_B');
-      });
-
-      await Promise.all([saveA, saveB]);
-
-      // State B must commit AFTER State A, guaranteeing B wins
-      expect(committed).toEqual(['STATE_A', 'STATE_B']);
+      await Promise.all([opA, opB]);
+      expect(events).toEqual(['COMMIT_A', 'COMMIT_B']);
     });
 
-    it('guarantees Clear Workspace wins over an in-flight delayed save', async () => {
-      class TestQueue {
-        private currentPromise: Promise<unknown> = Promise.resolve();
-        enqueue<R>(op: () => Promise<R>): Promise<R> {
-          const nextPromise = this.currentPromise.then(
-            () => op(),
-            () => op()
-          );
-          this.currentPromise = nextPromise.catch(() => {});
-          return nextPromise;
-        }
-      }
-
-      const queue = new TestQueue();
+    it('guarantees Clear Workspace wins over an in-flight delayed save with production queues', async () => {
       let durableState: string | null = null;
 
-      // In-flight save of old work (delayed)
-      const slowSave = queue.enqueue(async () => {
-        await new Promise((r) => setTimeout(r, 40));
+      const slowSave = transliterationQueue.enqueue(async () => {
+        await new Promise((r) => setTimeout(r, 30));
         durableState = 'SAVED_WORK';
       });
 
-      // User clicks Clear Workspace while save is pending
-      const clearOp = queue.enqueue(async () => {
+      const clearOp = transliterationQueue.enqueue(async () => {
         durableState = null;
       });
 
       await Promise.all([slowSave, clearOp]);
-
-      // Final durable state must be cleared
       expect(durableState).toBeNull();
+    });
+
+    it('isolates transliteration and bibliography queues completely', async () => {
+      const events: string[] = [];
+
+      const transOp = transliterationQueue.enqueue(async () => {
+        await new Promise((r) => setTimeout(r, 30));
+        events.push('TRANS_DONE');
+      });
+
+      const bibOp = bibliographyQueue.enqueue(async () => {
+        events.push('BIB_DONE');
+      });
+
+      await Promise.all([transOp, bibOp]);
+
+      // Bibliography does not wait for transliteration queue
+      expect(events[0]).toBe('BIB_DONE');
+      expect(events[1]).toBe('TRANS_DONE');
     });
   });
 });

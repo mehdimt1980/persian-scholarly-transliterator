@@ -15,16 +15,16 @@ export default function WorkspaceSaveStatus({
   const {
     ready,
     persistenceStatus,
+    crossTabConflict,
+    resolveCrossTabConflict,
     resetTransliteration,
-    resetBibliography,
-    crossTabNotice,
-    dismissCrossTabNotice,
-    reloadFromStorage
+    resetBibliography
   } = useResearchWorkspace();
 
   const [confirmingClear, setConfirmingClear] = useState(false);
 
-  const hasCrossTabNotice = crossTabNotice[workspaceType];
+  const status = persistenceStatus[workspaceType];
+  const conflict = crossTabConflict[workspaceType];
 
   const handleClear = async () => {
     if (workspaceType === 'transliteration') {
@@ -39,20 +39,26 @@ export default function WorkspaceSaveStatus({
   };
 
   const getStatusLabel = () => {
-    if (!ready || persistenceStatus === 'restoring') {
+    if (!ready || status === 'restoring') {
       return 'Restoring local workspace…';
     }
-    if (persistenceStatus === 'saving') {
+    if (status === 'saving') {
       return 'Saving…';
     }
-    if (persistenceStatus === 'error') {
+    if (status === 'unsupported-schema') {
+      return 'Workspace data was created by a newer version. Local saving is paused to protect it.';
+    }
+    if (status === 'conflict') {
+      return 'Conflict: modified in another tab';
+    }
+    if (status === 'unavailable' || status === 'error') {
       return 'Local save unavailable';
     }
     return 'Saved locally';
   };
 
   const getStatusIcon = () => {
-    if (!ready || persistenceStatus === 'restoring' || persistenceStatus === 'saving') {
+    if (!ready || status === 'restoring' || status === 'saving') {
       return (
         <svg className="workspace-status-spinner" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
           <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
@@ -60,9 +66,18 @@ export default function WorkspaceSaveStatus({
         </svg>
       );
     }
-    if (persistenceStatus === 'error') {
+    if (status === 'unsupported-schema' || status === 'conflict') {
       return (
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.5">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+      );
+    }
+    if (status === 'unavailable' || status === 'error') {
+      return (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5">
           <circle cx="12" cy="12" r="10" />
           <line x1="12" y1="8" x2="12" y2="12" />
           <line x1="12" y1="16" x2="12.01" y2="16" />
@@ -78,36 +93,42 @@ export default function WorkspaceSaveStatus({
 
   return (
     <div className="workspace-save-status-container" aria-label="Local workspace persistence status">
-      {hasCrossTabNotice && (
+      {conflict !== null && (
         <div className="workspace-crosstab-alert" role="status">
           <span className="workspace-crosstab-text">
-            This workspace was updated in another tab.
+            {conflict === 'CLEARED'
+              ? 'This workspace was cleared in another tab.'
+              : 'This workspace was updated in another tab.'}
           </span>
           <div className="workspace-crosstab-actions">
             <button
               type="button"
               className="workspace-crosstab-btn-reload"
-              onClick={() => reloadFromStorage(workspaceType)}
+              onClick={() => resolveCrossTabConflict(workspaceType, 'reload')}
             >
               Reload latest
             </button>
             <button
               type="button"
-              className="workspace-crosstab-btn-dismiss"
-              onClick={() => dismissCrossTabNotice(workspaceType)}
-              aria-label="Dismiss cross-tab notice"
+              className="workspace-crosstab-btn-keep"
+              onClick={() => resolveCrossTabConflict(workspaceType, 'keep')}
             >
-              Dismiss
+              Keep this tab&apos;s version
             </button>
           </div>
         </div>
       )}
 
       <div className="workspace-persistence-bar">
-        <div className="workspace-status-indicator" title="Your workspace is stored locally in this browser. Assistant requests are sent only when you explicitly choose to use the assistant.">
+        <div
+          className={`workspace-status-indicator workspace-status-${status}`}
+          title="Your workspace is stored locally in this browser. Assistant requests are sent only when you explicitly choose to use the assistant."
+        >
           <span className="workspace-status-icon">{getStatusIcon()}</span>
           <span className="workspace-status-text">{getStatusLabel()}</span>
-          <span className="workspace-privacy-hint">(Browser-local storage)</span>
+          {status !== 'unsupported-schema' && (
+            <span className="workspace-privacy-hint">(Browser-local storage)</span>
+          )}
         </div>
 
         <div className="workspace-actions">
