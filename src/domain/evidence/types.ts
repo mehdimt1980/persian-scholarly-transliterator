@@ -84,6 +84,46 @@ export interface LexicalEvidenceProvenance {
 }
 
 /**
+ * Exact substring boundary indices [start, end) inside a parent text string.
+ */
+export interface TextSpan {
+  start: number;
+  end: number;
+}
+
+/**
+ * Computational strategy used to align Persian and Roman lexical tokens.
+ */
+export type AlignmentStrategy = 'POSITIONAL_EQUAL_COUNT';
+
+/**
+ * Classification of an aligned lexical segment's candidate eligibility.
+ * CONTEXT_BOUND segments contain attached grammatical markers (e.g. -i, al-) and cannot form standalone candidates.
+ */
+export type CandidateEligibility = 'ELIGIBLE' | 'CONTEXT_BOUND';
+
+/**
+ * Computational lineage and span metadata for a derived aligned lexical segment.
+ */
+export interface LexicalEvidenceDerivation {
+  kind: 'ALIGNED_SEGMENT';
+  /** ID of the parent LexicalEvidence record from which this segment was derived */
+  parentEvidenceId: string;
+  /** 0-based sequential index of this segment inside the parent observation */
+  segmentIndex: number;
+  /** Exact span [start, end) of the Persian segment inside parent.persianForm */
+  persianSpan: TextSpan;
+  /** Exact span [start, end) of the Romanized segment inside parent.observedRomanization */
+  romanizationSpan: TextSpan;
+  /** Alignment strategy used */
+  alignmentStrategy: AlignmentStrategy;
+  /** Whether this segment is eligible to form a candidate proposal */
+  candidateEligibility: CandidateEligibility;
+  /** Optional reason if the segment is excluded or context-bound */
+  exclusionReason?: string;
+}
+
+/**
  * Source-neutral domain representation for an observed lexical or phrase-level form.
  * Invariant: An observation is immutable historical evidence, never an authoritative entry.
  */
@@ -112,6 +152,8 @@ export interface LexicalEvidence {
   provenance: LexicalEvidenceProvenance;
   /** Status of this observation */
   status: LexicalEvidenceStatus;
+  /** Optional computational derivation metadata if this is an aligned sub-segment */
+  derivation?: LexicalEvidenceDerivation;
 }
 
 /**
@@ -146,7 +188,12 @@ export interface ConflictingObservation {
  */
 export interface CandidateDerivationProvenance {
   derivedAt: string;
-  strategy: 'SINGLE_EVIDENCE' | 'MULTI_EVIDENCE_SYNTHESIS' | 'MANUAL_DRAFT' | 'SCHOLARLY_HEURISTIC';
+  strategy:
+    | 'SINGLE_EVIDENCE'
+    | 'MULTI_EVIDENCE_SYNTHESIS'
+    | 'ALIGNED_SEGMENT_SYNTHESIS'
+    | 'MANUAL_DRAFT'
+    | 'SCHOLARLY_HEURISTIC';
   notes?: string;
   synthesizerVersion?: string;
 }

@@ -81,8 +81,18 @@ Defined in `src/domain/evidence/types.ts`:
 - `context`: Surrounding context or title.
 - `provenance`: Complete retrieval metadata (`sourceId`, `sourceTitle`, `sourceOrganization`, `retrievalMethod`, `retrievedAt`, `extractorVersion`).
 - `status`: `'OBSERVED' | 'SUPERSEDED' | 'INVALIDATED'`.
+- `derivation` (optional, Phase 5C): Structured lineage for computationally derived aligned segment evidence (`parentEvidenceId`, `segmentIndex`, `persianSpan`, `romanizationSpan`, `alignmentStrategy`, `candidateEligibility`, `exclusionReason`).
 
-### B. Append-Only Immutability
+### B. Derived Aligned Segment Evidence & Span Integrity (Phase 5C)
+
+For derived segment evidence records, `LexicalEvidenceRepository` enforces strict provenance and substring slice integrity:
+- `parent.persianForm.slice(persianSpan.start, persianSpan.end) === child.persianForm`
+- `parent.observedRomanization.slice(romanizationSpan.start, romanizationSpan.end) === child.observedRomanization`
+- Parent evidence must exist, cannot be the child itself, and cannot be recursively derived.
+- Source ID, record ID, scheme, and URI must match the parent.
+- Fully documented in `docs/LEXICAL_ALIGNMENT_MODEL.md`.
+
+### C. Append-Only Immutability
 
 In `LexicalEvidenceRepository`:
 - Previously unseen evidence records are added and indexed.

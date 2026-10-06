@@ -6,6 +6,7 @@ import {
   LexicalCandidateStatus,
   LexicalEntityType,
   LexicalEvidence,
+  LexicalEvidenceDerivation,
   RomanizationScheme
 } from './types';
 
@@ -91,6 +92,8 @@ export function validateCandidateLifecycle(candidate: LexicalCandidate): void {
  * Generate a deterministic identifier for a lexical evidence record.
  *
  * Preserves exact raw observation inputs without lossy trimming or silent mutation.
+ * For derived aligned segments, includes parent lineage and exact substring spans to prevent
+ * cross-position collisions.
  * Uses null-byte delimiters to prevent cross-field concatenation collisions.
  */
 export function generateEvidenceId(params: {
@@ -100,6 +103,7 @@ export function generateEvidenceId(params: {
   persianForm: string;
   observedRomanization: string | null;
   romanizationScheme: string;
+  derivation?: LexicalEvidenceDerivation;
 }): string {
   const hash = crypto.createHash('sha256');
   hash.update(params.sourceId);
@@ -113,9 +117,25 @@ export function generateEvidenceId(params: {
   hash.update(params.observedRomanization ?? '');
   hash.update('\0');
   hash.update(params.romanizationScheme);
+
+  if (params.derivation) {
+    hash.update('\0');
+    hash.update(params.derivation.kind);
+    hash.update('\0');
+    hash.update(params.derivation.parentEvidenceId);
+    hash.update('\0');
+    hash.update(String(params.derivation.segmentIndex));
+    hash.update('\0');
+    hash.update(`${params.derivation.persianSpan.start}:${params.derivation.persianSpan.end}`);
+    hash.update('\0');
+    hash.update(`${params.derivation.romanizationSpan.start}:${params.derivation.romanizationSpan.end}`);
+    hash.update('\0');
+    hash.update(params.derivation.alignmentStrategy);
+  }
+
   const digest = hash.digest('hex').slice(0, 16);
   const cleanSourceId = params.sourceId.toLowerCase().replace(/[^a-z0-9]/g, '-');
-  return `evi-${cleanSourceId}-${digest}`;
+  return params.derivation ? `evi-align-${cleanSourceId}-${digest}` : `evi-${cleanSourceId}-${digest}`;
 }
 
 /**
