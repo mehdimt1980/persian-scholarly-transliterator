@@ -122,9 +122,26 @@ npm run build:kaikki-fallback -- --input <path-to-jsonl> --output src/data/gener
 
 A strict size ceiling guard (`maxPackBytes = 5MB`) prevents accidental bundle bloat.
 
+### Generator Scaling Note
+The pilot fallback pack generator (`src/domain/evidence/kaikki/fallback/generator.ts`) parses the input stream and aggregates candidates in memory. This is designed for pilot/medium dataset builds (1,000–10,000 entries). Full streaming sink-based scaling for large 100k+ bulk dumps will be implemented in subsequent phases.
+
 ---
 
-## 9. Evaluation CLI: Display vs Authoritative Coverage
+## 9. Dependency Injection & Custom Lexicon Isolation
+
+The transliteration engine isolates test and custom lexicons from the production fallback repository:
+```ts
+// Production default: uses default lexicon AND default evidence fallback
+transliterate(input);
+
+// Custom lexicon: does NOT inherit production fallback repository unless explicitly provided
+transliterate(input, profile, reviewDecisions, customLexicon); // Fallback disabled
+
+// Custom lexicon with explicit fallback opt-in:
+transliterate(input, profile, reviewDecisions, customLexicon, fallbackRepository);
+```
+
+## 10. Evaluation CLI: Display vs Authoritative Coverage
 
 Run evaluation:
 ```bash
@@ -137,7 +154,7 @@ Reports two distinct coverage metrics:
 
 ---
 
-## 10. Governance Metrics
+## 11. Governance Metrics
 
 Every execution of Phase 7C runtime and evaluation enforces:
 ```text

@@ -6,7 +6,9 @@ import { resolveEvidenceFallback } from './resolver';
 import { evaluateFallbackCoverage } from './evaluateCli';
 import { DEFAULT_EVIDENCE_FALLBACK_REPOSITORY } from '../../../../data/fallback';
 import { DEFAULT_LEXICON_REPOSITORY } from '../../../../data/lexicon';
+import { LexiconRepository } from '../../../lexicon/repository';
 import { transliterate } from '../../../engine';
+import { parseTransliterationWorkspace } from '../../../../client/workspace/validation';
 import { PHASE7B_SAMPLE_FIXTURES_PATH } from '../scheme/fixtures';
 import type { EvidenceFallbackPack } from './types';
 import type { Token, TokenAnalysis } from '../../../types';
@@ -119,6 +121,92 @@ describe('Phase 7C: Evidence-Backed Automatic Lexical Fallback', () => {
         }
       };
       expect(() => new EvidenceFallbackRepository(badPack)).toThrow(/key mismatch/);
+    });
+
+    it('rejects pack with invalid confidence tier or empty/invalid sourceProfiles', () => {
+      const baseEntry = {
+        id: 'fb-kaikki-3',
+        normalizedForm: 'تست',
+        hypothesis: 'tist',
+        consensusStatus: 'UNANIMOUS_DETERMINISTIC' as const,
+        confidenceTier: 'INVALID_TIER' as any,
+        candidateAnalysisId: 'cand-1',
+        evidenceCount: 1,
+        sourceProfiles: ['IRANIAN' as const],
+        interpretations: [
+          { evidenceId: 'evi-1', romanization: 'test', profile: 'IRANIAN' as const }
+        ],
+        generatedFrom: {
+          acquisitionVersion: '1.0.0',
+          interpreterVersion: '1.0.0',
+          ruleSetVersion: '1.0.0',
+          aggregatorVersion: '1.0.0'
+        }
+      };
+
+      const badTierPack: EvidenceFallbackPack = {
+        manifest: {
+          packVersion: '1.0.0',
+          generatedAt: new Date().toISOString(),
+          inputSha256: 'abc',
+          extractorVersion: '1.0.0',
+          interpreterVersion: '1.0.0',
+          ruleSetVersion: '1.0.0',
+          aggregatorVersion: '1.0.0',
+          entryCount: 1
+        },
+        entries: { تست: { ...baseEntry } }
+      };
+      expect(() => new EvidenceFallbackRepository(badTierPack)).toThrow(/invalid confidenceTier/);
+
+      const badProfilesPack: EvidenceFallbackPack = {
+        ...badTierPack,
+        entries: {
+          تست: {
+            ...baseEntry,
+            confidenceTier: 'SINGLE_OBSERVATION_DETERMINISTIC',
+            sourceProfiles: []
+          }
+        }
+      };
+      expect(() => new EvidenceFallbackRepository(badProfilesPack)).toThrow(/empty sourceProfiles/);
+    });
+
+    it('rejects pack with evidenceCount mismatch or invalid interpretation', () => {
+      const baseEntry = {
+        id: 'fb-kaikki-4',
+        normalizedForm: 'تست',
+        hypothesis: 'tist',
+        consensusStatus: 'UNANIMOUS_DETERMINISTIC' as const,
+        confidenceTier: 'SINGLE_OBSERVATION_DETERMINISTIC' as const,
+        candidateAnalysisId: 'cand-1',
+        evidenceCount: 2, // Mismatch: declares 2, interpretations length is 1
+        sourceProfiles: ['IRANIAN' as const],
+        interpretations: [
+          { evidenceId: 'evi-1', romanization: 'test', profile: 'IRANIAN' as const }
+        ],
+        generatedFrom: {
+          acquisitionVersion: '1.0.0',
+          interpreterVersion: '1.0.0',
+          ruleSetVersion: '1.0.0',
+          aggregatorVersion: '1.0.0'
+        }
+      };
+
+      const mismatchPack: EvidenceFallbackPack = {
+        manifest: {
+          packVersion: '1.0.0',
+          generatedAt: new Date().toISOString(),
+          inputSha256: 'abc',
+          extractorVersion: '1.0.0',
+          interpreterVersion: '1.0.0',
+          ruleSetVersion: '1.0.0',
+          aggregatorVersion: '1.0.0',
+          entryCount: 1
+        },
+        entries: { تست: { ...baseEntry } }
+      };
+      expect(() => new EvidenceFallbackRepository(mismatchPack)).toThrow(/evidenceCount mismatch/);
     });
   });
 
@@ -332,23 +420,170 @@ describe('Phase 7C: Evidence-Backed Automatic Lexical Fallback', () => {
       expect(res.copyable).toBe(false);
     });
 
-    it('marks decision as stale if fallback entry ID does not match', () => {
+    it('strictly fails closed when selectedAlternativeId is missing, empty, or mismatched', () => {
       const initial = transliterate('شیراز', 'ijmes_full');
       const issue = initial.reviewIssues[0];
 
-      const staleDecision = {
+      // Missing selectedAlternativeId
+      const missingDecision = {
+        issueId: issue.id,
+        action: 'ACCEPT_EVIDENCE_DERIVED' as const
+      };
+      const resMissing = transliterate('شیراز', 'ijmes_full', [missingDecision as any]);
+      expect(resMissing.tokens[0].status).toBe('UNRESOLVED');
+      expect(resMissing.staleDecisions.length).toBe(1);
+
+      // Empty selectedAlternativeId
+      const emptyDecision = {
         issueId: issue.id,
         action: 'ACCEPT_EVIDENCE_DERIVED' as const,
-        selectedAlternativeId: 'fb-kaikki-wrong-old-version-id'
+        selectedAlternativeId: '   '
       };
+      const resEmpty = transliterate('شیراز', 'ijmes_full', [emptyDecision]);
+      expect(resEmpty.tokens[0].status).toBe('UNRESOLVED');
+      expect(resEmpty.staleDecisions.length).toBe(1);
 
-      const res = transliterate('شیراز', 'ijmes_full', [staleDecision]);
-      expect(res.tokens[0].status).toBe('UNRESOLVED');
-      expect(res.staleDecisions.length).toBe(1);
+      // Wrong selectedAlternativeId
+      const wrongDecision = {
+        issueId: issue.id,
+        action: 'ACCEPT_EVIDENCE_DERIVED' as const,
+        selectedAlternativeId: 'fb-kaikki-wrong-proposal-id'
+      };
+      const resWrong = transliterate('شیراز', 'ijmes_full', [wrongDecision]);
+      expect(resWrong.tokens[0].status).toBe('UNRESOLVED');
+      expect(resWrong.staleDecisions.length).toBe(1);
     });
   });
 
-  describe('6. Multi-Token Phrases & Usability', () => {
+  describe('6. Workspace Persistence Round-Trip for ACCEPT_EVIDENCE_DERIVED', () => {
+    it('serializes, parses/validates, and re-applies ACCEPT_EVIDENCE_DERIVED across sessions', () => {
+      const initial = transliterate('شیراز', 'ijmes_full');
+      const issue = initial.reviewIssues[0];
+      const decision = {
+        issueId: issue.id,
+        action: 'ACCEPT_EVIDENCE_DERIVED' as const,
+        selectedAlternativeId: issue.alternatives[0].id
+      };
+
+      const workspacePayload = {
+        schemaVersion: 1,
+        input: 'شیراز',
+        profile: 'ijmes_full',
+        updatedAt: new Date().toISOString(),
+        reviewDecisions: [decision]
+      };
+
+      const parseResult = parseTransliterationWorkspace(workspacePayload);
+      expect(parseResult.success).toBe(true);
+      if (!parseResult.success) return;
+
+      expect(parseResult.data.reviewDecisions.length).toBe(1);
+      expect(parseResult.data.reviewDecisions[0].action).toBe('ACCEPT_EVIDENCE_DERIVED');
+      expect(parseResult.data.reviewDecisions[0].selectedAlternativeId).toBe(issue.alternatives[0].id);
+
+      // Re-running engine with restored workspace decisions restores USER_OVERRIDE
+      const restored = transliterate(
+        parseResult.data.input,
+        parseResult.data.profile,
+        parseResult.data.reviewDecisions
+      );
+      expect(restored.tokens[0].status).toBe('USER_OVERRIDE');
+      expect(restored.tokens[0].canonicalTransliteration).toBe('shīrāz');
+      expect(restored.copyable).toBe(true);
+    });
+  });
+
+  describe('7. Stale Pack Version / Proposal Identity Invariant', () => {
+    it('marks decision as stale when fallback pack version changes entry identity', () => {
+      const initial = transliterate('شیراز', 'ijmes_full');
+      const issue = initial.reviewIssues[0];
+
+      // Stored decision from Pack v1.0.0
+      const oldDecision = {
+        issueId: issue.id,
+        action: 'ACCEPT_EVIDENCE_DERIVED' as const,
+        selectedAlternativeId: issue.alternatives[0].id
+      };
+
+      // Create a mock Pack v2.0.0 repository with a different version in entry ID
+      const packV2: EvidenceFallbackPack = {
+        manifest: {
+          packVersion: '2.0.0',
+          generatedAt: new Date().toISOString(),
+          inputSha256: 'abc',
+          extractorVersion: '2.0.0',
+          interpreterVersion: '2.0.0',
+          ruleSetVersion: '2.0.0',
+          aggregatorVersion: '2.0.0',
+          entryCount: 1
+        },
+        entries: {
+          شیراز: {
+            id: 'fb-kaikki-v2-diff-id',
+            normalizedForm: 'شیراز',
+            hypothesis: 'shīrāz',
+            consensusStatus: 'UNANIMOUS_DETERMINISTIC',
+            confidenceTier: 'SINGLE_OBSERVATION_DETERMINISTIC',
+            candidateAnalysisId: 'cand-shiraz',
+            evidenceCount: 1,
+            sourceProfiles: ['IRANIAN'],
+            interpretations: [
+              { evidenceId: 'evi-1', romanization: 'shiraz', profile: 'IRANIAN' }
+            ],
+            generatedFrom: {
+              acquisitionVersion: '2.0.0',
+              interpreterVersion: '2.0.0',
+              ruleSetVersion: '2.0.0',
+              aggregatorVersion: '2.0.0'
+            }
+          }
+        }
+      };
+      const repoV2 = new EvidenceFallbackRepository(packV2);
+
+      // Re-running with old v1 decision on v2 fallback repository fails closed (marked stale)
+      const res = transliterate('شیراز', 'ijmes_full', [oldDecision], DEFAULT_LEXICON_REPOSITORY, repoV2);
+      expect(res.tokens[0].status).toBe('UNRESOLVED');
+      expect(res.tokens[0].canonicalTransliteration).toBeNull();
+      expect(res.staleDecisions.length).toBe(1);
+      expect(res.copyable).toBe(false);
+    });
+  });
+
+  describe('8. Custom Lexicon Isolation & Explicit Fallback Opt-In', () => {
+    it('isolates custom LexiconRepository from production fallback repository unless explicitly provided', () => {
+      const customLexicon = new LexiconRepository([
+        {
+          id: 'lex-test',
+          surface: 'تست',
+          normalized: 'تست',
+          readings: [{ id: 'r1', canonical: 'test', confidence: 1.0, source: 'CUSTOM' }]
+        }
+      ]);
+
+      // 1. Without explicit fallback repository, custom lexicon receives NO production fallback
+      const withoutFallback = transliterate('شیراز', 'ijmes_full', [], customLexicon);
+      expect(withoutFallback.tokens[0].status).toBe('UNRESOLVED');
+      expect(withoutFallback.tokens[0].blockingReason).toBe('NO_LEXICAL_ENTRY');
+      expect(withoutFallback.tokens[0].evidenceDerivedProposal).toBeUndefined();
+      expect(withoutFallback.tokens[0].rendered).toBe('⟦شیراز: unresolved⟧');
+
+      // 2. With explicit fallback repository passed, evidence proposal appears
+      const withExplicitFallback = transliterate(
+        'شیراز',
+        'ijmes_full',
+        [],
+        customLexicon,
+        DEFAULT_EVIDENCE_FALLBACK_REPOSITORY
+      );
+      expect(withExplicitFallback.tokens[0].status).toBe('UNRESOLVED');
+      expect(withExplicitFallback.tokens[0].blockingReason).toBe('EVIDENCE_DERIVED_REVIEW_REQUIRED');
+      expect(withExplicitFallback.tokens[0].evidenceDerivedProposal).toBeDefined();
+      expect(withExplicitFallback.tokens[0].rendered).toBe('shīrāz');
+    });
+  });
+
+  describe('9. Multi-Token Phrases & Usability', () => {
     it('handles mixed phrases with reviewed words and evidence fallback tokens', () => {
       // 'کتاب' is in default lexicon (kitāb), 'شیراز' is in fallback (shīrāz)
       const res = transliterate('کتاب شیراز', 'ijmes_full');
@@ -376,7 +611,7 @@ describe('Phase 7C: Evidence-Backed Automatic Lexical Fallback', () => {
     });
   });
 
-  describe('7. Coverage & Governance Invariants', () => {
+  describe('10. Coverage & Governance Invariants', () => {
     it('evaluates fallback benchmark and reports improved display coverage with strictly unchanged authority', () => {
       const report = evaluateFallbackCoverage();
       expect(report.eligibleFallbackHits).toBeGreaterThan(0);

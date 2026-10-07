@@ -1,5 +1,5 @@
 import { DEFAULT_LEXICON_REPOSITORY } from '../data/lexicon';
-import { DEFAULT_EVIDENCE_FALLBACK_REPOSITORY } from '../data/fallback';
+import { DEFAULT_EVIDENCE_FALLBACK_REPOSITORY, EMPTY_EVIDENCE_FALLBACK_REPOSITORY } from '../data/fallback';
 import { consonantalScaffold } from '../data/ijmes-mappings';
 import { normalizePersian } from './normalization';
 import { analyzeOrthography } from './orthography';
@@ -336,13 +336,19 @@ export function transliterate(
   profile: ProfileId = 'ijmes_full',
   reviewDecisions: ReviewDecision[] = [],
   lexicon: LexiconRepository = DEFAULT_LEXICON_REPOSITORY,
-  fallbackRepository: EvidenceFallbackRepository = DEFAULT_EVIDENCE_FALLBACK_REPOSITORY
+  fallbackRepository?: EvidenceFallbackRepository
 ): TransliterationResult {
   if (!SUPPORTED_PROFILES.includes(profile)) {
     throw new Error(`Unsupported profile: ${profile}`);
   }
+  const effectiveFallback =
+    fallbackRepository ??
+    (lexicon === DEFAULT_LEXICON_REPOSITORY
+      ? DEFAULT_EVIDENCE_FALLBACK_REPOSITORY
+      : EMPTY_EVIDENCE_FALLBACK_REPOSITORY);
+
   lexicon.assertValid();
-  fallbackRepository.assertValid();
+  effectiveFallback.assertValid();
   const normalization = normalizePersian(input);
 
   // Human-approved frozen V2 authority is an exact normalized phrase/profile layer.
@@ -368,7 +374,7 @@ export function transliterate(
   const resolved = tokens.map((token, index) =>
     morphologyByToken.has(index)
       ? resolveMorphologicalToken(token, morphologyByToken.get(index)!)
-      : resolveToken(token, analysisByToken.get(index), lexicon, fallbackRepository, profile)
+      : resolveToken(token, analysisByToken.get(index), lexicon, effectiveFallback, profile)
   );
 
 

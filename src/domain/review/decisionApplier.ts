@@ -288,8 +288,11 @@ export function applyReviewDecisions(
         const selectedId = decision.selectedAlternativeId;
 
         // Tamper resistance & identity verification:
-        // selectedAlternativeId must match proposal.fallbackEntryId
-        const matchesId = !selectedId || selectedId === proposal.fallbackEntryId;
+        // selectedAlternativeId must strictly match proposal.fallbackEntryId
+        const matchesId =
+          typeof selectedId === 'string' &&
+          selectedId.trim().length > 0 &&
+          selectedId === proposal.fallbackEntryId;
         // If manualCanonicalTransliteration is provided, it must match proposal.hypothesis
         const matchesCanonical =
           !decision.manualCanonicalTransliteration ||

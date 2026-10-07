@@ -128,7 +128,11 @@ function validateSingleReviewDecision(d: unknown): ReviewDecision | null {
     assistance = validAssistance;
   }
 
-  if (action === 'SELECT_LEXICAL_READING' || action === 'SELECT_MORPHOLOGY') {
+  if (
+    action === 'SELECT_LEXICAL_READING' ||
+    action === 'SELECT_MORPHOLOGY' ||
+    action === 'ACCEPT_EVIDENCE_DERIVED'
+  ) {
     if (typeof d.selectedAlternativeId !== 'string' || d.selectedAlternativeId.trim().length === 0) {
       return null;
     }

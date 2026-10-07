@@ -54,8 +54,18 @@ export class EvidenceFallbackRepository {
         `EvidenceFallbackPack entryCount mismatch: manifest declares ${pack.manifest.entryCount}, but found ${entries.length}`
       );
     }
+    const VALID_CONFIDENCE_TIERS = new Set([
+      'CROSS_PROFILE_CONSENSUS',
+      'MULTI_OBSERVATION_CONSENSUS',
+      'SINGLE_OBSERVATION_DETERMINISTIC'
+    ]);
+    const VALID_SOURCE_PROFILES = new Set(['CLASSICAL_DARI', 'IRANIAN']);
+
     const seenIds = new Set<string>();
     for (const [key, entry] of entries) {
+      if (!entry.id || typeof entry.id !== 'string' || entry.id.trim().length === 0) {
+        throw new Error('EvidenceFallbackPack entry has empty id');
+      }
       if (entry.normalizedForm !== key) {
         throw new Error(
           `EvidenceFallbackPack key mismatch: entry.normalizedForm "${entry.normalizedForm}" !== key "${key}"`
@@ -73,13 +83,47 @@ export class EvidenceFallbackRepository {
       if (!entry.hypothesis || typeof entry.hypothesis !== 'string' || entry.hypothesis.trim().length === 0) {
         throw new Error(`EvidenceFallbackPack entry ${entry.id} has null or empty hypothesis`);
       }
+      if (!entry.confidenceTier || !VALID_CONFIDENCE_TIERS.has(entry.confidenceTier)) {
+        throw new Error(`EvidenceFallbackPack entry ${entry.id} has invalid confidenceTier: ${entry.confidenceTier}`);
+      }
+      if (!Array.isArray(entry.sourceProfiles) || entry.sourceProfiles.length === 0) {
+        throw new Error(`EvidenceFallbackPack entry ${entry.id} has empty sourceProfiles`);
+      }
+      for (const p of entry.sourceProfiles) {
+        if (!VALID_SOURCE_PROFILES.has(p)) {
+          throw new Error(`EvidenceFallbackPack entry ${entry.id} has invalid sourceProfile: ${p}`);
+        }
+      }
+      if (!Array.isArray(entry.interpretations) || entry.interpretations.length === 0) {
+        throw new Error(`EvidenceFallbackPack entry ${entry.id} has empty interpretations`);
+      }
+      if (entry.evidenceCount !== entry.interpretations.length) {
+        throw new Error(
+          `EvidenceFallbackPack entry ${entry.id} evidenceCount mismatch: declares ${entry.evidenceCount}, interpretations length is ${entry.interpretations.length}`
+        );
+      }
+      for (const interp of entry.interpretations) {
+        if (!interp.evidenceId || typeof interp.evidenceId !== 'string' || interp.evidenceId.trim().length === 0) {
+          throw new Error(`EvidenceFallbackPack entry ${entry.id} has empty interpretation evidenceId`);
+        }
+        if (!interp.romanization || typeof interp.romanization !== 'string' || interp.romanization.trim().length === 0) {
+          throw new Error(`EvidenceFallbackPack entry ${entry.id} has empty interpretation romanization`);
+        }
+        if (!VALID_SOURCE_PROFILES.has(interp.profile)) {
+          throw new Error(`EvidenceFallbackPack entry ${entry.id} has invalid interpretation profile: ${interp.profile}`);
+        }
+      }
+      if (!entry.candidateAnalysisId || typeof entry.candidateAnalysisId !== 'string' || entry.candidateAnalysisId.trim().length === 0) {
+        throw new Error(`EvidenceFallbackPack entry ${entry.id} has empty candidateAnalysisId`);
+      }
       if (
-        !entry.candidateAnalysisId ||
-        entry.evidenceCount <= 0 ||
-        !Array.isArray(entry.interpretations) ||
-        entry.interpretations.length === 0
+        !entry.generatedFrom ||
+        !entry.generatedFrom.acquisitionVersion ||
+        !entry.generatedFrom.interpreterVersion ||
+        !entry.generatedFrom.ruleSetVersion ||
+        !entry.generatedFrom.aggregatorVersion
       ) {
-        throw new Error(`EvidenceFallbackPack entry ${entry.id} has malformed provenance`);
+        throw new Error(`EvidenceFallbackPack entry ${entry.id} has incomplete generatedFrom version metadata`);
       }
     }
   }
