@@ -15,9 +15,11 @@ import type { LexicalCandidate, LexicalEvidence } from '../types';
 export interface KaikkiForm {
   form?: string;
   tags?: string[];
+  raw_tags?: string[];
   source?: string;
   ipa?: string;
   romanization?: string;
+  head_nr?: number;
 }
 
 /**
@@ -26,6 +28,7 @@ export interface KaikkiForm {
 export interface KaikkiSound {
   ipa?: string;
   tags?: string[];
+  raw_tags?: string[];
   note?: string;
   enpr?: string;
   audio?: string;
@@ -41,12 +44,14 @@ export interface KaikkiSenseFormOf {
 }
 
 /**
- * Raw Wiktextract sense entry.
+ * Raw Wiktextract sense entry supporting both singular id and Wiktextract senseid array.
  */
 export interface KaikkiSense {
   id?: string;
+  senseid?: string[];
   glosses?: string[];
   tags?: string[];
+  raw_tags?: string[];
   categories?: unknown[];
   form_of?: KaikkiSenseFormOf[];
   alt_of?: KaikkiSenseFormOf[];
@@ -61,6 +66,8 @@ export interface KaikkiRawEntry {
   lang?: string;
   lang_code?: string;
   pos?: string;
+  etymology_number?: string | number;
+  head_nr?: number;
   forms?: KaikkiForm[];
   sounds?: KaikkiSound[];
   senses?: KaikkiSense[];
@@ -69,6 +76,18 @@ export interface KaikkiRawEntry {
   head_templates?: unknown[];
   title?: string;
   redirect?: string;
+}
+
+/**
+ * Extracted per-romanization observation with localized source index and tags.
+ */
+export interface KaikkiRomanizationObservation {
+  value: string;
+  sourceFormIndex: number;
+  tags: string[];
+  rawTags?: string[];
+  source?: string;
+  headNr?: number;
 }
 
 /**
@@ -100,10 +119,14 @@ export interface KaikkiLemmaRelation {
  */
 export interface KaikkiEvidenceMetadata {
   pos?: string;
+  etymologyNumber?: string | number;
+  headNr?: number;
   lemmaStatus: KaikkiLemmaStatus;
   lemmaRelation?: KaikkiLemmaRelation;
   ipaObservations: KaikkiIpaObservation[];
   varietyTags: string[];
+  romanizationTags?: string[];
+  sourceFormIndex?: number;
   sourceSenseIds: string[];
   glosses: string[];
   etymologyText?: string;
@@ -135,13 +158,16 @@ export interface KaikkiRecordParseResult {
 }
 
 /**
- * Options for stream parsing.
+ * Options for stream parsing and bulk execution.
  */
 export interface KaikkiParseOptions {
   strict?: boolean;
   onlyLemmas?: boolean;
   limit?: number;
   offset?: number;
+  collectObservations?: boolean;
+  evidenceSink?: (evidence: LexicalEvidence) => void | Promise<void>;
+  candidateSink?: (candidate: LexicalCandidate) => void | Promise<void>;
 }
 
 /**
@@ -226,8 +252,8 @@ export interface KaikkiAcquisitionReport {
  * Result bundle returned by KaikkiEvidenceConnector.
  */
 export interface KaikkiAcquisitionResult {
-  observations: KaikkiExtractedObservation[];
-  evidence: LexicalEvidence[];
-  candidates: LexicalCandidate[];
+  observations?: KaikkiExtractedObservation[];
+  evidence?: LexicalEvidence[];
+  candidates?: LexicalCandidate[];
   report: KaikkiAcquisitionReport;
 }

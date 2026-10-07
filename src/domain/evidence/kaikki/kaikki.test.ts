@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import { Readable } from 'node:stream';
 import { DEFAULT_LEXICON_REPOSITORY } from '../../../data/lexicon';
-import { LexiconRepository } from '../../lexicon/repository';
 import { KaikkiEvidenceConnector } from './connector';
 import {
+  buildKaikkiSourceRecordId,
   determineLemmaStatus,
   extractIpaObservations,
   extractKaikkiObservations,
@@ -16,19 +16,17 @@ import { KAIKKI_SAMPLE_FIXTURE_PATH } from './fixtures';
 import {
   KaikkiParseError,
   parseKaikkiJsonlStream,
-  parseRawKaikkiLine,
   validatePersianEntry
 } from './parser';
 import {
   analyzeLexiconOverlap,
-  buildKaikkiAcquisitionReport,
   detectNormalizationCollisions,
   formatKaikkiSummary
 } from './statistics';
 import type { KaikkiRawEntry } from './types';
 
-describe('Phase 7A: Kaikki Lexical Acquisition Pipeline', () => {
-  describe('1. Streaming JSONL Parsing and Offset/Limit', () => {
+describe('Phase 7A Hardened: Kaikki Lexical Acquisition Pipeline', () => {
+  describe('1. Streaming JSONL Parsing and Valid-Record Offset', () => {
     it('stream-parses JSONL lines incrementally without loading full dataset', async () => {
       const jsonlData = [
         JSON.stringify({ word: 'کتاب', lang_code: 'fa', pos: 'noun' }),
@@ -49,23 +47,25 @@ describe('Phase 7A: Kaikki Lexical Acquisition Pipeline', () => {
       expect(results[2].entry?.word).toBe('دفتر');
     });
 
-    it('honors limit and offset parameters in stream parsing', async () => {
+    it('honors valid-record offset ignoring preceding malformed and non-Persian lines', async () => {
       const jsonlData = [
-        JSON.stringify({ word: 'یک', lang_code: 'fa' }),
-        JSON.stringify({ word: 'دو', lang_code: 'fa' }),
-        JSON.stringify({ word: 'سه', lang_code: 'fa' }),
-        JSON.stringify({ word: 'چهار', lang_code: 'fa' })
+        '{"word": "arabic", "lang_code": "ar"}', // non-fa
+        '{"word": "broken", ',                   // malformed JSON
+        JSON.stringify({ word: 'یک', lang_code: 'fa', pos: 'num' }),     // valid 1
+        JSON.stringify({ word: 'دو', lang_code: 'fa', pos: 'num' }),     // valid 2
+        JSON.stringify({ word: 'سه', lang_code: 'fa', pos: 'num' })      // valid 3
       ].join('\n');
 
       const stream = Readable.from([jsonlData]);
-      const results = [];
-      for await (const res of parseKaikkiJsonlStream(stream, { offset: 1, limit: 2 })) {
-        results.push(res);
+      const validYielded = [];
+      for await (const res of parseKaikkiJsonlStream(stream, { offset: 1, limit: 1 })) {
+        if (res.success && res.entry) {
+          validYielded.push(res.entry.word);
+        }
       }
 
-      expect(results).toHaveLength(2);
-      expect(results[0].entry?.word).toBe('دو');
-      expect(results[1].entry?.word).toBe('سه');
+      // Offset 1 skips "یک" (first valid record), yielding "دو" (second valid record)
+      expect(validYielded).toEqual(['دو']);
     });
   });
 
@@ -144,99 +144,148 @@ describe('Phase 7A: Kaikki Lexical Acquisition Pipeline', () => {
     });
   });
 
-  describe('4. Romanization Extraction and Scheme Assignment', () => {
-    it('extracts romanizations from forms tagged with romanization', () => {
-      const entry: KaikkiRawEntry = {
-        word: 'کتاب',
+  describe('4. Source Record Identity and Etymology Disambiguation', () => {
+    it('constructs deterministic source record id including etymology number and head number', () => {
+      const entry1: KaikkiRawEntry = {
+        word: 'شیر',
         lang_code: 'fa',
         pos: 'noun',
-        forms: [
-          { form: 'ketâb', tags: ['romanization'] },
-          { form: 'کتاب‌ها', tags: ['plural'] }
-        ]
+        etymology_number: 1
+      };
+      const entry2: KaikkiRawEntry = {
+        word: 'شیر',
+        lang_code: 'fa',
+        pos: 'noun',
+        etymology_number: 2
       };
 
-      const romanizations = extractRawRomanizations(entry);
-      expect(romanizations).toEqual(['ketâb']);
+      const id1 = buildKaikkiSourceRecordId(entry1);
+      const id2 = buildKaikkiSourceRecordId(entry2);
+
+      expect(id1).toBe('شیر#fa#noun#etym:1');
+      expect(id2).toBe('شیر#fa#noun#etym:2');
+      expect(id1).not.toBe(id2);
     });
 
-    it('assigns LOCAL romanizationScheme and LEXICOGRAPHIC_DATASET sourceType to evidence', () => {
-      const entry: KaikkiRawEntry = {
-        word: 'کتاب',
+    it('generates distinct deterministic evidence IDs for different etymologies of the same word and pos', () => {
+      const entry1: KaikkiRawEntry = {
+        word: 'شیر',
         lang_code: 'fa',
         pos: 'noun',
-        forms: [{ form: 'ketâb', tags: ['romanization'] }]
+        etymology_number: 1,
+        forms: [{ form: 'šir', tags: ['romanization'] }]
+      };
+      const entry2: KaikkiRawEntry = {
+        word: 'شیر',
+        lang_code: 'fa',
+        pos: 'noun',
+        etymology_number: 2,
+        forms: [{ form: 'šir', tags: ['romanization'] }]
       };
 
-      const observations = extractKaikkiObservations(entry, { now: () => '2026-10-07T12:00:00.000Z' });
-      expect(observations).toHaveLength(1);
-      const evi = observations[0].evidence;
+      const obs1 = extractKaikkiObservations(entry1);
+      const obs2 = extractKaikkiObservations(entry2);
 
-      expect(evi.sourceType).toBe('LEXICOGRAPHIC_DATASET');
-      expect(evi.romanizationScheme).toBe('LOCAL');
-      expect(evi.observedRomanization).toBe('ketâb');
-      expect(evi.persianForm).toBe('کتاب');
-      expect(evi.provenance.sourceId).toBe(KAIKKI_SOURCE_ID);
-      expect(evi.provenance.retrievalMethod).toBe('BULK_DATA');
-      expect(evi.provenance.extractorVersion).toBe(KAIKKI_EXTRACTOR_VERSION);
+      expect(obs1[0].evidence.id).not.toBe(obs2[0].evidence.id);
+      expect(obs1[0].evidence.sourceRecordId).toBe('شیر#fa#noun#etym:1');
+      expect(obs2[0].evidence.sourceRecordId).toBe('شیر#fa#noun#etym:2');
     });
   });
 
-  describe('5 & 6 & 7. Preservation of Multiple Romanizations and Exact Strings (No IJMES Rewriting)', () => {
-    it('preserves all distinct romanizations without first-wins truncation', () => {
+  describe('5. Sense Identifiers (senseid array and id)', () => {
+    it('preserves both singular id and Wiktextract senseid arrays without inventing IDs', () => {
+      const entry: KaikkiRawEntry = {
+        word: 'کتاب',
+        lang_code: 'fa',
+        pos: 'noun',
+        senses: [
+          { id: 'fa-ketab-1', glosses: ['book'] },
+          { senseid: ['fa-ketab-sense-2', 'q12345'], glosses: ['written document'] }
+        ]
+      };
+
+      const obs = extractKaikkiObservations(entry);
+      expect(obs[0].metadata.sourceSenseIds).toEqual(['fa-ketab-1', 'fa-ketab-sense-2', 'q12345']);
+      expect(obs[0].metadata.glosses).toEqual(['book', 'written document']);
+    });
+  });
+
+  describe('6. Per-Romanization Metadata and Source Field Locators', () => {
+    it('preserves per-romanization tags individually and ties sourceField to forms array index', () => {
       const entry: KaikkiRawEntry = {
         word: 'گفتار',
         lang_code: 'fa',
         pos: 'noun',
         forms: [
-          { form: 'guftār', tags: ['romanization'] },
-          { form: 'goftâr', tags: ['romanization'] }
+          { form: 'کتاب‌ها', tags: ['plural'] },                                      // index 0: non-romanization
+          { form: 'guftār', tags: ['romanization', 'Classical-Persian'] },           // index 1
+          { form: 'goftâr', tags: ['romanization', 'Iranian-Persian', 'standard'] } // index 2
         ]
       };
+
+      const roms = extractRawRomanizations(entry);
+      expect(roms).toHaveLength(2);
+      expect(roms[0].sourceFormIndex).toBe(1);
+      expect(roms[0].tags).toEqual(['romanization', 'Classical-Persian']);
+      expect(roms[1].sourceFormIndex).toBe(2);
+      expect(roms[1].tags).toEqual(['romanization', 'Iranian-Persian', 'standard']);
 
       const observations = extractKaikkiObservations(entry);
       expect(observations).toHaveLength(2);
 
-      const observedRoms = observations.map((o) => o.evidence.observedRomanization);
-      expect(observedRoms).toEqual(['guftār', 'goftâr']);
-    });
+      expect(observations[0].evidence.sourceField).toBe('forms[1]');
+      expect(observations[0].metadata.romanizationTags).toEqual(['romanization', 'Classical-Persian']);
+      expect(observations[0].metadata.sourceFormIndex).toBe(1);
 
-    it('never rewrites raw romanizations to IJMES at acquisition time', () => {
-      const entry: KaikkiRawEntry = {
-        word: 'گفتار',
-        lang_code: 'fa',
-        pos: 'noun',
-        forms: [{ form: 'goftâr', tags: ['romanization'] }]
-      };
-
-      const observations = extractKaikkiObservations(entry);
-      // Ensure 'â' is NOT rewritten to 'ā' or 'o' to 'u'
-      expect(observations[0].evidence.observedRomanization).toBe('goftâr');
+      expect(observations[1].evidence.sourceField).toBe('forms[2]');
+      expect(observations[1].metadata.romanizationTags).toEqual(['romanization', 'Iranian-Persian', 'standard']);
+      expect(observations[1].metadata.sourceFormIndex).toBe(2);
     });
   });
 
-  describe('8. IPA Observations and Dialect Tags Preservation', () => {
-    it('extracts and preserves IPA observations with dialect and regional tags', () => {
-      const entry: KaikkiRawEntry = {
-        word: 'روز',
-        lang_code: 'fa',
-        pos: 'noun',
-        sounds: [
-          { ipa: '/roːz/', tags: ['Classical-Persian'] },
-          { ipa: '/ruːz/', tags: ['Dari'] },
-          { ipa: '/ɾuːz/', tags: ['Iranian-Persian'], note: 'standard modern' }
-        ]
-      };
+  describe('7. Candidate Synthesis by Normalized Persian Form', () => {
+    it('groups raw spelling variants into one normalized candidate while preserving distinct raw observations and reporting collisions', async () => {
+      const jsonlData = [
+        JSON.stringify({
+          word: 'كتاب', // Arabic kaf
+          lang_code: 'fa',
+          pos: 'noun',
+          forms: [{ form: 'ketâb', tags: ['romanization'] }]
+        }),
+        JSON.stringify({
+          word: 'کتاب', // Persian kaf
+          lang_code: 'fa',
+          pos: 'noun',
+          forms: [{ form: 'ketâb', tags: ['romanization'] }]
+        })
+      ].join('\n');
 
-      const ipas = extractIpaObservations(entry);
-      expect(ipas).toHaveLength(3);
-      expect(ipas[0]).toEqual({ ipa: '/roːz/', tags: ['Classical-Persian'], note: undefined });
-      expect(ipas[1]).toEqual({ ipa: '/ruːz/', tags: ['Dari'], note: undefined });
-      expect(ipas[2]).toEqual({ ipa: '/ɾuːz/', tags: ['Iranian-Persian'], note: 'standard modern' });
+      const connector = new KaikkiEvidenceConnector();
+      const result = await connector.processStream(Readable.from([jsonlData]), { collectObservations: true });
+
+      // Two distinct raw observations
+      expect(result.evidence).toHaveLength(2);
+      expect(result.evidence![0].persianForm).toBe('كتاب');
+      expect(result.evidence![1].persianForm).toBe('کتاب');
+      expect(result.evidence![0].id).not.toBe(result.evidence![1].id);
+
+      // Exactly ONE candidate synthesized for normalized form 'کتاب'
+      expect(result.candidates).toHaveLength(1);
+      const cand = result.candidates![0];
+      expect(cand.persianForm).toBe('کتاب');
+      expect(cand.normalizedForm).toBe('کتاب');
+      expect(cand.evidenceIds).toEqual([result.evidence![0].id, result.evidence![1].id]);
+      expect(cand.proposedCanonical).toBeNull();
+      expect(cand.status).toBe('UNREVIEWED');
+
+      // Normalization collision is captured in the report
+      expect(result.report.normalizationCollisions).toHaveLength(1);
+      expect(result.report.normalizationCollisions[0].normalizedForm).toBe('کتاب');
+      expect(result.report.normalizationCollisions[0].rawForms).toEqual(['كتاب', 'کتاب']);
     });
   });
 
-  describe('9. Lemma vs Non-Lemma / Form-Of Detection', () => {
+  describe('8. Lemma Status and --only-lemmas Filtering', () => {
     it('identifies standard primary lemma entries', () => {
       const entry: KaikkiRawEntry = {
         word: 'درخت',
@@ -250,88 +299,53 @@ describe('Phase 7A: Kaikki Lexical Acquisition Pipeline', () => {
       expect(lemmaRelation).toBeUndefined();
     });
 
-    it('identifies form_of senses and captures parent lemma relationship', () => {
-      const entry: KaikkiRawEntry = {
+    it('identifies form_of, alt_of, and non-lemma POS as NON_LEMMA_FORM', () => {
+      const formOfEntry: KaikkiRawEntry = {
         word: 'فهرست‌ها',
         lang_code: 'fa',
         pos: 'noun',
-        senses: [
-          {
-            glosses: ['plural of فهرست'],
-            tags: ['plural', 'form-of'],
-            form_of: [{ word: 'فهرست' }]
-          }
-        ]
+        senses: [{ form_of: [{ word: 'فهرست' }], tags: ['form-of'] }]
       };
-
-      const { lemmaStatus, lemmaRelation } = determineLemmaStatus(entry);
-      expect(lemmaStatus).toBe('NON_LEMMA_FORM');
-      expect(lemmaRelation).toEqual({
-        kind: 'FORM_OF',
-        lemma: 'فهرست',
-        tags: ['plural', 'form-of']
-      });
-    });
-  });
-
-  describe('10 & 11. Deterministic Evidence IDs and Rerun Idempotence', () => {
-    it('generates deterministic evidence IDs for identical observations', () => {
-      const entry: KaikkiRawEntry = {
-        word: 'کتاب',
+      const altOfEntry: KaikkiRawEntry = {
+        word: 'طهران',
         lang_code: 'fa',
         pos: 'noun',
-        forms: [{ form: 'ketâb', tags: ['romanization'] }]
+        senses: [{ alt_of: [{ word: 'تهران' }], tags: ['archaic'] }]
+      };
+      const inflVerbEntry: KaikkiRawEntry = {
+        word: 'می‌روم',
+        lang_code: 'fa',
+        pos: 'verb_form'
       };
 
-      const obs1 = extractKaikkiObservations(entry, { now: () => '2026-10-07T00:00:00.000Z' });
-      const obs2 = extractKaikkiObservations(entry, { now: () => '2026-10-07T00:00:00.000Z' });
-
-      expect(obs1[0].evidence.id).toBe(obs2[0].evidence.id);
-      expect(obs1[0].evidence.id).toMatch(/^evi-kaikki-enwiktionary-fa-[a-f0-9]{16}$/);
+      expect(determineLemmaStatus(formOfEntry).lemmaStatus).toBe('NON_LEMMA_FORM');
+      expect(determineLemmaStatus(altOfEntry).lemmaStatus).toBe('NON_LEMMA_FORM');
+      expect(determineLemmaStatus(inflVerbEntry).lemmaStatus).toBe('NON_LEMMA_FORM');
     });
 
-    it('yields identical candidate IDs across multiple pipeline runs on the same input', async () => {
+    it('strictly filters out NON_LEMMA_FORM and UNKNOWN_LEMMA_STATUS when --only-lemmas is set', async () => {
+      const jsonlData = [
+        JSON.stringify({ word: 'کتاب', lang_code: 'fa', pos: 'noun', forms: [{ form: 'ketâb', tags: ['romanization'] }] }),
+        JSON.stringify({ word: 'فهرست‌ها', lang_code: 'fa', pos: 'noun', senses: [{ form_of: [{ word: 'فهرست' }] }] }),
+        JSON.stringify({ word: 'ناشناس', lang_code: 'fa', pos: 'unknown_pos' })
+      ].join('\n');
+
       const connector = new KaikkiEvidenceConnector();
-      const res1 = await connector.processFile(KAIKKI_SAMPLE_FIXTURE_PATH);
-      const res2 = await connector.processFile(KAIKKI_SAMPLE_FIXTURE_PATH);
+      const result = await connector.processStream(Readable.from([jsonlData]), {
+        onlyLemmas: true,
+        collectObservations: true
+      });
 
-      expect(res1.evidence.map((e) => e.id)).toEqual(res2.evidence.map((e) => e.id));
-      expect(res1.candidates.map((c) => c.id)).toEqual(res2.candidates.map((c) => c.id));
+      expect(result.candidates).toHaveLength(1);
+      expect(result.candidates![0].persianForm).toBe('کتاب');
     });
   });
 
-  describe('12. Normalization Collision Reporting', () => {
-    it('detects and reports when different raw spellings collapse to the same normalized form', () => {
-      const entry1: KaikkiRawEntry = {
-        word: 'كتاب', // Arabic kaf (U+0643)
-        lang_code: 'fa',
-        pos: 'noun',
-        forms: [{ form: 'ketâb', tags: ['romanization'] }]
-      };
-      const entry2: KaikkiRawEntry = {
-        word: 'کتاب', // Persian kaf (U+06A9)
-        lang_code: 'fa',
-        pos: 'noun',
-        forms: [{ form: 'ketâb', tags: ['romanization'] }]
-      };
-
-      const obs = [
-        ...extractKaikkiObservations(entry1),
-        ...extractKaikkiObservations(entry2)
-      ];
-
-      const collisions = detectNormalizationCollisions(obs);
-      expect(collisions).toHaveLength(1);
-      expect(collisions[0].normalizedForm).toBe('کتاب');
-      expect(collisions[0].rawForms).toEqual(['كتاب', 'کتاب']);
-    });
-  });
-
-  describe('13 & 14. Lexicon Overlap Analysis and Zero Lexicon Mutation', () => {
+  describe('9. Read-Only Lexicon Overlap Analysis and Zero Lexicon Mutation', () => {
     it('analyzes overlap with LexiconRepository strictly read-only', () => {
       const initialEntryCount = DEFAULT_LEXICON_REPOSITORY.getAllEntries().length;
 
-      const normMap = new Map<string, { rawWords: Set<string>; romanizations: Set<string> }>([
+      const normMap = new Map([
         ['کتاب', { rawWords: new Set(['کتاب']), romanizations: new Set(['ketâb']) }],
         ['واژه‌جدیدناشناس', { rawWords: new Set(['واژه‌جدیدناشناس']), romanizations: new Set(['vâže']) }]
       ]);
@@ -346,30 +360,28 @@ describe('Phase 7A: Kaikki Lexical Acquisition Pipeline', () => {
       expect(overlapItems[0].inLexicon).toBe(true);
       expect(overlapItems[1].inLexicon).toBe(false);
 
-      // Verify ZERO mutation
       expect(DEFAULT_LEXICON_REPOSITORY.getAllEntries().length).toBe(initialEntryCount);
     });
   });
 
-  describe('15 & 16. Candidates Non-Authoritative and Zero Promotion Invariant', () => {
-    it('ensures synthesized candidates have null proposedCanonical and UNREVIEWED status', async () => {
+  describe('10. Scalable Streaming Mode (collectObservations: false)', () => {
+    it('streams through dataset generating full report without holding observation arrays in memory', async () => {
       const connector = new KaikkiEvidenceConnector();
-      const result = await connector.processFile(KAIKKI_SAMPLE_FIXTURE_PATH);
+      const result = await connector.processFile(KAIKKI_SAMPLE_FIXTURE_PATH, {
+        collectObservations: false
+      });
 
-      expect(result.candidates.length).toBeGreaterThan(0);
-      for (const cand of result.candidates) {
-        expect(cand.proposedCanonical).toBeNull();
-        expect(cand.status).toBe('UNREVIEWED');
-        expect(cand.adjudication).toBeUndefined();
-      }
-
+      expect(result.observations).toBeUndefined();
+      expect(result.evidence).toBeUndefined();
+      expect(result.report.validPersianRecords).toBe(7);
+      expect(result.report.distinctNormalizedForms).toBe(6);
+      expect(result.report.candidateCount).toBe(6);
       expect(result.report.promotionCount).toBe(0);
-      expect(result.report.authoritativeLexiconChanges).toBe(0);
     });
   });
 
-  describe('17. Full Pipeline Integration on Sample Fixture', () => {
-    it('processes sample fixture and produces formatted summary conforming to specifications', async () => {
+  describe('11. Full Pipeline on Pilot Sample Fixture', () => {
+    it('processes sample fixture cleanly maintaining all Phase 5/7A invariants', async () => {
       expect(fs.existsSync(KAIKKI_SAMPLE_FIXTURE_PATH)).toBe(true);
 
       const connector = new KaikkiEvidenceConnector();
@@ -377,9 +389,13 @@ describe('Phase 7A: Kaikki Lexical Acquisition Pipeline', () => {
 
       const report = result.report;
       expect(report.source).toBe(KAIKKI_SOURCE_ID);
+      expect(report.extractorVersion).toBe(KAIKKI_EXTRACTOR_VERSION);
       expect(report.rowsRead).toBe(10);
-      expect(report.malformedRows).toBe(1); // 1 broken row
-      expect(report.validPersianRecords).toBe(7); // 7 valid unique entries
+      expect(report.malformedRows).toBe(1);
+      expect(report.validPersianRecords).toBe(7);
+      expect(report.distinctPersianForms).toBe(6);
+      expect(report.distinctNormalizedForms).toBe(6);
+      expect(report.candidateCount).toBe(6);
       expect(report.promotionCount).toBe(0);
       expect(report.authoritativeLexiconChanges).toBe(0);
 

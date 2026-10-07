@@ -26,14 +26,16 @@ import {
   RomanizationScheme
 } from '../types';
 import {
+  buildKaikkiSourceRecordId,
+  determineLemmaStatus,
   extractKaikkiObservations,
   KAIKKI_EXTRACTOR_VERSION,
   KAIKKI_SOURCE_ID
 } from './extractor';
 import { parseKaikkiJsonlStream } from './parser';
 import {
-  buildKaikkiAcquisitionReport,
-  computeFileSha256
+  computeFileSha256,
+  KaikkiAcquisitionAccumulator
 } from './statistics';
 import type {
   KaikkiAcquisitionResult,
@@ -119,74 +121,74 @@ export class KaikkiEvidenceConnector implements LexicalEvidenceSource<KaikkiRawE
       ...this.manifestOverrides
     };
 
-    let rowsRead = 0;
-    let malformedRows = 0;
-    let validPersianRecords = 0;
-    const observations: KaikkiExtractedObservation[] = [];
+    const accumulator = new KaikkiAcquisitionAccumulator();
+    const shouldCollect = options?.collectObservations ?? true;
+
+    const inMemoryObservations: KaikkiExtractedObservation[] = [];
+    const inMemoryEvidence: LexicalEvidence[] = [];
 
     for await (const result of parseKaikkiJsonlStream(stream, options)) {
-      rowsRead += 1;
+      accumulator.rowsRead += 1;
       if (!result.success || !result.entry) {
         if (result.error) {
-          malformedRows += 1;
+          accumulator.malformedRows += 1;
         }
         continue;
       }
 
-      validPersianRecords += 1;
+      accumulator.validPersianRecords += 1;
 
-      if (options?.onlyLemmas) {
-        const hasFormOf = result.entry.senses?.some((s) => s.form_of && s.form_of.length > 0);
-        if (hasFormOf) {
-          continue;
-        }
+      const { lemmaStatus } = determineLemmaStatus(result.entry);
+      if (options?.onlyLemmas && lemmaStatus !== 'LEMMA') {
+        continue;
       }
 
       const extracted = extractKaikkiObservations(result.entry, {
         now: () => acquisitionTimestamp
       });
-      observations.push(...extracted);
-    }
 
-    // Group evidence by Persian form for Candidate synthesis
-    const evidenceByPersian = new Map<string, LexicalEvidence[]>();
-    for (const obs of observations) {
-      const form = obs.rawSourceWord;
-      let list = evidenceByPersian.get(form);
-      if (!list) {
-        list = [];
-        evidenceByPersian.set(form, list);
+      const entryKey = buildKaikkiSourceRecordId(result.entry);
+      const hasIpa = extracted.some((o) => o.metadata.ipaObservations.length > 0);
+      const hasRomanization = extracted.some((o) => o.evidence.observedRomanization !== null);
+
+      accumulator.recordEntryMetadata(entryKey, lemmaStatus, hasIpa, hasRomanization);
+
+      for (const obs of extracted) {
+        accumulator.addObservation(obs, true);
+
+        if (options?.evidenceSink) {
+          await options.evidenceSink(obs.evidence);
+        }
+
+        if (shouldCollect) {
+          inMemoryObservations.push(obs);
+          inMemoryEvidence.push(obs.evidence);
+        }
       }
-      list.push(obs.evidence);
     }
 
-    // Synthesize candidates (proposedCanonical = null, ZERO automatic authority)
+    // Synthesize candidates grouped by normalized Persian form (proposedCanonical = null, ZERO automatic authority)
     const candidates: LexicalCandidate[] = [];
-    for (const [persianForm, evidenceList] of evidenceByPersian.entries()) {
-      const candidate = synthesizeCandidateFromEvidence(persianForm, evidenceList, {
+    for (const [normalizedForm, group] of accumulator.getNormalizedGroups().entries()) {
+      const candidate = synthesizeCandidateFromEvidence(normalizedForm, group.supportingEvidence, {
         derivedAt: acquisitionTimestamp,
         proposedCanonical: null,
         notes: 'Synthesized from Kaikki Wiktionary Persian dataset observation'
       });
+
+      if (options?.candidateSink) {
+        await options.candidateSink(candidate);
+      }
+
       candidates.push(candidate);
     }
 
-    const report = buildKaikkiAcquisitionReport({
-      manifest,
-      rowsRead,
-      malformedRows,
-      validPersianRecords,
-      observations,
-      candidates,
-      lexiconRepo: this.lexiconRepo
-    });
-
-    const allEvidence = observations.map((o) => o.evidence);
+    const report = accumulator.toReport(manifest, candidates.length, this.lexiconRepo);
 
     return {
-      observations,
-      evidence: allEvidence,
-      candidates,
+      observations: shouldCollect ? inMemoryObservations : undefined,
+      evidence: shouldCollect ? inMemoryEvidence : undefined,
+      candidates: shouldCollect ? candidates : undefined,
       report
     };
   }

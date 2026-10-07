@@ -140,6 +140,7 @@ export function parseRawKaikkiLine(
 
 /**
  * Stream-parse Kaikki JSONL from a Readable stream line by line.
+ * Offset counts valid Persian records, ignoring malformed or non-Persian lines.
  */
 export async function* parseKaikkiJsonlStream(
   stream: Readable,
@@ -151,7 +152,8 @@ export async function* parseKaikkiJsonlStream(
   });
 
   let lineNumber = 0;
-  let yieldedCount = 0;
+  let validPersianCount = 0;
+  let yieldedValidCount = 0;
   const offset = options?.offset ?? 0;
   const limit = options?.limit ?? Infinity;
 
@@ -161,18 +163,20 @@ export async function* parseKaikkiJsonlStream(
 
     const result = parseRawKaikkiLine(line, lineNumber, { strict: options?.strict });
 
-    // If offset is specified, skip valid rows before offset
-    if (result.success && offset > 0 && lineNumber <= offset) {
+    if (!result.success || !result.isPersian) {
+      yield result;
+      continue;
+    }
+
+    validPersianCount += 1;
+    if (offset > 0 && validPersianCount <= offset) {
       continue;
     }
 
     yield result;
-
-    if (result.success) {
-      yieldedCount += 1;
-      if (yieldedCount >= limit) {
-        break;
-      }
+    yieldedValidCount += 1;
+    if (yieldedValidCount >= limit) {
+      break;
     }
   }
 }

@@ -16,14 +16,37 @@ import type {
   KaikkiIpaObservation,
   KaikkiLemmaRelation,
   KaikkiLemmaStatus,
-  KaikkiRawEntry
+  KaikkiRawEntry,
+  KaikkiRomanizationObservation
 } from './types';
 
 export const KAIKKI_SOURCE_ID = 'KAIKKI_ENWIKTIONARY_FA';
-export const KAIKKI_EXTRACTOR_VERSION = '1.0.0';
+export const KAIKKI_EXTRACTOR_VERSION = '1.1.0';
 
 export interface KaikkiExtractorOptions {
   now?: () => string;
+}
+
+/**
+ * Construct deterministic and semantic source record identifier from stable upstream fields.
+ * Includes etymology number and head number when present to disambiguate multiple entries.
+ */
+export function buildKaikkiSourceRecordId(entry: KaikkiRawEntry): string {
+  const parts: string[] = [
+    entry.word,
+    entry.lang_code ?? 'fa',
+    entry.pos ?? 'entry'
+  ];
+
+  if (entry.etymology_number !== undefined && String(entry.etymology_number).trim() !== '') {
+    parts.push(`etym:${String(entry.etymology_number).trim()}`);
+  }
+
+  if (entry.head_nr !== undefined) {
+    parts.push(`head:${entry.head_nr}`);
+  }
+
+  return parts.join('#');
 }
 
 /**
@@ -161,15 +184,16 @@ export function collectVarietyTags(entry: KaikkiRawEntry): string[] {
 }
 
 /**
- * Extract raw romanization strings from entry forms without filtering or dropping variants.
+ * Extract rich romanization observations with stable source indices and individual tag arrays.
  */
-export function extractRawRomanizations(entry: KaikkiRawEntry): string[] {
+export function extractRawRomanizations(entry: KaikkiRawEntry): KaikkiRomanizationObservation[] {
   if (!entry.forms || entry.forms.length === 0) {
     return [];
   }
 
-  const romanizations: string[] = [];
-  for (const formObj of entry.forms) {
+  const observations: KaikkiRomanizationObservation[] = [];
+  for (let index = 0; index < entry.forms.length; index += 1) {
+    const formObj = entry.forms[index];
     const isRomanization =
       (formObj.tags && formObj.tags.includes('romanization')) ||
       (typeof formObj.romanization === 'string' && formObj.romanization.trim().length > 0);
@@ -177,12 +201,19 @@ export function extractRawRomanizations(entry: KaikkiRawEntry): string[] {
     if (isRomanization) {
       const rom = (formObj.form ?? formObj.romanization ?? '').trim();
       if (rom.length > 0) {
-        romanizations.push(rom);
+        observations.push({
+          value: rom,
+          sourceFormIndex: index,
+          tags: formObj.tags ? [...formObj.tags] : [],
+          rawTags: formObj.raw_tags ? [...formObj.raw_tags] : undefined,
+          source: formObj.source,
+          headNr: formObj.head_nr
+        });
       }
     }
   }
 
-  return romanizations;
+  return observations;
 }
 
 /**
@@ -205,6 +236,11 @@ export function extractKaikkiObservations(
   if (entry.senses) {
     for (const sense of entry.senses) {
       if (sense.id) sourceSenseIds.push(sense.id);
+      if (Array.isArray(sense.senseid)) {
+        for (const sid of sense.senseid) {
+          if (typeof sid === 'string' && sid.trim()) sourceSenseIds.push(sid.trim());
+        }
+      }
       if (sense.glosses) {
         for (const g of sense.glosses) {
           if (typeof g === 'string' && g.trim()) glosses.push(g.trim());
@@ -213,8 +249,14 @@ export function extractKaikkiObservations(
     }
   }
 
-  const metadata: KaikkiEvidenceMetadata = {
+  const sourceRecordId = buildKaikkiSourceRecordId(entry);
+  const sourceUri = `https://en.wiktionary.org/wiki/${encodeURIComponent(rawWord)}`;
+  const contextSnippet = glosses.length > 0 ? glosses[0] : null;
+
+  const baseMetadata: Omit<KaikkiEvidenceMetadata, 'romanizationTags' | 'sourceFormIndex'> = {
     pos: entry.pos,
+    etymologyNumber: entry.etymology_number,
+    headNr: entry.head_nr,
     lemmaStatus,
     lemmaRelation,
     ipaObservations,
@@ -226,13 +268,10 @@ export function extractKaikkiObservations(
     normalizedForm: normalized
   };
 
-  const romanizations = extractRawRomanizations(entry);
-  const sourceRecordId = `${rawWord}#${entry.pos ?? 'entry'}`;
-  const sourceUri = `https://en.wiktionary.org/wiki/${encodeURIComponent(rawWord)}`;
-  const contextSnippet = glosses.length > 0 ? glosses[0] : null;
+  const romanizationObs = extractRawRomanizations(entry);
 
   // If no romanization forms are present, create a single unromanized observation preserving metadata
-  if (romanizations.length === 0) {
+  if (romanizationObs.length === 0) {
     const evidenceId = generateEvidenceId({
       sourceId: KAIKKI_SOURCE_ID,
       sourceRecordId,
@@ -267,7 +306,11 @@ export function extractKaikkiObservations(
     return [
       {
         evidence,
-        metadata,
+        metadata: {
+          ...baseMetadata,
+          romanizationTags: [],
+          sourceFormIndex: undefined
+        },
         rawSourceWord: rawWord,
         normalizedForm: normalized
       }
@@ -275,14 +318,14 @@ export function extractKaikkiObservations(
   }
 
   // For every romanization observation, create a distinct LexicalEvidence record
-  return romanizations.map((rom, index) => {
-    const sourceField = `forms[tag=romanization]#${index}`;
+  return romanizationObs.map((rom) => {
+    const sourceField = `forms[${rom.sourceFormIndex}]`;
     const evidenceId = generateEvidenceId({
       sourceId: KAIKKI_SOURCE_ID,
       sourceRecordId,
       sourceField,
       persianForm: rawWord,
-      observedRomanization: rom,
+      observedRomanization: rom.value,
       romanizationScheme: 'LOCAL'
     });
 
@@ -293,7 +336,7 @@ export function extractKaikkiObservations(
       sourceUri,
       sourceField,
       persianForm: rawWord,
-      observedRomanization: rom,
+      observedRomanization: rom.value,
       romanizationScheme: 'LOCAL',
       entityType: 'WORD',
       context: contextSnippet,
@@ -310,7 +353,11 @@ export function extractKaikkiObservations(
 
     return {
       evidence,
-      metadata,
+      metadata: {
+        ...baseMetadata,
+        romanizationTags: rom.tags,
+        sourceFormIndex: rom.sourceFormIndex
+      },
       rawSourceWord: rawWord,
       normalizedForm: normalized
     };

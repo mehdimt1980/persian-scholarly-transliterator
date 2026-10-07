@@ -25,6 +25,8 @@ Kaikki / Wiktextract Persian JSONL
                ↓
      Linguistic metadata preservation (IPA, POS, lemmas)
                ↓
+    Group by normalized Persian form
+               ↓
     Non-authoritative LexicalCandidate synthesis
                ↓
        ZERO automatic authority
@@ -42,17 +44,22 @@ Kaikki / Wiktextract Persian JSONL
 
 ### Licensing and Intellectual Property
 
-- **Wiktionary Content**: Dual-licensed under the **Creative Commons Attribution-ShareAlike 3.0 Unported License (CC BY-SA 3.0)** and the **GNU Free Documentation License (GFDL)**.
-- **Wiktextract Tooling**: Copyright © 2018–2024 Tatu Ylonen.
+- **Wiktionary Content**: English Wiktionary text is dual-licensed under the **Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0)** and the **GNU Free Documentation License (GFDL)**. For terms, see [Wiktionary:Copyrights](https://en.wiktionary.org/wiki/Wiktionary:Copyrights) and [CC BY-SA 4.0 Legal Code](https://creativecommons.org/licenses/by-sa/4.0/).
+- **Wiktextract / Kaikki Data**: Distributed under the same upstream Wiktionary licensing terms. Tooling copyright © 2018–2024 Tatu Ylonen.
 - **Non-Vendoring Policy**: Full bulk datasets (e.g. 80MB+ JSONL files) are **never** committed or vendored directly into this Git repository. Only tiny synthetic and representative test fixtures are included under `src/domain/evidence/kaikki/fixtures/`.
 - **Non-Authority Representation**: The project explicitly does **not** represent unadjudicated Wiktionary data as reviewed scholarly authority.
 
 ### Scholarly Citation
 
-When publishing research utilizing lexical evidence acquired via this pipeline, cite both upstream sources:
+When citing or publishing research utilizing lexical evidence acquired via Wiktextract / Kaikki, use the official citation supplied by Kaikki:
 
-> Ylonen, Tatu. "Wiktextract: Wiktionary as Machine-Readable Structured Data." *Proceedings of the 13th Language Resources and Evaluation Conference (LREC 2022)*, pp. 132–137.  
-> Kaikki.org. "Dictionary data for Persian extracted from Wiktionary." https://kaikki.org/dictionary/Persian/
+```text
+Tatu Ylonen,
+“Wiktextract: Wiktionary as Machine-Readable Structured Data,”
+Proceedings of the Thirteenth Language Resources and Evaluation Conference (LREC 2022),
+Marseille, France, 20–25 June 2022,
+pp. 1317–1325.
+```
 
 ---
 
@@ -66,10 +73,11 @@ Phase 7A introduces evidence acquisition infrastructure only:
 - Automatically promoted entries = **ZERO**.
 - Automatically resolved unknown tokens = **ZERO**.
 
-### Line-Oriented Streaming Parser
+### Scalable Streaming Architecture
 
 To support large datasets without out-of-memory errors:
 - Streaming JSONL parser reads line by line from `NodeJS.ReadableStream` or local file path.
+- `KaikkiAcquisitionAccumulator` aggregates metrics incrementally per normalized lexical group without requiring all raw observation objects to be held in memory.
 - Malformed JSON rows fail isolated to that specific line without aborting the batch (unless `--strict` mode is explicitly requested).
 - Malformed row counts are reported in the acquisition summary.
 
@@ -84,16 +92,26 @@ To support large datasets without out-of-memory errors:
 
 - Every valid romanization in `forms` (tagged `romanization`) is extracted as an independent `LexicalEvidence` record.
 - **No First-Wins Truncation**: Multiple romanizations for a single word are all preserved.
+- **Per-Romanization Tag Isolation**: Tags for Romanization A remain attached to Romanization A and are not merged into entry-global tags.
+- **Stable Field Locators**: `sourceField` references the actual index in the source `forms` array (e.g. `forms[3]`).
 - **Exact Romanization Preservation**: Observed romanization strings are never rewritten (e.g. `goftâr` is preserved as `goftâr` without forced conversion to `guftār` or IJMES).
 - **Conservative Scheme Labeling**: All Wiktionary romanizations are assigned the `LOCAL` scheme. They are not assumed to follow IJMES, ALA-LC, or IRANICA.
+
+### Candidate Synthesis by Normalized Persian Form
+
+- Raw observations preserve their exact external spelling (`كتاب` vs `کتاب`).
+- Candidates group all supporting evidence sharing the same project-normalized Persian string into a single `LexicalCandidate`.
+- Normalization collisions remain reported and traceable.
+- `proposedCanonical` is set to `null` and status is set to `UNREVIEWED` with zero automatic promotion.
 
 ### Linguistic Metadata Preservation
 
 Linguistic signals are preserved alongside evidence in typed metadata structures (`KaikkiEvidenceMetadata`):
+- **Source Record Identity**: Includes word, language, POS, `etymology_number`, and `head_nr` to prevent cross-etymology collisions.
+- **Sense Identifiers**: Captures both singular `id` and Wiktextract `senseid` arrays without inventing missing identifiers.
 - **Lemma Status**: Classified as `LEMMA`, `NON_LEMMA_FORM`, or `UNKNOWN_LEMMA_STATUS`.
 - **Lemma Relations**: `form_of` and `alt_of` targets (e.g. `فهرست‌ها` -> `فهرست`) are preserved for future morphology indexing.
 - **IPA Observations**: Full phonetic transcriptions with dialect/variety tags (e.g. `Iranian-Persian`, `Classical-Persian`, `Dari`, `Tehrani`) and notes are preserved.
-- **POS & Senses**: Part-of-speech tags and English glosses are captured for contextual disambiguation.
 
 ### Read-Only Lexicon Overlap and Collision Analysis
 
@@ -123,11 +141,12 @@ npm run acquire:kaikki -- --input /path/to/kaikki.org-dictionary-Persian.jsonl -
 | Flag | Description | Default |
 |------|-------------|---------|
 | `--input`, `-i` | Path to Kaikki / Wiktextract JSONL file | Built-in test fixture |
+| `--stdin` | Read JSONL stream from standard input | false |
 | `--limit`, `-l` | Maximum valid Persian records to process | Unlimited |
-| `--offset`, `-o` | Records to skip before processing | 0 |
+| `--offset`, `-o` | Valid Persian records to skip before processing | 0 |
 | `--output` | File path to write machine-readable JSON report | None |
 | `--strict` | Fail closed immediately on any malformed JSON row | false |
-| `--only-lemmas` | Ingest only primary lemma entries (skip `form_of`) | false |
+| `--only-lemmas` | Ingest only primary lemma entries (excludes `NON_LEMMA_FORM` and `UNKNOWN_LEMMA_STATUS`) | false |
 | `--json` | Output machine-readable JSON to stdout | false |
 | `--help`, `-h` | Display command help | - |
 
@@ -137,25 +156,25 @@ npm run acquire:kaikki -- --input /path/to/kaikki.org-dictionary-Persian.jsonl -
 ================================================================
 Kaikki Persian Acquisition Pilot
 ================================================================
-Rows read:                               10
-Malformed rows:                           1
-Valid Persian records:                    7
-Distinct Persian forms:                   6
-Distinct normalized forms:                6
-Lemma records:                            6
-Non-lemma forms:                          1
-Unknown lemma status records:             0
-Entries with romanization:                6
-Romanization observations:                8
-Forms with 1 romanization:                3
-Forms with >1 romanization:               2
-Forms with no romanization:               1
-Forms with IPA:                           4
-Existing project lexicon:                 3
-New lexical forms:                        3
-Candidate records generated:              6
-Normalization collisions:                 0
-Automatically promoted:                   0
-Authoritative lexicon changes:            0
+Rows read:                                 10
+Malformed rows:                             1
+Valid Persian records:                      7
+Distinct Persian forms:                     6
+Distinct normalized forms:                  6
+Lemma records:                              5
+Non-lemma forms:                            1
+Unknown lemma status records:               0
+Entries with romanization:                  5
+Romanization observations:                  8
+Forms with 1 romanization:                  3
+Forms with >1 romanization:                 2
+Forms with no romanization:                 1
+Forms with IPA:                             4
+Existing project lexicon:                   2
+New lexical forms:                          4
+Candidate records generated:                6
+Normalization collisions:                   0
+Automatically promoted:                     0
+Authoritative lexicon changes:              0
 ================================================================
 ```

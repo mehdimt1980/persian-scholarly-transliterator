@@ -11,16 +11,198 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import { DEFAULT_LEXICON_REPOSITORY } from '../../../data/lexicon';
 import { LexiconRepository } from '../../lexicon/repository';
-import type { LexicalCandidate } from '../types';
+import type { LexicalCandidate, LexicalEvidence } from '../types';
 import { KAIKKI_EXTRACTOR_VERSION, KAIKKI_SOURCE_ID } from './extractor';
 import type {
   KaikkiAcquisitionReport,
   KaikkiExtractedObservation,
+  KaikkiLemmaStatus,
   KaikkiLexiconOverlapItem,
   KaikkiMultiRomanizationEntry,
   KaikkiNormalizationCollision,
   KaikkiSourceManifest
 } from './types';
+
+/**
+ * Lightweight accumulator for normalized Persian lexical forms.
+ * Allows streaming acquisition without holding every raw observation in memory.
+ */
+export interface NormalizedLexicalGroup {
+  normalizedForm: string;
+  rawWords: Set<string>;
+  posList: Set<string>;
+  romanizations: Set<string>;
+  evidenceIds: string[];
+  supportingEvidence: LexicalEvidence[];
+}
+
+/**
+ * Streaming accumulator for Kaikki acquisition metrics and normalized groups.
+ */
+export class KaikkiAcquisitionAccumulator {
+  public rowsRead = 0;
+  public malformedRows = 0;
+  public validPersianRecords = 0;
+
+  public lemmaRecords = 0;
+  public nonLemmaRecords = 0;
+  public unknownLemmaStatusRecords = 0;
+
+  public entriesWithIpa = 0;
+  public entriesWithRomanization = 0;
+  public romanizationObservationCount = 0;
+
+  private readonly distinctPersianForms = new Set<string>();
+  private readonly normalizedGroups = new Map<string, NormalizedLexicalGroup>();
+  private readonly processedEntryKeys = new Set<string>();
+
+  // Tracks multi-romanization per raw word
+  private readonly rawWordObservations = new Map<
+    string,
+    { normalizedForm: string; observations: string[]; evidenceIds: string[] }
+  >();
+
+  public addObservation(obs: KaikkiExtractedObservation, retainEvidenceForCandidate = true): void {
+    this.distinctPersianForms.add(obs.rawSourceWord);
+
+    let group = this.normalizedGroups.get(obs.normalizedForm);
+    if (!group) {
+      group = {
+        normalizedForm: obs.normalizedForm,
+        rawWords: new Set(),
+        posList: new Set(),
+        romanizations: new Set(),
+        evidenceIds: [],
+        supportingEvidence: []
+      };
+      this.normalizedGroups.set(obs.normalizedForm, group);
+    }
+
+    group.rawWords.add(obs.rawSourceWord);
+    if (obs.metadata.pos) group.posList.add(obs.metadata.pos);
+    group.evidenceIds.push(obs.evidence.id);
+
+    if (retainEvidenceForCandidate) {
+      group.supportingEvidence.push(obs.evidence);
+    }
+
+    if (obs.evidence.observedRomanization) {
+      group.romanizations.add(obs.evidence.observedRomanization);
+      this.romanizationObservationCount += 1;
+    }
+
+    // Track raw word observations
+    let rawTrack = this.rawWordObservations.get(obs.rawSourceWord);
+    if (!rawTrack) {
+      rawTrack = {
+        normalizedForm: obs.normalizedForm,
+        observations: [],
+        evidenceIds: []
+      };
+      this.rawWordObservations.set(obs.rawSourceWord, rawTrack);
+    }
+    rawTrack.evidenceIds.push(obs.evidence.id);
+    if (obs.evidence.observedRomanization) {
+      rawTrack.observations.push(obs.evidence.observedRomanization);
+    }
+  }
+
+  public recordEntryMetadata(
+    entryKey: string,
+    lemmaStatus: KaikkiLemmaStatus,
+    hasIpa: boolean,
+    hasRomanization: boolean
+  ): void {
+    if (!this.processedEntryKeys.has(entryKey)) {
+      this.processedEntryKeys.add(entryKey);
+
+      if (lemmaStatus === 'LEMMA') this.lemmaRecords += 1;
+      else if (lemmaStatus === 'NON_LEMMA_FORM') this.nonLemmaRecords += 1;
+      else this.unknownLemmaStatusRecords += 1;
+
+      if (hasIpa) this.entriesWithIpa += 1;
+      if (hasRomanization) this.entriesWithRomanization += 1;
+    }
+  }
+
+  public getNormalizedGroups(): Map<string, NormalizedLexicalGroup> {
+    return this.normalizedGroups;
+  }
+
+  public toReport(
+    manifest: KaikkiSourceManifest,
+    candidateCount: number,
+    lexiconRepo: LexiconRepository = DEFAULT_LEXICON_REPOSITORY
+  ): KaikkiAcquisitionReport {
+    // Normalization collisions
+    const collisions: KaikkiNormalizationCollision[] = [];
+    for (const [norm, group] of this.normalizedGroups.entries()) {
+      if (group.rawWords.size > 1) {
+        collisions.push({
+          normalizedForm: norm,
+          rawForms: Array.from(group.rawWords).sort(),
+          posList: Array.from(group.posList).sort(),
+          romanizations: Array.from(group.romanizations).sort()
+        });
+      }
+    }
+
+    // Overlap analysis
+    const { overlapCount, newFormCount } = analyzeLexiconOverlap(this.normalizedGroups, lexiconRepo);
+
+    // Multi-romanization metrics
+    let formsWithOne = 0;
+    let formsWithMulti = 0;
+    let formsWithNo = 0;
+    const multiEntries: KaikkiMultiRomanizationEntry[] = [];
+
+    for (const [raw, data] of this.rawWordObservations.entries()) {
+      const distinct = Array.from(new Set(data.observations));
+      if (distinct.length === 1) {
+        formsWithOne += 1;
+      } else if (distinct.length > 1) {
+        formsWithMulti += 1;
+        multiEntries.push({
+          persianForm: raw,
+          normalizedForm: data.normalizedForm,
+          observations: data.observations,
+          distinctObservations: distinct,
+          automaticAuthority: false,
+          evidenceIds: data.evidenceIds
+        });
+      } else {
+        formsWithNo += 1;
+      }
+    }
+
+    return {
+      source: KAIKKI_SOURCE_ID,
+      extractorVersion: KAIKKI_EXTRACTOR_VERSION,
+      manifest,
+      rowsRead: this.rowsRead,
+      malformedRows: this.malformedRows,
+      validPersianRecords: this.validPersianRecords,
+      distinctPersianForms: this.distinctPersianForms.size,
+      distinctNormalizedForms: this.normalizedGroups.size,
+      lemmaRecords: this.lemmaRecords,
+      nonLemmaRecords: this.nonLemmaRecords,
+      unknownLemmaStatusRecords: this.unknownLemmaStatusRecords,
+      entriesWithRomanization: this.entriesWithRomanization,
+      romanizationObservationCount: this.romanizationObservationCount,
+      formsWithOneRomanization: formsWithOne,
+      formsWithMultiRomanization: formsWithMulti,
+      formsWithNoRomanization: formsWithNo,
+      entriesWithIpa: this.entriesWithIpa,
+      existingLexiconOverlapCount: overlapCount,
+      newFormCount,
+      candidateCount,
+      promotionCount: 0,
+      authoritativeLexiconChanges: 0,
+      normalizationCollisions: collisions,
+      multiRomanizationSamples: multiEntries.slice(0, 100)
+    };
+  }
+}
 
 /**
  * Compute streaming SHA-256 checksum of a file.
@@ -204,96 +386,6 @@ export function compileMultiRomanizationEntries(
     formsWithMultiRomanization: formsWithMulti,
     formsWithNoRomanization: formsWithNo,
     multiEntries
-  };
-}
-
-/**
- * Build complete Kaikki acquisition report from observations and candidate results.
- */
-export function buildKaikkiAcquisitionReport(params: {
-  manifest: KaikkiSourceManifest;
-  rowsRead: number;
-  malformedRows: number;
-  validPersianRecords?: number;
-  observations: KaikkiExtractedObservation[];
-  candidates: LexicalCandidate[];
-  lexiconRepo?: LexiconRepository;
-}): KaikkiAcquisitionReport {
-  const { manifest, rowsRead, malformedRows, observations, candidates, lexiconRepo } = params;
-
-  const distinctPersianForms = new Set<string>();
-  const normalizedMap = new Map<string, { rawWords: Set<string>; romanizations: Set<string> }>();
-
-  let lemmaRecords = 0;
-  let nonLemmaRecords = 0;
-  let unknownLemmaRecords = 0;
-  let entriesWithIpa = 0;
-  let entriesWithRomanization = 0;
-  let romanizationObservationCount = 0;
-
-  const processedEntries = new Set<string>();
-
-  for (const obs of observations) {
-    distinctPersianForms.add(obs.rawSourceWord);
-
-    let normGroup = normalizedMap.get(obs.normalizedForm);
-    if (!normGroup) {
-      normGroup = { rawWords: new Set(), romanizations: new Set() };
-      normalizedMap.set(obs.normalizedForm, normGroup);
-    }
-    normGroup.rawWords.add(obs.rawSourceWord);
-    if (obs.evidence.observedRomanization) {
-      normGroup.romanizations.add(obs.evidence.observedRomanization);
-      romanizationObservationCount += 1;
-    }
-
-    const entryKey = `${obs.rawSourceWord}#${obs.metadata.pos ?? 'entry'}`;
-    if (!processedEntries.has(entryKey)) {
-      processedEntries.add(entryKey);
-
-      if (obs.metadata.lemmaStatus === 'LEMMA') lemmaRecords += 1;
-      else if (obs.metadata.lemmaStatus === 'NON_LEMMA_FORM') nonLemmaRecords += 1;
-      else unknownLemmaRecords += 1;
-
-      if (obs.metadata.ipaObservations.length > 0) entriesWithIpa += 1;
-      if (obs.evidence.observedRomanization !== null) entriesWithRomanization += 1;
-    }
-  }
-
-  const { overlapCount, newFormCount } = analyzeLexiconOverlap(normalizedMap, lexiconRepo);
-  const collisions = detectNormalizationCollisions(observations);
-  const {
-    formsWithOneRomanization,
-    formsWithMultiRomanization,
-    formsWithNoRomanization,
-    multiEntries
-  } = compileMultiRomanizationEntries(observations);
-
-  return {
-    source: KAIKKI_SOURCE_ID,
-    extractorVersion: KAIKKI_EXTRACTOR_VERSION,
-    manifest,
-    rowsRead,
-    malformedRows,
-    validPersianRecords: params.validPersianRecords ?? processedEntries.size,
-    distinctPersianForms: distinctPersianForms.size,
-    distinctNormalizedForms: normalizedMap.size,
-    lemmaRecords,
-    nonLemmaRecords,
-    unknownLemmaStatusRecords: unknownLemmaRecords,
-    entriesWithRomanization,
-    romanizationObservationCount,
-    formsWithOneRomanization,
-    formsWithMultiRomanization,
-    formsWithNoRomanization,
-    entriesWithIpa,
-    existingLexiconOverlapCount: overlapCount,
-    newFormCount,
-    candidateCount: candidates.length,
-    promotionCount: 0,
-    authoritativeLexiconChanges: 0,
-    normalizationCollisions: collisions,
-    multiRomanizationSamples: multiEntries.slice(0, 100)
   };
 }
 
