@@ -32,8 +32,10 @@ const VALID_REVIEW_ACTIONS = new Set<string>([
   'MANUAL_CANONICAL_OVERRIDE',
   'ACCEPT_IZAFAT',
   'REJECT_IZAFAT',
-  'SELECT_MORPHOLOGY'
+  'SELECT_MORPHOLOGY',
+  'ACCEPT_EVIDENCE_DERIVED'
 ]);
+
 
 function isObject(val: unknown): val is Record<string, any> {
   return typeof val === 'object' && val !== null && !Array.isArray(val);

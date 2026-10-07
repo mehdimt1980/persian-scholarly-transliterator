@@ -80,11 +80,25 @@ export default function InspectionSection({ result }: InspectionSectionProps) {
                       {token.appliedRules.map((r) => r.id).join(' · ')}
                     </span>
                   )}
+                  {token.evidenceDerivedProposal && (
+                    <div className="meta-item evidence-proposal-item" style={{ background: '#f8f9fa', border: '1px solid #e9ecef', borderRadius: '4px', padding: '6px 8px', marginTop: '4px', width: '100%' }}>
+                      <div>
+                        <strong>Evidence-derived proposal:</strong> <code>{token.evidenceDerivedProposal.hypothesis}</code> ({token.evidenceDerivedProposal.confidenceTier.toLowerCase().replace(/_/g, ' ')})
+                      </div>
+                      <div style={{ fontSize: '0.85em', color: '#6c757d' }}>
+                        Source: English Wiktionary (Kaikki) · Profiles: {token.evidenceDerivedProposal.sourceProfiles.join(', ')} · Pack: v{token.evidenceDerivedProposal.packVersion}
+                      </div>
+                      <div style={{ fontSize: '0.8em', color: '#b02a37', marginTop: '2px' }}>
+                        <em>[External evidence · not reviewed authority · requires human review]</em>
+                      </div>
+                    </div>
+                  )}
                   {token.warnings.map((warning) => (
                     <span className="meta-item warning" key={warning}>
                       {warning}
                     </span>
                   ))}
+
                 </div>
               </article>
             );

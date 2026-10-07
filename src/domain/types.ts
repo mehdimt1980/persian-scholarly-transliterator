@@ -1,6 +1,7 @@
 import type { LexicalCategory, LexicalEntry, LexicalReading, ExplicitVowel } from './lexicon/types';
 import type { ReviewDecision, ReviewIssue } from './review/types';
 import type { MorphologicalAnalysis } from './morphology/types';
+import type { EvidenceDerivedProposal } from './evidence/kaikki/fallback/types';
 
 export type ResultStatus = 'DETERMINISTIC' | 'LEXICON_RESOLVED' | 'AMBIGUOUS' | 'UNRESOLVED' | 'USER_OVERRIDE';
 export type TokenType = 'persian-word' | 'punctuation' | 'whitespace' | 'number' | 'latin' | 'unknown';
@@ -17,7 +18,9 @@ export type AutomaticBlockingReason =
   | 'UNSUPPORTED_ORTHOGRAPHIC_EVIDENCE'
   | 'UNSUPPORTED_ALLOMORPH'
   | 'LEXICAL_AMBIGUITY'
-  | 'MORPHOLOGY_AMBIGUITY';
+  | 'MORPHOLOGY_AMBIGUITY'
+  | 'EVIDENCE_DERIVED_REVIEW_REQUIRED';
+
 
 export interface RuleDefinition {
   id: string;
@@ -110,6 +113,7 @@ export interface AutomaticTokenSnapshot {
   warnings: string[];
   alternatives: string[];
   blockingReason?: AutomaticBlockingReason;
+  evidenceDerivedProposal?: EvidenceDerivedProposal;
 }
 
 export interface TokenResult {
@@ -132,6 +136,7 @@ export interface TokenResult {
   blockingReason?: AutomaticBlockingReason;
   automaticStatus?: ResultStatus;
   automaticCanonical?: string | null;
+  evidenceDerivedProposal?: EvidenceDerivedProposal;
 }
 
 export interface TransliterationResult {
@@ -156,6 +161,7 @@ export interface TransliterationResult {
 export * from './lexicon/types';
 export * from './review/types';
 export * from './evidence/types';
+export * from './evidence/kaikki/fallback/types';
 export type {
   MorphemeEvidence,
   MorphemeRealization,
@@ -166,3 +172,4 @@ export type {
   MorphologyStatus,
   ProductiveSuffixRule
 } from './morphology/types';
+

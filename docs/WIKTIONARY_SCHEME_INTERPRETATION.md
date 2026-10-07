@@ -188,14 +188,17 @@ Any subset, superset, duplicate, or foreign evidence set is rejected before inte
 
 ---
 
-## 9. Relationship to Phase 5D and Future Phase 7C
+## 9. Relationship to Phase 5D and Phase 7C (Runtime Fallback)
 
-| Dimension | Phase 5D (LoC Library Evidence) | Phase 7B (Wiktionary Evidence) | Future Phase 7C (Lexical Fallback) |
+| Dimension | Phase 5D (LoC Library Evidence) | Phase 7B (Wiktionary Evidence) | Phase 7C (Lexical Fallback) |
 | :--- | :--- | :--- | :--- |
-| **Evidence Topology** | Catalog phrase → Positional alignment → Segment synthesis | Direct lexical dictionary observation | Multi-source consensus |
-| **Lineage Invariant** | `ALIGNED_SEGMENT_SYNTHESIS` | `DIRECT_LEXICAL_ENTRY` | Verified candidate analysis |
-| **Target Output** | `ALA_LC` → IJMES Hypothesis | `LOCAL` (Wiktionary) → IJMES Hypothesis | Candidate fallback ranking |
-| **Authority** | ZERO | ZERO | Controlled fallback / review |
+| **Evidence Topology** | Catalog phrase → Positional alignment → Segment synthesis | Direct lexical dictionary observation | Candidate unanimous consensus pack |
+| **Lineage Invariant** | `ALIGNED_SEGMENT_SYNTHESIS` | `DIRECT_LEXICAL_ENTRY` | Verified candidate analysis fallback |
+| **Target Output** | `ALA_LC` → IJMES Hypothesis | `LOCAL` (Wiktionary) → IJMES Hypothesis | Displayable provisional proposal |
+| **Authority** | ZERO | ZERO | ZERO (Requires human acceptance) |
+
+See [docs/EVIDENCE_FALLBACK.md](file:///d:/persian-scholarly-transliterator/docs/EVIDENCE_FALLBACK.md) for full details on Phase 7C automatic fallback architecture.
+
 
 ---
 

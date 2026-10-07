@@ -41,6 +41,7 @@ export function applyReviewDecisions(
     lexicalSources: [...t.lexicalSources],
     warnings: [...t.warnings],
     alternatives: [...t.alternatives],
+    evidenceDerivedProposal: t.evidenceDerivedProposal ? { ...t.evidenceDerivedProposal } : undefined,
     automatic: {
       status: t.automatic.status,
       canonicalTransliteration: t.automatic.canonicalTransliteration,
@@ -52,9 +53,11 @@ export function applyReviewDecisions(
       lexicalSources: [...t.automatic.lexicalSources],
       warnings: [...t.automatic.warnings],
       alternatives: [...t.automatic.alternatives],
-      blockingReason: t.automatic.blockingReason
+      blockingReason: t.automatic.blockingReason,
+      evidenceDerivedProposal: t.automatic.evidenceDerivedProposal ? { ...t.automatic.evidenceDerivedProposal } : undefined
     }
   }));
+
 
   const updatedRelations: ContextRelation[] = relations.map((r) => ({
     ...r,
@@ -274,6 +277,48 @@ export function applyReviewDecisions(
         }
       }
     }
+
+    // 7. Action: Accept evidence-derived reading (Kaikki / Wiktionary)
+    else if (decision.action === 'ACCEPT_EVIDENCE_DERIVED') {
+      const tokenIndex = issue.tokenIndexes[0];
+      const current = tokenIndex !== undefined ? updatedTokens[tokenIndex] : undefined;
+
+      if (current && current.evidenceDerivedProposal) {
+        const proposal = current.evidenceDerivedProposal;
+        const selectedId = decision.selectedAlternativeId;
+
+        // Tamper resistance & identity verification:
+        // selectedAlternativeId must match proposal.fallbackEntryId
+        const matchesId = !selectedId || selectedId === proposal.fallbackEntryId;
+        // If manualCanonicalTransliteration is provided, it must match proposal.hypothesis
+        const matchesCanonical =
+          !decision.manualCanonicalTransliteration ||
+          decision.manualCanonicalTransliteration === proposal.hypothesis;
+
+        if (matchesId && matchesCanonical) {
+          const appliedRules: RuleDefinition[] = [
+            RULES.lexicalResolution,
+            RULES.userAcceptEvidenceDerived
+          ];
+          const canonical = applyCanonicalIjmes(proposal.hypothesis, appliedRules);
+
+          current.status = 'USER_OVERRIDE';
+          current.canonicalTransliteration = canonical;
+          current.rendered = proposal.renderedProposal;
+          current.appliedRules = appliedRules;
+          current.lexicalSources = [
+            `User accepted evidence-derived reading (${proposal.source}, tier: ${proposal.confidenceTier.toLowerCase().replace(/_/g, ' ')})`
+          ];
+          current.warnings = [];
+          current.alternatives = [];
+          current.userDecision = decision;
+          current.automaticStatus = current.automatic.status;
+          current.automaticCanonical = current.automatic.canonicalTransliteration;
+          appliedSuccessfully = true;
+        }
+      }
+    }
+
 
     if (appliedSuccessfully) {
       appliedDecisions.push(decision);

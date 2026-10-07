@@ -26,7 +26,10 @@
     "evidence:adjudication:pilot": "tsx src/domain/evidence/adjudication/cli.ts",
     "acquire:kaikki": "tsx src/domain/evidence/kaikki/cli.ts",
     "evidence:kaikki:pilot": "tsx src/domain/evidence/kaikki/cli.ts",
-    "interpret:kaikki": "tsx src/domain/evidence/kaikki/scheme/cli.ts"
+    "interpret:kaikki": "tsx src/domain/evidence/kaikki/scheme/cli.ts",
+    "build:kaikki-fallback": "tsx src/domain/evidence/kaikki/fallback/cli.ts",
+    "evaluate:fallback": "tsx src/domain/evidence/kaikki/fallback/evaluateCli.ts"
+
   },
   "dependencies": {
     "next": "16.3.8",
