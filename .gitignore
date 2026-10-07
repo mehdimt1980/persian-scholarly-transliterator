@@ -7,5 +7,6 @@ coverage
 *.dump.jsonl
 *.acquisition.json
 data/kaikki/
-artifacts/kaikki/
+artifacts/
 !src/domain/evidence/kaikki/fixtures/*.jsonl
+

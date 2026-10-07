@@ -66,6 +66,7 @@ export interface KaikkiRawEntry {
   lang?: string;
   lang_code?: string;
   pos?: string;
+  tags?: string[];
   etymology_number?: string | number;
   head_nr?: number;
   forms?: KaikkiForm[];

@@ -28,8 +28,9 @@
     "evidence:kaikki:pilot": "tsx src/domain/evidence/kaikki/cli.ts",
     "interpret:kaikki": "tsx src/domain/evidence/kaikki/scheme/cli.ts",
     "build:kaikki-fallback": "tsx src/domain/evidence/kaikki/fallback/cli.ts",
-    "evaluate:fallback": "tsx src/domain/evidence/kaikki/fallback/evaluateCli.ts"
-
+    "evaluate:fallback": "tsx src/domain/evidence/kaikki/fallback/evaluateCli.ts",
+    "experiment:kaikki-scale": "tsx src/domain/evidence/kaikki/scale/cli.ts",
+    "validate:kaikki-scale-pack": "tsx src/domain/evidence/kaikki/scale/validatorCli.ts"
   },
   "dependencies": {
     "next": "16.3.8",

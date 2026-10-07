@@ -15,8 +15,8 @@
  *   Compact Immutable Runtime Fallback Pack
  */
 
-import crypto from 'node:crypto';
 import fs from 'node:fs';
+import { computeFileSha256 } from '../statistics';
 import { KaikkiEvidenceConnector } from '../connector';
 import { WiktionaryPersianSchemeInterpreter } from '../scheme/interpreter';
 import { KaikkiCandidateSchemeAggregator } from '../scheme/aggregator';
@@ -46,8 +46,7 @@ export async function generateFallbackPack(
     throw new Error(`Input file not found: ${inputFilePath}`);
   }
 
-  const fileBuffer = fs.readFileSync(inputFilePath);
-  const inputSha256 = crypto.createHash('sha256').update(fileBuffer).digest('hex');
+  const inputSha256 = await computeFileSha256(inputFilePath);
 
   const connector = new KaikkiEvidenceConnector();
   const parseResult = await connector.processFile(inputFilePath, options);
