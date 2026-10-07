@@ -1,0 +1,993 @@
+{
+  "experimentVersion": "1.0.0",
+  "executedAt": "2026-10-07T17:22:11.646Z",
+  "sourceManifest": {
+    "sourceEdition": "enwiktionary",
+    "language": "Persian (fa)",
+    "sourceUrl": "https://kaikki.org/dictionary/Persian/kaikki.org-dictionary-Persian.jsonl",
+    "wiktionaryDumpDate": "2026-09-02",
+    "kaikkiExtractionDate": "2026-10-03",
+    "wiktextractVersion": "wiktextract 1.99.x",
+    "downloadTimestamp": "2026-10-07T17:22:07.396Z",
+    "provenanceStatus": {
+      "sourceUrl": "EXPLICITLY_SUPPLIED",
+      "wiktionaryDumpDate": "EXPLICITLY_SUPPLIED",
+      "kaikkiExtractionDate": "EXPLICITLY_SUPPLIED",
+      "wiktextractVersion": "EXPLICITLY_SUPPLIED"
+    },
+    "inputFileBytes": 93250080,
+    "inputSha256": "f1647707c1bcbb7b18d355f7481ac4c656fa1ff8d91d93a0dbc6bb2e808d06c2",
+    "inputFileName": "kaikki.org-dictionary-Persian.jsonl"
+  },
+  "performanceStages": [
+    {
+      "stageName": "STAGE_1K",
+      "rowsProcessed": 1000,
+      "wallClockDurationMs": 370,
+      "rowsPerSecond": 2702.7,
+      "startRssMb": 95.11,
+      "peakRssMb": 109.66,
+      "endRssMb": 109.66,
+      "eligibleEntriesCount": 0
+    },
+    {
+      "stageName": "STAGE_10K",
+      "rowsProcessed": 10000,
+      "wallClockDurationMs": 3272,
+      "rowsPerSecond": 3056.23,
+      "startRssMb": 121.6,
+      "peakRssMb": 166.52,
+      "endRssMb": 166.52,
+      "eligibleEntriesCount": 0
+    },
+    {
+      "stageName": "FULL_DATASET",
+      "rowsProcessed": 20288,
+      "wallClockDurationMs": 4168,
+      "rowsPerSecond": 4867.56,
+      "startRssMb": 187.78,
+      "peakRssMb": 264.14,
+      "endRssMb": 264.14,
+      "eligibleEntriesCount": 0
+    }
+  ],
+  "yieldFunnel": {
+    "physicalRowsRead": 20288,
+    "malformedRows": 0,
+    "validPersianRecords": 20288,
+    "distinctRawPersianForms": 17602,
+    "distinctNormalizedForms": 17598,
+    "normalizationCollisions": 4,
+    "lemmaRecords": 16511,
+    "nonLemmaRecords": 3440,
+    "unknownLemmaStatusRecords": 337,
+    "recordsWithRomanization": 19751,
+    "recordsWithoutRomanization": 537,
+    "totalExtractedEvidenceObservations": 26998,
+    "romanizedEvidenceObservations": 26461,
+    "unromanizedEvidenceObservations": 537,
+    "uniqueEvidenceObservationsAfterDeduplication": 26962,
+    "duplicateEvidenceObservationsRemoved": 36,
+    "totalInterpretationAttempts": 26962,
+    "recordsWithIpa": 15011,
+    "recordsWithPos": 20288,
+    "properNameRecords": 1957,
+    "classicalDariObservations": 0,
+    "iranianObservations": 0,
+    "unclassifiedObservations": 26962,
+    "conflictingObservations": 0,
+    "directEquivalentInterpretations": 0,
+    "deterministicEquivalentInterpretations": 0,
+    "contextRequiredInterpretations": 26425,
+    "unsupportedInterpretations": 537,
+    "unanimousDeterministicCandidates": 0,
+    "conflictingDeterministicCandidates": 0,
+    "partialCandidates": 0,
+    "blockedCandidates": 17099,
+    "noInterpretableEvidenceCandidates": 499,
+    "totalFallbackEligibleCandidates": 0,
+    "totalFallbackIneligibleCandidates": 17598
+  },
+  "blockerHistogram": [
+    {
+      "blockerKind": "UNCLASSIFIED_WIKTIONARY_PROFILE",
+      "count": 22506,
+      "percentageOfBlockedInterpretations": 83.47,
+      "percentageOfTotalInterpretationAttempts": 83.47
+    },
+    {
+      "blockerKind": "NON_LEMMA_SOURCE_FORM",
+      "count": 3919,
+      "percentageOfBlockedInterpretations": 14.54,
+      "percentageOfTotalInterpretationAttempts": 14.54
+    },
+    {
+      "blockerKind": "NO_ROMANIZATION",
+      "count": 537,
+      "percentageOfBlockedInterpretations": 1.99,
+      "percentageOfTotalInterpretationAttempts": 1.99
+    }
+  ],
+  "profileDistribution": {
+    "classicalDariCount": 0,
+    "classicalDariPercentage": 0,
+    "iranianCount": 0,
+    "iranianPercentage": 0,
+    "unclassifiedCount": 26962,
+    "unclassifiedPercentage": 100,
+    "conflictingCount": 0,
+    "conflictingPercentage": 0
+  },
+  "candidateProfileCombinations": {
+    "classicalOnly": 0,
+    "iranianOnly": 0,
+    "crossProfile": 0,
+    "unclassifiedOnly": 17598,
+    "mixedClassifiedAndUnclassified": 0
+  },
+  "confidenceTiers": {
+    "crossProfileConsensus": 0,
+    "crossProfilePercentage": null,
+    "multiObservationConsensus": 0,
+    "multiObservationPercentage": null,
+    "singleObservationDeterministic": 0,
+    "singleObservationPercentage": null
+  },
+  "posDistribution": [
+    {
+      "pos": "noun",
+      "sourceForms": 10333,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    },
+    {
+      "pos": "adj",
+      "sourceForms": 2617,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    },
+    {
+      "pos": "verb",
+      "sourceForms": 2265,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    },
+    {
+      "pos": "name",
+      "sourceForms": 1473,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    },
+    {
+      "pos": "adv",
+      "sourceForms": 266,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    },
+    {
+      "pos": "phrase",
+      "sourceForms": 104,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    },
+    {
+      "pos": "suffix",
+      "sourceForms": 98,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    },
+    {
+      "pos": "intj",
+      "sourceForms": 96,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    },
+    {
+      "pos": "prep",
+      "sourceForms": 67,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    },
+    {
+      "pos": "num",
+      "sourceForms": 62,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    },
+    {
+      "pos": "pron",
+      "sourceForms": 52,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    },
+    {
+      "pos": "character",
+      "sourceForms": 42,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    },
+    {
+      "pos": "conj",
+      "sourceForms": 39,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    },
+    {
+      "pos": "prefix",
+      "sourceForms": 22,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    },
+    {
+      "pos": "proverb",
+      "sourceForms": 20,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    },
+    {
+      "pos": "symbol",
+      "sourceForms": 13,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    },
+    {
+      "pos": "particle",
+      "sourceForms": 7,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    },
+    {
+      "pos": "classifier",
+      "sourceForms": 6,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    },
+    {
+      "pos": "det",
+      "sourceForms": 4,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    },
+    {
+      "pos": "punct",
+      "sourceForms": 4,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    },
+    {
+      "pos": "contraction",
+      "sourceForms": 3,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    },
+    {
+      "pos": "prep_phrase",
+      "sourceForms": 2,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    },
+    {
+      "pos": "article",
+      "sourceForms": 1,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    },
+    {
+      "pos": "interfix",
+      "sourceForms": 1,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    },
+    {
+      "pos": "abbrev",
+      "sourceForms": 1,
+      "eligibleFallbackForms": 0,
+      "eligibilityRate": 0
+    }
+  ],
+  "properNameCohort": {
+    "sourceProperNameCount": 1938,
+    "interpretableProperNameCount": 0,
+    "fallbackEligibleProperNameCount": 0,
+    "crossProfileProperNameCount": 0
+  },
+  "reviewedOverlap": {
+    "totalEligibleEntries": 0,
+    "reviewedOverlapCount": 0,
+    "novelEligibleCount": 0,
+    "exactCanonicalMatches": 0,
+    "canonicalDivergences": 0,
+    "divergenceRate": null,
+    "divergenceSamples": []
+  },
+  "duplicateEvidence": {
+    "candidatesWith1Obs": 11125,
+    "candidatesWith2Obs": 5124,
+    "candidatesWith3PlusObs": 1349,
+    "literalDuplicateObservationsCount": 7,
+    "sameRomanizationAcrossDistinctRecordsCount": 2244,
+    "sameNormalizedFormWithMultipleObservationsCount": 6473,
+    "evidenceReductionIfDuplicatesCollapsed": 7
+  },
+  "experimentalPacks": {
+    "fullPackPath": "D:\\persian-scholarly-transliterator\\artifacts\\phase7d\\kaikki-fallback-full.json",
+    "fullPackBytes": 443,
+    "fullPackGzipBytes": 266,
+    "fullPackEntryCount": 0,
+    "fullPackBytesPerEntry": null,
+    "novelPackPath": "D:\\persian-scholarly-transliterator\\artifacts\\phase7d\\kaikki-fallback-novel-only.json",
+    "novelPackBytes": 443,
+    "novelPackGzipBytes": 266,
+    "novelPackEntryCount": 0,
+    "novelPackBytesPerEntry": null,
+    "semanticPackSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+  },
+  "corpusEvaluations": [
+    {
+      "corpusName": "V3_FROZEN_EXTERNAL_BENCHMARK (108 cases)",
+      "totalLexicalTokens": 109,
+      "uniqueLexicalForms": 109,
+      "unresolvedTokensBefore": 0,
+      "unresolvedUniqueFormsBefore": 0,
+      "displayableTokensBefore": 104,
+      "displayCoverageBefore": 95.41,
+      "displayableTokensAfter": 104,
+      "displayCoverageAfter": 95.41,
+      "displayableUniqueFormsBefore": 104,
+      "uniqueFormDisplayCoverageBefore": 95.41,
+      "displayableUniqueFormsAfter": 104,
+      "uniqueFormDisplayCoverageAfter": 95.41,
+      "authoritativeTokensBefore": 104,
+      "authoritativeCoverageBefore": 95.41,
+      "authoritativeTokensAfter": 104,
+      "authoritativeCoverageAfter": 95.41,
+      "recoveredTokens": 0,
+      "tokenLexicalMissRecoveryRate": 0,
+      "recoveredUniqueForms": 0,
+      "uniqueFormLexicalMissRecoveryRate": 0
+    },
+    {
+      "corpusName": "PILOT_SINGLE_VALIDATION_CORPUS (46 cases)",
+      "totalLexicalTokens": 51,
+      "uniqueLexicalForms": 43,
+      "unresolvedTokensBefore": 1,
+      "unresolvedUniqueFormsBefore": 1,
+      "displayableTokensBefore": 47,
+      "displayCoverageBefore": 92.16,
+      "displayableTokensAfter": 47,
+      "displayCoverageAfter": 92.16,
+      "displayableUniqueFormsBefore": 39,
+      "uniqueFormDisplayCoverageBefore": 90.7,
+      "displayableUniqueFormsAfter": 39,
+      "uniqueFormDisplayCoverageAfter": 90.7,
+      "authoritativeTokensBefore": 47,
+      "authoritativeCoverageBefore": 92.16,
+      "authoritativeTokensAfter": 47,
+      "authoritativeCoverageAfter": 92.16,
+      "recoveredTokens": 0,
+      "tokenLexicalMissRecoveryRate": 0,
+      "recoveredUniqueForms": 0,
+      "uniqueFormLexicalMissRecoveryRate": 0
+    }
+  ],
+  "auditSamples": {
+    "crossProfileSamples": [],
+    "multiObservationSamples": [],
+    "singleObservationSamples": [],
+    "blockedSamplesByKind": {
+      "UNCLASSIFIED_WIKTIONARY_PROFILE": [
+        {
+          "normalizedForm": "کرامت",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "karāmat",
+            "karâmat"
+          ]
+        },
+        {
+          "normalizedForm": "بامداد",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "bâmdâd",
+            "bâmdâd"
+          ]
+        },
+        {
+          "normalizedForm": "بعث‌گرا",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "ba's-garâ"
+          ]
+        },
+        {
+          "normalizedForm": "عقب‌افتاده",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "aqab-aftāda",
+            "aġab-oftâde",
+            "aqab-aftāda",
+            "aġab-oftâde"
+          ]
+        },
+        {
+          "normalizedForm": "ماوا",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "mâvâ"
+          ]
+        },
+        {
+          "normalizedForm": "منیژه",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "manīža",
+            "maniže"
+          ]
+        },
+        {
+          "normalizedForm": "خدا",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "xudā",
+            "xodâ"
+          ]
+        },
+        {
+          "normalizedForm": "کش",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "kaš",
+            "kaš",
+            "kaš",
+            "kuš",
+            "koš"
+          ]
+        },
+        {
+          "normalizedForm": "بعد",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "ba'd",
+            "ba'd",
+            "bu'd",
+            "bo'd"
+          ]
+        },
+        {
+          "normalizedForm": "جمهوری عربی مصر",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "jomhuri-ye 'arabi-ye mesr"
+          ]
+        },
+        {
+          "normalizedForm": "املا",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "imlā",
+            "emlâ"
+          ]
+        },
+        {
+          "normalizedForm": "یهودیه",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "yahūdiya",
+            "yahudiye"
+          ]
+        },
+        {
+          "normalizedForm": "ترجیح دادن",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "tarjih dâdan"
+          ]
+        },
+        {
+          "normalizedForm": "روحیه",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "rūhiya",
+            "ruhiye"
+          ]
+        },
+        {
+          "normalizedForm": "آسیای مرکزی",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "âsiyâ-ye markazi"
+          ]
+        },
+        {
+          "normalizedForm": "رستم",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "rustam",
+            "rostam",
+            "rostam"
+          ]
+        },
+        {
+          "normalizedForm": "قسمت",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "qismat",
+            "ġesmat"
+          ]
+        },
+        {
+          "normalizedForm": "ارزیابی",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "arzyābī",
+            "arzyâbi"
+          ]
+        },
+        {
+          "normalizedForm": "بازداشتن",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "bāzdāštan",
+            "bâzdâštan"
+          ]
+        },
+        {
+          "normalizedForm": "تقریر",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "taqrīr",
+            "taġrir"
+          ]
+        },
+        {
+          "normalizedForm": "مخالفت",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "muxālifat",
+            "moxâlefat"
+          ]
+        },
+        {
+          "normalizedForm": "تنگه",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "tanga",
+            "tange",
+            "tanga",
+            "tange"
+          ]
+        },
+        {
+          "normalizedForm": "نشئه",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "naš'a",
+            "naš'e",
+            "naš'a",
+            "naš'e"
+          ]
+        },
+        {
+          "normalizedForm": "کنار",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "kanār",
+            "kenâr",
+            "kanār",
+            "kenâr",
+            "kanār",
+            "kenâr",
+            "kunār",
+            "konâr"
+          ]
+        },
+        {
+          "normalizedForm": "ـتان",
+          "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
+          "romanizations": [
+            "-etân"
+          ]
+        }
+      ],
+      "NON_LEMMA_SOURCE_FORM": [
+        {
+          "normalizedForm": "برخورد",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "barxward",
+            "barxord",
+            "barxward",
+            "barxord"
+          ]
+        },
+        {
+          "normalizedForm": "چشات",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "češât"
+          ]
+        },
+        {
+          "normalizedForm": "می‌رقصیدند",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "mi-raqsidand"
+          ]
+        },
+        {
+          "normalizedForm": "برگشتند",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "bargaštand"
+          ]
+        },
+        {
+          "normalizedForm": "سوخت",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "sōxt",
+            "suxt",
+            "sōxt",
+            "suxt",
+            "sōxt",
+            "suxt"
+          ]
+        },
+        {
+          "normalizedForm": "می‌رفتم",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "mi-raftam"
+          ]
+        },
+        {
+          "normalizedForm": "سبیل‌ها",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "sebil-hâ",
+            "sabil-hâ"
+          ]
+        },
+        {
+          "normalizedForm": "آتش نشانی",
+          "reason": "Evidence is an inflected form or variant (ALT_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "âtaš-nešâni"
+          ]
+        },
+        {
+          "normalizedForm": "شتاب",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "šitāb",
+            "šetâb",
+            "šitāb",
+            "šetâb"
+          ]
+        },
+        {
+          "normalizedForm": "مشکل‌ها",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "moškel-hâ"
+          ]
+        },
+        {
+          "normalizedForm": "می‌رسیدند",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "mi-residand"
+          ]
+        },
+        {
+          "normalizedForm": "پلکان",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "pillikān",
+            "pellekân",
+            "pellekân"
+          ]
+        },
+        {
+          "normalizedForm": "عتبات",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "atabāt",
+            "atabât",
+            "atabāt",
+            "atabât"
+          ]
+        },
+        {
+          "normalizedForm": "برگ‌ها",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "barg-hâ"
+          ]
+        },
+        {
+          "normalizedForm": "پانسمان‌ها",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "pânsemân-hâ"
+          ]
+        },
+        {
+          "normalizedForm": "خانه‌ها",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "xâne-hâ"
+          ]
+        },
+        {
+          "normalizedForm": "می‌پوشیم",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "mi-pušim"
+          ]
+        },
+        {
+          "normalizedForm": "فهمیدم",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "fahmidam"
+          ]
+        },
+        {
+          "normalizedForm": "اوستا",
+          "reason": "Evidence is an inflected form or variant (ALT_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "awistā",
+            "avestâ",
+            "ūstā",
+            "ustâ",
+            "ūstā",
+            "ustâ"
+          ]
+        },
+        {
+          "normalizedForm": "رقصندگان",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "raqsandegân"
+          ]
+        },
+        {
+          "normalizedForm": "زیب",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "zib"
+          ]
+        },
+        {
+          "normalizedForm": "رسان",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "rasân"
+          ]
+        },
+        {
+          "normalizedForm": "ترکمن‌ها",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "torkman-hâ"
+          ]
+        },
+        {
+          "normalizedForm": "هلدینگ",
+          "reason": "Evidence is an inflected form or variant (ALT_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "holding"
+          ]
+        },
+        {
+          "normalizedForm": "خو",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "xō",
+            "xu",
+            "xu",
+            "xo",
+            "xu",
+            "xo",
+            "xaw",
+            "xov",
+            "xaw",
+            "xov",
+            "xō",
+            "xov"
+          ]
+        }
+      ],
+      "NO_ROMANIZATION": [
+        {
+          "normalizedForm": "انتقال‌دهنده عصبی",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "تابلوی اعلانات",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "مقرون به صرفه",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "لاله واژگون",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "رهبر ارکستر",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "پرتو ایکس",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "چند و چون",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "سمد",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "شب یلدا",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "نگه داشتن",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "ماهی سالمون",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "اندازه گیری",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "بمب اتمی",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "شیشه جلو",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "جذب کردن",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "سند",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            "sanad",
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "بیماری سلیاک",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "خنکیدن",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "سر سوزن",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "هپاتیت ویروسی",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "به درد بخور",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "لوستر",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "راکتور",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "پست",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            "",
+            "",
+            "post"
+          ]
+        },
+        {
+          "normalizedForm": "مچ پا",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        }
+      ]
+    },
+    "reviewedMatchSamples": [],
+    "reviewedDivergenceSamples": []
+  },
+  "governanceInvariants": {
+    "automaticPromotions": 0,
+    "authoritativeLexiconMutations": 0,
+    "falseAuthoritativeCount": 0,
+    "underBlockedCount": 0,
+    "productionPackUntouched": true
+  }
+}
