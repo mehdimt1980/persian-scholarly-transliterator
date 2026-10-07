@@ -9,7 +9,6 @@ import { transliterate } from '../../../engine';
 import { computeFileSha256 } from '../statistics';
 import { KaikkiScaleExperimentRunner } from './runner';
 import { forEachJsonlRow, StreamingMemoryTracker } from './stream';
-import { validateScalePackIntegrity } from './validatorCli';
 import { PHASE7B_SAMPLE_FIXTURES_PATH } from '../scheme/fixtures';
 import type { EvidenceFallbackPack } from '../fallback/types';
 
@@ -60,8 +59,8 @@ describe('Phase 7D: Production-Scale Kaikki Knowledge Pack Experiment', () => {
       expect(start).toBeGreaterThan(0);
 
       tracker.sample();
-      const peak = tracker.getPeakRssMb();
       const end = tracker.getEndRssMb();
+      const peak = tracker.getPeakRssMb();
 
       expect(peak).toBeGreaterThanOrEqual(start);
       expect(peak).toBeGreaterThanOrEqual(end);

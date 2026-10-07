@@ -118,6 +118,12 @@ export interface KaikkiSchemeInterpretation {
   /** List of blockers preventing safe deterministic interpretation */
   blockers: KaikkiSchemeInterpretationBlocker[];
 
+  /** Profile origin classification for audit (EXPLICIT vs RECOVERED) */
+  profileOrigin?: 'EXPLICIT' | 'RECOVERED_STRUCTURAL' | 'RECOVERED_PAIRED' | 'UNCLASSIFIED';
+
+  /** Optional recovery ID if profile was resolved via recovery engine */
+  recoveryId?: string;
+
   /** Software version of interpreter */
   interpreterVersion: string;
 

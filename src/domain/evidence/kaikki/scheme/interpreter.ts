@@ -13,13 +13,14 @@
 import { normalizePersian } from '../../../normalization';
 import type { LexicalEvidence } from '../../types';
 import { KAIKKI_SOURCE_ID } from '../extractor';
+import { resolveEffectiveWiktionaryProfile } from '../profile/effective';
+import type { WiktionaryProfileRecoveryResult } from '../profile/types';
 import type { KaikkiEvidenceMetadata, KaikkiExtractedObservation } from '../types';
 import { alignAndTransduceWiktionary } from './aligner';
 import {
   computeMetadataFingerprint,
   generateKaikkiInterpretationId
 } from './identity';
-import { classifyWiktionaryProfile } from './profileClassifier';
 import {
   WIKT_INTERPRETATION_RULESET_VERSION,
   WIKT_INTERPRETER_VERSION
@@ -31,6 +32,7 @@ import type {
 
 export interface KaikkiInterpretationOptions {
   candidateId?: string | null;
+  profileRecovery?: WiktionaryProfileRecoveryResult | null;
   interpreterVersion?: string;
   ruleSetVersion?: string;
   analyzedAt?: string;
@@ -93,13 +95,17 @@ export function interpretKaikkiEvidence(
           reason: 'Kaikki metadata is missing, incomplete, or does not match the evidence observation.'
         }
       ],
+      profileOrigin: 'UNCLASSIFIED',
       interpreterVersion,
       ruleSetVersion,
       analyzedAt: options?.analyzedAt
     };
   }
 
-  const sourceProfile = classifyWiktionaryProfile(metadata);
+  const profileResolution = resolveEffectiveWiktionaryProfile(metadata, options?.profileRecovery);
+  const sourceProfile = profileResolution.effectiveProfile;
+  const profileOrigin = profileResolution.profileOrigin;
+  const recoveryId = profileResolution.recoveryId;
   const metadataFingerprint = computeMetadataFingerprint(metadata);
 
   const id = generateKaikkiInterpretationId({
@@ -110,7 +116,8 @@ export function interpretKaikkiEvidence(
     interpreterVersion,
     ruleSetVersion,
     persianForm: evidence.persianForm,
-    observedRomanization: rawObserved
+    observedRomanization: rawObserved,
+    recoveryId
   });
 
   const sourceTags = metadata.romanizationTags ?? [];
@@ -137,6 +144,8 @@ export function interpretKaikkiEvidence(
           reason: 'Evidence observation has no observed romanization string.'
         }
       ],
+      profileOrigin,
+      recoveryId,
       interpreterVersion,
       ruleSetVersion,
       analyzedAt: options?.analyzedAt
@@ -165,6 +174,8 @@ export function interpretKaikkiEvidence(
           reason: `Evidence is an inflected form or variant (${metadata.lemmaRelation?.kind ?? 'NON_LEMMA_FORM'}); excluded from direct lexical lemma hypotheses.`
         }
       ],
+      profileOrigin,
+      recoveryId,
       interpreterVersion,
       ruleSetVersion,
       analyzedAt: options?.analyzedAt
@@ -194,6 +205,8 @@ export function interpretKaikkiEvidence(
       status: 'CONTEXT_REQUIRED',
       appliedRuleIds: alignment.appliedRuleIds,
       blockers: alignment.blockers,
+      profileOrigin,
+      recoveryId,
       interpreterVersion,
       ruleSetVersion,
       analyzedAt: options?.analyzedAt
@@ -218,6 +231,8 @@ export function interpretKaikkiEvidence(
     status,
     appliedRuleIds: alignment.appliedRuleIds,
     blockers: [],
+    profileOrigin,
+    recoveryId,
     interpreterVersion,
     ruleSetVersion,
     analyzedAt: options?.analyzedAt

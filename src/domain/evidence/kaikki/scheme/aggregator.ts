@@ -16,6 +16,7 @@ import { KAIKKI_SOURCE_ID } from '../extractor';
 import type { KaikkiEvidenceMetadata, KaikkiExtractedObservation } from '../types';
 import { generateKaikkiCandidateAnalysisId } from './identity';
 import { interpretKaikkiEvidence, type WiktionaryPersianSchemeInterpreter } from './interpreter';
+import type { WiktionaryProfileRecoveryResult } from '../profile/types';
 import { WIKT_AGGREGATOR_VERSION } from './rules';
 import type {
   KaikkiCandidateSchemeAnalysis,
@@ -29,6 +30,9 @@ export interface KaikkiCandidateAnalysisOptions {
   interpreterVersion?: string;
   ruleSetVersion?: string;
   analyzedAt?: string;
+  profileRecoveries?:
+    | Map<string, WiktionaryProfileRecoveryResult>
+    | ((evidenceId: string) => WiktionaryProfileRecoveryResult | undefined);
 }
 
 export type KaikkiEvidenceSource =
@@ -153,8 +157,14 @@ export function analyzeKaikkiCandidateSchemeEvidence(
       );
     }
 
+    const profileRecovery =
+      typeof options?.profileRecoveries === 'function'
+        ? options.profileRecoveries(evidenceId)
+        : options?.profileRecoveries?.get(evidenceId);
+
     const interp = interpretKaikkiEvidence(item.evidence, item.metadata, {
       candidateId: candidate.id,
+      profileRecovery,
       interpreterVersion: options?.interpreterVersion,
       ruleSetVersion: options?.ruleSetVersion,
       analyzedAt: options?.analyzedAt
