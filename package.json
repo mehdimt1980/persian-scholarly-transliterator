@@ -23,7 +23,9 @@
     "evidence:loc:pilot": "tsx src/domain/evidence/loc/cli.ts",
     "evidence:alignment:pilot": "tsx src/domain/evidence/alignment/cli.ts",
     "evidence:scheme:pilot": "tsx src/domain/evidence/scheme/cli.ts",
-    "evidence:adjudication:pilot": "tsx src/domain/evidence/adjudication/cli.ts"
+    "evidence:adjudication:pilot": "tsx src/domain/evidence/adjudication/cli.ts",
+    "acquire:kaikki": "tsx src/domain/evidence/kaikki/cli.ts",
+    "evidence:kaikki:pilot": "tsx src/domain/evidence/kaikki/cli.ts"
   },
   "dependencies": {
     "next": "16.3.8",
