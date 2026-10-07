@@ -1,0 +1,130 @@
+{
+  "manifest": {
+    "packVersion": "1.0.0",
+    "generatedAt": "2026-10-07T16:17:21.255Z",
+    "inputSha256": "4fa4697e1c82df7c4dcf9cb546cf7c46c6f39992965695fda74db040e989f1c6",
+    "extractorVersion": "1.0.0",
+    "interpreterVersion": "1.0.0",
+    "ruleSetVersion": "1.0.0",
+    "aggregatorVersion": "1.0.0",
+    "entryCount": 4
+  },
+  "entries": {
+    "گفتار": {
+      "id": "fb-kaikki-b272869c",
+      "normalizedForm": "گفتار",
+      "hypothesis": "guftār",
+      "consensusStatus": "UNANIMOUS_DETERMINISTIC",
+      "confidenceTier": "CROSS_PROFILE_CONSENSUS",
+      "candidateAnalysisId": "analysis-wikt-6a5bf15e56b94f78",
+      "evidenceCount": 2,
+      "sourceProfiles": [
+        "CLASSICAL_DARI",
+        "IRANIAN"
+      ],
+      "interpretations": [
+        {
+          "evidenceId": "evi-kaikki-enwiktionary-fa-406814a42fd06df7",
+          "sourceRecordId": "گفتار",
+          "romanization": "guftār",
+          "profile": "CLASSICAL_DARI",
+          "sourceUri": "https://en.wiktionary.org/wiki/%DA%AF%D9%81%D8%AA%D8%A7%D8%B1"
+        },
+        {
+          "evidenceId": "evi-kaikki-enwiktionary-fa-df5549c5784151e7",
+          "sourceRecordId": "گفتار",
+          "romanization": "goftâr",
+          "profile": "IRANIAN",
+          "sourceUri": "https://en.wiktionary.org/wiki/%DA%AF%D9%81%D8%AA%D8%A7%D8%B1"
+        }
+      ],
+      "generatedFrom": {
+        "acquisitionVersion": "1.0.0",
+        "interpreterVersion": "1.0.0",
+        "ruleSetVersion": "1.0.0",
+        "aggregatorVersion": "1.0.0"
+      }
+    },
+    "شیراز": {
+      "id": "fb-kaikki-bbe60ba7",
+      "normalizedForm": "شیراز",
+      "hypothesis": "shīrāz",
+      "consensusStatus": "UNANIMOUS_DETERMINISTIC",
+      "confidenceTier": "SINGLE_OBSERVATION_DETERMINISTIC",
+      "candidateAnalysisId": "analysis-wikt-56e1c33576c18ab6",
+      "evidenceCount": 1,
+      "sourceProfiles": [
+        "IRANIAN"
+      ],
+      "interpretations": [
+        {
+          "evidenceId": "evi-kaikki-enwiktionary-fa-ff172f0d61f38cfb",
+          "sourceRecordId": "شیراز",
+          "romanization": "širâz",
+          "profile": "IRANIAN",
+          "sourceUri": "https://en.wiktionary.org/wiki/%D8%B4%DB%8C%D8%B1%D8%A7%D8%B2"
+        }
+      ],
+      "generatedFrom": {
+        "acquisitionVersion": "1.0.0",
+        "interpreterVersion": "1.0.0",
+        "ruleSetVersion": "1.0.0",
+        "aggregatorVersion": "1.0.0"
+      }
+    },
+    "حضور": {
+      "id": "fb-kaikki-47615fce",
+      "normalizedForm": "حضور",
+      "hypothesis": "ḥużūr",
+      "consensusStatus": "UNANIMOUS_DETERMINISTIC",
+      "confidenceTier": "SINGLE_OBSERVATION_DETERMINISTIC",
+      "candidateAnalysisId": "analysis-wikt-930d1631a06b739d",
+      "evidenceCount": 1,
+      "sourceProfiles": [
+        "IRANIAN"
+      ],
+      "interpretations": [
+        {
+          "evidenceId": "evi-kaikki-enwiktionary-fa-13551341210a491a",
+          "sourceRecordId": "حضور",
+          "romanization": "hozur",
+          "profile": "IRANIAN",
+          "sourceUri": "https://en.wiktionary.org/wiki/%D8%AD%D8%B6%D9%88%D8%B1"
+        }
+      ],
+      "generatedFrom": {
+        "acquisitionVersion": "1.0.0",
+        "interpreterVersion": "1.0.0",
+        "ruleSetVersion": "1.0.0",
+        "aggregatorVersion": "1.0.0"
+      }
+    },
+    "عالی": {
+      "id": "fb-kaikki-61f65a7e",
+      "normalizedForm": "عالی",
+      "hypothesis": "ʿālī",
+      "consensusStatus": "UNANIMOUS_DETERMINISTIC",
+      "confidenceTier": "SINGLE_OBSERVATION_DETERMINISTIC",
+      "candidateAnalysisId": "analysis-wikt-f4251977d7a2fbcd",
+      "evidenceCount": 1,
+      "sourceProfiles": [
+        "IRANIAN"
+      ],
+      "interpretations": [
+        {
+          "evidenceId": "evi-kaikki-enwiktionary-fa-5b9ccccc600168b3",
+          "sourceRecordId": "عالی",
+          "romanization": "âli",
+          "profile": "IRANIAN",
+          "sourceUri": "https://en.wiktionary.org/wiki/%D8%B9%D8%A7%D9%84%DB%8C"
+        }
+      ],
+      "generatedFrom": {
+        "acquisitionVersion": "1.0.0",
+        "interpreterVersion": "1.0.0",
+        "ruleSetVersion": "1.0.0",
+        "aggregatorVersion": "1.0.0"
+      }
+    }
+  }
+}

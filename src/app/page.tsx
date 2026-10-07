@@ -21,6 +21,9 @@ import {
 const fixture = 'تأملی درباره ایران: مکتب تبریز و مبانی تجددخواهی';
 
 function actionForAlternative(issue: ReviewIssue, altId: string): ReviewActionType {
+  if (issue.type === 'EVIDENCE_DERIVED_READING') {
+    return 'ACCEPT_EVIDENCE_DERIVED';
+  }
   if (issue.type === 'IZAFAT_CANDIDATE') {
     return altId === 'ACCEPT_IZAFAT' ? 'ACCEPT_IZAFAT' : 'REJECT_IZAFAT';
   }
@@ -29,6 +32,7 @@ function actionForAlternative(issue: ReviewIssue, altId: string): ReviewActionTy
   }
   return 'SELECT_LEXICAL_READING';
 }
+
 
 type AssistStatusType = 'idle' | 'loading' | 'available' | 'error' | 'stale' | 'unavailable';
 
@@ -216,9 +220,12 @@ export default function Home() {
             </p>
           ) : !result.copyable ? (
             <p className="review-warning-note">
-              Human review needed. Ambiguous or unresolved material is intentionally held for review before final copy.
+              {result.tokens.some((t) => t.evidenceDerivedProposal && t.status === 'UNRESOLVED')
+                ? `${result.tokens.filter((t) => t.evidenceDerivedProposal && t.status === 'UNRESOLVED').length} evidence-derived reading${result.tokens.filter((t) => t.evidenceDerivedProposal && t.status === 'UNRESOLVED').length === 1 ? '' : 's'} shown · review required before final copying.`
+                : 'Human review needed. Ambiguous or unresolved material is intentionally held for review before final copy.'}
             </p>
           ) : null}
+
 
           <div className="output-footer">
             <span className="profile-tag">

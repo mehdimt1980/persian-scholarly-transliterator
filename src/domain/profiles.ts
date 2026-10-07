@@ -42,6 +42,14 @@ export function applyTitleProfile(results: TokenResult[]): void {
     if (result.canonicalTransliteration !== null && /[\p{L}\p{M}ʿʾ]/u.test(result.canonicalTransliteration)) {
       result.rendered = renderCanonicalForProfile(result.canonicalTransliteration, 'ijmes_citation_title');
       result.appliedRules.push(RULES.citationTitleCapitalization);
+    } else if (result.evidenceDerivedProposal && /[\p{L}\p{M}ʿʾ]/u.test(result.evidenceDerivedProposal.hypothesis)) {
+      result.evidenceDerivedProposal.renderedProposal = renderCanonicalForProfile(
+        result.evidenceDerivedProposal.hypothesis,
+        'ijmes_citation_title'
+      );
+      result.rendered = result.evidenceDerivedProposal.renderedProposal;
+      result.appliedRules.push(RULES.citationTitleCapitalization);
     }
   }
 }
+

@@ -252,5 +252,20 @@ export const RULES = {
     description: 'Human decision selected between competing whole-word and productive morphological segmentations.',
     authority: 'user-decision',
     reference: 'Human review session morphology resolution.'
+  },
+  evidenceDerivedFallback: {
+    id: 'EVIDENCE-DERIVED-FALLBACK-PROPOSAL',
+    title: 'Evidence-derived fallback proposal',
+    description: 'An external Wiktionary lexical interpretation supplies a provisional non-authoritative IJMES hypothesis.',
+    authority: 'lexical-data',
+    reference: 'Kaikki / Wiktionary Persian source scheme interpretation (Phase 7B).'
+  },
+  userAcceptEvidenceDerived: {
+    id: 'USER-ACCEPT-EVIDENCE-DERIVED',
+    title: 'User accepted evidence-derived reading',
+    description: 'Human review session accepted a provisional evidence-derived IJMES hypothesis as a session override.',
+    authority: 'user-decision',
+    reference: 'Human review session evidence acceptance.'
   }
 } satisfies Record<string, RuleDefinition>;
+

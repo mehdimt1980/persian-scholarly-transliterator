@@ -32,8 +32,10 @@ const VALID_REVIEW_ACTIONS = new Set<string>([
   'MANUAL_CANONICAL_OVERRIDE',
   'ACCEPT_IZAFAT',
   'REJECT_IZAFAT',
-  'SELECT_MORPHOLOGY'
+  'SELECT_MORPHOLOGY',
+  'ACCEPT_EVIDENCE_DERIVED'
 ]);
+
 
 function isObject(val: unknown): val is Record<string, any> {
   return typeof val === 'object' && val !== null && !Array.isArray(val);
@@ -126,7 +128,11 @@ function validateSingleReviewDecision(d: unknown): ReviewDecision | null {
     assistance = validAssistance;
   }
 
-  if (action === 'SELECT_LEXICAL_READING' || action === 'SELECT_MORPHOLOGY') {
+  if (
+    action === 'SELECT_LEXICAL_READING' ||
+    action === 'SELECT_MORPHOLOGY' ||
+    action === 'ACCEPT_EVIDENCE_DERIVED'
+  ) {
     if (typeof d.selectedAlternativeId !== 'string' || d.selectedAlternativeId.trim().length === 0) {
       return null;
     }

@@ -1,4 +1,5 @@
 import { DEFAULT_LEXICON_REPOSITORY } from '../data/lexicon';
+import { DEFAULT_EVIDENCE_FALLBACK_REPOSITORY, EMPTY_EVIDENCE_FALLBACK_REPOSITORY } from '../data/fallback';
 import { consonantalScaffold } from '../data/ijmes-mappings';
 import { normalizePersian } from './normalization';
 import { analyzeOrthography } from './orthography';
@@ -23,9 +24,12 @@ import {
 } from './types';
 import { resolveVocalizedReadings } from './vocalization';
 import { LexiconRepository } from './lexicon/repository';
+import { EvidenceFallbackRepository } from './evidence/kaikki/fallback/repository';
+import { resolveEvidenceFallback } from './evidence/kaikki/fallback/resolver';
 import { ReviewDecision } from './review/types';
 import { detectReviewIssues } from './review/issueDetector';
 import { applyReviewDecisions } from './review/decisionApplier';
+
 
 function reviewPlaceholder(source: string, status: 'unresolved' | 'ambiguous', alternatives: string[] = []): string {
   const detail = alternatives.length ? `: ${alternatives.join(' | ')}` : '';
@@ -90,7 +94,13 @@ function unresolvedToken(
   };
 }
 
-function resolveToken(token: Token, analysis?: TokenAnalysis, lexicon: LexiconRepository = DEFAULT_LEXICON_REPOSITORY): { result: TokenResult; entry?: LexicalEntry } {
+function resolveToken(
+  token: Token,
+  analysis?: TokenAnalysis,
+  lexicon: LexiconRepository = DEFAULT_LEXICON_REPOSITORY,
+  fallbackRepository: EvidenceFallbackRepository = DEFAULT_EVIDENCE_FALLBACK_REPOSITORY,
+  profile: ProfileId = 'ijmes_full'
+): { result: TokenResult; entry?: LexicalEntry } {
   if (['whitespace', 'punctuation', 'number', 'latin'].includes(token.type)) {
     const automatic: AutomaticTokenSnapshot = {
       status: 'DETERMINISTIC',
@@ -141,6 +151,23 @@ function resolveToken(token: Token, analysis?: TokenAnalysis, lexicon: LexiconRe
 
   const entry = lexicon.findByNormalized(analysis.lookupForm);
   if (!entry) {
+    if (analysis.unsupportedCombiningMarks.length) {
+      return {
+        result: unresolvedToken(
+          token,
+          analysis,
+          'Unsupported combining-mark evidence prevents authoritative lexical resolution in Phase 2A.',
+          [],
+          'UNSUPPORTED_ORTHOGRAPHIC_EVIDENCE'
+        )
+      };
+    }
+
+    const fallback = resolveEvidenceFallback(token, analysis, fallbackRepository, profile);
+    if (fallback) {
+      return { result: fallback };
+    }
+
     return { result: unresolvedToken(token, analysis, 'No reviewed lexical reading exists; the diagnostic scaffold is not final transliteration.', [], 'NO_LEXICAL_ENTRY') };
   }
   if (analysis.unsupportedCombiningMarks.length) {
@@ -155,6 +182,7 @@ function resolveToken(token: Token, analysis?: TokenAnalysis, lexicon: LexiconRe
       entry
     };
   }
+
 
   const lexicalEvidence = analysis.explicitVowels.filter((evidence) => !evidence.relationOnly);
   let compatible = entry.readings;
@@ -307,12 +335,20 @@ export function transliterate(
   input: string,
   profile: ProfileId = 'ijmes_full',
   reviewDecisions: ReviewDecision[] = [],
-  lexicon: LexiconRepository = DEFAULT_LEXICON_REPOSITORY
+  lexicon: LexiconRepository = DEFAULT_LEXICON_REPOSITORY,
+  fallbackRepository?: EvidenceFallbackRepository
 ): TransliterationResult {
   if (!SUPPORTED_PROFILES.includes(profile)) {
     throw new Error(`Unsupported profile: ${profile}`);
   }
+  const effectiveFallback =
+    fallbackRepository ??
+    (lexicon === DEFAULT_LEXICON_REPOSITORY
+      ? DEFAULT_EVIDENCE_FALLBACK_REPOSITORY
+      : EMPTY_EVIDENCE_FALLBACK_REPOSITORY);
+
   lexicon.assertValid();
+  effectiveFallback.assertValid();
   const normalization = normalizePersian(input);
 
   // Human-approved frozen V2 authority is an exact normalized phrase/profile layer.
@@ -338,8 +374,9 @@ export function transliterate(
   const resolved = tokens.map((token, index) =>
     morphologyByToken.has(index)
       ? resolveMorphologicalToken(token, morphologyByToken.get(index)!)
-      : resolveToken(token, analysisByToken.get(index), lexicon)
+      : resolveToken(token, analysisByToken.get(index), lexicon, effectiveFallback, profile)
   );
+
 
   const initialResults = resolved.map((item) => item.result);
   const entries = resolved.map((item) => item.entry);

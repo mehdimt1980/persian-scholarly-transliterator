@@ -238,7 +238,32 @@ export function detectReviewIssues(
       return;
     }
 
-    // F. Unknown / Unresolved Token (including vocalization conflict or unknown stem)
+    // F. Evidence-Derived Reading (provisional non-authoritative hypothesis from Wiktionary)
+    if (result.status === 'UNRESOLVED' && result.evidenceDerivedProposal) {
+      const proposal = result.evidenceDerivedProposal;
+      const payloadKey = `evidence:${token.normalizedSurface}:${proposal.fallbackEntryId}:${proposal.hypothesis}`;
+      issues.push({
+        id: generateTokenIssueId(inputFingerprint, token, tokenIndex, 'EVIDENCE_DERIVED_READING', payloadKey),
+        type: 'EVIDENCE_DERIVED_READING',
+        tokenIndexes: [tokenIndex],
+        surface: token.normalizedSurface,
+        description: 'An evidence-derived IJMES reading is available from English Wiktionary. Review and accept to make it canonical for this session.',
+        alternatives: [
+          {
+            id: proposal.fallbackEntryId,
+            label: `Accept proposed reading (${proposal.renderedProposal})`,
+            canonical: proposal.hypothesis,
+            description: `Wiktionary evidence: ${proposal.confidenceTier.replace(/_/g, ' ').toLowerCase()} (${proposal.evidenceCount} observation${proposal.evidenceCount === 1 ? '' : 's'})`,
+            source: 'Kaikki / Wiktionary Persian scheme interpretation'
+          }
+        ],
+        allowedActions: ['ACCEPT_EVIDENCE_DERIVED', 'MANUAL_CANONICAL_OVERRIDE'],
+        evidenceSummary: `Confidence: ${proposal.confidenceTier.replace(/_/g, ' ').toLowerCase()} · Profiles: ${proposal.sourceProfiles.join(', ')} · Observations: ${proposal.evidenceCount}`
+      });
+      return;
+    }
+
+    // G. Unknown / Unresolved Token (including vocalization conflict or unknown stem)
     if (result.status === 'UNRESOLVED' || result.blockingReason === 'NO_LEXICAL_ENTRY' || result.blockingReason === 'VOCALIZATION_CONFLICT') {
       const payloadKey = `unknown:${token.normalizedSurface}:${result.diagnosticScaffold ?? ''}`;
       issues.push({
@@ -253,6 +278,7 @@ export function detectReviewIssues(
       });
     }
   });
+
 
   // 2. Relation-level review issues (e.g. Izāfat Candidate)
   relations.forEach((relation, relationIndex) => {

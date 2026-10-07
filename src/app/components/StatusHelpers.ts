@@ -58,6 +58,8 @@ export function getStatusClass(status: string): string {
 
 export function formatIssueType(type: string): string {
   switch (type) {
+    case 'EVIDENCE_DERIVED_READING':
+      return 'Evidence-backed proposal';
     case 'MORPHOLOGY_AMBIGUITY':
       return 'Morphology ambiguity';
     case 'IZAFAT_CANDIDATE':
@@ -70,3 +72,4 @@ export function formatIssueType(type: string): string {
       return type.replace(/_/g, ' ').toLowerCase();
   }
 }
+
