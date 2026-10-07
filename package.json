@@ -25,7 +25,8 @@
     "evidence:scheme:pilot": "tsx src/domain/evidence/scheme/cli.ts",
     "evidence:adjudication:pilot": "tsx src/domain/evidence/adjudication/cli.ts",
     "acquire:kaikki": "tsx src/domain/evidence/kaikki/cli.ts",
-    "evidence:kaikki:pilot": "tsx src/domain/evidence/kaikki/cli.ts"
+    "evidence:kaikki:pilot": "tsx src/domain/evidence/kaikki/cli.ts",
+    "interpret:kaikki": "tsx src/domain/evidence/kaikki/scheme/cli.ts"
   },
   "dependencies": {
     "next": "16.3.8",
