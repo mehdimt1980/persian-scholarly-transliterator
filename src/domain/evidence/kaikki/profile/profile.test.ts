@@ -52,9 +52,55 @@ describe('Phase 7E: Wiktionary Romanization Profile Recovery (Hardened)', () => 
     expect(rec!.method).toBe('EXPLICIT_ROMANIZATION_TAG');
   });
 
-  it('Tier B: structurally links template argument metadata on verified templates', () => {
+  it('Tier B: rejects unverified head templates by default (default empty structural registry)', () => {
+    const obs = extractKaikkiObservations({
+      word: 'دانشگاه',
+      pos: 'noun',
+      head_templates: [
+        {
+          name: 'fa-noun',
+          args: { cls: 'dānišgāh' }
+        }
+      ],
+      forms: [{ form: 'dānišgāh', tags: ['romanization'] }]
+    })[0];
+
+    const recoveryMap = recoveryEngine.recoverProfilesForEntry(
+      {
+        word: 'دانشگاه',
+        head_templates: [{ name: 'fa-noun', args: { cls: 'dānišgāh' } }]
+      },
+      [obs]
+    );
+
+    const rec = recoveryMap.get(obs.evidence.id);
+    expect(rec).toBeDefined();
+    expect(rec!.recoveredProfile).toBe('UNCLASSIFIED');
+    expect(rec!.recoveryStatus).toBe('UNRECOVERABLE');
+    expect(rec!.method).toBe('NONE');
+  });
+
+  it('Tier B: structurally links template argument metadata when verified structural rule is registered', () => {
     const fixture = FIXTURE_STRUCTURAL_TEMPLATE_LINK;
-    const recoveryMap = recoveryEngine.recoverProfilesForEntry(fixture.rawEntry, fixture.observations);
+    const customEngine = new WiktionaryProfileRecoveryEngine({
+      structuralRules: [
+        {
+          id: 'test-fa-noun-cls',
+          templateName: 'fa-noun',
+          argumentName: 'cls',
+          semantic: 'CLASSICAL_ROMANIZATION',
+          sourceReference: 'Test fixture verified specification'
+        },
+        {
+          id: 'test-fa-noun-ira',
+          templateName: 'fa-noun',
+          argumentName: 'ira',
+          semantic: 'IRANIAN_ROMANIZATION',
+          sourceReference: 'Test fixture verified specification'
+        }
+      ]
+    });
+    const recoveryMap = customEngine.recoverProfilesForEntry(fixture.rawEntry, fixture.observations);
 
     expect(recoveryMap.size).toBe(2);
     const recCls = recoveryMap.get(fixture.observations[0].evidence.id);
@@ -84,7 +130,19 @@ describe('Phase 7E: Wiktionary Romanization Profile Recovery (Hardened)', () => 
       forms: [{ form: '-', tags: ['romanization'] }]
     })[0];
 
-    const recoveryMap = recoveryEngine.recoverProfilesForEntry(
+    const customEngine = new WiktionaryProfileRecoveryEngine({
+      structuralRules: [
+        {
+          id: 'test-proper-noun-cls',
+          templateName: 'fa-proper noun',
+          argumentName: 'cls',
+          semantic: 'CLASSICAL_ROMANIZATION',
+          sourceReference: 'Test fixture'
+        }
+      ]
+    });
+
+    const recoveryMap = customEngine.recoverProfilesForEntry(
       {
         word: 'کره',
         head_templates: [{ name: 'fa-proper noun', args: { cls: '-' } }]
@@ -110,7 +168,19 @@ describe('Phase 7E: Wiktionary Romanization Profile Recovery (Hardened)', () => 
       forms: [{ form: 'imām', tags: ['romanization'] }]
     })[0];
 
-    const recoveryMap = recoveryEngine.recoverProfilesForEntry(
+    const customEngine = new WiktionaryProfileRecoveryEngine({
+      structuralRules: [
+        {
+          id: 'test-fa-noun-cls',
+          templateName: 'fa-noun',
+          argumentName: 'cls',
+          semantic: 'CLASSICAL_ROMANIZATION',
+          sourceReference: 'Test fixture'
+        }
+      ]
+    });
+
+    const recoveryMap = customEngine.recoverProfilesForEntry(
       {
         word: 'امام',
         head_templates: [{ name: 'unverified-custom-template', args: { cls: 'imām' } }]

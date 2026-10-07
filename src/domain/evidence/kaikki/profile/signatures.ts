@@ -280,3 +280,13 @@ export function matchAlignedSlotCorrespondence(
 
   return null;
 }
+
+/**
+ * Verified Structural Profile Rules Registry.
+ *
+ * For Phase 7E: Tier B structural recovery architecture is fully implemented,
+ * but the production registry remains empty until exact template argument semantics
+ * (e.g. distinguishing transliteration strings from dialect selectors) are source-verified.
+ */
+export const VERIFIED_STRUCTURAL_PROFILE_RULES: import('./types').VerifiedStructuralProfileRule[] = [];
+

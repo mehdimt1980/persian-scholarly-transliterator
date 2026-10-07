@@ -9,14 +9,13 @@
  */
 
 import crypto from 'node:crypto';
-import { alignAndTransduceWiktionary, type WiktionaryAlignmentSlot } from '../scheme/aligner';
+import { alignAndTransduceWiktionary } from '../scheme/aligner';
 import { classifyWiktionaryProfile } from '../scheme/profileClassifier';
 import type { WiktionaryPersianRomanizationProfile } from '../scheme/types';
 import type { KaikkiExtractedObservation, KaikkiRawEntry } from '../types';
 import {
-  DISCRIMINATIVE_CLASSICAL_VOWELS,
-  DISCRIMINATIVE_IRANIAN_VOWELS,
-  matchAlignedSlotCorrespondence
+  matchAlignedSlotCorrespondence,
+  VERIFIED_STRUCTURAL_PROFILE_RULES
 } from './signatures';
 import {
   PROFILE_POLICY_VERSION,
@@ -24,25 +23,10 @@ import {
   type AlignedDiscriminativeSlotFeature,
   type ProfileRecoveryBlocker,
   type ProfileRecoveryMethod,
+  type VerifiedStructuralProfileRule,
   type WiktionaryProfileRecoveryEvidence,
   type WiktionaryProfileRecoveryResult
 } from './types';
-
-/**
- * Templates verified to support explicit Persian transliteration parameters (`cls`, `ira`).
- */
-const VERIFIED_PERSIAN_HEAD_TEMPLATES = new Set([
-  'fa-noun',
-  'fa-proper noun',
-  'fa-verb',
-  'fa-adj',
-  'fa-adv',
-  'fa-pron',
-  'fa-phrase',
-  'fa-interj',
-  'fa-con',
-  'fa-prep'
-]);
 
 /**
  * Reject placeholder and sentinel values in template parameters.
@@ -120,6 +104,7 @@ export interface ProfileRecoveryOptions {
   recoveryVersion?: string;
   policyVersion?: string;
   recoveredAt?: string;
+  structuralRules?: VerifiedStructuralProfileRule[];
 }
 
 interface ProposalWithEvidence {
@@ -130,10 +115,12 @@ interface ProposalWithEvidence {
 export class WiktionaryProfileRecoveryEngine {
   private readonly recoveryVersion: string;
   private readonly policyVersion: string;
+  private readonly structuralRules: VerifiedStructuralProfileRule[];
 
   constructor(options?: ProfileRecoveryOptions) {
     this.recoveryVersion = options?.recoveryVersion ?? PROFILE_RECOVERY_VERSION;
     this.policyVersion = options?.policyVersion ?? PROFILE_POLICY_VERSION;
+    this.structuralRules = options?.structuralRules ?? VERIFIED_STRUCTURAL_PROFILE_RULES;
   }
 
   /**
@@ -583,134 +570,82 @@ export class WiktionaryProfileRecoveryEngine {
     }
 
     // Tier B: Direct structural template linkage with verified template semantics
-    if (Array.isArray(rawEntry.head_templates) && obs.metadata.sourceFormIndex !== undefined) {
+    if (
+      this.structuralRules.length > 0 &&
+      Array.isArray(rawEntry.head_templates) &&
+      obs.metadata.sourceFormIndex !== undefined
+    ) {
       for (const tmpl of rawEntry.head_templates) {
         if (tmpl && typeof tmpl === 'object' && 'args' in tmpl && tmpl.args && typeof tmpl.args === 'object') {
           const tmplName = String((tmpl as any).name ?? '').trim();
-          if (!VERIFIED_PERSIAN_HEAD_TEMPLATES.has(tmplName)) {
-            continue;
-          }
-
           const args = tmpl.args as Record<string, unknown>;
 
-          // Check Classical parameter 'cls'
-          if (typeof args.cls === 'string' && isValidStructuralTransliteration(args.cls)) {
-            const clsVal = args.cls.trim();
-            if (clsVal === rawObserved.trim()) {
-              // Validate script alignment under CLASSICAL_DARI
-              const alignCls = alignAndTransduceWiktionary({
-                persianForm: obs.evidence.persianForm,
-                observedRomanization: clsVal,
-                sourceProfile: 'CLASSICAL_DARI'
-              });
-
-              if (alignCls.success) {
-                const id = generateProfileRecoveryId({
-                  observationEvidenceId: obs.evidence.id,
-                  sourceRecordId: obs.evidence.sourceRecordId,
-                  persianForm: obs.evidence.persianForm,
-                  recoveredProfile: 'CLASSICAL_DARI',
-                  method: 'STRUCTURAL_TEMPLATE_LINK',
-                  recoveryVersion: this.recoveryVersion,
-                  policyVersion: this.policyVersion,
-                  evidenceBasis: {
-                    templateName: tmplName,
-                    templateArgName: 'cls',
-                    templateArgValue: clsVal
-                  }
-                });
-
-                return {
-                  id,
-                  observationEvidenceId: obs.evidence.id,
-                  sourceRecordId: obs.evidence.sourceRecordId,
-                  sourceFormIndex: obs.metadata.sourceFormIndex,
-                  formHeadNr: obs.metadata.romanizationHeadNr,
-                  persianForm: obs.evidence.persianForm,
-                  observedRomanization: rawObserved,
-                  originalProfile: 'UNCLASSIFIED',
-                  recoveredProfile: 'CLASSICAL_DARI',
-                  effectiveProfile: 'CLASSICAL_DARI',
-                  profileOrigin: 'RECOVERED_STRUCTURAL',
-                  recoveryStatus: 'RECOVERED',
-                  method: 'STRUCTURAL_TEMPLATE_LINK',
-                  evidence: [
-                    {
-                      tier: 'TIER_B_STRUCTURAL',
-                      method: 'STRUCTURAL_TEMPLATE_LINK',
-                      inferredProfile: 'CLASSICAL_DARI',
-                      detail: `Matched verified Classical argument in template ${tmplName}`,
-                      templateName: tmplName,
-                      templateArgName: 'cls',
-                      templateArgValue: clsVal
-                    }
-                  ],
-                  blockers: [],
-                  recoveryVersion: this.recoveryVersion,
-                  policyVersion: this.policyVersion,
-                  recoveredAt: options?.recoveredAt
-                };
-              }
+          for (const rule of this.structuralRules) {
+            if (rule.templateName !== tmplName) {
+              continue;
             }
-          }
 
-          // Check Iranian parameter 'ira'
-          if (typeof args.ira === 'string' && isValidStructuralTransliteration(args.ira)) {
-            const iraVal = args.ira.trim();
-            if (iraVal === rawObserved.trim()) {
-              // Validate script alignment under IRANIAN
-              const alignIra = alignAndTransduceWiktionary({
-                persianForm: obs.evidence.persianForm,
-                observedRomanization: iraVal,
-                sourceProfile: 'IRANIAN'
-              });
+            const rawVal = args[rule.argumentName];
+            if (typeof rawVal === 'string' && isValidStructuralTransliteration(rawVal)) {
+              const argVal = rawVal.trim();
+              if (argVal === rawObserved.trim()) {
+                const targetProfile: WiktionaryPersianRomanizationProfile =
+                  rule.semantic === 'CLASSICAL_ROMANIZATION' ? 'CLASSICAL_DARI' : 'IRANIAN';
 
-              if (alignIra.success) {
-                const id = generateProfileRecoveryId({
-                  observationEvidenceId: obs.evidence.id,
-                  sourceRecordId: obs.evidence.sourceRecordId,
+                // Validate script alignment under targetProfile
+                const alignResult = alignAndTransduceWiktionary({
                   persianForm: obs.evidence.persianForm,
-                  recoveredProfile: 'IRANIAN',
-                  method: 'STRUCTURAL_TEMPLATE_LINK',
-                  recoveryVersion: this.recoveryVersion,
-                  policyVersion: this.policyVersion,
-                  evidenceBasis: {
-                    templateName: tmplName,
-                    templateArgName: 'ira',
-                    templateArgValue: iraVal
-                  }
+                  observedRomanization: argVal,
+                  sourceProfile: targetProfile
                 });
 
-                return {
-                  id,
-                  observationEvidenceId: obs.evidence.id,
-                  sourceRecordId: obs.evidence.sourceRecordId,
-                  sourceFormIndex: obs.metadata.sourceFormIndex,
-                  formHeadNr: obs.metadata.romanizationHeadNr,
-                  persianForm: obs.evidence.persianForm,
-                  observedRomanization: rawObserved,
-                  originalProfile: 'UNCLASSIFIED',
-                  recoveredProfile: 'IRANIAN',
-                  effectiveProfile: 'IRANIAN',
-                  profileOrigin: 'RECOVERED_STRUCTURAL',
-                  recoveryStatus: 'RECOVERED',
-                  method: 'STRUCTURAL_TEMPLATE_LINK',
-                  evidence: [
-                    {
-                      tier: 'TIER_B_STRUCTURAL',
-                      method: 'STRUCTURAL_TEMPLATE_LINK',
-                      inferredProfile: 'IRANIAN',
-                      detail: `Matched verified Iranian argument in template ${tmplName}`,
+                if (alignResult.success) {
+                  const id = generateProfileRecoveryId({
+                    observationEvidenceId: obs.evidence.id,
+                    sourceRecordId: obs.evidence.sourceRecordId,
+                    persianForm: obs.evidence.persianForm,
+                    recoveredProfile: targetProfile,
+                    method: 'STRUCTURAL_TEMPLATE_LINK',
+                    recoveryVersion: this.recoveryVersion,
+                    policyVersion: this.policyVersion,
+                    evidenceBasis: {
                       templateName: tmplName,
-                      templateArgName: 'ira',
-                      templateArgValue: iraVal
+                      templateArgName: rule.argumentName,
+                      templateArgValue: argVal
                     }
-                  ],
-                  blockers: [],
-                  recoveryVersion: this.recoveryVersion,
-                  policyVersion: this.policyVersion,
-                  recoveredAt: options?.recoveredAt
-                };
+                  });
+
+                  return {
+                    id,
+                    observationEvidenceId: obs.evidence.id,
+                    sourceRecordId: obs.evidence.sourceRecordId,
+                    sourceFormIndex: obs.metadata.sourceFormIndex,
+                    formHeadNr: obs.metadata.romanizationHeadNr,
+                    persianForm: obs.evidence.persianForm,
+                    observedRomanization: rawObserved,
+                    originalProfile: 'UNCLASSIFIED',
+                    recoveredProfile: targetProfile,
+                    effectiveProfile: targetProfile,
+                    profileOrigin: 'RECOVERED_STRUCTURAL',
+                    recoveryStatus: 'RECOVERED',
+                    method: 'STRUCTURAL_TEMPLATE_LINK',
+                    evidence: [
+                      {
+                        tier: 'TIER_B_STRUCTURAL',
+                        method: 'STRUCTURAL_TEMPLATE_LINK',
+                        inferredProfile: targetProfile,
+                        detail: `Matched verified ${rule.semantic} argument '${rule.argumentName}' in template ${tmplName}`,
+                        templateName: tmplName,
+                        templateArgName: rule.argumentName,
+                        templateArgValue: argVal
+                      }
+                    ],
+                    blockers: [],
+                    recoveryVersion: this.recoveryVersion,
+                    policyVersion: this.policyVersion,
+                    recoveredAt: options?.recoveredAt
+                  };
+                }
               }
             }
           }

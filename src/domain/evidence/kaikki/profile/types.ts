@@ -49,6 +49,18 @@ export interface ProfileRecoveryBlocker {
 
 export type ProfileRecoveryEvidenceTier = 'TIER_A_EXPLICIT' | 'TIER_B_STRUCTURAL' | 'TIER_C_PAIRED';
 
+export type StructuralProfileSemantic = 'CLASSICAL_ROMANIZATION' | 'IRANIAN_ROMANIZATION';
+
+export interface VerifiedStructuralProfileRule {
+  id: string;
+  templateName: string;
+  argumentName: string;
+  semantic: StructuralProfileSemantic;
+  sourceReference: string;
+  sourceRevision?: string;
+  description?: string;
+}
+
 export interface AlignedDiscriminativeSlotFeature {
   signatureId: string;
   phenomenon: string;

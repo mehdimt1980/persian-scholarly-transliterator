@@ -2,7 +2,7 @@
   "experimentVersion": "Phase 7E.2-Hardened",
   "recoveryVersion": "1.1.0",
   "policyVersion": "1.1.0",
-  "timestamp": "2026-10-07T18:49:58.710Z",
+  "timestamp": "2026-10-07T19:21:08.118Z",
   "sourceSha256": "f1647707c1bcbb7b18d355f7481ac4c656fa1ff8d91d93a0dbc6bb2e808d06c2",
   "sourceFile": "kaikki.org-dictionary-Persian.jsonl",
   "totalPersianRecords": 20288,
