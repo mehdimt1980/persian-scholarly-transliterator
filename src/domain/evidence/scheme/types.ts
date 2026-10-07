@@ -70,7 +70,7 @@ export type SchemeRuleKind =
  * Official external standard source citation for a scheme interpretation rule.
  */
 export interface SchemeSourceReference {
-  authority: 'LIBRARY_OF_CONGRESS' | 'IJMES' | 'ENCYCLOPAEDIA_IRANICA' | 'DMG';
+  authority: 'LIBRARY_OF_CONGRESS' | 'IJMES' | 'ENCYCLOPAEDIA_IRANICA' | 'DMG' | 'WIKTIONARY';
   documentTitle: string;
   versionOrDate: string;
   sectionOrTable?: string;

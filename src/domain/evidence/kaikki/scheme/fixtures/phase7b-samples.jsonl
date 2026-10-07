@@ -1,0 +1,9 @@
+{"word": "گفتار", "lang_code": "fa", "pos": "noun", "forms": [{"form": "guftār", "tags": ["romanization", "Classical-Persian"]}, {"form": "goftâr", "tags": ["romanization", "Iranian-Persian"]}], "senses": [{"glosses": ["speech, discourse"]}]}
+{"word": "شیراز", "lang_code": "fa", "pos": "name", "forms": [{"form": "širâz", "tags": ["romanization", "Iranian-Persian"]}], "senses": [{"glosses": ["Shiraz (city in Iran)"]}]}
+{"word": "روز", "lang_code": "fa", "pos": "noun", "forms": [{"form": "rōz", "tags": ["romanization", "Classical-Persian"]}, {"form": "ruz", "tags": ["romanization", "Iranian-Persian"]}], "senses": [{"glosses": ["day"]}]}
+{"word": "حضور", "lang_code": "fa", "pos": "noun", "forms": [{"form": "hozur", "tags": ["romanization", "Iranian-Persian"]}], "senses": [{"glosses": ["presence"]}]}
+{"word": "عالی", "lang_code": "fa", "pos": "adj", "forms": [{"form": "âli", "tags": ["romanization", "Iranian-Persian"]}], "senses": [{"glosses": ["high, sublime, excellent"]}]}
+{"word": "کتاب", "lang_code": "fa", "pos": "noun", "forms": [{"form": "ketâb", "tags": ["romanization"]}], "senses": [{"glosses": ["book (untagged profile)"]}]}
+{"word": "خانه", "lang_code": "fa", "pos": "noun", "forms": [{"form": "xâne", "tags": ["romanization", "Iranian-Persian"]}], "senses": [{"glosses": ["house (final heh)"]}]}
+{"word": "فهرست‌ها", "lang_code": "fa", "pos": "noun", "forms": [{"form": "fehrest-hâ", "tags": ["romanization", "Iranian-Persian"]}], "senses": [{"glosses": ["plural of فهرست"], "tags": ["form-of"], "form_of": [{"word": "فهرست"}]}]}
+{"word": "ناهمگون", "lang_code": "fa", "pos": "adj", "forms": [{"form": "nâhamgun", "tags": ["romanization", "Classical-Persian", "Iranian-Persian"]}], "senses": [{"glosses": ["conflicting tags"]}]}
