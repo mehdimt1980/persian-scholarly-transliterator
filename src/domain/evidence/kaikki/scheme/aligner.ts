@@ -19,54 +19,82 @@ export interface WiktionaryAlignmentResult {
 }
 
 /**
- * Multi-character and diacritic consonants supported in Wiktionary Romanization.
+ * Strict source-backed consonant compatibility lookup.
+ * Binds each Persian grapheme to allowable Roman representations in Wiktionary.
  */
-const ROMAN_CONSONANT_MAP: Record<string, string> = {
-  // Digraphs
-  sh: 'sh',
-  kh: 'kh',
-  ch: 'ch',
-  zh: 'zh',
-  gh: 'gh',
-  // Special characters
-  š: 'sh',
-  x: 'kh',
-  č: 'ch',
-  ž: 'zh',
-  ġ: 'gh',
-  ğ: 'gh',
-  q: 'q',
-  // Single standard consonants
-  b: 'b',
-  p: 'p',
-  t: 't',
-  s: 's',
-  j: 'j',
-  h: 'h',
-  d: 'd',
-  z: 'z',
-  r: 'r',
-  f: 'f',
-  k: 'k',
-  g: 'g',
-  l: 'l',
-  m: 'm',
-  n: 'n',
-  v: 'v',
-  w: 'w',
-  y: 'y',
-  "'": 'ʾ',
-  '’': 'ʾ',
-  '‘': 'ʿ',
-  'ʿ': 'ʿ',
-  'ʾ': 'ʾ'
+const PERSIAN_TO_ROMAN_CONSONANT_COMPATIBILITY: Record<string, string[]> = {
+  // S-class
+  س: ['s'],
+  ص: ['s', 'ṣ'],
+  ث: ['s', 's̱', 'th'],
+
+  // Z-class
+  ز: ['z'],
+  ض: ['z', 'ż', 'ḍ'],
+  ظ: ['z', 'ẓ'],
+  ذ: ['z', 'ẕ', 'dh'],
+
+  // H-class
+  ه: ['h'],
+  ح: ['h', 'ḥ'],
+
+  // T-class
+  ت: ['t'],
+  ط: ['t', 'ṭ'],
+
+  // Velar/Uvular
+  ق: ['q', 'gh', 'ġ', 'ğ'],
+  غ: ['gh', 'ġ', 'ğ', 'q'],
+  خ: ['kh', 'x'],
+  ک: ['k'],
+  گ: ['g'],
+
+  // Coronal / Palatal
+  ش: ['sh', 'š'],
+  چ: ['ch', 'č'],
+  ژ: ['zh', 'ž'],
+  ج: ['j', 'dj'],
+
+  // Standard labials, liquids, nasals
+  ب: ['b'],
+  پ: ['p'],
+  ف: ['f'],
+  د: ['d'],
+  ر: ['r'],
+  ل: ['l'],
+  م: ['m'],
+  ن: ['n'],
+
+  // Semivowels
+  و: ['v', 'w'],
+  ی: ['y', 'j']
 };
 
 /**
- * Assess whether a character is a short vowel in Classical/Dari or Iranian romanization.
+ * Match and consume an allowed Roman consonant sequence for a given Persian consonant.
+ * Returns the number of characters consumed from romanization, or 0 if incompatible.
  */
-function isShortVowel(char: string): boolean {
-  return ['a', 'e', 'o', 'u', 'i'].includes(char);
+function matchCompatibleRomanConsonant(pChar: string, rStr: string, rIdx: number): number {
+  const allowed = PERSIAN_TO_ROMAN_CONSONANT_COMPATIBILITY[pChar];
+  if (!allowed) {
+    return 0;
+  }
+
+  // Check multi-character matches first (e.g. 'sh', 'kh', 'ch', 'zh', 'gh')
+  for (const token of allowed) {
+    if (token.length > 1 && rStr.startsWith(token, rIdx)) {
+      return token.length;
+    }
+  }
+
+  // Single-character matches
+  for (const token of allowed) {
+    if (token.length === 1 && rStr.startsWith(token, rIdx)) {
+      return 1;
+    }
+  }
+
+  return 0;
 }
 
 /**
@@ -164,62 +192,178 @@ export function alignAndTransduceWiktionary(params: {
         rIdx += 1;
         continue;
       }
+      return failAlignment(persianForm, observedRomanization, sourceProfile);
     }
 
-    // Case 2: Persian 'ع' (Ayn)
+    // Case 2: Word-initial Alif acting as vowel carrier
+    if (pIdx === 0 && pChar === 'ا') {
+      const nextPChar = pChars[1];
+
+      // Initial Alif + Ya (ای)
+      if (nextPChar === 'ی') {
+        if (rStr.startsWith('ī', rIdx) || rStr.startsWith('i', rIdx)) {
+          targetOutput += 'ī';
+          appliedRules.add(
+            sourceProfile === 'IRANIAN'
+              ? 'WIKT_IRANIAN_LONG_I_TO_IJMES_I_MACRON'
+              : 'WIKT_CLASSICAL_LONG_I'
+          );
+          pIdx += 2;
+          rIdx += 1;
+          continue;
+        }
+        if (sourceProfile === 'IRANIAN' && rStr.startsWith('ey', rIdx)) {
+          targetOutput += 'ay';
+          appliedRules.add('WIKT_IRANIAN_DIPHTHONG_EY_TO_AY');
+          pIdx += 2;
+          rIdx += 2;
+          continue;
+        }
+        if (sourceProfile === 'CLASSICAL_DARI' && rStr.startsWith('ay', rIdx)) {
+          targetOutput += 'ay';
+          appliedRules.add('WIKT_CLASSICAL_DIPHTHONG_AY');
+          pIdx += 2;
+          rIdx += 2;
+          continue;
+        }
+      }
+
+      // Initial Alif + Vav (او)
+      if (nextPChar === 'و') {
+        if (rStr.startsWith('ū', rIdx) || rStr.startsWith('u', rIdx)) {
+          targetOutput += 'ū';
+          appliedRules.add(
+            sourceProfile === 'IRANIAN'
+              ? 'WIKT_IRANIAN_LONG_U_TO_IJMES_U_MACRON'
+              : 'WIKT_CLASSICAL_LONG_U'
+          );
+          pIdx += 2;
+          rIdx += 1;
+          continue;
+        }
+        if (sourceProfile === 'IRANIAN' && rStr.startsWith('ow', rIdx)) {
+          targetOutput += 'aw';
+          appliedRules.add('WIKT_IRANIAN_DIPHTHONG_OW_TO_AW');
+          pIdx += 2;
+          rIdx += 2;
+          continue;
+        }
+        if (sourceProfile === 'CLASSICAL_DARI' && rStr.startsWith('aw', rIdx)) {
+          targetOutput += 'aw';
+          appliedRules.add('WIKT_CLASSICAL_DIPHTHONG_AW');
+          pIdx += 2;
+          rIdx += 2;
+          continue;
+        }
+      }
+
+      // Initial Alif with short vowel (a, e/i, o/u)
+      const romChar = rStr[rIdx];
+      if (sourceProfile === 'IRANIAN') {
+        if (romChar === 'a') {
+          targetOutput += 'a';
+          appliedRules.add('WIKT_IRANIAN_SHORT_A');
+          pIdx += 1;
+          rIdx += 1;
+          continue;
+        }
+        if (romChar === 'e') {
+          targetOutput += 'i';
+          appliedRules.add('WIKT_IRANIAN_SHORT_E_TO_IJMES_I');
+          pIdx += 1;
+          rIdx += 1;
+          continue;
+        }
+        if (romChar === 'o') {
+          targetOutput += 'u';
+          appliedRules.add('WIKT_IRANIAN_SHORT_O_TO_IJMES_U');
+          pIdx += 1;
+          rIdx += 1;
+          continue;
+        }
+        // Iranian i/u without ی/و are disallowed as short vowels
+        return failAlignment(persianForm, observedRomanization, sourceProfile);
+      }
+
+      if (sourceProfile === 'CLASSICAL_DARI') {
+        if (romChar === 'a') {
+          targetOutput += 'a';
+          appliedRules.add('WIKT_CLASSICAL_SHORT_A');
+          pIdx += 1;
+          rIdx += 1;
+          continue;
+        }
+        if (romChar === 'i') {
+          targetOutput += 'i';
+          appliedRules.add('WIKT_CLASSICAL_SHORT_I');
+          pIdx += 1;
+          rIdx += 1;
+          continue;
+        }
+        if (romChar === 'u') {
+          targetOutput += 'u';
+          appliedRules.add('WIKT_CLASSICAL_SHORT_U');
+          pIdx += 1;
+          rIdx += 1;
+          continue;
+        }
+        return failAlignment(persianForm, observedRomanization, sourceProfile);
+      }
+    }
+
+    // Case 3: Persian 'ع' (Ayn)
     if (pChar === 'ع') {
       targetOutput += 'ʿ';
       appliedRules.add('WIKT_SCRIPT_AYN_RECONSTRUCTION');
       pIdx += 1;
-      // In Iranian Romanization, 'ع' is often omitted or written as '
       if (rStr[rIdx] === "'" || rStr[rIdx] === '‘' || rStr[rIdx] === 'ʿ' || rStr[rIdx] === '’') {
         rIdx += 1;
       }
-      // Check for short vowel following ʿayn in romanization
-      if (rIdx < rStr.length && isShortVowel(rStr[rIdx])) {
+      // Check for short vowel following ʿayn
+      if (rIdx < rStr.length) {
         const nextPChar = pChars[pIdx];
         const currentVowel = rStr[rIdx];
-        if (
+        const isNotCarrier =
           !(nextPChar === 'ا' && (currentVowel === 'a' || currentVowel === 'â' || currentVowel === 'ā')) &&
           !(nextPChar === 'ی' && (currentVowel === 'i' || currentVowel === 'ī' || rStr.startsWith('ey', rIdx) || rStr.startsWith('ay', rIdx))) &&
-          !(nextPChar === 'و' && (currentVowel === 'u' || currentVowel === 'ū' || rStr.startsWith('ow', rIdx) || rStr.startsWith('aw', rIdx)))
-        ) {
+          !(nextPChar === 'و' && (currentVowel === 'u' || currentVowel === 'ū' || rStr.startsWith('ow', rIdx) || rStr.startsWith('aw', rIdx)));
+
+        if (isNotCarrier) {
           if (sourceProfile === 'IRANIAN') {
             if (currentVowel === 'o') {
               targetOutput += 'u';
               appliedRules.add('WIKT_IRANIAN_SHORT_O_TO_IJMES_U');
+              rIdx += 1;
             } else if (currentVowel === 'e') {
               targetOutput += 'i';
               appliedRules.add('WIKT_IRANIAN_SHORT_E_TO_IJMES_I');
+              rIdx += 1;
             } else if (currentVowel === 'a') {
               targetOutput += 'a';
               appliedRules.add('WIKT_IRANIAN_SHORT_A');
-            } else if (currentVowel === 'u') {
-              targetOutput += 'u';
-              appliedRules.add('WIKT_IRANIAN_SHORT_O_TO_IJMES_U');
-            } else if (currentVowel === 'i') {
-              targetOutput += 'i';
-              appliedRules.add('WIKT_IRANIAN_SHORT_E_TO_IJMES_I');
+              rIdx += 1;
             }
-          } else {
+          } else if (sourceProfile === 'CLASSICAL_DARI') {
             if (currentVowel === 'u') {
               targetOutput += 'u';
               appliedRules.add('WIKT_CLASSICAL_SHORT_U');
+              rIdx += 1;
             } else if (currentVowel === 'i') {
               targetOutput += 'i';
               appliedRules.add('WIKT_CLASSICAL_SHORT_I');
+              rIdx += 1;
             } else if (currentVowel === 'a') {
               targetOutput += 'a';
               appliedRules.add('WIKT_CLASSICAL_SHORT_A');
+              rIdx += 1;
             }
           }
-          rIdx += 1;
         }
       }
       continue;
     }
 
-    // Case 3: Persian Hamza letters (ء, أ, إ, ؤ, ئ)
+    // Case 4: Persian Hamza letters (ء, أ, إ, ؤ, ئ)
     if (['ء', 'أ', 'إ', 'ؤ', 'ئ'].includes(pChar)) {
       targetOutput += 'ʾ';
       appliedRules.add('WIKT_SCRIPT_HAMZA_RECONSTRUCTION');
@@ -227,47 +371,52 @@ export function alignAndTransduceWiktionary(params: {
       if (rStr[rIdx] === "'" || rStr[rIdx] === '’' || rStr[rIdx] === 'ʾ') {
         rIdx += 1;
       }
-      // Check for short vowel following hamza in romanization
-      if (rIdx < rStr.length && isShortVowel(rStr[rIdx])) {
+      // Check for short vowel following hamza
+      if (rIdx < rStr.length) {
         const nextPChar = pChars[pIdx];
         const currentVowel = rStr[rIdx];
-        if (
+        const isNotCarrier =
           !(nextPChar === 'ا' && (currentVowel === 'a' || currentVowel === 'â' || currentVowel === 'ā')) &&
           !(nextPChar === 'ی' && (currentVowel === 'i' || currentVowel === 'ī' || rStr.startsWith('ey', rIdx) || rStr.startsWith('ay', rIdx))) &&
-          !(nextPChar === 'و' && (currentVowel === 'u' || currentVowel === 'ū' || rStr.startsWith('ow', rIdx) || rStr.startsWith('aw', rIdx)))
-        ) {
+          !(nextPChar === 'و' && (currentVowel === 'u' || currentVowel === 'ū' || rStr.startsWith('ow', rIdx) || rStr.startsWith('aw', rIdx)));
+
+        if (isNotCarrier) {
           if (sourceProfile === 'IRANIAN') {
             if (currentVowel === 'o') {
               targetOutput += 'u';
               appliedRules.add('WIKT_IRANIAN_SHORT_O_TO_IJMES_U');
+              rIdx += 1;
             } else if (currentVowel === 'e') {
               targetOutput += 'i';
               appliedRules.add('WIKT_IRANIAN_SHORT_E_TO_IJMES_I');
+              rIdx += 1;
             } else if (currentVowel === 'a') {
               targetOutput += 'a';
               appliedRules.add('WIKT_IRANIAN_SHORT_A');
+              rIdx += 1;
             }
-          } else {
+          } else if (sourceProfile === 'CLASSICAL_DARI') {
             if (currentVowel === 'u') {
               targetOutput += 'u';
               appliedRules.add('WIKT_CLASSICAL_SHORT_U');
+              rIdx += 1;
             } else if (currentVowel === 'i') {
               targetOutput += 'i';
               appliedRules.add('WIKT_CLASSICAL_SHORT_I');
+              rIdx += 1;
             } else if (currentVowel === 'a') {
               targetOutput += 'a';
               appliedRules.add('WIKT_CLASSICAL_SHORT_A');
+              rIdx += 1;
             }
           }
-          rIdx += 1;
         }
       }
       continue;
     }
 
-    // Case 4: Long vowel letter 'ا' (Alif)
+    // Case 5: Long vowel letter 'ا' (Alif)
     if (pChar === 'ا') {
-      // Check if preceded by a consonant that already took the vowel
       const romChar = rStr[rIdx];
       if (romChar === 'â' || romChar === 'ā' || romChar === 'a') {
         targetOutput += 'ā';
@@ -280,25 +429,28 @@ export function alignAndTransduceWiktionary(params: {
         rIdx += 1;
         continue;
       }
-      // If initial alif acting as vowel carrier, consume alif and let next vowel be processed
-      if (pIdx === 0) {
-        pIdx += 1;
-        continue;
-      }
+      return failAlignment(persianForm, observedRomanization, sourceProfile);
     }
 
-    // Case 5: Persian 'و' (Vav as long vowel ū, diphthong aw, or consonant v/w)
+    // Case 6: Persian 'و' (Vav as long vowel ū, diphthong aw, or consonant v/w)
     if (pChar === 'و') {
-      // Check for diphthong ow / aw
-      if (rStr.startsWith('ow', rIdx) || rStr.startsWith('aw', rIdx)) {
+      // Diphthong check
+      if (sourceProfile === 'IRANIAN' && rStr.startsWith('ow', rIdx)) {
         targetOutput += 'aw';
         appliedRules.add('WIKT_IRANIAN_DIPHTHONG_OW_TO_AW');
         pIdx += 1;
         rIdx += 2;
         continue;
       }
+      if (sourceProfile === 'CLASSICAL_DARI' && rStr.startsWith('aw', rIdx)) {
+        targetOutput += 'aw';
+        appliedRules.add('WIKT_CLASSICAL_DIPHTHONG_AW');
+        pIdx += 1;
+        rIdx += 2;
+        continue;
+      }
 
-      // Check for long vowel u / ū
+      // Long vowel check
       const romChar = rStr[rIdx];
       if (romChar === 'ū' || (romChar === 'u' && sourceProfile === 'IRANIAN')) {
         targetOutput += 'ū';
@@ -313,7 +465,6 @@ export function alignAndTransduceWiktionary(params: {
       }
 
       if (romChar === 'u' && sourceProfile === 'CLASSICAL_DARI') {
-        // In Classical, short u does not have a vav letter; if vav exists, it's ū
         targetOutput += 'ū';
         appliedRules.add('WIKT_CLASSICAL_LONG_U');
         pIdx += 1;
@@ -321,7 +472,7 @@ export function alignAndTransduceWiktionary(params: {
         continue;
       }
 
-      // If followed by vowel in romanization, it's consonant v / w
+      // Consonant check (v / w)
       if (romChar === 'v' || romChar === 'w') {
         targetOutput += romChar;
         appliedRules.add('WIKT_SCRIPT_CONSONANT_RECONSTRUCTION');
@@ -329,20 +480,29 @@ export function alignAndTransduceWiktionary(params: {
         rIdx += 1;
         continue;
       }
+
+      return failAlignment(persianForm, observedRomanization, sourceProfile);
     }
 
-    // Case 6: Persian 'ی' (Ya as long vowel ī, diphthong ay, or consonant y)
+    // Case 7: Persian 'ی' (Ya as long vowel ī, diphthong ay, or consonant y)
     if (pChar === 'ی') {
-      // Check for diphthong ey / ay
-      if (rStr.startsWith('ey', rIdx) || rStr.startsWith('ay', rIdx)) {
+      // Diphthong check
+      if (sourceProfile === 'IRANIAN' && rStr.startsWith('ey', rIdx)) {
         targetOutput += 'ay';
         appliedRules.add('WIKT_IRANIAN_DIPHTHONG_EY_TO_AY');
         pIdx += 1;
         rIdx += 2;
         continue;
       }
+      if (sourceProfile === 'CLASSICAL_DARI' && rStr.startsWith('ay', rIdx)) {
+        targetOutput += 'ay';
+        appliedRules.add('WIKT_CLASSICAL_DIPHTHONG_AY');
+        pIdx += 1;
+        rIdx += 2;
+        continue;
+      }
 
-      // Check for long vowel i / ī
+      // Long vowel check
       const romChar = rStr[rIdx];
       if (romChar === 'ī' || (romChar === 'i' && sourceProfile === 'IRANIAN')) {
         targetOutput += 'ī';
@@ -364,6 +524,7 @@ export function alignAndTransduceWiktionary(params: {
         continue;
       }
 
+      // Consonant check (y / j)
       if (romChar === 'y' || romChar === 'j') {
         targetOutput += 'y';
         appliedRules.add('WIKT_SCRIPT_CONSONANT_RECONSTRUCTION');
@@ -371,74 +532,69 @@ export function alignAndTransduceWiktionary(params: {
         rIdx += 1;
         continue;
       }
+
+      return failAlignment(persianForm, observedRomanization, sourceProfile);
     }
 
-    // Case 7: Standard Persian Consonant
+    // Case 8: Standard Persian Consonant (with bidirectional compatibility check)
     const ijmesConsonant = PERSIAN_CONSONANT_MAPPINGS[pChar];
     if (ijmesConsonant) {
+      const consumedLen = matchCompatibleRomanConsonant(pChar, rStr, rIdx);
+      if (consumedLen === 0) {
+        // Incompatible Roman consonant for this Persian script letter
+        return failAlignment(persianForm, observedRomanization, sourceProfile);
+      }
+
       targetOutput += ijmesConsonant;
       appliedRules.add('WIKT_SCRIPT_CONSONANT_RECONSTRUCTION');
       pIdx += 1;
-
-      // Consume matching roman consonant chunk (e.g. 'sh', 'kh', 'ch', 'zh', 'gh', 'q', 's', 'z', etc.)
-      if (rStr.startsWith('sh', rIdx) || rStr.startsWith('kh', rIdx) || rStr.startsWith('ch', rIdx) || rStr.startsWith('zh', rIdx) || rStr.startsWith('gh', rIdx)) {
-        rIdx += 2;
-      } else if (rStr[rIdx] && (ROMAN_CONSONANT_MAP[rStr[rIdx]] || rStr[rIdx] === ijmesConsonant[0])) {
-        rIdx += 1;
-      }
+      rIdx += consumedLen;
 
       // Check for short vowel following this consonant in romanization
-      if (rIdx < rStr.length && isShortVowel(rStr[rIdx])) {
-        // Ensure this short vowel is NOT a long vowel carrier for the next Persian letter (e.g. 'i' for 'ی' or 'u' for 'و' or 'a' for 'ا')
+      if (rIdx < rStr.length) {
         const nextPChar = pChars[pIdx];
         const currentVowel = rStr[rIdx];
 
-        if (nextPChar === 'ا' && (currentVowel === 'a' || currentVowel === 'â' || currentVowel === 'ā')) {
-          // Will be consumed by Alif handler in next iteration
-          continue;
-        }
+        // Ensure this short vowel is NOT a carrier for the next Persian long vowel or diphthong letter
+        const isNotCarrier =
+          !(nextPChar === 'ا' && (currentVowel === 'a' || currentVowel === 'â' || currentVowel === 'ā')) &&
+          !(nextPChar === 'ی' && (currentVowel === 'i' || currentVowel === 'ī' || rStr.startsWith('ey', rIdx) || rStr.startsWith('ay', rIdx))) &&
+          !(nextPChar === 'و' && (currentVowel === 'u' || currentVowel === 'ū' || rStr.startsWith('ow', rIdx) || rStr.startsWith('aw', rIdx)));
 
-        if (nextPChar === 'ی' && (currentVowel === 'i' || currentVowel === 'ī' || rStr.startsWith('ey', rIdx) || rStr.startsWith('ay', rIdx))) {
-          // Will be consumed by Ya handler in next iteration
-          continue;
-        }
-
-        if (nextPChar === 'و' && (currentVowel === 'u' || currentVowel === 'ū' || rStr.startsWith('ow', rIdx) || rStr.startsWith('aw', rIdx))) {
-          // Will be consumed by Vav handler in next iteration
-          continue;
-        }
-
-        // Short vowel transduction
-        if (sourceProfile === 'IRANIAN') {
-          if (currentVowel === 'o') {
-            targetOutput += 'u';
-            appliedRules.add('WIKT_IRANIAN_SHORT_O_TO_IJMES_U');
-          } else if (currentVowel === 'e') {
-            targetOutput += 'i';
-            appliedRules.add('WIKT_IRANIAN_SHORT_E_TO_IJMES_I');
-          } else if (currentVowel === 'a') {
-            targetOutput += 'a';
-            appliedRules.add('WIKT_IRANIAN_SHORT_A');
-          } else if (currentVowel === 'u') {
-            targetOutput += 'u';
-            appliedRules.add('WIKT_IRANIAN_SHORT_O_TO_IJMES_U');
-          } else if (currentVowel === 'i') {
-            targetOutput += 'i';
-            appliedRules.add('WIKT_IRANIAN_SHORT_E_TO_IJMES_I');
-          }
-        } else if (sourceProfile === 'CLASSICAL_DARI') {
-          if (currentVowel === 'u') {
-            targetOutput += 'u';
-            appliedRules.add('WIKT_CLASSICAL_SHORT_U');
-          } else if (currentVowel === 'i') {
-            targetOutput += 'i';
-            appliedRules.add('WIKT_CLASSICAL_SHORT_I');
-          } else if (currentVowel === 'a') {
-            targetOutput += 'a';
-            appliedRules.add('WIKT_CLASSICAL_SHORT_A');
+        if (isNotCarrier) {
+          if (sourceProfile === 'IRANIAN') {
+            if (currentVowel === 'o') {
+              targetOutput += 'u';
+              appliedRules.add('WIKT_IRANIAN_SHORT_O_TO_IJMES_U');
+              rIdx += 1;
+            } else if (currentVowel === 'e') {
+              targetOutput += 'i';
+              appliedRules.add('WIKT_IRANIAN_SHORT_E_TO_IJMES_I');
+              rIdx += 1;
+            } else if (currentVowel === 'a') {
+              targetOutput += 'a';
+              appliedRules.add('WIKT_IRANIAN_SHORT_A');
+              rIdx += 1;
+            } else if (currentVowel === 'i' || currentVowel === 'u') {
+              // Iranian unanchored i / u are disallowed as short vowels
+              return failAlignment(persianForm, observedRomanization, sourceProfile);
+            }
+          } else if (sourceProfile === 'CLASSICAL_DARI') {
+            if (currentVowel === 'u') {
+              targetOutput += 'u';
+              appliedRules.add('WIKT_CLASSICAL_SHORT_U');
+              rIdx += 1;
+            } else if (currentVowel === 'i') {
+              targetOutput += 'i';
+              appliedRules.add('WIKT_CLASSICAL_SHORT_I');
+              rIdx += 1;
+            } else if (currentVowel === 'a') {
+              targetOutput += 'a';
+              appliedRules.add('WIKT_CLASSICAL_SHORT_A');
+              rIdx += 1;
+            }
           }
         }
-        rIdx += 1;
       }
       continue;
     }
@@ -457,6 +613,14 @@ export function alignAndTransduceWiktionary(params: {
     };
   }
 
+  return failAlignment(persianForm, observedRomanization, sourceProfile);
+}
+
+function failAlignment(
+  persianForm: string,
+  observedRomanization: string,
+  sourceProfile: WiktionaryPersianRomanizationProfile
+): WiktionaryAlignmentResult {
   return {
     success: false,
     targetHypothesis: null,
@@ -492,4 +656,3 @@ export function alignPersianScriptWithWiktionary(
     blockerKind: result.blockers.length > 0 ? result.blockers[0].kind : undefined
   };
 }
-

@@ -1,9 +1,9 @@
 /**
  * Source-cited rule registry for Wiktionary Persian source-scheme interpretation into IJMES (Phase 7B).
  *
- * References:
+ * Dual-Source Citations:
  *   - English Wiktionary: About Persian (https://en.wiktionary.org/wiki/Wiktionary:About_Persian)
- *   - Cambridge IJMES Transliteration Guide & Chart
+ *   - Cambridge IJMES Transliteration Guide & Chart (https://www.cambridge.org/core/journals/international-journal-of-middle-east-studies/information/instructions-contributors)
  */
 
 import type { WiktionaryPersianRuleDefinition } from './types';
@@ -26,6 +26,13 @@ export const WIKTIONARY_SCHEME_RULES: Readonly<Record<string, WiktionaryPersianR
       'Reconstructs scholarly consonant distinctions (ح/ḥ, ص/ṣ, ض/ż, ط/ṭ, ظ/ẓ, خ/kh, غ/gh, ش/sh, چ/ch, ژ/zh) directly from Persian script orthography, resolving Iranian phonological collapses.',
     sourceReferences: [
       {
+        authority: 'WIKTIONARY',
+        documentTitle: 'Wiktionary:About Persian — Consonants',
+        versionOrDate: 'Current (en.wiktionary.org)',
+        sectionOrTable: 'Transliteration: Consonants',
+        url: 'https://en.wiktionary.org/wiki/Wiktionary:About_Persian#Consonants'
+      },
+      {
         authority: 'IJMES',
         documentTitle: 'IJMES Transliteration Chart: Persian',
         versionOrDate: 'Current (Cambridge)',
@@ -46,6 +53,13 @@ export const WIKTIONARY_SCHEME_RULES: Readonly<Record<string, WiktionaryPersianR
     description:
       'Restores IJMES ʿayn symbol (ʿ) from the Persian letter ‘ayn (ع), resolving omitted or apostrophe representations in Iranian romanization.',
     sourceReferences: [
+      {
+        authority: 'WIKTIONARY',
+        documentTitle: 'Wiktionary:About Persian — Consonants',
+        versionOrDate: 'Current (en.wiktionary.org)',
+        sectionOrTable: 'ʿayn (ع)',
+        url: 'https://en.wiktionary.org/wiki/Wiktionary:About_Persian#Consonants'
+      },
       {
         authority: 'IJMES',
         documentTitle: 'IJMES Transliteration Chart: Persian',
@@ -68,6 +82,13 @@ export const WIKTIONARY_SCHEME_RULES: Readonly<Record<string, WiktionaryPersianR
       'Restores IJMES hamzah symbol (ʾ) from Persian script hamza letters.',
     sourceReferences: [
       {
+        authority: 'WIKTIONARY',
+        documentTitle: 'Wiktionary:About Persian — Consonants',
+        versionOrDate: 'Current (en.wiktionary.org)',
+        sectionOrTable: 'hamze (ء)',
+        url: 'https://en.wiktionary.org/wiki/Wiktionary:About_Persian#Consonants'
+      },
+      {
         authority: 'IJMES',
         documentTitle: 'IJMES Transliteration Chart: Persian',
         versionOrDate: 'Current (Cambridge)',
@@ -87,6 +108,13 @@ export const WIKTIONARY_SCHEME_RULES: Readonly<Record<string, WiktionaryPersianR
     interpretation: 'a',
     description: 'Maps Classical/Dari short vowel "a" to IJMES short "a".',
     sourceReferences: [
+      {
+        authority: 'WIKTIONARY',
+        documentTitle: 'Wiktionary:About Persian — Classical Persian Vowels',
+        versionOrDate: 'Current (en.wiktionary.org)',
+        sectionOrTable: 'Short Vowels: a',
+        url: 'https://en.wiktionary.org/wiki/Wiktionary:About_Persian#Vowels'
+      },
       {
         authority: 'IJMES',
         documentTitle: 'IJMES Transliteration Chart: Persian',
@@ -108,6 +136,13 @@ export const WIKTIONARY_SCHEME_RULES: Readonly<Record<string, WiktionaryPersianR
     description: 'Maps Classical/Dari short vowel "i" to IJMES short "i".',
     sourceReferences: [
       {
+        authority: 'WIKTIONARY',
+        documentTitle: 'Wiktionary:About Persian — Classical Persian Vowels',
+        versionOrDate: 'Current (en.wiktionary.org)',
+        sectionOrTable: 'Short Vowels: i',
+        url: 'https://en.wiktionary.org/wiki/Wiktionary:About_Persian#Vowels'
+      },
+      {
         authority: 'IJMES',
         documentTitle: 'IJMES Transliteration Chart: Persian',
         versionOrDate: 'Current (Cambridge)',
@@ -127,6 +162,13 @@ export const WIKTIONARY_SCHEME_RULES: Readonly<Record<string, WiktionaryPersianR
     interpretation: 'u',
     description: 'Maps Classical/Dari short vowel "u" to IJMES short "u".',
     sourceReferences: [
+      {
+        authority: 'WIKTIONARY',
+        documentTitle: 'Wiktionary:About Persian — Classical Persian Vowels',
+        versionOrDate: 'Current (en.wiktionary.org)',
+        sectionOrTable: 'Short Vowels: u',
+        url: 'https://en.wiktionary.org/wiki/Wiktionary:About_Persian#Vowels'
+      },
       {
         authority: 'IJMES',
         documentTitle: 'IJMES Transliteration Chart: Persian',
@@ -148,6 +190,13 @@ export const WIKTIONARY_SCHEME_RULES: Readonly<Record<string, WiktionaryPersianR
     description: 'Maps Classical/Dari long "ā" to IJMES long "ā".',
     sourceReferences: [
       {
+        authority: 'WIKTIONARY',
+        documentTitle: 'Wiktionary:About Persian — Classical Persian Vowels',
+        versionOrDate: 'Current (en.wiktionary.org)',
+        sectionOrTable: 'Long Vowels: ā',
+        url: 'https://en.wiktionary.org/wiki/Wiktionary:About_Persian#Vowels'
+      },
+      {
         authority: 'IJMES',
         documentTitle: 'IJMES Transliteration Chart: Persian',
         versionOrDate: 'Current (Cambridge)',
@@ -167,6 +216,13 @@ export const WIKTIONARY_SCHEME_RULES: Readonly<Record<string, WiktionaryPersianR
     interpretation: 'ī',
     description: 'Maps Classical/Dari long "ī" to IJMES long "ī".',
     sourceReferences: [
+      {
+        authority: 'WIKTIONARY',
+        documentTitle: 'Wiktionary:About Persian — Classical Persian Vowels',
+        versionOrDate: 'Current (en.wiktionary.org)',
+        sectionOrTable: 'Long Vowels: ī',
+        url: 'https://en.wiktionary.org/wiki/Wiktionary:About_Persian#Vowels'
+      },
       {
         authority: 'IJMES',
         documentTitle: 'IJMES Transliteration Chart: Persian',
@@ -188,10 +244,71 @@ export const WIKTIONARY_SCHEME_RULES: Readonly<Record<string, WiktionaryPersianR
     description: 'Maps Classical/Dari long "ū" to IJMES long "ū".',
     sourceReferences: [
       {
+        authority: 'WIKTIONARY',
+        documentTitle: 'Wiktionary:About Persian — Classical Persian Vowels',
+        versionOrDate: 'Current (en.wiktionary.org)',
+        sectionOrTable: 'Long Vowels: ū',
+        url: 'https://en.wiktionary.org/wiki/Wiktionary:About_Persian#Vowels'
+      },
+      {
         authority: 'IJMES',
         documentTitle: 'IJMES Transliteration Chart: Persian',
         versionOrDate: 'Current (Cambridge)',
         sectionOrTable: 'Long Vowels: vāv (ū)'
+      }
+    ]
+  },
+
+  WIKT_CLASSICAL_DIPHTHONG_AW: {
+    id: 'WIKT_CLASSICAL_DIPHTHONG_AW',
+    sourceProfile: 'CLASSICAL_DARI',
+    sourceScheme: 'LOCAL',
+    targetScheme: 'IJMES',
+    kind: 'SYMBOL_EQUIVALENCE',
+    phenomenon: 'Classical diphthong aw',
+    sourceSymbol: 'aw',
+    interpretation: 'aw',
+    description: 'Maps Classical/Dari diphthong "aw" aligned with Persian "و" to standard scholarly IJMES diphthong "aw".',
+    sourceReferences: [
+      {
+        authority: 'WIKTIONARY',
+        documentTitle: 'Wiktionary:About Persian — Classical Persian Diphthongs',
+        versionOrDate: 'Current (en.wiktionary.org)',
+        sectionOrTable: 'Diphthongs: aw',
+        url: 'https://en.wiktionary.org/wiki/Wiktionary:About_Persian#Diphthongs'
+      },
+      {
+        authority: 'IJMES',
+        documentTitle: 'IJMES Transliteration Chart: Persian',
+        versionOrDate: 'Current (Cambridge)',
+        sectionOrTable: 'Diphthongs: aw'
+      }
+    ]
+  },
+
+  WIKT_CLASSICAL_DIPHTHONG_AY: {
+    id: 'WIKT_CLASSICAL_DIPHTHONG_AY',
+    sourceProfile: 'CLASSICAL_DARI',
+    sourceScheme: 'LOCAL',
+    targetScheme: 'IJMES',
+    kind: 'SYMBOL_EQUIVALENCE',
+    phenomenon: 'Classical diphthong ay',
+    sourceSymbol: 'ay',
+    interpretation: 'ay',
+    description: 'Maps Classical/Dari diphthong "ay" aligned with Persian "ی" to standard scholarly IJMES diphthong "ay".',
+    sourceReferences: [
+      {
+        authority: 'WIKTIONARY',
+        documentTitle: 'Wiktionary:About Persian — Classical Persian Diphthongs',
+        versionOrDate: 'Current (en.wiktionary.org)',
+        sectionOrTable: 'Diphthongs: ay',
+        url: 'https://en.wiktionary.org/wiki/Wiktionary:About_Persian#Diphthongs'
+      },
+      {
+        authority: 'IJMES',
+        documentTitle: 'IJMES Transliteration Chart: Persian',
+        versionOrDate: 'Current (Cambridge)',
+        sectionOrTable: 'Diphthongs: ay'
       }
     ]
   },
@@ -207,6 +324,13 @@ export const WIKTIONARY_SCHEME_RULES: Readonly<Record<string, WiktionaryPersianR
     interpretation: 'a',
     description: 'Maps modern Iranian short "a" to IJMES scholarly short "a".',
     sourceReferences: [
+      {
+        authority: 'WIKTIONARY',
+        documentTitle: 'Wiktionary:About Persian — Iranian Persian Vowels',
+        versionOrDate: 'Current (en.wiktionary.org)',
+        sectionOrTable: 'Short Vowels: a',
+        url: 'https://en.wiktionary.org/wiki/Wiktionary:About_Persian#Vowels'
+      },
       {
         authority: 'IJMES',
         documentTitle: 'IJMES Transliteration Chart: Persian',
@@ -229,6 +353,13 @@ export const WIKTIONARY_SCHEME_RULES: Readonly<Record<string, WiktionaryPersianR
       'Maps modern Iranian phonological short "e" to standard Persian scholarly IJMES short "i" (kasrah).',
     sourceReferences: [
       {
+        authority: 'WIKTIONARY',
+        documentTitle: 'Wiktionary:About Persian — Iranian Persian Vowels',
+        versionOrDate: 'Current (en.wiktionary.org)',
+        sectionOrTable: 'Short Vowels: e',
+        url: 'https://en.wiktionary.org/wiki/Wiktionary:About_Persian#Vowels'
+      },
+      {
         authority: 'IJMES',
         documentTitle: 'IJMES Transliteration Chart: Persian',
         versionOrDate: 'Current (Cambridge)',
@@ -249,6 +380,13 @@ export const WIKTIONARY_SCHEME_RULES: Readonly<Record<string, WiktionaryPersianR
     description:
       'Maps modern Iranian phonological short "o" to standard Persian scholarly IJMES short "u" (ḍammah).',
     sourceReferences: [
+      {
+        authority: 'WIKTIONARY',
+        documentTitle: 'Wiktionary:About Persian — Iranian Persian Vowels',
+        versionOrDate: 'Current (en.wiktionary.org)',
+        sectionOrTable: 'Short Vowels: o',
+        url: 'https://en.wiktionary.org/wiki/Wiktionary:About_Persian#Vowels'
+      },
       {
         authority: 'IJMES',
         documentTitle: 'IJMES Transliteration Chart: Persian',
@@ -271,6 +409,13 @@ export const WIKTIONARY_SCHEME_RULES: Readonly<Record<string, WiktionaryPersianR
       'Maps modern Iranian circumflex long vowel "â" to standard scholarly IJMES long "ā" (alif).',
     sourceReferences: [
       {
+        authority: 'WIKTIONARY',
+        documentTitle: 'Wiktionary:About Persian — Iranian Persian Vowels',
+        versionOrDate: 'Current (en.wiktionary.org)',
+        sectionOrTable: 'Long Vowels: â',
+        url: 'https://en.wiktionary.org/wiki/Wiktionary:About_Persian#Vowels'
+      },
+      {
         authority: 'IJMES',
         documentTitle: 'IJMES Transliteration Chart: Persian',
         versionOrDate: 'Current (Cambridge)',
@@ -291,6 +436,13 @@ export const WIKTIONARY_SCHEME_RULES: Readonly<Record<string, WiktionaryPersianR
     description:
       'Maps modern Iranian long vowel "i" aligned with Persian script letter "ی" to standard scholarly IJMES long "ī".',
     sourceReferences: [
+      {
+        authority: 'WIKTIONARY',
+        documentTitle: 'Wiktionary:About Persian — Iranian Persian Vowels',
+        versionOrDate: 'Current (en.wiktionary.org)',
+        sectionOrTable: 'Long Vowels: i',
+        url: 'https://en.wiktionary.org/wiki/Wiktionary:About_Persian#Vowels'
+      },
       {
         authority: 'IJMES',
         documentTitle: 'IJMES Transliteration Chart: Persian',
@@ -313,6 +465,13 @@ export const WIKTIONARY_SCHEME_RULES: Readonly<Record<string, WiktionaryPersianR
       'Maps modern Iranian long vowel "u" aligned with Persian script letter "و" to standard scholarly IJMES long "ū".',
     sourceReferences: [
       {
+        authority: 'WIKTIONARY',
+        documentTitle: 'Wiktionary:About Persian — Iranian Persian Vowels',
+        versionOrDate: 'Current (en.wiktionary.org)',
+        sectionOrTable: 'Long Vowels: u',
+        url: 'https://en.wiktionary.org/wiki/Wiktionary:About_Persian#Vowels'
+      },
+      {
         authority: 'IJMES',
         documentTitle: 'IJMES Transliteration Chart: Persian',
         versionOrDate: 'Current (Cambridge)',
@@ -334,6 +493,13 @@ export const WIKTIONARY_SCHEME_RULES: Readonly<Record<string, WiktionaryPersianR
       'Maps modern Iranian diphthong "ow" aligned with Persian "و" to standard scholarly IJMES diphthong "aw".',
     sourceReferences: [
       {
+        authority: 'WIKTIONARY',
+        documentTitle: 'Wiktionary:About Persian — Iranian Persian Diphthongs',
+        versionOrDate: 'Current (en.wiktionary.org)',
+        sectionOrTable: 'Diphthongs: ow',
+        url: 'https://en.wiktionary.org/wiki/Wiktionary:About_Persian#Diphthongs'
+      },
+      {
         authority: 'IJMES',
         documentTitle: 'IJMES Transliteration Chart: Persian',
         versionOrDate: 'Current (Cambridge)',
@@ -354,6 +520,13 @@ export const WIKTIONARY_SCHEME_RULES: Readonly<Record<string, WiktionaryPersianR
     description:
       'Maps modern Iranian diphthong "ey" aligned with Persian "ی" to standard scholarly IJMES diphthong "ay".',
     sourceReferences: [
+      {
+        authority: 'WIKTIONARY',
+        documentTitle: 'Wiktionary:About Persian — Iranian Persian Diphthongs',
+        versionOrDate: 'Current (en.wiktionary.org)',
+        sectionOrTable: 'Diphthongs: ey',
+        url: 'https://en.wiktionary.org/wiki/Wiktionary:About_Persian#Diphthongs'
+      },
       {
         authority: 'IJMES',
         documentTitle: 'IJMES Transliteration Chart: Persian',

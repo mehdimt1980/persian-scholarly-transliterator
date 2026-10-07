@@ -2,16 +2,18 @@
  * Candidate-level scheme evidence aggregator for Kaikki / Wiktionary candidates (Phase 7B).
  *
  * Core scholarly invariants:
- *   1. Exact evidence set closure: Analysis MUST match candidate.evidenceIds exactly.
+ *   1. Exact evidence set closure: Analysis MUST match candidate.evidenceIds exactly (no supersets, no subsets).
  *   2. Direct lexical candidate validation: All evidence must originate from KAIKKI_ENWIKTIONARY_FA.
- *   3. Pre-adjudication invariant: candidate.proposedCanonical MUST remain null.
- *   4. Zero automatic authority: Produces consensus analysis without mutating candidate.
- *   5. Conservative consensus: UNANIMOUS_DETERMINISTIC requires all supporting evidence to converge.
+ *   3. Persian identity validation: All evidence and metadata must match candidate.normalizedForm.
+ *   4. Pre-adjudication invariant: candidate.proposedCanonical MUST remain null.
+ *   5. Zero automatic authority: Produces consensus analysis without mutating candidate.
+ *   6. Conservative consensus: UNANIMOUS_DETERMINISTIC requires all supporting evidence to converge.
  */
 
+import { normalizePersian } from '../../../normalization';
 import type { LexicalCandidate, LexicalEvidence } from '../../types';
 import { KAIKKI_SOURCE_ID } from '../extractor';
-import type { KaikkiEvidenceMetadata } from '../types';
+import type { KaikkiEvidenceMetadata, KaikkiExtractedObservation } from '../types';
 import { generateKaikkiCandidateAnalysisId } from './identity';
 import { interpretKaikkiEvidence, type WiktionaryPersianSchemeInterpreter } from './interpreter';
 import { WIKT_AGGREGATOR_VERSION } from './rules';
@@ -30,28 +32,38 @@ export interface KaikkiCandidateAnalysisOptions {
 }
 
 export type KaikkiEvidenceSource =
-  | { evidence: LexicalEvidence[]; metadata: KaikkiEvidenceMetadata[] }
   | Array<{ evidence: LexicalEvidence; metadata: KaikkiEvidenceMetadata }>
+  | KaikkiExtractedObservation[]
+  | { evidence: LexicalEvidence[]; metadata: KaikkiEvidenceMetadata[] }
   | ((evidenceId: string) => { evidence: LexicalEvidence; metadata: KaikkiEvidenceMetadata } | undefined);
+
+interface NormalizedSourceResult {
+  lookup: (evidenceId: string) => { evidence: LexicalEvidence; metadata: KaikkiEvidenceMetadata } | undefined;
+  suppliedIds?: Set<string>;
+}
 
 function normalizeKaikkiEvidenceSource(
   source: KaikkiEvidenceSource
-): (evidenceId: string) => { evidence: LexicalEvidence; metadata: KaikkiEvidenceMetadata } | undefined {
+): NormalizedSourceResult {
   if (typeof source === 'function') {
-    return source;
+    return { lookup: source };
   }
 
   if (Array.isArray(source)) {
     const map = new Map<string, { evidence: LexicalEvidence; metadata: KaikkiEvidenceMetadata }>();
+    const suppliedIds = new Set<string>();
+
     for (const item of source) {
-      if (map.has(item.evidence.id)) {
+      const evi = item.evidence;
+      if (map.has(evi.id)) {
         throw new Error(
-          `Provided evidence array contains duplicate evidence ID "${item.evidence.id}". Duplicate evidence inputs are prohibited.`
+          `Provided evidence array contains duplicate evidence ID "${evi.id}". Duplicate evidence inputs are prohibited.`
         );
       }
-      map.set(item.evidence.id, item);
+      map.set(evi.id, item);
+      suppliedIds.add(evi.id);
     }
-    return (id: string) => map.get(id);
+    return { lookup: (id: string) => map.get(id), suppliedIds };
   }
 
   if (source && Array.isArray(source.evidence) && Array.isArray(source.metadata)) {
@@ -61,6 +73,8 @@ function normalizeKaikkiEvidenceSource(
       );
     }
     const map = new Map<string, { evidence: LexicalEvidence; metadata: KaikkiEvidenceMetadata }>();
+    const suppliedIds = new Set<string>();
+
     for (let i = 0; i < source.evidence.length; i += 1) {
       const evi = source.evidence[i];
       const meta = source.metadata[i];
@@ -68,8 +82,9 @@ function normalizeKaikkiEvidenceSource(
         throw new Error(`Duplicate evidence ID "${evi.id}" in evidence array.`);
       }
       map.set(evi.id, { evidence: evi, metadata: meta });
+      suppliedIds.add(evi.id);
     }
-    return (id: string) => map.get(id);
+    return { lookup: (id: string) => map.get(id), suppliedIds };
   }
 
   throw new Error('Invalid evidence source provided to analyzeKaikkiCandidateSchemeEvidence.');
@@ -89,26 +104,52 @@ export function analyzeKaikkiCandidateSchemeEvidence(
     );
   }
 
-  const lookupFn = normalizeKaikkiEvidenceSource(evidenceSource);
+  const { lookup, suppliedIds } = normalizeKaikkiEvidenceSource(evidenceSource);
   const aggregatorVersion = options?.aggregatorVersion ?? WIKT_AGGREGATOR_VERSION;
+
+  // Enforce true exact evidence closure: reject supersets, subsets, and extraneous items
+  if (suppliedIds) {
+    const candidateIdSet = new Set(candidate.evidenceIds);
+    if (suppliedIds.size !== candidate.evidenceIds.length) {
+      throw new Error(
+        `Supplied evidence source contains ${suppliedIds.size} records, but candidate "${candidate.id}" requires exactly ${candidate.evidenceIds.length} records. Exact evidence closure violation.`
+      );
+    }
+    for (const sId of suppliedIds) {
+      if (!candidateIdSet.has(sId)) {
+        throw new Error(
+          `Supplied evidence "${sId}" is not referenced by candidate "${candidate.id}". Exact evidence closure violation.`
+        );
+      }
+    }
+  }
 
   const interpretations: KaikkiSchemeInterpretation[] = [];
   const blockers: KaikkiSchemeInterpretationBlocker[] = [];
   const appliedRulesSet = new Set<string>();
 
-  // Validate exact evidence closure
+  // Validate exact evidence closure and Persian identity
   for (const evidenceId of candidate.evidenceIds) {
-    const item = lookupFn(evidenceId);
+    const item = lookup(evidenceId);
     if (!item) {
       throw new Error(
         `Candidate "${candidate.id}" references evidence "${evidenceId}", which was not found in the supplied evidence source.`
       );
     }
 
-    const sourceId = item.evidence.provenance?.sourceId ?? (item.evidence as unknown as { sourceId?: string }).sourceId;
+    // Source provenance validation
+    const sourceId = item.evidence.provenance?.sourceId;
     if (sourceId !== KAIKKI_SOURCE_ID) {
       throw new Error(
         `Evidence "${evidenceId}" has sourceId "${sourceId}". Kaikki candidate analysis strictly requires sourceId === "${KAIKKI_SOURCE_ID}".`
+      );
+    }
+
+    // Persian normalized identity validation
+    const normPersian = normalizePersian(item.evidence.persianForm).normalizedInput;
+    if (normPersian !== candidate.normalizedForm || item.metadata.normalizedForm !== candidate.normalizedForm) {
+      throw new Error(
+        `Evidence "${evidenceId}" normalized form ("${normPersian}") does not match candidate "${candidate.id}" normalized form ("${candidate.normalizedForm}").`
       );
     }
 
@@ -187,37 +228,10 @@ export const aggregateKaikkiCandidateHypotheses = analyzeKaikkiCandidateSchemeEv
 export class KaikkiCandidateSchemeAggregator {
   public analyzeCandidate(
     candidate: LexicalCandidate,
-    evidenceSource: KaikkiEvidenceSource | LexicalEvidence[],
+    evidenceSource: KaikkiEvidenceSource,
     _interpreter?: WiktionaryPersianSchemeInterpreter,
     options?: KaikkiCandidateAnalysisOptions
   ): KaikkiCandidateSchemeAnalysis {
-    let normalizedSource: KaikkiEvidenceSource;
-
-    if (Array.isArray(evidenceSource)) {
-      if (evidenceSource.length > 0 && 'persianForm' in evidenceSource[0]) {
-        // Array of LexicalEvidence
-        const items = (evidenceSource as LexicalEvidence[]).map((ev) => ({
-          evidence: ev,
-          metadata:
-            (ev as unknown as { rawMetadata?: KaikkiEvidenceMetadata }).rawMetadata ?? {
-              rawSourceWord: ev.persianForm,
-              normalizedForm: ev.persianForm,
-              lemmaStatus: 'LEMMA' as const,
-              ipaObservations: [],
-              varietyTags: [],
-              sourceSenseIds: [],
-              glosses: []
-            }
-        }));
-        normalizedSource = items;
-      } else {
-        normalizedSource = evidenceSource as KaikkiEvidenceSource;
-      }
-    } else {
-      normalizedSource = evidenceSource;
-    }
-
-    return aggregateKaikkiCandidateHypotheses(candidate, normalizedSource, options);
+    return analyzeKaikkiCandidateSchemeEvidence(candidate, evidenceSource, options);
   }
 }
-

@@ -13,7 +13,11 @@ export function computeMetadataFingerprint(metadata: KaikkiEvidenceMetadata): st
   const hash = crypto.createHash('sha256');
   hash.update(metadata.rawSourceWord ?? '');
   hash.update('\0');
+  hash.update(metadata.normalizedForm ?? '');
+  hash.update('\0');
   hash.update(metadata.pos ?? '');
+  hash.update('\0');
+  hash.update(String(metadata.sourceFormIndex ?? ''));
   hash.update('\0');
   hash.update(String(metadata.etymologyNumber ?? ''));
   hash.update('\0');
@@ -22,7 +26,7 @@ export function computeMetadataFingerprint(metadata: KaikkiEvidenceMetadata): st
   hash.update(metadata.lemmaStatus ?? '');
   hash.update('\0');
 
-  const tags = [...(metadata.romanizationTags ?? []), ...(metadata.varietyTags ?? [])].sort();
+  const tags = [...(metadata.romanizationTags ?? [])].map((t) => t.trim().toLowerCase()).sort();
   for (const t of tags) {
     hash.update(t);
     hash.update('\0');

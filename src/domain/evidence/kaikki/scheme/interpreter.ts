@@ -10,9 +10,10 @@
  *   6. Zero circularity: never queries runtime engine or authoritative lexicon.
  */
 
+import { normalizePersian } from '../../../normalization';
 import type { LexicalEvidence } from '../../types';
 import { KAIKKI_SOURCE_ID } from '../extractor';
-import type { KaikkiEvidenceMetadata } from '../types';
+import type { KaikkiEvidenceMetadata, KaikkiExtractedObservation } from '../types';
 import { alignAndTransduceWiktionary } from './aligner';
 import {
   computeMetadataFingerprint,
@@ -46,10 +47,60 @@ export function interpretKaikkiEvidence(
   const interpreterVersion = options?.interpreterVersion ?? WIKT_INTERPRETER_VERSION;
   const ruleSetVersion = options?.ruleSetVersion ?? WIKT_INTERPRETATION_RULESET_VERSION;
   const candidateId = options?.candidateId ?? null;
+  const rawObserved = evidence.observedRomanization ?? '';
+
+  // Check intrinsic metadata binding
+  const normalizedPersian = normalizePersian(evidence.persianForm).normalizedInput;
+  const isValidMetadata =
+    metadata &&
+    metadata.rawSourceWord === evidence.persianForm &&
+    metadata.normalizedForm === normalizedPersian &&
+    (!evidence.provenance?.sourceId || evidence.provenance.sourceId === KAIKKI_SOURCE_ID) &&
+    (!evidence.sourceField ||
+      !evidence.sourceField.startsWith('forms[') ||
+      metadata.sourceFormIndex === undefined ||
+      evidence.sourceField === `forms[${metadata.sourceFormIndex}]`);
+
+  if (!isValidMetadata) {
+    const invalidId = generateKaikkiInterpretationId({
+      evidenceId: evidence.id,
+      sourceProfile: 'UNCLASSIFIED',
+      sourceMetadataFingerprint: 'insufficient-meta',
+      targetScheme: 'IJMES',
+      interpreterVersion,
+      ruleSetVersion,
+      persianForm: evidence.persianForm,
+      observedRomanization: rawObserved
+    });
+
+    return {
+      id: invalidId,
+      candidateId,
+      evidenceId: evidence.id,
+      sourceProfile: 'UNCLASSIFIED',
+      sourceMetadataFingerprint: 'insufficient-meta',
+      sourceTags: [],
+      sourceScheme: 'LOCAL',
+      targetScheme: 'IJMES',
+      rawObservedRomanization: rawObserved,
+      comparisonSourceForm: rawObserved.normalize('NFC').toLowerCase(),
+      targetHypothesis: null,
+      status: 'CONTEXT_REQUIRED',
+      appliedRuleIds: [],
+      blockers: [
+        {
+          kind: 'INSUFFICIENT_SOURCE_METADATA',
+          reason: 'Kaikki metadata is missing, incomplete, or does not match the evidence observation.'
+        }
+      ],
+      interpreterVersion,
+      ruleSetVersion,
+      analyzedAt: options?.analyzedAt
+    };
+  }
 
   const sourceProfile = classifyWiktionaryProfile(metadata);
   const metadataFingerprint = computeMetadataFingerprint(metadata);
-  const rawObserved = evidence.observedRomanization ?? '';
 
   const id = generateKaikkiInterpretationId({
     evidenceId: evidence.id,
@@ -62,7 +113,7 @@ export function interpretKaikkiEvidence(
     observedRomanization: rawObserved
   });
 
-  const sourceTags = metadata.romanizationTags ?? metadata.varietyTags ?? [];
+  const sourceTags = metadata.romanizationTags ?? [];
 
   // Check 1: Missing romanization
   if (!evidence.observedRomanization || evidence.observedRomanization.trim() === '') {
@@ -175,21 +226,18 @@ export function interpretKaikkiEvidence(
 
 export class WiktionaryPersianSchemeInterpreter {
   public interpretEvidence(
-    evidence: LexicalEvidence,
-    metadata?: KaikkiEvidenceMetadata,
+    evidenceOrObservation: LexicalEvidence | KaikkiExtractedObservation,
+    metadataOrOptions?: KaikkiEvidenceMetadata | KaikkiInterpretationOptions,
     options?: KaikkiInterpretationOptions
   ): KaikkiSchemeInterpretation {
-    const rawMeta = (evidence as unknown as { rawMetadata?: KaikkiEvidenceMetadata }).rawMetadata;
-    const resolvedMeta: KaikkiEvidenceMetadata = metadata ?? rawMeta ?? {
-      rawSourceWord: evidence.persianForm,
-      normalizedForm: evidence.persianForm,
-      lemmaStatus: 'LEMMA' as const,
-      ipaObservations: [],
-      varietyTags: [],
-      sourceSenseIds: [],
-      glosses: []
-    };
-    return interpretKaikkiEvidence(evidence, resolvedMeta, options);
+    if ('evidence' in evidenceOrObservation && 'metadata' in evidenceOrObservation) {
+      const obs = evidenceOrObservation as KaikkiExtractedObservation;
+      const opts = (metadataOrOptions as KaikkiInterpretationOptions) ?? options;
+      return interpretKaikkiEvidence(obs.evidence, obs.metadata, opts);
+    }
+
+    const evidence = evidenceOrObservation as LexicalEvidence;
+    const metadata = metadataOrOptions as KaikkiEvidenceMetadata;
+    return interpretKaikkiEvidence(evidence, metadata, options);
   }
 }
-

@@ -32,11 +32,7 @@ const IRANIAN_TAGS = new Set([
 export function classifyWiktionaryProfile(
   metadata: Partial<KaikkiEvidenceMetadata>
 ): WiktionaryPersianRomanizationProfile {
-  // Check specific romanization tags first, then fall back to variety tags if empty
-  const tagsToCheck =
-    metadata.romanizationTags && metadata.romanizationTags.length > 0
-      ? metadata.romanizationTags
-      : metadata.varietyTags;
+  const tagsToCheck = metadata.romanizationTags;
 
   if (!tagsToCheck || tagsToCheck.length === 0) {
     return 'UNCLASSIFIED';

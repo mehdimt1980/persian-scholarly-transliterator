@@ -18,7 +18,7 @@ import {
   computeKaikkiInterpretationReport,
   formatKaikkiInterpretationSummary
 } from './statistics';
-import type { KaikkiParseOptions } from '../types';
+import type { KaikkiParseOptions, KaikkiExtractedObservation } from '../types';
 import type { KaikkiCandidateSchemeAnalysis, CandidateLexiconEvaluation } from './types';
 
 export interface InterpretationCliArguments {
@@ -121,9 +121,15 @@ export async function runInterpretationCli(rawArgs: string[] = process.argv.slic
 
   const candidateAnalyses: KaikkiCandidateSchemeAnalysis[] = [];
   const candidateEvaluations: CandidateLexiconEvaluation[] = [];
+  const observationMap = new Map(observations.map((o) => [o.evidence.id, o]));
 
   for (const candidate of candidates) {
-    const analysis = aggregator.analyzeCandidate(candidate, observations, interpreter);
+    const candidateObservations: KaikkiExtractedObservation[] = [];
+    for (const eId of candidate.evidenceIds) {
+      const obs = observationMap.get(eId);
+      if (obs) candidateObservations.push(obs);
+    }
+    const analysis = aggregator.analyzeCandidate(candidate, candidateObservations, interpreter);
     candidateAnalyses.push(analysis);
     const evaluation = evaluateCandidateAgainstReviewedLexicon(analysis);
     candidateEvaluations.push(evaluation);
