@@ -1,6 +1,6 @@
 {
   "experimentVersion": "1.0.0",
-  "executedAt": "2026-10-07T17:09:36.178Z",
+  "executedAt": "2026-10-07T17:22:11.646Z",
   "sourceManifest": {
     "sourceEdition": "enwiktionary",
     "language": "Persian (fa)",
@@ -8,7 +8,13 @@
     "wiktionaryDumpDate": "2026-09-02",
     "kaikkiExtractionDate": "2026-10-03",
     "wiktextractVersion": "wiktextract 1.99.x",
-    "downloadTimestamp": "2026-10-07T17:09:31.232Z",
+    "downloadTimestamp": "2026-10-07T17:22:07.396Z",
+    "provenanceStatus": {
+      "sourceUrl": "EXPLICITLY_SUPPLIED",
+      "wiktionaryDumpDate": "EXPLICITLY_SUPPLIED",
+      "kaikkiExtractionDate": "EXPLICITLY_SUPPLIED",
+      "wiktextractVersion": "EXPLICITLY_SUPPLIED"
+    },
     "inputFileBytes": 93250080,
     "inputSha256": "f1647707c1bcbb7b18d355f7481ac4c656fa1ff8d91d93a0dbc6bb2e808d06c2",
     "inputFileName": "kaikki.org-dictionary-Persian.jsonl"
@@ -17,31 +23,31 @@
     {
       "stageName": "STAGE_1K",
       "rowsProcessed": 1000,
-      "wallClockDurationMs": 289,
-      "rowsPerSecond": 3460.21,
-      "startRssMb": 93.35,
-      "peakRssMb": 99.86,
-      "endRssMb": 99.86,
+      "wallClockDurationMs": 370,
+      "rowsPerSecond": 2702.7,
+      "startRssMb": 95.11,
+      "peakRssMb": 109.66,
+      "endRssMb": 109.66,
       "eligibleEntriesCount": 0
     },
     {
       "stageName": "STAGE_10K",
       "rowsProcessed": 10000,
-      "wallClockDurationMs": 2120,
-      "rowsPerSecond": 4716.98,
-      "startRssMb": 124.2,
-      "peakRssMb": 163.25,
-      "endRssMb": 163.26,
+      "wallClockDurationMs": 3272,
+      "rowsPerSecond": 3056.23,
+      "startRssMb": 121.6,
+      "peakRssMb": 166.52,
+      "endRssMb": 166.52,
       "eligibleEntriesCount": 0
     },
     {
       "stageName": "FULL_DATASET",
       "rowsProcessed": 20288,
-      "wallClockDurationMs": 3840,
-      "rowsPerSecond": 5283.33,
-      "startRssMb": 173.46,
-      "peakRssMb": 202.65,
-      "endRssMb": 202.65,
+      "wallClockDurationMs": 4168,
+      "rowsPerSecond": 4867.56,
+      "startRssMb": 187.78,
+      "peakRssMb": 264.14,
+      "endRssMb": 264.14,
       "eligibleEntriesCount": 0
     }
   ],
@@ -55,9 +61,14 @@
     "lemmaRecords": 16511,
     "nonLemmaRecords": 3440,
     "unknownLemmaStatusRecords": 337,
-    "recordsWithRomanization": 20288,
-    "recordsWithoutRomanization": 0,
-    "romanizationObservationCount": 26998,
+    "recordsWithRomanization": 19751,
+    "recordsWithoutRomanization": 537,
+    "totalExtractedEvidenceObservations": 26998,
+    "romanizedEvidenceObservations": 26461,
+    "unromanizedEvidenceObservations": 537,
+    "uniqueEvidenceObservationsAfterDeduplication": 26962,
+    "duplicateEvidenceObservationsRemoved": 36,
+    "totalInterpretationAttempts": 26962,
     "recordsWithIpa": 15011,
     "recordsWithPos": 20288,
     "properNameRecords": 1957,
@@ -116,11 +127,11 @@
   },
   "confidenceTiers": {
     "crossProfileConsensus": 0,
-    "crossProfilePercentage": 0,
+    "crossProfilePercentage": null,
     "multiObservationConsensus": 0,
-    "multiObservationPercentage": 0,
+    "multiObservationPercentage": null,
     "singleObservationDeterministic": 0,
-    "singleObservationPercentage": 0
+    "singleObservationPercentage": null
   },
   "posDistribution": [
     {
@@ -286,26 +297,29 @@
     "novelEligibleCount": 0,
     "exactCanonicalMatches": 0,
     "canonicalDivergences": 0,
-    "divergenceRate": 0,
+    "divergenceRate": null,
     "divergenceSamples": []
   },
   "duplicateEvidence": {
     "candidatesWith1Obs": 11125,
     "candidatesWith2Obs": 5124,
     "candidatesWith3PlusObs": 1349,
-    "literalDuplicateObservationsCount": 1011
+    "literalDuplicateObservationsCount": 7,
+    "sameRomanizationAcrossDistinctRecordsCount": 2244,
+    "sameNormalizedFormWithMultipleObservationsCount": 6473,
+    "evidenceReductionIfDuplicatesCollapsed": 7
   },
   "experimentalPacks": {
     "fullPackPath": "D:\\persian-scholarly-transliterator\\artifacts\\phase7d\\kaikki-fallback-full.json",
     "fullPackBytes": 443,
     "fullPackGzipBytes": 266,
     "fullPackEntryCount": 0,
-    "fullPackBytesPerEntry": 0,
+    "fullPackBytesPerEntry": null,
     "novelPackPath": "D:\\persian-scholarly-transliterator\\artifacts\\phase7d\\kaikki-fallback-novel-only.json",
     "novelPackBytes": 443,
     "novelPackGzipBytes": 266,
     "novelPackEntryCount": 0,
-    "novelPackBytesPerEntry": 0,
+    "novelPackBytesPerEntry": null,
     "semanticPackSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
   },
   "corpusEvaluations": [
@@ -363,611 +377,586 @@
     "blockedSamplesByKind": {
       "UNCLASSIFIED_WIKTIONARY_PROFILE": [
         {
-          "normalizedForm": "כלב",
+          "normalizedForm": "کرامت",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "kalb"
+            "karāmat",
+            "karâmat"
           ]
         },
         {
-          "normalizedForm": "اب",
+          "normalizedForm": "بامداد",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "ab"
+            "bâmdâd",
+            "bâmdâd"
           ]
         },
         {
-          "normalizedForm": "آیا",
+          "normalizedForm": "بعث‌گرا",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "âyâ"
+            "ba's-garâ"
           ]
         },
         {
-          "normalizedForm": "هل",
+          "normalizedForm": "عقب‌افتاده",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "hul",
-            "hol",
-            "hel",
-            "hil",
-            "hel"
+            "aqab-aftāda",
+            "aġab-oftâde",
+            "aqab-aftāda",
+            "aġab-oftâde"
           ]
         },
         {
-          "normalizedForm": "هل",
+          "normalizedForm": "ماوا",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "hul",
-            "hol",
-            "hel",
-            "hil",
-            "hel"
+            "mâvâ"
           ]
         },
         {
-          "normalizedForm": "هل",
+          "normalizedForm": "منیژه",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "hul",
-            "hol",
-            "hel",
-            "hil",
-            "hel"
+            "manīža",
+            "maniže"
           ]
         },
         {
-          "normalizedForm": "حلال",
+          "normalizedForm": "خدا",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "halāl",
-            "halâl",
-            "hallâl"
+            "xudā",
+            "xodâ"
           ]
         },
         {
-          "normalizedForm": "حلال",
+          "normalizedForm": "کش",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "halāl",
-            "halâl",
-            "hallâl"
+            "kaš",
+            "kaš",
+            "kaš",
+            "kuš",
+            "koš"
           ]
         },
         {
-          "normalizedForm": "حلال",
+          "normalizedForm": "بعد",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "halāl",
-            "halâl",
-            "hallâl"
+            "ba'd",
+            "ba'd",
+            "bu'd",
+            "bo'd"
           ]
         },
         {
-          "normalizedForm": "جهاد",
+          "normalizedForm": "جمهوری عربی مصر",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "jihād",
-            "jehâd"
+            "jomhuri-ye 'arabi-ye mesr"
           ]
         },
         {
-          "normalizedForm": "جهاد",
+          "normalizedForm": "املا",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "jihād",
-            "jehâd"
+            "imlā",
+            "emlâ"
           ]
         },
         {
-          "normalizedForm": "حماس",
+          "normalizedForm": "یهودیه",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "hamās",
-            "hamâs"
+            "yahūdiya",
+            "yahudiye"
           ]
         },
         {
-          "normalizedForm": "حماس",
+          "normalizedForm": "ترجیح دادن",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "hamās",
-            "hamâs"
+            "tarjih dâdan"
           ]
         },
         {
-          "normalizedForm": "فاس",
+          "normalizedForm": "روحیه",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "fās",
-            "fâs"
+            "rūhiya",
+            "ruhiye"
           ]
         },
         {
-          "normalizedForm": "فاس",
+          "normalizedForm": "آسیای مرکزی",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "fās",
-            "fâs"
+            "âsiyâ-ye markazi"
           ]
         },
         {
-          "normalizedForm": "امام",
+          "normalizedForm": "رستم",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "imām",
-            "emâm"
+            "rustam",
+            "rostam",
+            "rostam"
           ]
         },
         {
-          "normalizedForm": "امام",
+          "normalizedForm": "قسمت",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "imām",
-            "emâm"
+            "qismat",
+            "ġesmat"
           ]
         },
         {
-          "normalizedForm": "مؤذن",
+          "normalizedForm": "ارزیابی",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "mu'azzin",
-            "mo'azzen"
+            "arzyābī",
+            "arzyâbi"
           ]
         },
         {
-          "normalizedForm": "مؤذن",
+          "normalizedForm": "بازداشتن",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "mu'azzin",
-            "mo'azzen"
+            "bāzdāštan",
+            "bâzdâštan"
           ]
         },
         {
-          "normalizedForm": "ملا",
+          "normalizedForm": "تقریر",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "mullā",
-            "mollâ"
+            "taqrīr",
+            "taġrir"
           ]
         },
         {
-          "normalizedForm": "ملا",
+          "normalizedForm": "مخالفت",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "mullā",
-            "mollâ"
+            "muxālifat",
+            "moxâlefat"
           ]
         },
         {
-          "normalizedForm": "زبان",
+          "normalizedForm": "تنگه",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "zabān",
-            "zubān",
-            "zabân",
-            "zobân"
+            "tanga",
+            "tange",
+            "tanga",
+            "tange"
           ]
         },
         {
-          "normalizedForm": "زبان",
+          "normalizedForm": "نشئه",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "zabān",
-            "zubān",
-            "zabân",
-            "zobân"
+            "naš'a",
+            "naš'e",
+            "naš'a",
+            "naš'e"
           ]
         },
         {
-          "normalizedForm": "زبان",
+          "normalizedForm": "کنار",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "zabān",
-            "zubān",
-            "zabân",
-            "zobân"
+            "kanār",
+            "kenâr",
+            "kanār",
+            "kenâr",
+            "kanār",
+            "kenâr",
+            "kunār",
+            "konâr"
           ]
         },
         {
-          "normalizedForm": "زبان",
+          "normalizedForm": "ـتان",
           "reason": "Source romanization lacks explicit variety/dialect tags (cannot assume Classical or Iranian safely).",
           "romanizations": [
-            "zabān",
-            "zubān",
-            "zabân",
-            "zobân"
+            "-etân"
           ]
         }
       ],
       "NON_LEMMA_SOURCE_FORM": [
         {
-          "normalizedForm": "هل",
+          "normalizedForm": "برخورد",
           "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
           "romanizations": [
-            "hul",
-            "hol",
-            "hel",
-            "hil",
-            "hel"
+            "barxward",
+            "barxord",
+            "barxward",
+            "barxord"
           ]
         },
         {
-          "normalizedForm": "هل",
+          "normalizedForm": "چشات",
           "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
           "romanizations": [
-            "hul",
-            "hol",
-            "hel",
-            "hil",
-            "hel"
+            "češât"
           ]
         },
         {
-          "normalizedForm": "قط",
+          "normalizedForm": "می‌رقصیدند",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "mi-raqsidand"
+          ]
+        },
+        {
+          "normalizedForm": "برگشتند",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "bargaštand"
+          ]
+        },
+        {
+          "normalizedForm": "سوخت",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "sōxt",
+            "suxt",
+            "sōxt",
+            "suxt",
+            "sōxt",
+            "suxt"
+          ]
+        },
+        {
+          "normalizedForm": "می‌رفتم",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "mi-raftam"
+          ]
+        },
+        {
+          "normalizedForm": "سبیل‌ها",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "sebil-hâ",
+            "sabil-hâ"
+          ]
+        },
+        {
+          "normalizedForm": "آتش نشانی",
           "reason": "Evidence is an inflected form or variant (ALT_OF); excluded from direct lexical lemma hypotheses.",
           "romanizations": [
-            "qat",
-            "ġat"
+            "âtaš-nešâni"
           ]
         },
         {
-          "normalizedForm": "قط",
-          "reason": "Evidence is an inflected form or variant (ALT_OF); excluded from direct lexical lemma hypotheses.",
-          "romanizations": [
-            "qat",
-            "ġat"
-          ]
-        },
-        {
-          "normalizedForm": "و",
+          "normalizedForm": "شتاب",
           "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
           "romanizations": [
-            "vâv",
-            "wa",
-            "u",
-            "va",
-            "o",
-            "-o"
+            "šitāb",
+            "šetâb",
+            "šitāb",
+            "šetâb"
           ]
         },
         {
-          "normalizedForm": "سامانه",
-          "reason": "Evidence is an inflected form or variant (ALT_OF); excluded from direct lexical lemma hypotheses.",
-          "romanizations": [
-            "sāmāna",
-            "sâmâne"
-          ]
-        },
-        {
-          "normalizedForm": "سامانه",
-          "reason": "Evidence is an inflected form or variant (ALT_OF); excluded from direct lexical lemma hypotheses.",
-          "romanizations": [
-            "sāmāna",
-            "sâmâne"
-          ]
-        },
-        {
-          "normalizedForm": "چشم",
-          "reason": "Evidence is an inflected form or variant (ALT_OF); excluded from direct lexical lemma hypotheses.",
-          "romanizations": [
-            "čašm",
-            "češm",
-            "čašm"
-          ]
-        },
-        {
-          "normalizedForm": "چشم",
-          "reason": "Evidence is an inflected form or variant (ALT_OF); excluded from direct lexical lemma hypotheses.",
-          "romanizations": [
-            "čašm",
-            "češm",
-            "čašm"
-          ]
-        },
-        {
-          "normalizedForm": "حرف",
+          "normalizedForm": "مشکل‌ها",
           "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
           "romanizations": [
-            "harf",
-            "hiraf",
-            "heraf"
+            "moškel-hâ"
           ]
         },
         {
-          "normalizedForm": "حرف",
+          "normalizedForm": "می‌رسیدند",
           "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
           "romanizations": [
-            "harf",
-            "hiraf",
-            "heraf"
+            "mi-residand"
           ]
         },
         {
-          "normalizedForm": "بان",
+          "normalizedForm": "پلکان",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "pillikān",
+            "pellekân",
+            "pellekân"
+          ]
+        },
+        {
+          "normalizedForm": "عتبات",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "atabāt",
+            "atabât",
+            "atabāt",
+            "atabât"
+          ]
+        },
+        {
+          "normalizedForm": "برگ‌ها",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "barg-hâ"
+          ]
+        },
+        {
+          "normalizedForm": "پانسمان‌ها",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "pânsemân-hâ"
+          ]
+        },
+        {
+          "normalizedForm": "خانه‌ها",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "xâne-hâ"
+          ]
+        },
+        {
+          "normalizedForm": "می‌پوشیم",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "mi-pušim"
+          ]
+        },
+        {
+          "normalizedForm": "فهمیدم",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "fahmidam"
+          ]
+        },
+        {
+          "normalizedForm": "اوستا",
           "reason": "Evidence is an inflected form or variant (ALT_OF); excluded from direct lexical lemma hypotheses.",
           "romanizations": [
-            "bân",
-            "-bân",
-            "bân",
-            "bân",
-            "bân"
+            "awistā",
+            "avestâ",
+            "ūstā",
+            "ustâ",
+            "ūstā",
+            "ustâ"
           ]
         },
         {
-          "normalizedForm": "لول",
+          "normalizedForm": "رقصندگان",
           "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
           "romanizations": [
-            "lul"
+            "raqsandegân"
           ]
         },
         {
-          "normalizedForm": "پارسی",
+          "normalizedForm": "زیب",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "zib"
+          ]
+        },
+        {
+          "normalizedForm": "رسان",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "rasân"
+          ]
+        },
+        {
+          "normalizedForm": "ترکمن‌ها",
+          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
+          "romanizations": [
+            "torkman-hâ"
+          ]
+        },
+        {
+          "normalizedForm": "هلدینگ",
           "reason": "Evidence is an inflected form or variant (ALT_OF); excluded from direct lexical lemma hypotheses.",
           "romanizations": [
-            "pārsī",
-            "pârsi",
-            "pārsī",
-            "pârsi"
+            "holding"
           ]
         },
         {
-          "normalizedForm": "پارسی",
-          "reason": "Evidence is an inflected form or variant (ALT_OF); excluded from direct lexical lemma hypotheses.",
-          "romanizations": [
-            "pārsī",
-            "pârsi",
-            "pārsī",
-            "pârsi"
-          ]
-        },
-        {
-          "normalizedForm": "پارسی",
-          "reason": "Evidence is an inflected form or variant (ALT_OF); excluded from direct lexical lemma hypotheses.",
-          "romanizations": [
-            "pārsī",
-            "pârsi",
-            "pārsī",
-            "pârsi"
-          ]
-        },
-        {
-          "normalizedForm": "پارسی",
-          "reason": "Evidence is an inflected form or variant (ALT_OF); excluded from direct lexical lemma hypotheses.",
-          "romanizations": [
-            "pārsī",
-            "pârsi",
-            "pārsī",
-            "pârsi"
-          ]
-        },
-        {
-          "normalizedForm": "کتاب",
+          "normalizedForm": "خو",
           "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
           "romanizations": [
-            "kitāb",
-            "ketâb",
-            "kuttāb",
-            "kottâb"
-          ]
-        },
-        {
-          "normalizedForm": "کتاب",
-          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
-          "romanizations": [
-            "kitāb",
-            "ketâb",
-            "kuttāb",
-            "kottâb"
-          ]
-        },
-        {
-          "normalizedForm": "کون",
-          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
-          "romanizations": [
-            "kūn",
-            "kun",
-            "kawn",
-            "kown",
-            "kun",
-            "kŭn"
-          ]
-        },
-        {
-          "normalizedForm": "کون",
-          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
-          "romanizations": [
-            "kūn",
-            "kun",
-            "kawn",
-            "kown",
-            "kun",
-            "kŭn"
-          ]
-        },
-        {
-          "normalizedForm": "گردن بند",
-          "reason": "Evidence is an inflected form or variant (ALT_OF); excluded from direct lexical lemma hypotheses.",
-          "romanizations": [
-            "gardanband"
-          ]
-        },
-        {
-          "normalizedForm": "بند",
-          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
-          "romanizations": [
-            "band",
-            "band",
-            "band"
-          ]
-        },
-        {
-          "normalizedForm": "زن",
-          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
-          "romanizations": [
-            "zan",
-            "zan"
-          ]
-        },
-        {
-          "normalizedForm": "مرد",
-          "reason": "Evidence is an inflected form or variant (FORM_OF); excluded from direct lexical lemma hypotheses.",
-          "romanizations": [
-            "mard",
-            "murd",
-            "mord"
+            "xō",
+            "xu",
+            "xu",
+            "xo",
+            "xu",
+            "xo",
+            "xaw",
+            "xov",
+            "xaw",
+            "xov",
+            "xō",
+            "xov"
           ]
         }
       ],
       "NO_ROMANIZATION": [
         {
-          "normalizedForm": "بنت",
+          "normalizedForm": "انتقال‌دهنده عصبی",
           "reason": "Evidence observation has no observed romanization string.",
           "romanizations": [
             ""
           ]
         },
         {
-          "normalizedForm": "ا",
-          "reason": "Evidence observation has no observed romanization string.",
-          "romanizations": [
-            "",
-            "a"
-          ]
-        },
-        {
-          "normalizedForm": "،",
+          "normalizedForm": "تابلوی اعلانات",
           "reason": "Evidence observation has no observed romanization string.",
           "romanizations": [
             ""
           ]
         },
         {
-          "normalizedForm": "؛",
+          "normalizedForm": "مقرون به صرفه",
           "reason": "Evidence observation has no observed romanization string.",
           "romanizations": [
             ""
           ]
         },
         {
-          "normalizedForm": "؟",
+          "normalizedForm": "لاله واژگون",
           "reason": "Evidence observation has no observed romanization string.",
           "romanizations": [
             ""
           ]
         },
         {
-          "normalizedForm": "٫",
+          "normalizedForm": "رهبر ارکستر",
           "reason": "Evidence observation has no observed romanization string.",
           "romanizations": [
             ""
           ]
         },
         {
-          "normalizedForm": "٬",
+          "normalizedForm": "پرتو ایکس",
           "reason": "Evidence observation has no observed romanization string.",
           "romanizations": [
             ""
           ]
         },
         {
-          "normalizedForm": "ویکی‌واژه",
+          "normalizedForm": "چند و چون",
           "reason": "Evidence observation has no observed romanization string.",
           "romanizations": [
             ""
           ]
         },
         {
-          "normalizedForm": "وب نوشت",
+          "normalizedForm": "سمد",
           "reason": "Evidence observation has no observed romanization string.",
           "romanizations": [
             ""
           ]
         },
         {
-          "normalizedForm": "جارو برقی",
+          "normalizedForm": "شب یلدا",
           "reason": "Evidence observation has no observed romanization string.",
           "romanizations": [
             ""
           ]
         },
         {
-          "normalizedForm": "پله برقی",
+          "normalizedForm": "نگه داشتن",
           "reason": "Evidence observation has no observed romanization string.",
           "romanizations": [
             ""
           ]
         },
         {
-          "normalizedForm": "گپ",
-          "reason": "Evidence observation has no observed romanization string.",
-          "romanizations": [
-            "gap",
-            ""
-          ]
-        },
-        {
-          "normalizedForm": "هند",
-          "reason": "Evidence observation has no observed romanization string.",
-          "romanizations": [
-            "",
-            "hand"
-          ]
-        },
-        {
-          "normalizedForm": "هفته",
+          "normalizedForm": "ماهی سالمون",
           "reason": "Evidence observation has no observed romanization string.",
           "romanizations": [
             ""
           ]
         },
         {
-          "normalizedForm": "بد",
-          "reason": "Evidence observation has no observed romanization string.",
-          "romanizations": [
-            "bad",
-            "bad",
-            ""
-          ]
-        },
-        {
-          "normalizedForm": "از",
-          "reason": "Evidence observation has no observed romanization string.",
-          "romanizations": [
-            "az",
-            ""
-          ]
-        },
-        {
-          "normalizedForm": "اسب آبی",
+          "normalizedForm": "اندازه گیری",
           "reason": "Evidence observation has no observed romanization string.",
           "romanizations": [
             ""
           ]
         },
         {
-          "normalizedForm": "سیم کارت",
+          "normalizedForm": "بمب اتمی",
           "reason": "Evidence observation has no observed romanization string.",
           "romanizations": [
             ""
           ]
         },
         {
-          "normalizedForm": "پول خرد",
+          "normalizedForm": "شیشه جلو",
           "reason": "Evidence observation has no observed romanization string.",
           "romanizations": [
             ""
           ]
         },
         {
-          "normalizedForm": "چس فیل",
+          "normalizedForm": "جذب کردن",
           "reason": "Evidence observation has no observed romanization string.",
           "romanizations": [
             ""
           ]
         },
         {
-          "normalizedForm": "نیلوفر آبی",
+          "normalizedForm": "سند",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            "sanad",
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "بیماری سلیاک",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "خنکیدن",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "سر سوزن",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "هپاتیت ویروسی",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "به درد بخور",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "لوستر",
+          "reason": "Evidence observation has no observed romanization string.",
+          "romanizations": [
+            ""
+          ]
+        },
+        {
+          "normalizedForm": "راکتور",
           "reason": "Evidence observation has no observed romanization string.",
           "romanizations": [
             ""
@@ -983,23 +972,7 @@
           ]
         },
         {
-          "normalizedForm": "پست",
-          "reason": "Evidence observation has no observed romanization string.",
-          "romanizations": [
-            "",
-            "",
-            "post"
-          ]
-        },
-        {
-          "normalizedForm": "گلف",
-          "reason": "Evidence observation has no observed romanization string.",
-          "romanizations": [
-            ""
-          ]
-        },
-        {
-          "normalizedForm": "کونگ فو",
+          "normalizedForm": "مچ پا",
           "reason": "Evidence observation has no observed romanization string.",
           "romanizations": [
             ""

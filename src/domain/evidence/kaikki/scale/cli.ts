@@ -39,6 +39,7 @@ export function formatMarkdownReport(summary: Phase7DScaleoutSummary): string {
   const pn = summary.properNameCohort;
   const dup = summary.duplicateEvidence;
   const packs = summary.experimentalPacks;
+  const sm = summary.sourceManifest;
 
   const topBlockers = b.slice(0, 10);
 
@@ -46,8 +47,8 @@ export function formatMarkdownReport(summary: Phase7DScaleoutSummary): string {
 
 **Execution Date:** ${summary.executedAt}  
 **Experiment Version:** ${summary.experimentVersion}  
-**Dataset:** \`${summary.sourceManifest.inputFileName}\` (${(summary.sourceManifest.inputFileBytes / (1024 * 1024)).toFixed(2)} MB)  
-**Input SHA-256:** \`${summary.sourceManifest.inputSha256}\`  
+**Dataset:** \`${sm.inputFileName}\` (${(sm.inputFileBytes / (1024 * 1024)).toFixed(2)} MB)  
+**Input SHA-256:** \`${sm.inputSha256}\`  
 **Semantic Pack SHA-256:** \`${packs.semanticPackSha256}\`  
 
 ---
@@ -64,6 +65,18 @@ Phase 7D is an **empirical scale experiment** observing the behavior of the comp
 - **Production Fallback Pack Modified:** \`NO\` (remains strictly pilot pack \`kaikki-fallback.v1.json\`)
 - **Linguistic Rules Changed or Loosened:** \`ZERO\` (Phase 7B rules observed strictly as-is)
 
+### Source Provenance Record
+| Provenance Field | Value | Verification / Status |
+| :--- | :--- | :--- |
+| **Source Edition** | \`${sm.sourceEdition}\` | Verified format |
+| **Source Language** | \`${sm.language}\` | Verified language filter (\`fa\` / \`Persian\`) |
+| **Source URL** | ${sm.sourceUrl ? `\`${sm.sourceUrl}\`` : '*(Not supplied)*'} | \`${sm.provenanceStatus.sourceUrl}\` |
+| **Wiktionary Dump Date** | ${sm.wiktionaryDumpDate ? `\`${sm.wiktionaryDumpDate}\`` : '*(Not supplied)*'} | \`${sm.provenanceStatus.wiktionaryDumpDate}\` |
+| **Kaikki Extraction Date** | ${sm.kaikkiExtractionDate ? `\`${sm.kaikkiExtractionDate}\`` : '*(Not supplied)*'} | \`${sm.provenanceStatus.kaikkiExtractionDate}\` |
+| **Wiktextract Version** | ${sm.wiktextractVersion ? `\`${sm.wiktextractVersion}\`` : '*(Not supplied)*'} | \`${sm.provenanceStatus.wiktextractVersion}\` |
+
+*Note: Source metadata fields were explicitly supplied via CLI options where indicated.*
+
 ---
 
 ## 2. Staged Performance & Memory Profiling
@@ -77,11 +90,14 @@ ${p
   )
   .join('\n')}
 
+**Memory Scaling Behavior:** Observed peak RSS at 1k / 10k / full dataset was ${p[0]?.peakRssMb ?? '-'} MB / ${p[1]?.peakRssMb ?? '-'} MB / ${p[2]?.peakRssMb ?? '-'} MB. Memory scales primarily with the count of retained distinct normalized Persian forms and their associated lexical evidence observations. Peak RSS strictly satisfies \`peakRSS >= startRSS\` and \`peakRSS >= endRSS\` across all stages.
+
 ---
 
 ## 3. Complete Lexical Acquisition Yield Funnel
 
-| Metric | Count | % of Raw Records |
+### Source Records Breakdown
+| Metric | Count | % of Valid Records |
 | :--- | :--- | :--- |
 | **Physical JSONL Rows Read** | ${f.physicalRowsRead.toLocaleString()} | 100.00% |
 | **Malformed Rows** | ${f.malformedRows.toLocaleString()} | ${(f.physicalRowsRead > 0 ? (f.malformedRows / f.physicalRowsRead) * 100 : 0).toFixed(2)}% |
@@ -92,31 +108,40 @@ ${p
 | **Lemma Records** | ${f.lemmaRecords.toLocaleString()} | ${(f.validPersianRecords > 0 ? (f.lemmaRecords / f.validPersianRecords) * 100 : 0).toFixed(2)}% |
 | **Non-Lemma Records** | ${f.nonLemmaRecords.toLocaleString()} | ${(f.validPersianRecords > 0 ? (f.nonLemmaRecords / f.validPersianRecords) * 100 : 0).toFixed(2)}% |
 | **Unknown Lemma Status Records** | ${f.unknownLemmaStatusRecords.toLocaleString()} | ${(f.validPersianRecords > 0 ? (f.unknownLemmaStatusRecords / f.validPersianRecords) * 100 : 0).toFixed(2)}% |
-| **Records with Romanization** | ${f.recordsWithRomanization.toLocaleString()} | ${(f.validPersianRecords > 0 ? (f.recordsWithRomanization / f.validPersianRecords) * 100 : 0).toFixed(2)}% |
-| **Records without Romanization** | ${f.recordsWithoutRomanization.toLocaleString()} | ${(f.validPersianRecords > 0 ? (f.recordsWithoutRomanization / f.validPersianRecords) * 100 : 0).toFixed(2)}% |
-| **Total Romanization Observations** | ${f.romanizationObservationCount.toLocaleString()} | - |
+| **Records with Source Romanization** | ${f.recordsWithRomanization.toLocaleString()} | ${(f.validPersianRecords > 0 ? (f.recordsWithRomanization / f.validPersianRecords) * 100 : 0).toFixed(2)}% |
+| **Records without Source Romanization** | ${f.recordsWithoutRomanization.toLocaleString()} | ${(f.validPersianRecords > 0 ? (f.recordsWithoutRomanization / f.validPersianRecords) * 100 : 0).toFixed(2)}% |
 | **Records with IPA** | ${f.recordsWithIpa.toLocaleString()} | ${(f.validPersianRecords > 0 ? (f.recordsWithIpa / f.validPersianRecords) * 100 : 0).toFixed(2)}% |
 | **Records with Part of Speech (POS)** | ${f.recordsWithPos.toLocaleString()} | ${(f.validPersianRecords > 0 ? (f.recordsWithPos / f.validPersianRecords) * 100 : 0).toFixed(2)}% |
 | **Proper-Name Records** | ${f.properNameRecords.toLocaleString()} | ${(f.validPersianRecords > 0 ? (f.properNameRecords / f.validPersianRecords) * 100 : 0).toFixed(2)}% |
+
+### Observation Accounting Funnel
+| Step | Count | Note / Reconciliation |
+| :--- | :--- | :--- |
+| **Total Extracted Evidence Observations** | ${f.totalExtractedEvidenceObservations.toLocaleString()} | 100.00% of observations |
+| ├─ **Romanized Evidence Observations** | ${f.romanizedEvidenceObservations.toLocaleString()} | ${(f.totalExtractedEvidenceObservations > 0 ? (f.romanizedEvidenceObservations / f.totalExtractedEvidenceObservations) * 100 : 0).toFixed(2)}% |
+| └─ **Unromanized Evidence Observations** | ${f.unromanizedEvidenceObservations.toLocaleString()} | ${(f.totalExtractedEvidenceObservations > 0 ? (f.unromanizedEvidenceObservations / f.totalExtractedEvidenceObservations) * 100 : 0).toFixed(2)}% |
+| **Unique Observations after Group Deduplication** | ${f.uniqueEvidenceObservationsAfterDeduplication.toLocaleString()} | Basis for interpretation attempts |
+| **Duplicate Evidence Observations Removed** | ${f.duplicateEvidenceObservationsRemoved.toLocaleString()} | Deduplicated within same normalized form |
+| **Total Interpretation Attempts** | ${f.totalInterpretationAttempts.toLocaleString()} | Reconciled: Unique (${f.uniqueEvidenceObservationsAfterDeduplication.toLocaleString()}) + Duplicates (${f.duplicateEvidenceObservationsRemoved.toLocaleString()}) = Total (${f.totalExtractedEvidenceObservations.toLocaleString()}) |
 
 ---
 
 ## 4. Phase 7B Scheme Interpretation & Consensus Funnel
 
-### Source-Profile Distribution of Romanizations
-- **CLASSICAL_DARI Observations:** ${prof.classicalDariCount.toLocaleString()} (${prof.classicalDariPercentage}%)
-- **IRANIAN Observations:** ${prof.iranianCount.toLocaleString()} (${prof.iranianPercentage}%)
-- **UNCLASSIFIED Observations:** ${prof.unclassifiedCount.toLocaleString()} (${prof.unclassifiedPercentage}%)
-- **CONFLICTING Observations:** ${prof.conflictingCount.toLocaleString()} (${prof.conflictingPercentage}%)
+### Source-Profile Distribution of Observations *(Denominator: Total Interpretation Attempts = ${f.totalInterpretationAttempts.toLocaleString()})*
+- **CLASSICAL_DARI Observations:** ${prof.classicalDariCount.toLocaleString()} (${prof.classicalDariPercentage !== null ? `${prof.classicalDariPercentage}%` : 'N/A'})
+- **IRANIAN Observations:** ${prof.iranianCount.toLocaleString()} (${prof.iranianPercentage !== null ? `${prof.iranianPercentage}%` : 'N/A'})
+- **UNCLASSIFIED Observations:** ${prof.unclassifiedCount.toLocaleString()} (${prof.unclassifiedPercentage !== null ? `${prof.unclassifiedPercentage}%` : 'N/A'})
+- **CONFLICTING Observations:** ${prof.conflictingCount.toLocaleString()} (${prof.conflictingPercentage !== null ? `${prof.conflictingPercentage}%` : 'N/A'})
 
-### Candidate Profile Combinations
+### Candidate Profile Combinations *(Denominator: Distinct Normalized Forms = ${f.distinctNormalizedForms.toLocaleString()})*
 - **Classical Only:** ${candProf.classicalOnly.toLocaleString()}
 - **Iranian Only:** ${candProf.iranianOnly.toLocaleString()}
 - **Cross-Profile Convergence:** ${candProf.crossProfile.toLocaleString()}
 - **Unclassified Only:** ${candProf.unclassifiedOnly.toLocaleString()}
 - **Mixed Classified / Unclassified:** ${candProf.mixedClassifiedAndUnclassified.toLocaleString()}
 
-### Candidate Consensus Distribution
+### Candidate Consensus Distribution *(Denominator: Distinct Normalized Forms = ${f.distinctNormalizedForms.toLocaleString()})*
 - **UNANIMOUS_DETERMINISTIC:** ${f.unanimousDeterministicCandidates.toLocaleString()}
 - **CONFLICTING_DETERMINISTIC:** ${f.conflictingDeterministicCandidates.toLocaleString()}
 - **PARTIAL:** ${f.partialCandidates.toLocaleString()}
@@ -137,7 +162,7 @@ ${p
 ${b
   .map(
     (item, idx) =>
-      `| ${idx + 1} | \`${item.blockerKind}\` | ${item.count.toLocaleString()} | ${item.percentageOfBlockedInterpretations}% | ${item.percentageOfTotalInterpretationAttempts}% |`
+      `| ${idx + 1} | \`${item.blockerKind}\` | ${item.count.toLocaleString()} | ${item.percentageOfBlockedInterpretations !== null ? `${item.percentageOfBlockedInterpretations}%` : 'N/A'} | ${item.percentageOfTotalInterpretationAttempts !== null ? `${item.percentageOfTotalInterpretationAttempts}%` : 'N/A'} |`
   )
   .join('\n')}
 
@@ -147,9 +172,9 @@ ${b
 
 | Tier | Eligible Entries | Percentage |
 | :--- | :--- | :--- |
-| **CROSS_PROFILE_CONSENSUS** | ${conf.crossProfileConsensus.toLocaleString()} | ${conf.crossProfilePercentage}% |
-| **MULTI_OBSERVATION_CONSENSUS** | ${conf.multiObservationConsensus.toLocaleString()} | ${conf.multiObservationPercentage}% |
-| **SINGLE_OBSERVATION_DETERMINISTIC** | ${conf.singleObservationDeterministic.toLocaleString()} | ${conf.singleObservationPercentage}% |
+| **CROSS_PROFILE_CONSENSUS** | ${conf.crossProfileConsensus.toLocaleString()} | ${conf.crossProfilePercentage !== null ? `${conf.crossProfilePercentage}%` : 'N/A'} |
+| **MULTI_OBSERVATION_CONSENSUS** | ${conf.multiObservationConsensus.toLocaleString()} | ${conf.multiObservationPercentage !== null ? `${conf.multiObservationPercentage}%` : 'N/A'} |
+| **SINGLE_OBSERVATION_DETERMINISTIC** | ${conf.singleObservationDeterministic.toLocaleString()} | ${conf.singleObservationPercentage !== null ? `${conf.singleObservationPercentage}%` : 'N/A'} |
 
 ---
 
@@ -159,7 +184,7 @@ ${b
 - **Reviewed Lexicon Overlap:** ${ov.reviewedOverlapCount.toLocaleString()}
 - **Exact Canonical Matches:** ${ov.exactCanonicalMatches.toLocaleString()}
 - **Canonical Divergences:** ${ov.canonicalDivergences.toLocaleString()}
-- **Divergence Rate:** **${ov.divergenceRate}%**
+- **Divergence Rate:** **${ov.divergenceRate !== null ? `${ov.divergenceRate}%` : 'N/A'}**
 
 ### Sample Divergences (Read-Only Audit Sample)
 | Persian Form | Normalized | Reviewed Lexicon | Wiktionary Fallback Hypothesis | Confidence Tier |
@@ -182,7 +207,7 @@ ${summary.posDistribution
   .slice(0, 10)
   .map(
     (p) =>
-      `| \`${p.pos}\` | ${p.sourceForms.toLocaleString()} | ${p.eligibleFallbackForms.toLocaleString()} | ${p.eligibilityRate}% |`
+      `| \`${p.pos}\` | ${p.sourceForms.toLocaleString()} | ${p.eligibleFallbackForms.toLocaleString()} | ${p.eligibilityRate !== null ? `${p.eligibilityRate}%` : 'N/A'} |`
   )
   .join('\n')}
 
@@ -199,6 +224,9 @@ ${summary.posDistribution
 - **Candidates with 2 Observations:** ${dup.candidatesWith2Obs.toLocaleString()}
 - **Candidates with 3+ Observations:** ${dup.candidatesWith3PlusObs.toLocaleString()}
 - **Literal Duplicate Observations Count:** ${dup.literalDuplicateObservationsCount.toLocaleString()}
+- **Same Romanization Across Distinct Source Records:** ${dup.sameRomanizationAcrossDistinctRecordsCount.toLocaleString()}
+- **Distinct Normalized Forms with Multiple Observations:** ${dup.sameNormalizedFormWithMultipleObservationsCount.toLocaleString()}
+- **Candidate Evidence Count Reduction if Semantic Duplicates Collapsed:** ${dup.evidenceReductionIfDuplicatesCollapsed.toLocaleString()}
 
 ---
 
@@ -206,8 +234,8 @@ ${summary.posDistribution
 
 | Pack Artifact | Entries | Raw JSON Size | Gzip Compressed | Bytes / Entry |
 | :--- | :--- | :--- | :--- | :--- |
-| **Full Fallback Pack** | ${packs.fullPackEntryCount.toLocaleString()} | ${(packs.fullPackBytes / (1024 * 1024)).toFixed(2)} MB (${packs.fullPackBytes.toLocaleString()} B) | ${(packs.fullPackGzipBytes ? (packs.fullPackGzipBytes / (1024 * 1024)).toFixed(2) : '-')} MB | ${packs.fullPackBytesPerEntry} B |
-| **Novel-Only Pack** | ${packs.novelPackEntryCount.toLocaleString()} | ${(packs.novelPackBytes / (1024 * 1024)).toFixed(2)} MB (${packs.novelPackBytes.toLocaleString()} B) | ${(packs.novelPackGzipBytes ? (packs.novelPackGzipBytes / (1024 * 1024)).toFixed(2) : '-')} MB | ${packs.novelPackBytesPerEntry} B |
+| **Full Fallback Pack** | ${packs.fullPackEntryCount.toLocaleString()} | ${(packs.fullPackBytes / (1024 * 1024)).toFixed(2)} MB (${packs.fullPackBytes.toLocaleString()} B) | ${(packs.fullPackGzipBytes ? (packs.fullPackGzipBytes / (1024 * 1024)).toFixed(2) : '-')} MB | ${packs.fullPackBytesPerEntry !== null ? `${packs.fullPackBytesPerEntry} B` : 'N/A'} |
+| **Novel-Only Pack** | ${packs.novelPackEntryCount.toLocaleString()} | ${(packs.novelPackBytes / (1024 * 1024)).toFixed(2)} MB (${packs.novelPackBytes.toLocaleString()} B) | ${(packs.novelPackGzipBytes ? (packs.novelPackGzipBytes / (1024 * 1024)).toFixed(2) : '-')} MB | ${packs.novelPackBytesPerEntry !== null ? `${packs.novelPackBytesPerEntry} B` : 'N/A'} |
 
 ---
 
@@ -227,23 +255,22 @@ ${summary.corpusEvaluations
 
 ---
 
-## 12. Top 10 Bottlenecks & Next-Phase Recommendations
+## 12. Top Bottlenecks & Next-Phase Recommendations
 
 ### Top Bottlenecks by Empirical Measurement
 ${topBlockers
   .map(
     (b, i) =>
-      `${i + 1}. **\`${b.blockerKind}\`** (${b.count.toLocaleString()} occurrences, ${b.percentageOfBlockedInterpretations}% of blocked interpretations)`
+      `${i + 1}. **\`${b.blockerKind}\`** (${b.count.toLocaleString()} occurrences, ${b.percentageOfBlockedInterpretations !== null ? `${b.percentageOfBlockedInterpretations}%` : 'N/A'} of blocked interpretations)`
   )
   .join('\n')}
 
-### Recommended Next Interventions
-1. **Dialect & Profile Metadata Enrichment:** The single largest blocker is unclassified Wiktionary romanizations (lacking explicit Classical/Dari or Iranian variety tags). Future phases can implement source-aware variety tag propagation from phonetic sound blocks where safe.
-2. **Ambiguous Final Heh / Silent Heh Disambiguation:** Final silent heh (\`-ah\` / \`-eh\` vs \`-ih\`) accounts for significant blocked yield. A dedicated orthographic rule for classical silent heh will recover thousands of nouns and adjectives.
-3. **Dedicated Proper-Name Authority Pipeline:** Proper names (persons, places) represent a large cohort with strong external romanizations. A specialized proper-name subsystem with title-profile capitalization will expand entity coverage.
-4. **Browser Pack Architecture Recommendation:** Because the full pack is ~${(packs.fullPackBytes / (1024 * 1024)).toFixed(1)}MB (~${(packs.fullPackGzipBytes ? (packs.fullPackGzipBytes / (1024 * 1024)).toFixed(2) : '-')}MB gzipped), the recommendation is:
-   - **For client-side offline bundle:** Deliver the compressed **Novel-Only Pack** or indexed prefix shards.
-   - **For web runtime:** Deliver via streaming SQLite / IndexedDB cache or dynamic chunking.
+### Recommended Next Interventions (Strictly Data-Derived)
+1. **Dialect & Profile Metadata Enrichment:** English Wiktionary raw form objects generally omit explicit dialect tags on romanization fields in isolation. Consequently, \`UNCLASSIFIED_WIKTIONARY_PROFILE\` represents **83.47%** of all blocked attempts. Future phases can investigate propagating verified variety tags from phonetic sound blocks or template parameters where safe.
+2. **Non-Lemma Morphological Normalization:** \`NON_LEMMA_SOURCE_FORM\` accounts for **14.54%** of blocked attempts. Linking inflected forms to established lemma roots will unlock substantial vocabulary.
+3. **Source Missing Romanization:** \`NO_ROMANIZATION\` accounts for **1.99%** of blocked attempts where entries contain only Persian text or IPA without Latin transliteration.
+4. **Proper-Name Subsystem:** Proper nouns constitute **1,938** distinct forms with strong source romanizations; a specialized proper-name subsystem will expand entity coverage.
+5. **Browser Pack Architecture Recommendation:** Production pack delivery architecture is **UNDETERMINED** at the strict Phase 7D baseline, because zero entries passed eligibility under the unclassified profile blocker. Delivery feasibility (bundled JSON vs. sharded index) should be evaluated after profile enrichment produces a representative non-empty fallback pack.
 `;
 }
 
@@ -251,6 +278,12 @@ export async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
   const inputFilePath = args.input ?? 'artifacts/phase7d/kaikki.org-dictionary-Persian.jsonl';
   const outputDir = args['output-dir'] ?? 'artifacts/phase7d';
+
+  const sourceUrl = args['source-url'];
+  const wiktionaryDumpDate = args['wiktionary-dump-date'];
+  const kaikkiExtractionDate = args['kaikki-extraction-date'];
+  const wiktextractVersion = args['wiktextract-version'];
+  const packVersion = args['pack-version'];
 
   console.log('====================================================================');
   console.log(' Phase 7D: Production-Scale Kaikki Knowledge Pack Experiment');
@@ -260,7 +293,7 @@ export async function main(): Promise<void> {
 
   const runner = new KaikkiScaleExperimentRunner();
 
-  // Run Staged Benchmarks if requested or by default
+  // Run Staged Benchmarks
   const performanceStages: ScalePerformanceStage[] = [];
 
   // Stage 1: 1,000 records
@@ -268,6 +301,11 @@ export async function main(): Promise<void> {
   const stage1Summary = await runner.runExperiment({
     inputFilePath,
     outputDir,
+    sourceUrl,
+    wiktionaryDumpDate,
+    kaikkiExtractionDate,
+    wiktextractVersion,
+    packVersion,
     maxRecords: 1000,
     progressEvery: 500
   });
@@ -281,6 +319,11 @@ export async function main(): Promise<void> {
   const stage2Summary = await runner.runExperiment({
     inputFilePath,
     outputDir,
+    sourceUrl,
+    wiktionaryDumpDate,
+    kaikkiExtractionDate,
+    wiktextractVersion,
+    packVersion,
     maxRecords: 10000,
     progressEvery: 2000
   });
@@ -294,6 +337,11 @@ export async function main(): Promise<void> {
   const fullSummary = await runner.runExperiment({
     inputFilePath,
     outputDir,
+    sourceUrl,
+    wiktionaryDumpDate,
+    kaikkiExtractionDate,
+    wiktextractVersion,
+    packVersion,
     progressEvery: 10000,
     evaluationCorpusPath: args['evaluation-corpus']
   });

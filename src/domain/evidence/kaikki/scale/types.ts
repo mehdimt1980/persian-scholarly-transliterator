@@ -12,6 +12,8 @@
 
 import type { EvidenceFallbackEntry } from '../fallback/types';
 
+export type ProvenanceFieldOrigin = 'EXPLICITLY_SUPPLIED' | 'EMBEDDED_IN_SOURCE' | 'UNKNOWN';
+
 export interface KaikkiScaleSourceManifest {
   sourceEdition: string;
   language: string;
@@ -20,6 +22,12 @@ export interface KaikkiScaleSourceManifest {
   kaikkiExtractionDate?: string;
   wiktextractVersion?: string;
   downloadTimestamp?: string;
+  provenanceStatus: {
+    sourceUrl: ProvenanceFieldOrigin;
+    wiktionaryDumpDate: ProvenanceFieldOrigin;
+    kaikkiExtractionDate: ProvenanceFieldOrigin;
+    wiktextractVersion: ProvenanceFieldOrigin;
+  };
   inputFileBytes: number;
   inputSha256: string;
   inputFileName: string;
@@ -37,34 +45,43 @@ export interface KaikkiScaleYieldFunnel {
   nonLemmaRecords: number;
   unknownLemmaStatusRecords: number;
 
+  // Source Romanization Presence on Record
   recordsWithRomanization: number;
   recordsWithoutRomanization: number;
-  romanizationObservationCount: number;
+
+  // Observation Accounting Funnel
+  totalExtractedEvidenceObservations: number;
+  romanizedEvidenceObservations: number;
+  unromanizedEvidenceObservations: number;
+  uniqueEvidenceObservationsAfterDeduplication: number;
+  duplicateEvidenceObservationsRemoved: number;
+
+  totalInterpretationAttempts: number;
 
   recordsWithIpa: number;
   recordsWithPos: number;
   properNameRecords: number;
 
-  // Phase 7B Observation Profiles
+  // Phase 7B Observation Profiles (Denominator: totalInterpretationAttempts)
   classicalDariObservations: number;
   iranianObservations: number;
   unclassifiedObservations: number;
   conflictingObservations: number;
 
-  // Phase 7B Interpretation Statuses
+  // Phase 7B Interpretation Statuses (Denominator: totalInterpretationAttempts)
   directEquivalentInterpretations: number;
   deterministicEquivalentInterpretations: number;
   contextRequiredInterpretations: number;
   unsupportedInterpretations: number;
 
-  // Phase 7B Candidate Consensus Statuses
+  // Phase 7B Candidate Consensus Statuses (Denominator: distinctNormalizedForms)
   unanimousDeterministicCandidates: number;
   conflictingDeterministicCandidates: number;
   partialCandidates: number;
   blockedCandidates: number;
   noInterpretableEvidenceCandidates: number;
 
-  // Phase 7C Fallback Eligibility
+  // Phase 7C Fallback Eligibility (Denominator: distinctNormalizedForms)
   totalFallbackEligibleCandidates: number;
   totalFallbackIneligibleCandidates: number;
 }
@@ -72,19 +89,19 @@ export interface KaikkiScaleYieldFunnel {
 export interface BlockerHistogramItem {
   blockerKind: string;
   count: number;
-  percentageOfBlockedInterpretations: number;
-  percentageOfTotalInterpretationAttempts: number;
+  percentageOfBlockedInterpretations: number | null;
+  percentageOfTotalInterpretationAttempts: number | null;
 }
 
 export interface ProfileClassificationDistribution {
   classicalDariCount: number;
-  classicalDariPercentage: number;
+  classicalDariPercentage: number | null;
   iranianCount: number;
-  iranianPercentage: number;
+  iranianPercentage: number | null;
   unclassifiedCount: number;
-  unclassifiedPercentage: number;
+  unclassifiedPercentage: number | null;
   conflictingCount: number;
-  conflictingPercentage: number;
+  conflictingPercentage: number | null;
 }
 
 export interface CandidateProfileCombinationDistribution {
@@ -97,18 +114,18 @@ export interface CandidateProfileCombinationDistribution {
 
 export interface ConfidenceTierDistribution {
   crossProfileConsensus: number;
-  crossProfilePercentage: number;
+  crossProfilePercentage: number | null;
   multiObservationConsensus: number;
-  multiObservationPercentage: number;
+  multiObservationPercentage: number | null;
   singleObservationDeterministic: number;
-  singleObservationPercentage: number;
+  singleObservationPercentage: number | null;
 }
 
 export interface PosYieldItem {
   pos: string;
   sourceForms: number;
   eligibleFallbackForms: number;
-  eligibilityRate: number;
+  eligibilityRate: number | null;
 }
 
 export interface ProperNameCohortMetrics {
@@ -133,7 +150,7 @@ export interface ReviewedLexiconOverlapAnalysis {
   novelEligibleCount: number;
   exactCanonicalMatches: number;
   canonicalDivergences: number;
-  divergenceRate: number;
+  divergenceRate: number | null;
   divergenceSamples: ReviewedDivergenceSample[];
 }
 
@@ -142,6 +159,9 @@ export interface DuplicateEvidenceMetrics {
   candidatesWith2Obs: number;
   candidatesWith3PlusObs: number;
   literalDuplicateObservationsCount: number;
+  sameRomanizationAcrossDistinctRecordsCount: number;
+  sameNormalizedFormWithMultipleObservationsCount: number;
+  evidenceReductionIfDuplicatesCollapsed: number;
 }
 
 export interface ScalePerformanceStage {
@@ -200,13 +220,13 @@ export interface ExperimentalPackGenerationResult {
   fullPackBytes: number;
   fullPackGzipBytes?: number;
   fullPackEntryCount: number;
-  fullPackBytesPerEntry: number;
+  fullPackBytesPerEntry: number | null;
 
   novelPackPath: string;
   novelPackBytes: number;
   novelPackGzipBytes?: number;
   novelPackEntryCount: number;
-  novelPackBytesPerEntry: number;
+  novelPackBytesPerEntry: number | null;
 
   semanticPackSha256: string;
 }

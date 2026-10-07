@@ -23,6 +23,7 @@ import { synthesizeCandidateFromEvidence } from '../../candidate';
 import {
   determineLemmaStatus,
   extractKaikkiObservations,
+  extractRawRomanizations,
   KAIKKI_EXTRACTOR_VERSION
 } from '../extractor';
 import { WiktionaryPersianSchemeInterpreter } from '../scheme/interpreter';
@@ -70,6 +71,10 @@ interface InternalNormalizedGroup {
   observationList: KaikkiExtractedObservation[];
 }
 
+function computeSampleHash(key: string): string {
+  return crypto.createHash('sha256').update(key).digest('hex');
+}
+
 export class KaikkiScaleExperimentRunner {
   private readonly interpreter = new WiktionaryPersianSchemeInterpreter();
   private readonly aggregator = new KaikkiCandidateSchemeAggregator();
@@ -88,23 +93,30 @@ export class KaikkiScaleExperimentRunner {
       fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    // 1. Source Manifest
+    // 1. Source Manifest & Provenance Tracking
     const stats = fs.statSync(inputFilePath);
     const inputSha256 = await computeFileSha256(inputFilePath);
+
     const sourceManifest: KaikkiScaleSourceManifest = {
       sourceEdition: 'enwiktionary',
       language: 'Persian (fa)',
-      sourceUrl: options.sourceUrl ?? 'https://kaikki.org/dictionary/Persian/kaikki.org-dictionary-Persian.jsonl',
-      wiktionaryDumpDate: options.wiktionaryDumpDate ?? '2026-09-02',
-      kaikkiExtractionDate: options.kaikkiExtractionDate ?? '2026-10-03',
-      wiktextractVersion: options.wiktextractVersion ?? 'wiktextract 1.99.x',
+      sourceUrl: options.sourceUrl,
+      wiktionaryDumpDate: options.wiktionaryDumpDate,
+      kaikkiExtractionDate: options.kaikkiExtractionDate,
+      wiktextractVersion: options.wiktextractVersion,
       downloadTimestamp: new Date().toISOString(),
+      provenanceStatus: {
+        sourceUrl: options.sourceUrl ? 'EXPLICITLY_SUPPLIED' : 'UNKNOWN',
+        wiktionaryDumpDate: options.wiktionaryDumpDate ? 'EXPLICITLY_SUPPLIED' : 'UNKNOWN',
+        kaikkiExtractionDate: options.kaikkiExtractionDate ? 'EXPLICITLY_SUPPLIED' : 'UNKNOWN',
+        wiktextractVersion: options.wiktextractVersion ? 'EXPLICITLY_SUPPLIED' : 'UNKNOWN'
+      },
       inputFileBytes: stats.size,
       inputSha256,
       inputFileName: path.basename(inputFilePath)
     };
 
-    // 2. Stream Accumulation & Timing
+    // 2. Stream Accumulation & Memory Tracking
     const memoryTracker = new StreamingMemoryTracker();
     const startRssMb = memoryTracker.getStartRssMb();
     const startTime = Date.now();
@@ -118,9 +130,16 @@ export class KaikkiScaleExperimentRunner {
     let lemmaRecords = 0;
     let nonLemmaRecords = 0;
     let unknownLemmaStatusRecords = 0;
+
     let recordsWithRomanization = 0;
     let recordsWithoutRomanization = 0;
-    let romanizationObservationCount = 0;
+
+    let totalExtractedEvidenceObservations = 0;
+    let romanizedEvidenceObservations = 0;
+    let unromanizedEvidenceObservations = 0;
+    let uniqueEvidenceObservationsAfterDeduplication = 0;
+    let duplicateEvidenceObservationsRemoved = 0;
+
     let recordsWithIpa = 0;
     let recordsWithPos = 0;
     let properNameRecords = 0;
@@ -170,10 +189,10 @@ export class KaikkiScaleExperimentRunner {
           properNameRecords += 1;
         }
 
-        const observations = extractKaikkiObservations(record);
-        if (observations.length > 0) {
+        // Measure actual source romanization presence
+        const rawRomanizations = extractRawRomanizations(record);
+        if (rawRomanizations.length > 0) {
           recordsWithRomanization += 1;
-          romanizationObservationCount += observations.length;
         } else {
           recordsWithoutRomanization += 1;
         }
@@ -199,36 +218,36 @@ export class KaikkiScaleExperimentRunner {
         if (lemmaResult.lemmaStatus === 'LEMMA') group.isLemma = true;
         if (isProperName) group.isProperName = true;
 
+        const observations = extractKaikkiObservations(record);
         for (const obs of observations) {
+          totalExtractedEvidenceObservations += 1;
+          const rom = obs.evidence.observedRomanization;
+          if (rom !== null && rom.trim().length > 0) {
+            romanizedEvidenceObservations += 1;
+          } else {
+            unromanizedEvidenceObservations += 1;
+          }
+
           if (!group.seenEvidenceIds.has(obs.evidence.id)) {
             group.seenEvidenceIds.add(obs.evidence.id);
             group.evidenceList.push(obs.evidence);
             group.observationList.push(obs);
+            uniqueEvidenceObservationsAfterDeduplication += 1;
+          } else {
+            duplicateEvidenceObservationsRemoved += 1;
           }
         }
       },
       {
+        tracker: memoryTracker,
         maxRecords: options.maxRecords,
-        progressEvery: options.progressEvery ?? 10000,
-        onProgress: (p) => {
-          if (process.stdout && process.stdout.isTTY) {
-            process.stdout.write(
-              `\r[Progress] Rows: ${p.rowsRead.toLocaleString()} | Distinct forms: ${normalizedMap.size.toLocaleString()} | RSS: ${p.currentRssMb} MB`
-            );
-          }
-        }
+        progressEvery: options.progressEvery
       }
     );
 
-    if (process.stdout && process.stdout.isTTY) {
-      process.stdout.write('\n');
-    }
+    memoryTracker.sample();
 
-    const durationMs = Date.now() - startTime;
-    const peakRssMb = memoryTracker.getPeakRssMb();
-    const endRssMb = memoryTracker.getEndRssMb();
-
-    // 3. Candidate Synthesis, Interpretation & Consensus Aggregation
+    // 3. Candidate Synthesis, Scheme Interpretation, Consensus & Fallback Filtering
     let classicalDariObservations = 0;
     let iranianObservations = 0;
     let unclassifiedObservations = 0;
@@ -266,6 +285,9 @@ export class KaikkiScaleExperimentRunner {
     let candidatesWith2Obs = 0;
     let candidatesWith3PlusObs = 0;
     let literalDuplicateObservationsCount = 0;
+    let sameRomanizationAcrossDistinctRecordsCount = 0;
+    let sameNormalizedFormWithMultipleObservationsCount = 0;
+    let evidenceReductionIfDuplicatesCollapsed = 0;
 
     const posYieldMap = new Map<string, { sourceForms: number; eligibleForms: number }>();
     let properNameSourceCount = 0;
@@ -276,11 +298,14 @@ export class KaikkiScaleExperimentRunner {
     const eligibleEntries: Record<string, EvidenceFallbackEntry> = {};
     const packVersion = options.packVersion ?? '1.0.0';
 
-    // Track samples
-    const crossProfileSamples: EvidenceFallbackEntry[] = [];
-    const multiObservationSamples: EvidenceFallbackEntry[] = [];
-    const singleObservationSamples: EvidenceFallbackEntry[] = [];
-    const blockedSamplesByKind: Record<string, { normalizedForm: string; reason: string; romanizations: string[] }[]> = {};
+    // Sampling pools for deterministic hash-based sampling
+    const crossProfilePool: { item: EvidenceFallbackEntry; hash: string }[] = [];
+    const multiObservationPool: { item: EvidenceFallbackEntry; hash: string }[] = [];
+    const singleObservationPool: { item: EvidenceFallbackEntry; hash: string }[] = [];
+    const blockedSamplePoolsByKind: Record<
+      string,
+      { item: { normalizedForm: string; reason: string; romanizations: string[] }; hash: string }[]
+    > = {};
 
     let normalizationCollisions = 0;
     for (const group of normalizedMap.values()) {
@@ -302,6 +327,15 @@ export class KaikkiScaleExperimentRunner {
         properNameSourceCount += 1;
       }
 
+      const obsCount = group.observationList.length;
+      if (obsCount === 1) candidatesWith1Obs += 1;
+      else if (obsCount === 2) candidatesWith2Obs += 1;
+      else if (obsCount >= 3) candidatesWith3PlusObs += 1;
+
+      if (obsCount >= 2) {
+        sameNormalizedFormWithMultipleObservationsCount += 1;
+      }
+
       if (group.evidenceList.length === 0) {
         totalFallbackIneligibleCandidates += 1;
         noInterpretableEvidenceCandidates += 1;
@@ -314,22 +348,41 @@ export class KaikkiScaleExperimentRunner {
         { entityType: 'WORD' }
       );
 
-      // Duplicate observation check
-      const obsCount = group.observationList.length;
-      if (obsCount === 1) candidatesWith1Obs += 1;
-      else if (obsCount === 2) candidatesWith2Obs += 1;
-      else candidatesWith3PlusObs += 1;
+      const analysis = this.aggregator.analyzeCandidate(candidate, group.observationList, this.interpreter);
+      const interpByEvidenceId = new Map(analysis.interpretations.map((i) => [i.evidenceId, i]));
 
-      const seenSemanticObs = new Set<string>();
+      // Duplicate semantic evidence audit
+      const seenLiteralKeys = new Set<string>();
+      const romToSourceRecords = new Map<string, Set<string>>();
+
       for (const obs of group.observationList) {
-        const key = `${obs.rawSourceWord}|${obs.evidence.observedRomanization}|${obs.metadata.varietyTags.join(',')}`;
-        if (seenSemanticObs.has(key)) {
+        const interp = interpByEvidenceId.get(obs.evidence.id);
+        const profile = interp?.sourceProfile ?? 'UNCLASSIFIED';
+        const rom = obs.evidence.observedRomanization ?? '';
+        const literalKey = `${obs.evidence.sourceRecordId ?? ''}|${rom}|${profile}`;
+
+        if (seenLiteralKeys.has(literalKey)) {
           literalDuplicateObservationsCount += 1;
         }
-        seenSemanticObs.add(key);
+        seenLiteralKeys.add(literalKey);
+
+        if (rom.trim().length > 0 && obs.evidence.sourceRecordId) {
+          const recs = romToSourceRecords.get(rom) ?? new Set<string>();
+          recs.add(obs.evidence.sourceRecordId);
+          romToSourceRecords.set(rom, recs);
+        }
       }
 
-      const analysis = this.aggregator.analyzeCandidate(candidate, group.observationList, this.interpreter);
+      for (const recs of romToSourceRecords.values()) {
+        if (recs.size > 1) {
+          sameRomanizationAcrossDistinctRecordsCount += 1;
+        }
+      }
+
+      const reduction = group.observationList.length - seenLiteralKeys.size;
+      if (reduction > 0) {
+        evidenceReductionIfDuplicatesCollapsed += reduction;
+      }
 
       // Profile observations count
       for (const interp of analysis.interpretations) {
@@ -349,16 +402,20 @@ export class KaikkiScaleExperimentRunner {
           const count = blockerCounts.get(blocker.kind) ?? 0;
           blockerCounts.set(blocker.kind, count + 1);
 
-          if (!blockedSamplesByKind[blocker.kind]) {
-            blockedSamplesByKind[blocker.kind] = [];
+          if (!blockedSamplePoolsByKind[blocker.kind]) {
+            blockedSamplePoolsByKind[blocker.kind] = [];
           }
-          if (blockedSamplesByKind[blocker.kind].length < 25) {
-            blockedSamplesByKind[blocker.kind].push({
+          const sampleHash = computeSampleHash(
+            `${group.normalizedForm}|${blocker.kind}|${interp.evidenceId}|${interp.rawObservedRomanization ?? ''}`
+          );
+          blockedSamplePoolsByKind[blocker.kind].push({
+            item: {
               normalizedForm: group.normalizedForm,
               reason: blocker.reason,
               romanizations: group.observationList.map((o) => o.evidence.observedRomanization ?? '')
-            });
-          }
+            },
+            hash: sampleHash
+          });
         }
       }
 
@@ -471,21 +528,24 @@ export class KaikkiScaleExperimentRunner {
 
       eligibleEntries[candidate.normalizedForm] = entry;
 
-      if (confidenceTier === 'CROSS_PROFILE_CONSENSUS' && crossProfileSamples.length < 25) {
-        crossProfileSamples.push(entry);
-      } else if (confidenceTier === 'MULTI_OBSERVATION_CONSENSUS' && multiObservationSamples.length < 25) {
-        multiObservationSamples.push(entry);
-      } else if (confidenceTier === 'SINGLE_OBSERVATION_DETERMINISTIC' && singleObservationSamples.length < 25) {
-        singleObservationSamples.push(entry);
+      const sampleHash = computeSampleHash(`${candidate.normalizedForm}|${entry.hypothesis}|${confidenceTier}`);
+      if (confidenceTier === 'CROSS_PROFILE_CONSENSUS') {
+        crossProfilePool.push({ item: entry, hash: sampleHash });
+      } else if (confidenceTier === 'MULTI_OBSERVATION_CONSENSUS') {
+        multiObservationPool.push({ item: entry, hash: sampleHash });
+      } else if (confidenceTier === 'SINGLE_OBSERVATION_DETERMINISTIC') {
+        singleObservationPool.push({ item: entry, hash: sampleHash });
       }
     }
+
+    memoryTracker.sample();
 
     // 4. Reviewed Lexicon Overlap Analysis (Strictly READ-ONLY)
     let reviewedOverlapCount = 0;
     let exactCanonicalMatches = 0;
     let canonicalDivergences = 0;
-    const divergenceSamples: ReviewedDivergenceSample[] = [];
-    const reviewedMatchSamples: { normalizedForm: string; canonical: string }[] = [];
+    const divergencePool: { item: ReviewedDivergenceSample; hash: string }[] = [];
+    const reviewedMatchPool: { item: { normalizedForm: string; canonical: string }; hash: string }[] = [];
     const novelEligibleEntries: Record<string, EvidenceFallbackEntry> = {};
 
     for (const [normForm, entry] of Object.entries(eligibleEntries)) {
@@ -494,20 +554,22 @@ export class KaikkiScaleExperimentRunner {
         reviewedOverlapCount += 1;
         const lexCanonicals = lexEntry.readings.map((r) => r.canonical.toLowerCase());
         const hypLower = entry.hypothesis.toLowerCase();
+        const hash = computeSampleHash(`${normForm}|${entry.hypothesis}`);
         if (lexCanonicals.includes(hypLower)) {
           exactCanonicalMatches += 1;
-          if (reviewedMatchSamples.length < 25) {
-            reviewedMatchSamples.push({ normalizedForm: normForm, canonical: entry.hypothesis });
-          }
+          reviewedMatchPool.push({ item: { normalizedForm: normForm, canonical: entry.hypothesis }, hash });
         } else {
           canonicalDivergences += 1;
-          divergenceSamples.push({
-            persianForm: Array.from(normalizedMap.get(normForm)?.rawWords ?? [])[0] ?? normForm,
-            normalizedForm: normForm,
-            reviewedCanonical: lexEntry.readings[0]?.canonical ?? '',
-            evidenceHypothesis: entry.hypothesis,
-            confidenceTier: entry.confidenceTier,
-            sourceProfiles: entry.sourceProfiles
+          divergencePool.push({
+            item: {
+              persianForm: Array.from(normalizedMap.get(normForm)?.rawWords ?? [])[0] ?? normForm,
+              normalizedForm: normForm,
+              reviewedCanonical: lexEntry.readings[0]?.canonical ?? '',
+              evidenceHypothesis: entry.hypothesis,
+              confidenceTier: entry.confidenceTier,
+              sourceProfiles: entry.sourceProfiles
+            },
+            hash
           });
         }
       } else {
@@ -516,7 +578,7 @@ export class KaikkiScaleExperimentRunner {
     }
 
     const divergenceRate =
-      reviewedOverlapCount > 0 ? Math.round((canonicalDivergences / reviewedOverlapCount) * 10000) / 100 : 0;
+      reviewedOverlapCount > 0 ? Math.round((canonicalDivergences / reviewedOverlapCount) * 10000) / 100 : null;
 
     // 5. Deterministic Sort and Semantic Hash Computation
     const sortedEligibleKeys = Object.keys(eligibleEntries).sort();
@@ -577,9 +639,9 @@ export class KaikkiScaleExperimentRunner {
     const novelGzipBytes = zlib.gzipSync(Buffer.from(novelJson, 'utf8')).length;
 
     const fullPackBytesPerEntry =
-      sortedEligibleKeys.length > 0 ? Math.round(fullPackBytes / sortedEligibleKeys.length) : 0;
+      sortedEligibleKeys.length > 0 ? Math.round(fullPackBytes / sortedEligibleKeys.length) : null;
     const novelPackBytesPerEntry =
-      sortedNovelKeys.length > 0 ? Math.round(novelPackBytes / sortedNovelKeys.length) : 0;
+      sortedNovelKeys.length > 0 ? Math.round(novelPackBytes / sortedNovelKeys.length) : null;
 
     const experimentalPacks: ExperimentalPackGenerationResult = {
       fullPackPath,
@@ -599,6 +661,11 @@ export class KaikkiScaleExperimentRunner {
     const experimentalFallbackRepo = new EvidenceFallbackRepository(fullPack);
     const corpusEvaluations = this.evaluateInternalCorpora(experimentalFallbackRepo, options.evaluationCorpusPath);
 
+    memoryTracker.sample();
+    const durationMs = Date.now() - startTime;
+    const peakRssMb = memoryTracker.getPeakRssMb();
+    const endRssMb = memoryTracker.getEndRssMb();
+
     // 8. Performance stage report
     const fullPerformanceStage: ScalePerformanceStage = {
       stageName: 'FULL_DATASET',
@@ -617,9 +684,9 @@ export class KaikkiScaleExperimentRunner {
         blockerKind: kind,
         count,
         percentageOfBlockedInterpretations:
-          totalBlockedInterpretations > 0 ? Math.round((count / totalBlockedInterpretations) * 10000) / 100 : 0,
+          totalBlockedInterpretations > 0 ? Math.round((count / totalBlockedInterpretations) * 10000) / 100 : null,
         percentageOfTotalInterpretationAttempts:
-          totalInterpretationAttempts > 0 ? Math.round((count / totalInterpretationAttempts) * 10000) / 100 : 0
+          totalInterpretationAttempts > 0 ? Math.round((count / totalInterpretationAttempts) * 10000) / 100 : null
       }))
       .sort((a, b) => b.count - a.count);
 
@@ -629,16 +696,16 @@ export class KaikkiScaleExperimentRunner {
     const profileDistribution: ProfileClassificationDistribution = {
       classicalDariCount: classicalDariObservations,
       classicalDariPercentage:
-        totalProfileObs > 0 ? Math.round((classicalDariObservations / totalProfileObs) * 10000) / 100 : 0,
+        totalProfileObs > 0 ? Math.round((classicalDariObservations / totalProfileObs) * 10000) / 100 : null,
       iranianCount: iranianObservations,
       iranianPercentage:
-        totalProfileObs > 0 ? Math.round((iranianObservations / totalProfileObs) * 10000) / 100 : 0,
+        totalProfileObs > 0 ? Math.round((iranianObservations / totalProfileObs) * 10000) / 100 : null,
       unclassifiedCount: unclassifiedObservations,
       unclassifiedPercentage:
-        totalProfileObs > 0 ? Math.round((unclassifiedObservations / totalProfileObs) * 10000) / 100 : 0,
+        totalProfileObs > 0 ? Math.round((unclassifiedObservations / totalProfileObs) * 10000) / 100 : null,
       conflictingCount: conflictingObservations,
       conflictingPercentage:
-        totalProfileObs > 0 ? Math.round((conflictingObservations / totalProfileObs) * 10000) / 100 : 0
+        totalProfileObs > 0 ? Math.round((conflictingObservations / totalProfileObs) * 10000) / 100 : null
     };
 
     // 11. Candidate Profile Combinations
@@ -654,11 +721,11 @@ export class KaikkiScaleExperimentRunner {
     const totalEligible = sortedEligibleKeys.length;
     const confidenceTiers: ConfidenceTierDistribution = {
       crossProfileConsensus: tierCrossProfile,
-      crossProfilePercentage: totalEligible > 0 ? Math.round((tierCrossProfile / totalEligible) * 10000) / 100 : 0,
+      crossProfilePercentage: totalEligible > 0 ? Math.round((tierCrossProfile / totalEligible) * 10000) / 100 : null,
       multiObservationConsensus: tierMultiObs,
-      multiObservationPercentage: totalEligible > 0 ? Math.round((tierMultiObs / totalEligible) * 10000) / 100 : 0,
+      multiObservationPercentage: totalEligible > 0 ? Math.round((tierMultiObs / totalEligible) * 10000) / 100 : null,
       singleObservationDeterministic: tierSingleObs,
-      singleObservationPercentage: totalEligible > 0 ? Math.round((tierSingleObs / totalEligible) * 10000) / 100 : 0
+      singleObservationPercentage: totalEligible > 0 ? Math.round((tierSingleObs / totalEligible) * 10000) / 100 : null
     };
 
     // 13. POS Distribution
@@ -667,7 +734,7 @@ export class KaikkiScaleExperimentRunner {
         pos,
         sourceForms: data.sourceForms,
         eligibleFallbackForms: data.eligibleForms,
-        eligibilityRate: data.sourceForms > 0 ? Math.round((data.eligibleForms / data.sourceForms) * 10000) / 100 : 0
+        eligibilityRate: data.sourceForms > 0 ? Math.round((data.eligibleForms / data.sourceForms) * 10000) / 100 : null
       }))
       .sort((a, b) => b.sourceForms - a.sourceForms);
 
@@ -684,7 +751,10 @@ export class KaikkiScaleExperimentRunner {
       candidatesWith1Obs,
       candidatesWith2Obs,
       candidatesWith3PlusObs,
-      literalDuplicateObservationsCount
+      literalDuplicateObservationsCount,
+      sameRomanizationAcrossDistinctRecordsCount,
+      sameNormalizedFormWithMultipleObservationsCount,
+      evidenceReductionIfDuplicatesCollapsed
     };
 
     // 16. Reviewed Overlap Analysis
@@ -695,7 +765,7 @@ export class KaikkiScaleExperimentRunner {
       exactCanonicalMatches,
       canonicalDivergences,
       divergenceRate,
-      divergenceSamples: divergenceSamples.slice(0, 50)
+      divergenceSamples: divergencePool.sort((a, b) => a.hash.localeCompare(b.hash)).slice(0, 50).map((d) => d.item)
     };
 
     const yieldFunnel: KaikkiScaleYieldFunnel = {
@@ -710,7 +780,12 @@ export class KaikkiScaleExperimentRunner {
       unknownLemmaStatusRecords,
       recordsWithRomanization,
       recordsWithoutRomanization,
-      romanizationObservationCount,
+      totalExtractedEvidenceObservations,
+      romanizedEvidenceObservations,
+      unromanizedEvidenceObservations,
+      uniqueEvidenceObservationsAfterDeduplication,
+      duplicateEvidenceObservationsRemoved,
+      totalInterpretationAttempts,
       recordsWithIpa,
       recordsWithPos,
       properNameRecords,
@@ -731,13 +806,22 @@ export class KaikkiScaleExperimentRunner {
       totalFallbackIneligibleCandidates
     };
 
+    // Deterministic hash-based sampling
+    const blockedSamplesByKind: Record<string, { normalizedForm: string; reason: string; romanizations: string[] }[]> = {};
+    for (const [kind, pool] of Object.entries(blockedSamplePoolsByKind)) {
+      blockedSamplesByKind[kind] = pool
+        .sort((a, b) => a.hash.localeCompare(b.hash))
+        .slice(0, 25)
+        .map((p) => p.item);
+    }
+
     const auditSamples: ScaleAuditSamples = {
-      crossProfileSamples: crossProfileSamples.slice(0, 25),
-      multiObservationSamples: multiObservationSamples.slice(0, 25),
-      singleObservationSamples: singleObservationSamples.slice(0, 25),
+      crossProfileSamples: crossProfilePool.sort((a, b) => a.hash.localeCompare(b.hash)).slice(0, 25).map((p) => p.item),
+      multiObservationSamples: multiObservationPool.sort((a, b) => a.hash.localeCompare(b.hash)).slice(0, 25).map((p) => p.item),
+      singleObservationSamples: singleObservationPool.sort((a, b) => a.hash.localeCompare(b.hash)).slice(0, 25).map((p) => p.item),
       blockedSamplesByKind,
-      reviewedMatchSamples: reviewedMatchSamples.slice(0, 25),
-      reviewedDivergenceSamples: divergenceSamples.slice(0, 50)
+      reviewedMatchSamples: reviewedMatchPool.sort((a, b) => a.hash.localeCompare(b.hash)).slice(0, 25).map((p) => p.item),
+      reviewedDivergenceSamples: divergencePool.sort((a, b) => a.hash.localeCompare(b.hash)).slice(0, 50).map((p) => p.item)
     };
 
     return {

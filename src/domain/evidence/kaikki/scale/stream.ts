@@ -16,6 +16,7 @@ export interface StreamProcessingProgress {
 export interface StreamProcessingOptions {
   maxRecords?: number;
   progressEvery?: number;
+  tracker?: StreamingMemoryTracker;
   onProgress?: (progress: StreamProcessingProgress) => void;
 }
 
@@ -46,7 +47,8 @@ export class StreamingMemoryTracker {
   }
 
   public getEndRssMb(): number {
-    return Math.round((process.memoryUsage().rss / (1024 * 1024)) * 100) / 100;
+    const end = this.sample();
+    return Math.round((end / (1024 * 1024)) * 100) / 100;
   }
 }
 
@@ -71,7 +73,7 @@ export async function forEachJsonlRow(
   onRow: (rowNumber: number, line: string) => Promise<void> | void,
   options: StreamProcessingOptions = {}
 ): Promise<{ totalRows: number; memoryTracker: StreamingMemoryTracker }> {
-  const tracker = new StreamingMemoryTracker();
+  const tracker = options.tracker ?? new StreamingMemoryTracker();
   const inputStream = createKaikkiInputStream(filePath);
   const rl = readline.createInterface({
     input: inputStream,

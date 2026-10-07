@@ -1,6 +1,6 @@
 # Phase 7D: Production-Scale Lexical Knowledge Pack Experiment Report
 
-**Execution Date:** 2026-10-07T17:09:36.178Z  
+**Execution Date:** 2026-10-07T17:22:11.646Z  
 **Experiment Version:** 1.0.0  
 **Dataset:** `kaikki.org-dictionary-Persian.jsonl` (88.93 MB)  
 **Input SHA-256:** `f1647707c1bcbb7b18d355f7481ac4c656fa1ff8d91d93a0dbc6bb2e808d06c2`  
@@ -20,21 +20,36 @@ Phase 7D is an **empirical scale experiment** observing the behavior of the comp
 - **Production Fallback Pack Modified:** `NO` (remains strictly pilot pack `kaikki-fallback.v1.json`)
 - **Linguistic Rules Changed or Loosened:** `ZERO` (Phase 7B rules observed strictly as-is)
 
+### Source Provenance Record
+| Provenance Field | Value | Verification / Status |
+| :--- | :--- | :--- |
+| **Source Edition** | `enwiktionary` | Verified format |
+| **Source Language** | `Persian (fa)` | Verified language filter (`fa` / `Persian`) |
+| **Source URL** | `https://kaikki.org/dictionary/Persian/kaikki.org-dictionary-Persian.jsonl` | `EXPLICITLY_SUPPLIED` |
+| **Wiktionary Dump Date** | `2026-09-02` | `EXPLICITLY_SUPPLIED` |
+| **Kaikki Extraction Date** | `2026-10-03` | `EXPLICITLY_SUPPLIED` |
+| **Wiktextract Version** | `wiktextract 1.99.x` | `EXPLICITLY_SUPPLIED` |
+
+*Note: Source metadata fields were explicitly supplied via CLI options where indicated.*
+
 ---
 
 ## 2. Staged Performance & Memory Profiling
 
 | Stage | Rows Processed | Duration | Speed | Start RSS | Peak RSS | End RSS | Eligible Entries |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **STAGE_1K** | 1,000 | 0.29s | 3,460.21 rows/s | 93.35 MB | 99.86 MB | 99.86 MB | 0 |
-| **STAGE_10K** | 10,000 | 2.12s | 4,716.98 rows/s | 124.2 MB | 163.25 MB | 163.26 MB | 0 |
-| **FULL_DATASET** | 20,288 | 3.84s | 5,283.33 rows/s | 173.46 MB | 202.65 MB | 202.65 MB | 0 |
+| **STAGE_1K** | 1,000 | 0.37s | 2,702.7 rows/s | 95.11 MB | 109.66 MB | 109.66 MB | 0 |
+| **STAGE_10K** | 10,000 | 3.27s | 3,056.23 rows/s | 121.6 MB | 166.52 MB | 166.52 MB | 0 |
+| **FULL_DATASET** | 20,288 | 4.17s | 4,867.56 rows/s | 187.78 MB | 264.14 MB | 264.14 MB | 0 |
+
+**Memory Scaling Behavior:** Observed peak RSS at 1k / 10k / full dataset was 109.66 MB / 166.52 MB / 264.14 MB. Memory scales primarily with the count of retained distinct normalized Persian forms and their associated lexical evidence observations. Peak RSS strictly satisfies `peakRSS >= startRSS` and `peakRSS >= endRSS` across all stages.
 
 ---
 
 ## 3. Complete Lexical Acquisition Yield Funnel
 
-| Metric | Count | % of Raw Records |
+### Source Records Breakdown
+| Metric | Count | % of Valid Records |
 | :--- | :--- | :--- |
 | **Physical JSONL Rows Read** | 20,288 | 100.00% |
 | **Malformed Rows** | 0 | 0.00% |
@@ -45,31 +60,40 @@ Phase 7D is an **empirical scale experiment** observing the behavior of the comp
 | **Lemma Records** | 16,511 | 81.38% |
 | **Non-Lemma Records** | 3,440 | 16.96% |
 | **Unknown Lemma Status Records** | 337 | 1.66% |
-| **Records with Romanization** | 20,288 | 100.00% |
-| **Records without Romanization** | 0 | 0.00% |
-| **Total Romanization Observations** | 26,998 | - |
+| **Records with Source Romanization** | 19,751 | 97.35% |
+| **Records without Source Romanization** | 537 | 2.65% |
 | **Records with IPA** | 15,011 | 73.99% |
 | **Records with Part of Speech (POS)** | 20,288 | 100.00% |
 | **Proper-Name Records** | 1,957 | 9.65% |
+
+### Observation Accounting Funnel
+| Step | Count | Note / Reconciliation |
+| :--- | :--- | :--- |
+| **Total Extracted Evidence Observations** | 26,998 | 100.00% of observations |
+| ├─ **Romanized Evidence Observations** | 26,461 | 98.01% |
+| └─ **Unromanized Evidence Observations** | 537 | 1.99% |
+| **Unique Observations after Group Deduplication** | 26,962 | Basis for interpretation attempts |
+| **Duplicate Evidence Observations Removed** | 36 | Deduplicated within same normalized form |
+| **Total Interpretation Attempts** | 26,962 | Reconciled: Unique (26,962) + Duplicates (36) = Total (26,998) |
 
 ---
 
 ## 4. Phase 7B Scheme Interpretation & Consensus Funnel
 
-### Source-Profile Distribution of Romanizations
+### Source-Profile Distribution of Observations *(Denominator: Total Interpretation Attempts = 26,962)*
 - **CLASSICAL_DARI Observations:** 0 (0%)
 - **IRANIAN Observations:** 0 (0%)
 - **UNCLASSIFIED Observations:** 26,962 (100%)
 - **CONFLICTING Observations:** 0 (0%)
 
-### Candidate Profile Combinations
+### Candidate Profile Combinations *(Denominator: Distinct Normalized Forms = 17,598)*
 - **Classical Only:** 0
 - **Iranian Only:** 0
 - **Cross-Profile Convergence:** 0
 - **Unclassified Only:** 17,598
 - **Mixed Classified / Unclassified:** 0
 
-### Candidate Consensus Distribution
+### Candidate Consensus Distribution *(Denominator: Distinct Normalized Forms = 17,598)*
 - **UNANIMOUS_DETERMINISTIC:** 0
 - **CONFLICTING_DETERMINISTIC:** 0
 - **PARTIAL:** 0
@@ -97,9 +121,9 @@ Phase 7D is an **empirical scale experiment** observing the behavior of the comp
 
 | Tier | Eligible Entries | Percentage |
 | :--- | :--- | :--- |
-| **CROSS_PROFILE_CONSENSUS** | 0 | 0% |
-| **MULTI_OBSERVATION_CONSENSUS** | 0 | 0% |
-| **SINGLE_OBSERVATION_DETERMINISTIC** | 0 | 0% |
+| **CROSS_PROFILE_CONSENSUS** | 0 | N/A |
+| **MULTI_OBSERVATION_CONSENSUS** | 0 | N/A |
+| **SINGLE_OBSERVATION_DETERMINISTIC** | 0 | N/A |
 
 ---
 
@@ -109,7 +133,7 @@ Phase 7D is an **empirical scale experiment** observing the behavior of the comp
 - **Reviewed Lexicon Overlap:** 0
 - **Exact Canonical Matches:** 0
 - **Canonical Divergences:** 0
-- **Divergence Rate:** **0%**
+- **Divergence Rate:** **N/A**
 
 ### Sample Divergences (Read-Only Audit Sample)
 | Persian Form | Normalized | Reviewed Lexicon | Wiktionary Fallback Hypothesis | Confidence Tier |
@@ -145,7 +169,10 @@ Phase 7D is an **empirical scale experiment** observing the behavior of the comp
 - **Candidates with 1 Observation:** 11,125
 - **Candidates with 2 Observations:** 5,124
 - **Candidates with 3+ Observations:** 1,349
-- **Literal Duplicate Observations Count:** 1,011
+- **Literal Duplicate Observations Count:** 7
+- **Same Romanization Across Distinct Source Records:** 2,244
+- **Distinct Normalized Forms with Multiple Observations:** 6,473
+- **Candidate Evidence Count Reduction if Semantic Duplicates Collapsed:** 7
 
 ---
 
@@ -153,8 +180,8 @@ Phase 7D is an **empirical scale experiment** observing the behavior of the comp
 
 | Pack Artifact | Entries | Raw JSON Size | Gzip Compressed | Bytes / Entry |
 | :--- | :--- | :--- | :--- | :--- |
-| **Full Fallback Pack** | 0 | 0.00 MB (443 B) | 0.00 MB | 0 B |
-| **Novel-Only Pack** | 0 | 0.00 MB (443 B) | 0.00 MB | 0 B |
+| **Full Fallback Pack** | 0 | 0.00 MB (443 B) | 0.00 MB | N/A |
+| **Novel-Only Pack** | 0 | 0.00 MB (443 B) | 0.00 MB | N/A |
 
 ---
 
@@ -177,17 +204,16 @@ Phase 7D is an **empirical scale experiment** observing the behavior of the comp
 
 ---
 
-## 12. Top 10 Bottlenecks & Next-Phase Recommendations
+## 12. Top Bottlenecks & Next-Phase Recommendations
 
 ### Top Bottlenecks by Empirical Measurement
 1. **`UNCLASSIFIED_WIKTIONARY_PROFILE`** (22,506 occurrences, 83.47% of blocked interpretations)
 2. **`NON_LEMMA_SOURCE_FORM`** (3,919 occurrences, 14.54% of blocked interpretations)
 3. **`NO_ROMANIZATION`** (537 occurrences, 1.99% of blocked interpretations)
 
-### Recommended Next Interventions
-1. **Dialect & Profile Metadata Enrichment:** The single largest blocker is unclassified Wiktionary romanizations (lacking explicit Classical/Dari or Iranian variety tags). Future phases can implement source-aware variety tag propagation from phonetic sound blocks where safe.
-2. **Ambiguous Final Heh / Silent Heh Disambiguation:** Final silent heh (`-ah` / `-eh` vs `-ih`) accounts for significant blocked yield. A dedicated orthographic rule for classical silent heh will recover thousands of nouns and adjectives.
-3. **Dedicated Proper-Name Authority Pipeline:** Proper names (persons, places) represent a large cohort with strong external romanizations. A specialized proper-name subsystem with title-profile capitalization will expand entity coverage.
-4. **Browser Pack Architecture Recommendation:** Because the full pack is ~0.0MB (~0.00MB gzipped), the recommendation is:
-   - **For client-side offline bundle:** Deliver the compressed **Novel-Only Pack** or indexed prefix shards.
-   - **For web runtime:** Deliver via streaming SQLite / IndexedDB cache or dynamic chunking.
+### Recommended Next Interventions (Strictly Data-Derived)
+1. **Dialect & Profile Metadata Enrichment:** English Wiktionary raw form objects generally omit explicit dialect tags on romanization fields in isolation. Consequently, `UNCLASSIFIED_WIKTIONARY_PROFILE` represents **83.47%** of all blocked attempts. Future phases can investigate propagating verified variety tags from phonetic sound blocks or template parameters where safe.
+2. **Non-Lemma Morphological Normalization:** `NON_LEMMA_SOURCE_FORM` accounts for **14.54%** of blocked attempts. Linking inflected forms to established lemma roots will unlock substantial vocabulary.
+3. **Source Missing Romanization:** `NO_ROMANIZATION` accounts for **1.99%** of blocked attempts where entries contain only Persian text or IPA without Latin transliteration.
+4. **Proper-Name Subsystem:** Proper nouns constitute **1,938** distinct forms with strong source romanizations; a specialized proper-name subsystem will expand entity coverage.
+5. **Browser Pack Architecture Recommendation:** Production pack delivery architecture is **UNDETERMINED** at the strict Phase 7D baseline, because zero entries passed eligibility under the unclassified profile blocker. Delivery feasibility (bundled JSON vs. sharded index) should be evaluated after profile enrichment produces a representative non-empty fallback pack.
