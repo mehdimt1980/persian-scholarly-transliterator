@@ -2,3 +2,10 @@ node_modules
 .next
 coverage
 *.tsbuildinfo
+
+# Local acquisition dumps and pilot artifacts
+*.dump.jsonl
+*.acquisition.json
+data/kaikki/
+artifacts/kaikki/
+!src/domain/evidence/kaikki/fixtures/*.jsonl
