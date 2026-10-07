@@ -356,6 +356,9 @@ export function extractKaikkiObservations(
       metadata: {
         ...baseMetadata,
         romanizationTags: rom.tags,
+        romanizationRawTags: rom.rawTags,
+        romanizationSource: rom.source,
+        romanizationHeadNr: rom.headNr,
         sourceFormIndex: rom.sourceFormIndex
       },
       rawSourceWord: rawWord,

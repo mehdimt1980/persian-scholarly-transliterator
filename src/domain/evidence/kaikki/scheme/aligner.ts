@@ -11,11 +11,29 @@
 import { PERSIAN_CONSONANT_MAPPINGS } from '../../../../data/ijmes-mappings';
 import type { KaikkiSchemeInterpretationBlocker, WiktionaryPersianRomanizationProfile } from './types';
 
+export type WiktionaryAlignmentRole =
+  | 'CONSONANT'
+  | 'SHORT_VOWEL'
+  | 'LONG_VOWEL'
+  | 'DIPHTHONG'
+  | 'CARRIER_OR_DIACRITIC';
+
+export interface WiktionaryAlignmentSlot {
+  persianSpan: [number, number];
+  persianGraphemes: string;
+  sourceSpan: [number, number];
+  sourceUnit: string;
+  targetUnit: string;
+  appliedRuleId: string;
+  role: WiktionaryAlignmentRole;
+}
+
 export interface WiktionaryAlignmentResult {
   success: boolean;
   targetHypothesis: string | null;
   appliedRuleIds: string[];
   blockers: KaikkiSchemeInterpretationBlocker[];
+  trace?: WiktionaryAlignmentSlot[];
 }
 
 /**
@@ -174,6 +192,7 @@ export function alignAndTransduceWiktionary(params: {
   let rIdx = 0;
   let targetOutput = '';
   const appliedRules = new Set<string>();
+  const trace: WiktionaryAlignmentSlot[] = [];
 
   while (pIdx < pChars.length && rIdx < rStr.length) {
     const pChar = pChars[pIdx];
@@ -182,12 +201,21 @@ export function alignAndTransduceWiktionary(params: {
     if (pChar === 'آ') {
       const romChar = rStr[rIdx];
       if (romChar === 'â' || romChar === 'ā' || romChar === 'a') {
-        targetOutput += 'ā';
-        appliedRules.add(
+        const rule =
           sourceProfile === 'IRANIAN'
             ? 'WIKT_IRANIAN_LONG_A_TO_IJMES_A_MACRON'
-            : 'WIKT_CLASSICAL_LONG_A'
-        );
+            : 'WIKT_CLASSICAL_LONG_A';
+        targetOutput += 'ā';
+        appliedRules.add(rule);
+        trace.push({
+          persianSpan: [pIdx, pIdx + 1],
+          persianGraphemes: 'آ',
+          sourceSpan: [rIdx, rIdx + 1],
+          sourceUnit: romChar,
+          targetUnit: 'ā',
+          appliedRuleId: rule,
+          role: 'LONG_VOWEL'
+        });
         pIdx += 1;
         rIdx += 1;
         continue;
@@ -202,26 +230,56 @@ export function alignAndTransduceWiktionary(params: {
       // Initial Alif + Ya (ای)
       if (nextPChar === 'ی') {
         if (rStr.startsWith('ī', rIdx) || rStr.startsWith('i', rIdx)) {
-          targetOutput += 'ī';
-          appliedRules.add(
+          const rule =
             sourceProfile === 'IRANIAN'
               ? 'WIKT_IRANIAN_LONG_I_TO_IJMES_I_MACRON'
-              : 'WIKT_CLASSICAL_LONG_I'
-          );
+              : 'WIKT_CLASSICAL_LONG_I';
+          const srcUnit = rStr[rIdx];
+          targetOutput += 'ī';
+          appliedRules.add(rule);
+          trace.push({
+            persianSpan: [0, 2],
+            persianGraphemes: 'ای',
+            sourceSpan: [rIdx, rIdx + 1],
+            sourceUnit: srcUnit,
+            targetUnit: 'ī',
+            appliedRuleId: rule,
+            role: 'LONG_VOWEL'
+          });
           pIdx += 2;
           rIdx += 1;
           continue;
         }
         if (sourceProfile === 'IRANIAN' && rStr.startsWith('ey', rIdx)) {
+          const rule = 'WIKT_IRANIAN_DIPHTHONG_EY_TO_AY';
           targetOutput += 'ay';
-          appliedRules.add('WIKT_IRANIAN_DIPHTHONG_EY_TO_AY');
+          appliedRules.add(rule);
+          trace.push({
+            persianSpan: [0, 2],
+            persianGraphemes: 'ای',
+            sourceSpan: [rIdx, rIdx + 2],
+            sourceUnit: 'ey',
+            targetUnit: 'ay',
+            appliedRuleId: rule,
+            role: 'DIPHTHONG'
+          });
           pIdx += 2;
           rIdx += 2;
           continue;
         }
         if (sourceProfile === 'CLASSICAL_DARI' && rStr.startsWith('ay', rIdx)) {
+          const rule = 'WIKT_CLASSICAL_DIPHTHONG_AY';
           targetOutput += 'ay';
-          appliedRules.add('WIKT_CLASSICAL_DIPHTHONG_AY');
+          appliedRules.add(rule);
+          trace.push({
+            persianSpan: [0, 2],
+            persianGraphemes: 'ای',
+            sourceSpan: [rIdx, rIdx + 2],
+            sourceUnit: 'ay',
+            targetUnit: 'ay',
+            appliedRuleId: rule,
+            role: 'DIPHTHONG'
+          });
           pIdx += 2;
           rIdx += 2;
           continue;
@@ -231,26 +289,56 @@ export function alignAndTransduceWiktionary(params: {
       // Initial Alif + Vav (او)
       if (nextPChar === 'و') {
         if (rStr.startsWith('ū', rIdx) || rStr.startsWith('u', rIdx)) {
-          targetOutput += 'ū';
-          appliedRules.add(
+          const rule =
             sourceProfile === 'IRANIAN'
               ? 'WIKT_IRANIAN_LONG_U_TO_IJMES_U_MACRON'
-              : 'WIKT_CLASSICAL_LONG_U'
-          );
+              : 'WIKT_CLASSICAL_LONG_U';
+          const srcUnit = rStr[rIdx];
+          targetOutput += 'ū';
+          appliedRules.add(rule);
+          trace.push({
+            persianSpan: [0, 2],
+            persianGraphemes: 'او',
+            sourceSpan: [rIdx, rIdx + 1],
+            sourceUnit: srcUnit,
+            targetUnit: 'ū',
+            appliedRuleId: rule,
+            role: 'LONG_VOWEL'
+          });
           pIdx += 2;
           rIdx += 1;
           continue;
         }
         if (sourceProfile === 'IRANIAN' && rStr.startsWith('ow', rIdx)) {
+          const rule = 'WIKT_IRANIAN_DIPHTHONG_OW_TO_AW';
           targetOutput += 'aw';
-          appliedRules.add('WIKT_IRANIAN_DIPHTHONG_OW_TO_AW');
+          appliedRules.add(rule);
+          trace.push({
+            persianSpan: [0, 2],
+            persianGraphemes: 'او',
+            sourceSpan: [rIdx, rIdx + 2],
+            sourceUnit: 'ow',
+            targetUnit: 'aw',
+            appliedRuleId: rule,
+            role: 'DIPHTHONG'
+          });
           pIdx += 2;
           rIdx += 2;
           continue;
         }
         if (sourceProfile === 'CLASSICAL_DARI' && rStr.startsWith('aw', rIdx)) {
+          const rule = 'WIKT_CLASSICAL_DIPHTHONG_AW';
           targetOutput += 'aw';
-          appliedRules.add('WIKT_CLASSICAL_DIPHTHONG_AW');
+          appliedRules.add(rule);
+          trace.push({
+            persianSpan: [0, 2],
+            persianGraphemes: 'او',
+            sourceSpan: [rIdx, rIdx + 2],
+            sourceUnit: 'aw',
+            targetUnit: 'aw',
+            appliedRuleId: rule,
+            role: 'DIPHTHONG'
+          });
           pIdx += 2;
           rIdx += 2;
           continue;
@@ -261,22 +349,52 @@ export function alignAndTransduceWiktionary(params: {
       const romChar = rStr[rIdx];
       if (sourceProfile === 'IRANIAN') {
         if (romChar === 'a') {
+          const rule = 'WIKT_IRANIAN_SHORT_A';
           targetOutput += 'a';
-          appliedRules.add('WIKT_IRANIAN_SHORT_A');
+          appliedRules.add(rule);
+          trace.push({
+            persianSpan: [0, 1],
+            persianGraphemes: 'ا',
+            sourceSpan: [rIdx, rIdx + 1],
+            sourceUnit: 'a',
+            targetUnit: 'a',
+            appliedRuleId: rule,
+            role: 'SHORT_VOWEL'
+          });
           pIdx += 1;
           rIdx += 1;
           continue;
         }
         if (romChar === 'e') {
+          const rule = 'WIKT_IRANIAN_SHORT_E_TO_IJMES_I';
           targetOutput += 'i';
-          appliedRules.add('WIKT_IRANIAN_SHORT_E_TO_IJMES_I');
+          appliedRules.add(rule);
+          trace.push({
+            persianSpan: [0, 1],
+            persianGraphemes: 'ا',
+            sourceSpan: [rIdx, rIdx + 1],
+            sourceUnit: 'e',
+            targetUnit: 'i',
+            appliedRuleId: rule,
+            role: 'SHORT_VOWEL'
+          });
           pIdx += 1;
           rIdx += 1;
           continue;
         }
         if (romChar === 'o') {
+          const rule = 'WIKT_IRANIAN_SHORT_O_TO_IJMES_U';
           targetOutput += 'u';
-          appliedRules.add('WIKT_IRANIAN_SHORT_O_TO_IJMES_U');
+          appliedRules.add(rule);
+          trace.push({
+            persianSpan: [0, 1],
+            persianGraphemes: 'ا',
+            sourceSpan: [rIdx, rIdx + 1],
+            sourceUnit: 'o',
+            targetUnit: 'u',
+            appliedRuleId: rule,
+            role: 'SHORT_VOWEL'
+          });
           pIdx += 1;
           rIdx += 1;
           continue;
@@ -287,22 +405,52 @@ export function alignAndTransduceWiktionary(params: {
 
       if (sourceProfile === 'CLASSICAL_DARI') {
         if (romChar === 'a') {
+          const rule = 'WIKT_CLASSICAL_SHORT_A';
           targetOutput += 'a';
-          appliedRules.add('WIKT_CLASSICAL_SHORT_A');
+          appliedRules.add(rule);
+          trace.push({
+            persianSpan: [0, 1],
+            persianGraphemes: 'ا',
+            sourceSpan: [rIdx, rIdx + 1],
+            sourceUnit: 'a',
+            targetUnit: 'a',
+            appliedRuleId: rule,
+            role: 'SHORT_VOWEL'
+          });
           pIdx += 1;
           rIdx += 1;
           continue;
         }
         if (romChar === 'i') {
+          const rule = 'WIKT_CLASSICAL_SHORT_I';
           targetOutput += 'i';
-          appliedRules.add('WIKT_CLASSICAL_SHORT_I');
+          appliedRules.add(rule);
+          trace.push({
+            persianSpan: [0, 1],
+            persianGraphemes: 'ا',
+            sourceSpan: [rIdx, rIdx + 1],
+            sourceUnit: 'i',
+            targetUnit: 'i',
+            appliedRuleId: rule,
+            role: 'SHORT_VOWEL'
+          });
           pIdx += 1;
           rIdx += 1;
           continue;
         }
         if (romChar === 'u') {
+          const rule = 'WIKT_CLASSICAL_SHORT_U';
           targetOutput += 'u';
-          appliedRules.add('WIKT_CLASSICAL_SHORT_U');
+          appliedRules.add(rule);
+          trace.push({
+            persianSpan: [0, 1],
+            persianGraphemes: 'ا',
+            sourceSpan: [rIdx, rIdx + 1],
+            sourceUnit: 'u',
+            targetUnit: 'u',
+            appliedRuleId: rule,
+            role: 'SHORT_VOWEL'
+          });
           pIdx += 1;
           rIdx += 1;
           continue;
@@ -313,12 +461,26 @@ export function alignAndTransduceWiktionary(params: {
 
     // Case 3: Persian 'ع' (Ayn)
     if (pChar === 'ع') {
+      const rule = 'WIKT_SCRIPT_AYN_RECONSTRUCTION';
       targetOutput += 'ʿ';
-      appliedRules.add('WIKT_SCRIPT_AYN_RECONSTRUCTION');
+      appliedRules.add(rule);
+      const currentPIdx = pIdx;
       pIdx += 1;
+      let apostropheLen = 0;
       if (rStr[rIdx] === "'" || rStr[rIdx] === '‘' || rStr[rIdx] === 'ʿ' || rStr[rIdx] === '’') {
+        apostropheLen = 1;
         rIdx += 1;
       }
+      trace.push({
+        persianSpan: [currentPIdx, currentPIdx + 1],
+        persianGraphemes: 'ع',
+        sourceSpan: [rIdx - apostropheLen, rIdx],
+        sourceUnit: apostropheLen > 0 ? rStr[rIdx - 1] : '',
+        targetUnit: 'ʿ',
+        appliedRuleId: rule,
+        role: 'CONSONANT'
+      });
+
       // Check for short vowel following ʿayn
       if (rIdx < rStr.length) {
         const nextPChar = pChars[pIdx];
@@ -331,30 +493,90 @@ export function alignAndTransduceWiktionary(params: {
         if (isNotCarrier) {
           if (sourceProfile === 'IRANIAN') {
             if (currentVowel === 'o') {
+              const vRule = 'WIKT_IRANIAN_SHORT_O_TO_IJMES_U';
               targetOutput += 'u';
-              appliedRules.add('WIKT_IRANIAN_SHORT_O_TO_IJMES_U');
+              appliedRules.add(vRule);
+              trace.push({
+                persianSpan: [currentPIdx, currentPIdx + 1],
+                persianGraphemes: 'ع',
+                sourceSpan: [rIdx, rIdx + 1],
+                sourceUnit: 'o',
+                targetUnit: 'u',
+                appliedRuleId: vRule,
+                role: 'SHORT_VOWEL'
+              });
               rIdx += 1;
             } else if (currentVowel === 'e') {
+              const vRule = 'WIKT_IRANIAN_SHORT_E_TO_IJMES_I';
               targetOutput += 'i';
-              appliedRules.add('WIKT_IRANIAN_SHORT_E_TO_IJMES_I');
+              appliedRules.add(vRule);
+              trace.push({
+                persianSpan: [currentPIdx, currentPIdx + 1],
+                persianGraphemes: 'ع',
+                sourceSpan: [rIdx, rIdx + 1],
+                sourceUnit: 'e',
+                targetUnit: 'i',
+                appliedRuleId: vRule,
+                role: 'SHORT_VOWEL'
+              });
               rIdx += 1;
             } else if (currentVowel === 'a') {
+              const vRule = 'WIKT_IRANIAN_SHORT_A';
               targetOutput += 'a';
-              appliedRules.add('WIKT_IRANIAN_SHORT_A');
+              appliedRules.add(vRule);
+              trace.push({
+                persianSpan: [currentPIdx, currentPIdx + 1],
+                persianGraphemes: 'ع',
+                sourceSpan: [rIdx, rIdx + 1],
+                sourceUnit: 'a',
+                targetUnit: 'a',
+                appliedRuleId: vRule,
+                role: 'SHORT_VOWEL'
+              });
               rIdx += 1;
             }
           } else if (sourceProfile === 'CLASSICAL_DARI') {
             if (currentVowel === 'u') {
+              const vRule = 'WIKT_CLASSICAL_SHORT_U';
               targetOutput += 'u';
-              appliedRules.add('WIKT_CLASSICAL_SHORT_U');
+              appliedRules.add(vRule);
+              trace.push({
+                persianSpan: [currentPIdx, currentPIdx + 1],
+                persianGraphemes: 'ع',
+                sourceSpan: [rIdx, rIdx + 1],
+                sourceUnit: 'u',
+                targetUnit: 'u',
+                appliedRuleId: vRule,
+                role: 'SHORT_VOWEL'
+              });
               rIdx += 1;
             } else if (currentVowel === 'i') {
+              const vRule = 'WIKT_CLASSICAL_SHORT_I';
               targetOutput += 'i';
-              appliedRules.add('WIKT_CLASSICAL_SHORT_I');
+              appliedRules.add(vRule);
+              trace.push({
+                persianSpan: [currentPIdx, currentPIdx + 1],
+                persianGraphemes: 'ع',
+                sourceSpan: [rIdx, rIdx + 1],
+                sourceUnit: 'i',
+                targetUnit: 'i',
+                appliedRuleId: vRule,
+                role: 'SHORT_VOWEL'
+              });
               rIdx += 1;
             } else if (currentVowel === 'a') {
+              const vRule = 'WIKT_CLASSICAL_SHORT_A';
               targetOutput += 'a';
-              appliedRules.add('WIKT_CLASSICAL_SHORT_A');
+              appliedRules.add(vRule);
+              trace.push({
+                persianSpan: [currentPIdx, currentPIdx + 1],
+                persianGraphemes: 'ع',
+                sourceSpan: [rIdx, rIdx + 1],
+                sourceUnit: 'a',
+                targetUnit: 'a',
+                appliedRuleId: vRule,
+                role: 'SHORT_VOWEL'
+              });
               rIdx += 1;
             }
           }
@@ -365,12 +587,26 @@ export function alignAndTransduceWiktionary(params: {
 
     // Case 4: Persian Hamza letters (ء, أ, إ, ؤ, ئ)
     if (['ء', 'أ', 'إ', 'ؤ', 'ئ'].includes(pChar)) {
+      const rule = 'WIKT_SCRIPT_HAMZA_RECONSTRUCTION';
       targetOutput += 'ʾ';
-      appliedRules.add('WIKT_SCRIPT_HAMZA_RECONSTRUCTION');
+      appliedRules.add(rule);
+      const currentPIdx = pIdx;
       pIdx += 1;
+      let apostropheLen = 0;
       if (rStr[rIdx] === "'" || rStr[rIdx] === '’' || rStr[rIdx] === 'ʾ') {
+        apostropheLen = 1;
         rIdx += 1;
       }
+      trace.push({
+        persianSpan: [currentPIdx, currentPIdx + 1],
+        persianGraphemes: pChar,
+        sourceSpan: [rIdx - apostropheLen, rIdx],
+        sourceUnit: apostropheLen > 0 ? rStr[rIdx - 1] : '',
+        targetUnit: 'ʾ',
+        appliedRuleId: rule,
+        role: 'CONSONANT'
+      });
+
       // Check for short vowel following hamza
       if (rIdx < rStr.length) {
         const nextPChar = pChars[pIdx];
@@ -383,30 +619,90 @@ export function alignAndTransduceWiktionary(params: {
         if (isNotCarrier) {
           if (sourceProfile === 'IRANIAN') {
             if (currentVowel === 'o') {
+              const vRule = 'WIKT_IRANIAN_SHORT_O_TO_IJMES_U';
               targetOutput += 'u';
-              appliedRules.add('WIKT_IRANIAN_SHORT_O_TO_IJMES_U');
+              appliedRules.add(vRule);
+              trace.push({
+                persianSpan: [currentPIdx, currentPIdx + 1],
+                persianGraphemes: pChar,
+                sourceSpan: [rIdx, rIdx + 1],
+                sourceUnit: 'o',
+                targetUnit: 'u',
+                appliedRuleId: vRule,
+                role: 'SHORT_VOWEL'
+              });
               rIdx += 1;
             } else if (currentVowel === 'e') {
+              const vRule = 'WIKT_IRANIAN_SHORT_E_TO_IJMES_I';
               targetOutput += 'i';
-              appliedRules.add('WIKT_IRANIAN_SHORT_E_TO_IJMES_I');
+              appliedRules.add(vRule);
+              trace.push({
+                persianSpan: [currentPIdx, currentPIdx + 1],
+                persianGraphemes: pChar,
+                sourceSpan: [rIdx, rIdx + 1],
+                sourceUnit: 'e',
+                targetUnit: 'i',
+                appliedRuleId: vRule,
+                role: 'SHORT_VOWEL'
+              });
               rIdx += 1;
             } else if (currentVowel === 'a') {
+              const vRule = 'WIKT_IRANIAN_SHORT_A';
               targetOutput += 'a';
-              appliedRules.add('WIKT_IRANIAN_SHORT_A');
+              appliedRules.add(vRule);
+              trace.push({
+                persianSpan: [currentPIdx, currentPIdx + 1],
+                persianGraphemes: pChar,
+                sourceSpan: [rIdx, rIdx + 1],
+                sourceUnit: 'a',
+                targetUnit: 'a',
+                appliedRuleId: vRule,
+                role: 'SHORT_VOWEL'
+              });
               rIdx += 1;
             }
           } else if (sourceProfile === 'CLASSICAL_DARI') {
             if (currentVowel === 'u') {
+              const vRule = 'WIKT_CLASSICAL_SHORT_U';
               targetOutput += 'u';
-              appliedRules.add('WIKT_CLASSICAL_SHORT_U');
+              appliedRules.add(vRule);
+              trace.push({
+                persianSpan: [currentPIdx, currentPIdx + 1],
+                persianGraphemes: pChar,
+                sourceSpan: [rIdx, rIdx + 1],
+                sourceUnit: 'u',
+                targetUnit: 'u',
+                appliedRuleId: vRule,
+                role: 'SHORT_VOWEL'
+              });
               rIdx += 1;
             } else if (currentVowel === 'i') {
+              const vRule = 'WIKT_CLASSICAL_SHORT_I';
               targetOutput += 'i';
-              appliedRules.add('WIKT_CLASSICAL_SHORT_I');
+              appliedRules.add(vRule);
+              trace.push({
+                persianSpan: [currentPIdx, currentPIdx + 1],
+                persianGraphemes: pChar,
+                sourceSpan: [rIdx, rIdx + 1],
+                sourceUnit: 'i',
+                targetUnit: 'i',
+                appliedRuleId: vRule,
+                role: 'SHORT_VOWEL'
+              });
               rIdx += 1;
             } else if (currentVowel === 'a') {
+              const vRule = 'WIKT_CLASSICAL_SHORT_A';
               targetOutput += 'a';
-              appliedRules.add('WIKT_CLASSICAL_SHORT_A');
+              appliedRules.add(vRule);
+              trace.push({
+                persianSpan: [currentPIdx, currentPIdx + 1],
+                persianGraphemes: pChar,
+                sourceSpan: [rIdx, rIdx + 1],
+                sourceUnit: 'a',
+                targetUnit: 'a',
+                appliedRuleId: vRule,
+                role: 'SHORT_VOWEL'
+              });
               rIdx += 1;
             }
           }
@@ -419,12 +715,21 @@ export function alignAndTransduceWiktionary(params: {
     if (pChar === 'ا') {
       const romChar = rStr[rIdx];
       if (romChar === 'â' || romChar === 'ā' || romChar === 'a') {
-        targetOutput += 'ā';
-        appliedRules.add(
+        const rule =
           sourceProfile === 'IRANIAN'
             ? 'WIKT_IRANIAN_LONG_A_TO_IJMES_A_MACRON'
-            : 'WIKT_CLASSICAL_LONG_A'
-        );
+            : 'WIKT_CLASSICAL_LONG_A';
+        targetOutput += 'ā';
+        appliedRules.add(rule);
+        trace.push({
+          persianSpan: [pIdx, pIdx + 1],
+          persianGraphemes: 'ا',
+          sourceSpan: [rIdx, rIdx + 1],
+          sourceUnit: romChar,
+          targetUnit: 'ā',
+          appliedRuleId: rule,
+          role: 'LONG_VOWEL'
+        });
         pIdx += 1;
         rIdx += 1;
         continue;
@@ -436,15 +741,35 @@ export function alignAndTransduceWiktionary(params: {
     if (pChar === 'و') {
       // Diphthong check
       if (sourceProfile === 'IRANIAN' && rStr.startsWith('ow', rIdx)) {
+        const rule = 'WIKT_IRANIAN_DIPHTHONG_OW_TO_AW';
         targetOutput += 'aw';
-        appliedRules.add('WIKT_IRANIAN_DIPHTHONG_OW_TO_AW');
+        appliedRules.add(rule);
+        trace.push({
+          persianSpan: [pIdx, pIdx + 1],
+          persianGraphemes: 'و',
+          sourceSpan: [rIdx, rIdx + 2],
+          sourceUnit: 'ow',
+          targetUnit: 'aw',
+          appliedRuleId: rule,
+          role: 'DIPHTHONG'
+        });
         pIdx += 1;
         rIdx += 2;
         continue;
       }
       if (sourceProfile === 'CLASSICAL_DARI' && rStr.startsWith('aw', rIdx)) {
+        const rule = 'WIKT_CLASSICAL_DIPHTHONG_AW';
         targetOutput += 'aw';
-        appliedRules.add('WIKT_CLASSICAL_DIPHTHONG_AW');
+        appliedRules.add(rule);
+        trace.push({
+          persianSpan: [pIdx, pIdx + 1],
+          persianGraphemes: 'و',
+          sourceSpan: [rIdx, rIdx + 2],
+          sourceUnit: 'aw',
+          targetUnit: 'aw',
+          appliedRuleId: rule,
+          role: 'DIPHTHONG'
+        });
         pIdx += 1;
         rIdx += 2;
         continue;
@@ -453,20 +778,39 @@ export function alignAndTransduceWiktionary(params: {
       // Long vowel check
       const romChar = rStr[rIdx];
       if (romChar === 'ū' || (romChar === 'u' && sourceProfile === 'IRANIAN')) {
-        targetOutput += 'ū';
-        appliedRules.add(
+        const rule =
           sourceProfile === 'IRANIAN'
             ? 'WIKT_IRANIAN_LONG_U_TO_IJMES_U_MACRON'
-            : 'WIKT_CLASSICAL_LONG_U'
-        );
+            : 'WIKT_CLASSICAL_LONG_U';
+        targetOutput += 'ū';
+        appliedRules.add(rule);
+        trace.push({
+          persianSpan: [pIdx, pIdx + 1],
+          persianGraphemes: 'و',
+          sourceSpan: [rIdx, rIdx + 1],
+          sourceUnit: romChar,
+          targetUnit: 'ū',
+          appliedRuleId: rule,
+          role: 'LONG_VOWEL'
+        });
         pIdx += 1;
         rIdx += 1;
         continue;
       }
 
       if (romChar === 'u' && sourceProfile === 'CLASSICAL_DARI') {
+        const rule = 'WIKT_CLASSICAL_LONG_U';
         targetOutput += 'ū';
-        appliedRules.add('WIKT_CLASSICAL_LONG_U');
+        appliedRules.add(rule);
+        trace.push({
+          persianSpan: [pIdx, pIdx + 1],
+          persianGraphemes: 'و',
+          sourceSpan: [rIdx, rIdx + 1],
+          sourceUnit: 'u',
+          targetUnit: 'ū',
+          appliedRuleId: rule,
+          role: 'LONG_VOWEL'
+        });
         pIdx += 1;
         rIdx += 1;
         continue;
@@ -474,8 +818,18 @@ export function alignAndTransduceWiktionary(params: {
 
       // Consonant check (v / w)
       if (romChar === 'v' || romChar === 'w') {
+        const rule = 'WIKT_SCRIPT_CONSONANT_RECONSTRUCTION';
         targetOutput += romChar;
-        appliedRules.add('WIKT_SCRIPT_CONSONANT_RECONSTRUCTION');
+        appliedRules.add(rule);
+        trace.push({
+          persianSpan: [pIdx, pIdx + 1],
+          persianGraphemes: 'و',
+          sourceSpan: [rIdx, rIdx + 1],
+          sourceUnit: romChar,
+          targetUnit: romChar,
+          appliedRuleId: rule,
+          role: 'CONSONANT'
+        });
         pIdx += 1;
         rIdx += 1;
         continue;
@@ -488,15 +842,35 @@ export function alignAndTransduceWiktionary(params: {
     if (pChar === 'ی') {
       // Diphthong check
       if (sourceProfile === 'IRANIAN' && rStr.startsWith('ey', rIdx)) {
+        const rule = 'WIKT_IRANIAN_DIPHTHONG_EY_TO_AY';
         targetOutput += 'ay';
-        appliedRules.add('WIKT_IRANIAN_DIPHTHONG_EY_TO_AY');
+        appliedRules.add(rule);
+        trace.push({
+          persianSpan: [pIdx, pIdx + 1],
+          persianGraphemes: 'ی',
+          sourceSpan: [rIdx, rIdx + 2],
+          sourceUnit: 'ey',
+          targetUnit: 'ay',
+          appliedRuleId: rule,
+          role: 'DIPHTHONG'
+        });
         pIdx += 1;
         rIdx += 2;
         continue;
       }
       if (sourceProfile === 'CLASSICAL_DARI' && rStr.startsWith('ay', rIdx)) {
+        const rule = 'WIKT_CLASSICAL_DIPHTHONG_AY';
         targetOutput += 'ay';
-        appliedRules.add('WIKT_CLASSICAL_DIPHTHONG_AY');
+        appliedRules.add(rule);
+        trace.push({
+          persianSpan: [pIdx, pIdx + 1],
+          persianGraphemes: 'ی',
+          sourceSpan: [rIdx, rIdx + 2],
+          sourceUnit: 'ay',
+          targetUnit: 'ay',
+          appliedRuleId: rule,
+          role: 'DIPHTHONG'
+        });
         pIdx += 1;
         rIdx += 2;
         continue;
@@ -505,20 +879,39 @@ export function alignAndTransduceWiktionary(params: {
       // Long vowel check
       const romChar = rStr[rIdx];
       if (romChar === 'ī' || (romChar === 'i' && sourceProfile === 'IRANIAN')) {
-        targetOutput += 'ī';
-        appliedRules.add(
+        const rule =
           sourceProfile === 'IRANIAN'
             ? 'WIKT_IRANIAN_LONG_I_TO_IJMES_I_MACRON'
-            : 'WIKT_CLASSICAL_LONG_I'
-        );
+            : 'WIKT_CLASSICAL_LONG_I';
+        targetOutput += 'ī';
+        appliedRules.add(rule);
+        trace.push({
+          persianSpan: [pIdx, pIdx + 1],
+          persianGraphemes: 'ی',
+          sourceSpan: [rIdx, rIdx + 1],
+          sourceUnit: romChar,
+          targetUnit: 'ī',
+          appliedRuleId: rule,
+          role: 'LONG_VOWEL'
+        });
         pIdx += 1;
         rIdx += 1;
         continue;
       }
 
       if (romChar === 'i' && sourceProfile === 'CLASSICAL_DARI') {
+        const rule = 'WIKT_CLASSICAL_LONG_I';
         targetOutput += 'ī';
-        appliedRules.add('WIKT_CLASSICAL_LONG_I');
+        appliedRules.add(rule);
+        trace.push({
+          persianSpan: [pIdx, pIdx + 1],
+          persianGraphemes: 'ی',
+          sourceSpan: [rIdx, rIdx + 1],
+          sourceUnit: 'i',
+          targetUnit: 'ī',
+          appliedRuleId: rule,
+          role: 'LONG_VOWEL'
+        });
         pIdx += 1;
         rIdx += 1;
         continue;
@@ -526,8 +919,18 @@ export function alignAndTransduceWiktionary(params: {
 
       // Consonant check (y / j)
       if (romChar === 'y' || romChar === 'j') {
+        const rule = 'WIKT_SCRIPT_CONSONANT_RECONSTRUCTION';
         targetOutput += 'y';
-        appliedRules.add('WIKT_SCRIPT_CONSONANT_RECONSTRUCTION');
+        appliedRules.add(rule);
+        trace.push({
+          persianSpan: [pIdx, pIdx + 1],
+          persianGraphemes: 'ی',
+          sourceSpan: [rIdx, rIdx + 1],
+          sourceUnit: romChar,
+          targetUnit: 'y',
+          appliedRuleId: rule,
+          role: 'CONSONANT'
+        });
         pIdx += 1;
         rIdx += 1;
         continue;
@@ -545,10 +948,22 @@ export function alignAndTransduceWiktionary(params: {
         return failAlignment(persianForm, observedRomanization, sourceProfile);
       }
 
+      const cRule = 'WIKT_SCRIPT_CONSONANT_RECONSTRUCTION';
       targetOutput += ijmesConsonant;
-      appliedRules.add('WIKT_SCRIPT_CONSONANT_RECONSTRUCTION');
+      appliedRules.add(cRule);
+      const currentPIdx = pIdx;
+      const currentRIdx = rIdx;
       pIdx += 1;
       rIdx += consumedLen;
+      trace.push({
+        persianSpan: [currentPIdx, currentPIdx + 1],
+        persianGraphemes: pChar,
+        sourceSpan: [currentRIdx, currentRIdx + consumedLen],
+        sourceUnit: rStr.slice(currentRIdx, currentRIdx + consumedLen),
+        targetUnit: ijmesConsonant,
+        appliedRuleId: cRule,
+        role: 'CONSONANT'
+      });
 
       // Check for short vowel following this consonant in romanization
       if (rIdx < rStr.length) {
@@ -564,16 +979,46 @@ export function alignAndTransduceWiktionary(params: {
         if (isNotCarrier) {
           if (sourceProfile === 'IRANIAN') {
             if (currentVowel === 'o') {
+              const vRule = 'WIKT_IRANIAN_SHORT_O_TO_IJMES_U';
               targetOutput += 'u';
-              appliedRules.add('WIKT_IRANIAN_SHORT_O_TO_IJMES_U');
+              appliedRules.add(vRule);
+              trace.push({
+                persianSpan: [currentPIdx, currentPIdx + 1],
+                persianGraphemes: pChar,
+                sourceSpan: [rIdx, rIdx + 1],
+                sourceUnit: 'o',
+                targetUnit: 'u',
+                appliedRuleId: vRule,
+                role: 'SHORT_VOWEL'
+              });
               rIdx += 1;
             } else if (currentVowel === 'e') {
+              const vRule = 'WIKT_IRANIAN_SHORT_E_TO_IJMES_I';
               targetOutput += 'i';
-              appliedRules.add('WIKT_IRANIAN_SHORT_E_TO_IJMES_I');
+              appliedRules.add(vRule);
+              trace.push({
+                persianSpan: [currentPIdx, currentPIdx + 1],
+                persianGraphemes: pChar,
+                sourceSpan: [rIdx, rIdx + 1],
+                sourceUnit: 'e',
+                targetUnit: 'i',
+                appliedRuleId: vRule,
+                role: 'SHORT_VOWEL'
+              });
               rIdx += 1;
             } else if (currentVowel === 'a') {
+              const vRule = 'WIKT_IRANIAN_SHORT_A';
               targetOutput += 'a';
-              appliedRules.add('WIKT_IRANIAN_SHORT_A');
+              appliedRules.add(vRule);
+              trace.push({
+                persianSpan: [currentPIdx, currentPIdx + 1],
+                persianGraphemes: pChar,
+                sourceSpan: [rIdx, rIdx + 1],
+                sourceUnit: 'a',
+                targetUnit: 'a',
+                appliedRuleId: vRule,
+                role: 'SHORT_VOWEL'
+              });
               rIdx += 1;
             } else if (currentVowel === 'i' || currentVowel === 'u') {
               // Iranian unanchored i / u are disallowed as short vowels
@@ -581,16 +1026,46 @@ export function alignAndTransduceWiktionary(params: {
             }
           } else if (sourceProfile === 'CLASSICAL_DARI') {
             if (currentVowel === 'u') {
+              const vRule = 'WIKT_CLASSICAL_SHORT_U';
               targetOutput += 'u';
-              appliedRules.add('WIKT_CLASSICAL_SHORT_U');
+              appliedRules.add(vRule);
+              trace.push({
+                persianSpan: [currentPIdx, currentPIdx + 1],
+                persianGraphemes: pChar,
+                sourceSpan: [rIdx, rIdx + 1],
+                sourceUnit: 'u',
+                targetUnit: 'u',
+                appliedRuleId: vRule,
+                role: 'SHORT_VOWEL'
+              });
               rIdx += 1;
             } else if (currentVowel === 'i') {
+              const vRule = 'WIKT_CLASSICAL_SHORT_I';
               targetOutput += 'i';
-              appliedRules.add('WIKT_CLASSICAL_SHORT_I');
+              appliedRules.add(vRule);
+              trace.push({
+                persianSpan: [currentPIdx, currentPIdx + 1],
+                persianGraphemes: pChar,
+                sourceSpan: [rIdx, rIdx + 1],
+                sourceUnit: 'i',
+                targetUnit: 'i',
+                appliedRuleId: vRule,
+                role: 'SHORT_VOWEL'
+              });
               rIdx += 1;
             } else if (currentVowel === 'a') {
+              const vRule = 'WIKT_CLASSICAL_SHORT_A';
               targetOutput += 'a';
-              appliedRules.add('WIKT_CLASSICAL_SHORT_A');
+              appliedRules.add(vRule);
+              trace.push({
+                persianSpan: [currentPIdx, currentPIdx + 1],
+                persianGraphemes: pChar,
+                sourceSpan: [rIdx, rIdx + 1],
+                sourceUnit: 'a',
+                targetUnit: 'a',
+                appliedRuleId: vRule,
+                role: 'SHORT_VOWEL'
+              });
               rIdx += 1;
             }
           }
@@ -609,7 +1084,8 @@ export function alignAndTransduceWiktionary(params: {
       success: true,
       targetHypothesis: targetOutput,
       appliedRuleIds: Array.from(appliedRules).sort(),
-      blockers: []
+      blockers: [],
+      trace
     };
   }
 

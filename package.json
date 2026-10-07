@@ -30,7 +30,9 @@
     "build:kaikki-fallback": "tsx src/domain/evidence/kaikki/fallback/cli.ts",
     "evaluate:fallback": "tsx src/domain/evidence/kaikki/fallback/evaluateCli.ts",
     "experiment:kaikki-scale": "tsx src/domain/evidence/kaikki/scale/cli.ts",
-    "validate:kaikki-scale-pack": "tsx src/domain/evidence/kaikki/scale/validatorCli.ts"
+    "validate:kaikki-scale-pack": "tsx src/domain/evidence/kaikki/scale/validatorCli.ts",
+    "audit:profile-metadata": "tsx src/domain/evidence/kaikki/profile/metadataAuditCli.ts",
+    "experiment:profile-recovery": "tsx src/domain/evidence/kaikki/profile/cli.ts"
   },
   "dependencies": {
     "next": "16.3.8",

@@ -47,6 +47,7 @@ export function generateKaikkiInterpretationId(params: {
   ruleSetVersion: string;
   persianForm: string;
   observedRomanization: string;
+  recoveryId?: string;
 }): string {
   const hash = crypto.createHash('sha256');
   hash.update(params.evidenceId);
@@ -64,6 +65,10 @@ export function generateKaikkiInterpretationId(params: {
   hash.update(params.persianForm);
   hash.update('\0');
   hash.update(params.observedRomanization);
+  if (params.recoveryId) {
+    hash.update('\0');
+    hash.update(params.recoveryId);
+  }
 
   const digest = hash.digest('hex').slice(0, 16);
   return `interp-wikt-${digest}`;
