@@ -1,5 +1,5 @@
 /**
- * Domain types for Wiktionary Persian Profile Recovery & Metadata Enrichment (Phase 7E).
+ * Domain types for Wiktionary Persian Profile Recovery & Metadata Enrichment (Phase 7E Hardened).
  *
  * Distinguishes EXPLICIT source tags from RECOVERED source profiles.
  *
@@ -9,8 +9,8 @@
 
 import type { WiktionaryPersianRomanizationProfile } from '../scheme/types';
 
-export const PROFILE_RECOVERY_VERSION = '1.0.0';
-export const PROFILE_POLICY_VERSION = '1.0.0';
+export const PROFILE_RECOVERY_VERSION = '1.1.0';
+export const PROFILE_POLICY_VERSION = '1.1.0';
 
 export type ProfileRecoveryMethod =
   | 'EXPLICIT_ROMANIZATION_TAG'
@@ -38,6 +38,7 @@ export type ProfileRecoveryBlockerKind =
   | 'PROFILE_RECOVERY_AMBIGUOUS_PAIRING'
   | 'PROFILE_RECOVERY_CONFLICT'
   | 'PROFILE_RECOVERY_ALIGNMENT_FAILED'
+  | 'PROFILE_RECOVERY_SUBDIVISION_CONFLICT'
   | 'PROFILE_RECOVERY_UNSUPPORTED_SOURCE_STRUCTURE';
 
 export interface ProfileRecoveryBlocker {
@@ -47,6 +48,15 @@ export interface ProfileRecoveryBlocker {
 }
 
 export type ProfileRecoveryEvidenceTier = 'TIER_A_EXPLICIT' | 'TIER_B_STRUCTURAL' | 'TIER_C_PAIRED';
+
+export interface AlignedDiscriminativeSlotFeature {
+  signatureId: string;
+  phenomenon: string;
+  persianSpan: [number, number];
+  persianGraphemes: string;
+  classicalUnit: string;
+  iranianUnit: string;
+}
 
 export interface WiktionaryProfileRecoveryEvidence {
   tier: ProfileRecoveryEvidenceTier;
@@ -61,6 +71,7 @@ export interface WiktionaryProfileRecoveryEvidence {
   pairedEvidenceId?: string;
   pairedObservedRomanization?: string;
   discriminativeFeatures?: string[];
+  alignedFeatures?: AlignedDiscriminativeSlotFeature[];
 }
 
 export interface WiktionaryProfileRecoveryResult {
@@ -75,6 +86,9 @@ export interface WiktionaryProfileRecoveryResult {
 
   /** Source form index in forms[] if present */
   sourceFormIndex?: number;
+
+  /** Form-level head_nr if present */
+  formHeadNr?: number;
 
   /** Raw Persian form */
   persianForm: string;
@@ -194,6 +208,9 @@ export interface Phase7EProfileRecoverySummary {
 
   observationRecovery: {
     baselineUnclassified: number;
+    explicitProfiles: number;
+    recoveredStructuralProfiles: number;
+    recoveredPairedProfiles: number;
     recoveredTotal: number;
     recoveredIranian: number;
     recoveredClassicalDari: number;
@@ -207,11 +224,29 @@ export interface Phase7EProfileRecoverySummary {
   multiRomanizationCohort: {
     totalMultiRomanizationRecords: number;
     pairedDiscriminatingRecords: number;
-    successfullyRecoveredRecords: number;
-    ambiguousRecords: number;
-    nonDiscriminatingRecords: number;
+    recordsWithAtLeastOneValidPair: number;
+    recordsWithUniqueConsistentRecovery: number;
+    recordsWithMultipleConsistentRecoveryEvidence: number;
+    recordsWithConflictingRecoveryAssignments: number;
+    recordsWithInsufficientPositionalSignal: number;
     alignmentFailures: number;
+    subdivisionConflicts: number;
     pairedRecoverySuccessRate: number;
+  };
+
+  threePlusRomanizationCohort: {
+    totalRecords: number;
+    fullyConsistent: number;
+    partiallyRecoverable: number;
+    conflictingAssignmentGraph: number;
+    nonDiscriminating: number;
+    subdivisionSeparated: number;
+    samples: Array<{
+      persianForm: string;
+      romanizations: string[];
+      outcome: string;
+      detail: string;
+    }>;
   };
 
   candidateConsensus: {
@@ -243,7 +278,8 @@ export interface Phase7EProfileRecoverySummary {
     novelEligibleForms: number;
     reviewedOverlaps: number;
     exactReviewedMatches: number;
-    reviewedDivergences: number;
+    formattingDifferences: number;
+    substantiveDivergences: number;
     divergenceRate: number;
   };
 
@@ -259,6 +295,16 @@ export interface Phase7EProfileRecoverySummary {
   };
 
   corpusEvaluation: {
+    v3DisplayCoverageBefore: number;
+    v3DisplayCoverageAfter: number;
+    v3AuthoritativeCoverageBefore: number;
+    v3AuthoritativeCoverageAfter: number;
+    pilotDisplayCoverageBefore: number;
+    pilotDisplayCoverageAfter: number;
+    pilotAuthoritativeCoverageBefore: number;
+    pilotAuthoritativeCoverageAfter: number;
+    tokenLexicalMissRecoveryRate: number;
+    uniqueFormLexicalMissRecoveryRate: number;
     displayCoverageBefore: number;
     displayCoverageAfter: number;
     authoritativeCoverageBefore: number;
@@ -274,7 +320,13 @@ export interface Phase7EProfileRecoverySummary {
     stillUnclassifiedPairs: Array<{ persianForm: string; romanizations: string[]; reason: string }>;
     conflicts: Array<{ persianForm: string; romanizations: string[]; reason: string }>;
     newFallbackEntries: Array<{ persianForm: string; canonical: string; origin: string; method: string }>;
-    reviewedDivergences: Array<{ persianForm: string; recoveredHypothesis: string; reviewedCanonical: string }>;
+    reviewedDivergences: Array<{
+      persianForm: string;
+      recoveredHypothesis: string;
+      reviewedCanonical: string;
+      divergenceClass: 'EXACT_MATCH' | 'ORTHOGRAPHIC_FORMATTING_DIFFERENCE' | 'SUBSTANTIVE_CANONICAL_DIVERGENCE';
+      divergenceDetail: string;
+    }>;
   };
 
   governance: {

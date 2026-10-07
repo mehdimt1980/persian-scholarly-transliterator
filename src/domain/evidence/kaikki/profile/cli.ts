@@ -40,7 +40,7 @@ async function main(): Promise<void> {
   console.log(`  - Classical/Dari:     ${summary.observationRecovery.recoveredClassicalDari}`);
   console.log(`Still Unclassified:     ${summary.observationRecovery.stillUnclassified}`);
   console.log(`Fallback Eligible:      ${summary.fallbackEligibility.afterEligible} (novel: ${summary.fallbackEligibility.novelEligibleForms})`);
-  console.log(`Reviewed Matches:       ${summary.fallbackEligibility.exactReviewedMatches} (divergences: ${summary.fallbackEligibility.reviewedDivergences}, rate: ${summary.fallbackEligibility.divergenceRate.toFixed(2)}%)`);
+  console.log(`Reviewed Overlaps:      ${summary.fallbackEligibility.reviewedOverlaps} (exact: ${summary.fallbackEligibility.exactReviewedMatches}, formatting: ${summary.fallbackEligibility.formattingDifferences}, substantive: ${summary.fallbackEligibility.substantiveDivergences}, rate: ${summary.fallbackEligibility.divergenceRate.toFixed(2)}%)`);
   console.log(`Experimental Pack:      ${summary.experimentalPack.fullEntryCount} entries, ${Math.round(summary.experimentalPack.fullGzipBytes / 1024)} KB gzip`);
   console.log(`Browser Feasibility:    ${summary.experimentalPack.browserPackFeasibility}`);
   console.log('===========================================================\n');

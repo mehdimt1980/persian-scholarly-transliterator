@@ -1,37 +1,85 @@
 /**
- * Wiktionary Persian Profile Recovery Engine (Phase 7E).
+ * Wiktionary Persian Profile Recovery Engine (Phase 7E Hardened).
  *
- * Implements Tier A (Explicit), Tier B (Structural Linkage), and Tier C (Paired-Scheme Correspondence).
+ * Implements Tier A (Explicit), Tier B (Structural Linkage with Verified Semantics),
+ * and Tier C (Position-Aligned Paired-Scheme Correspondence with Global Multi-Observation Reconciliation).
  *
  * Core scholarly invariant:
  *   EXTERNAL OBSERVATION ≠ RECOVERED PROFILE ≠ IJMES HYPOTHESIS ≠ AUTHORITATIVE LEXICON ENTRY
  */
 
 import crypto from 'node:crypto';
-import { alignAndTransduceWiktionary } from '../scheme/aligner';
+import { alignAndTransduceWiktionary, type WiktionaryAlignmentSlot } from '../scheme/aligner';
 import { classifyWiktionaryProfile } from '../scheme/profileClassifier';
 import type { WiktionaryPersianRomanizationProfile } from '../scheme/types';
 import type { KaikkiExtractedObservation, KaikkiRawEntry } from '../types';
 import {
+  DISCRIMINATIVE_CLASSICAL_VOWELS,
+  DISCRIMINATIVE_IRANIAN_VOWELS,
+  matchAlignedSlotCorrespondence
+} from './signatures';
+import {
   PROFILE_POLICY_VERSION,
   PROFILE_RECOVERY_VERSION,
+  type AlignedDiscriminativeSlotFeature,
+  type ProfileRecoveryBlocker,
   type ProfileRecoveryMethod,
   type WiktionaryProfileRecoveryEvidence,
   type WiktionaryProfileRecoveryResult
 } from './types';
 
+/**
+ * Templates verified to support explicit Persian transliteration parameters (`cls`, `ira`).
+ */
+const VERIFIED_PERSIAN_HEAD_TEMPLATES = new Set([
+  'fa-noun',
+  'fa-proper noun',
+  'fa-verb',
+  'fa-adj',
+  'fa-adv',
+  'fa-pron',
+  'fa-phrase',
+  'fa-interj',
+  'fa-con',
+  'fa-prep'
+]);
+
+/**
+ * Reject placeholder and sentinel values in template parameters.
+ */
+function isValidStructuralTransliteration(val: string): boolean {
+  if (!val || typeof val !== 'string') return false;
+  const trimmed = val.trim();
+  if (trimmed.length === 0) return false;
+  const sentinels = new Set(['-', '—', '―', '+', '?', 'none', 'n/a', 'null', 'undefined', '--']);
+  if (sentinels.has(trimmed.toLowerCase())) return false;
+  return true;
+}
+
 export function generateProfileRecoveryId(params: {
   observationEvidenceId: string;
   sourceRecordId: string | null;
+  persianForm: string;
   recoveredProfile: WiktionaryPersianRomanizationProfile;
   method: ProfileRecoveryMethod;
   recoveryVersion: string;
   policyVersion: string;
+  evidenceBasis?: {
+    pairedEvidenceIds?: string[];
+    alignedFeatureSignatures?: string[];
+    alignedSpans?: string[];
+    templateName?: string;
+    templateArgName?: string;
+    templateArgValue?: string;
+    subdivisionId?: string;
+  };
 }): string {
   const hash = crypto.createHash('sha256');
   hash.update(params.observationEvidenceId);
   hash.update('\0');
   hash.update(params.sourceRecordId ?? '');
+  hash.update('\0');
+  hash.update(params.persianForm);
   hash.update('\0');
   hash.update(params.recoveredProfile);
   hash.update('\0');
@@ -40,39 +88,43 @@ export function generateProfileRecoveryId(params: {
   hash.update(params.recoveryVersion);
   hash.update('\0');
   hash.update(params.policyVersion);
+
+  if (params.evidenceBasis) {
+    hash.update('\0');
+    if (params.evidenceBasis.pairedEvidenceIds) {
+      hash.update([...params.evidenceBasis.pairedEvidenceIds].sort().join(','));
+    }
+    hash.update('\0');
+    if (params.evidenceBasis.alignedFeatureSignatures) {
+      hash.update([...params.evidenceBasis.alignedFeatureSignatures].sort().join(','));
+    }
+    hash.update('\0');
+    if (params.evidenceBasis.alignedSpans) {
+      hash.update([...params.evidenceBasis.alignedSpans].sort().join(','));
+    }
+    hash.update('\0');
+    hash.update(params.evidenceBasis.templateName ?? '');
+    hash.update('\0');
+    hash.update(params.evidenceBasis.templateArgName ?? '');
+    hash.update('\0');
+    hash.update(params.evidenceBasis.templateArgValue ?? '');
+    hash.update('\0');
+    hash.update(params.evidenceBasis.subdivisionId ?? '');
+  }
+
   const digest = hash.digest('hex').slice(0, 16);
   return `rec-${digest}`;
 }
-
-/**
- * Valid correspondence between Classical and Iranian vowels/diphthongs in Wiktionary.
- */
-const VALID_VOWEL_CORRESPONDENCES: Array<{
-  cls: string;
-  ira: string;
-  phenomenon: string;
-  isDiscriminative: boolean;
-}> = [
-  { cls: 'ā', ira: 'â', phenomenon: 'Long A', isDiscriminative: true },
-  { cls: 'i', ira: 'e', phenomenon: 'Kasra (short i/e)', isDiscriminative: true },
-  { cls: 'u', ira: 'o', phenomenon: 'Zamma (short u/o)', isDiscriminative: true },
-  { cls: 'ī', ira: 'i', phenomenon: 'Long I', isDiscriminative: true },
-  { cls: 'ū', ira: 'u', phenomenon: 'Long U', isDiscriminative: true },
-  { cls: 'ē', ira: 'i', phenomenon: 'Majhul E', isDiscriminative: true },
-  { cls: 'ē', ira: 'e', phenomenon: 'Majhul E / Short E', isDiscriminative: true },
-  { cls: 'ō', ira: 'u', phenomenon: 'Majhul O', isDiscriminative: true },
-  { cls: 'ō', ira: 'o', phenomenon: 'Majhul O / Short O', isDiscriminative: true },
-  { cls: 'ay', ira: 'ey', phenomenon: 'Diphthong ay/ey', isDiscriminative: true },
-  { cls: 'ai', ira: 'ey', phenomenon: 'Diphthong ai/ey', isDiscriminative: true },
-  { cls: 'aw', ira: 'ow', phenomenon: 'Diphthong aw/ow', isDiscriminative: true },
-  { cls: 'au', ira: 'ow', phenomenon: 'Diphthong au/ow', isDiscriminative: true },
-  { cls: 'a', ira: 'a', phenomenon: 'Fathah (short a)', isDiscriminative: false }
-];
 
 export interface ProfileRecoveryOptions {
   recoveryVersion?: string;
   policyVersion?: string;
   recoveredAt?: string;
+}
+
+interface ProposalWithEvidence {
+  profile: 'CLASSICAL_DARI' | 'IRANIAN';
+  evidence: WiktionaryProfileRecoveryEvidence;
 }
 
 export class WiktionaryProfileRecoveryEngine {
@@ -85,7 +137,8 @@ export class WiktionaryProfileRecoveryEngine {
   }
 
   /**
-   * Recovers profile identities for all observations belonging to a single source entry/record.
+   * Recovers profile identities for all observations belonging to a single source entry/record
+   * using global multi-observation reconciliation (non-greedy, order-independent).
    */
   public recoverProfilesForEntry(
     rawEntry: KaikkiRawEntry,
@@ -98,54 +151,172 @@ export class WiktionaryProfileRecoveryEngine {
     }
 
     // Step 1: Evaluate Tier A (Explicit) and Tier B (Structural Linkage) for each observation
-    const intermediateResults: Array<{
-      obs: KaikkiExtractedObservation;
-      explicitOrStructuralResult: WiktionaryProfileRecoveryResult | null;
-    }> = [];
-
+    const explicitOrStructuralMap = new Map<string, WiktionaryProfileRecoveryResult>();
     for (const obs of observations) {
       const explicitOrStructural = this.evaluateExplicitAndStructural(rawEntry, obs, options);
-      intermediateResults.push({ obs, explicitOrStructuralResult: explicitOrStructural });
-    }
-
-    // Step 2: Check if all observations were resolved by Tier A/B
-    const unrecoveredObservations: KaikkiExtractedObservation[] = [];
-    for (const item of intermediateResults) {
-      if (item.explicitOrStructuralResult && item.explicitOrStructuralResult.recoveryStatus !== 'UNRECOVERABLE') {
-        results.set(item.obs.evidence.id, item.explicitOrStructuralResult);
-      } else {
-        unrecoveredObservations.push(item.obs);
+      if (explicitOrStructural) {
+        explicitOrStructuralMap.set(obs.evidence.id, explicitOrStructural);
       }
     }
 
-    if (unrecoveredObservations.length === 0) {
-      return results;
-    }
-
-    // Step 3: Tier C (Paired-Scheme Correspondence) on remaining unrecovered observations
-    const pairedResults = this.evaluatePairedCorrespondences(rawEntry, unrecoveredObservations, options);
-    for (const [eviId, res] of pairedResults.entries()) {
-      results.set(eviId, res);
-    }
-
-    // Step 4: Ensure all observations receive a deterministic result record
+    // Step 2: Global Paired Proposals Collection across all observation pairs
+    const pairedProposalsMap = new Map<string, ProposalWithEvidence[]>();
     for (const obs of observations) {
-      if (!results.has(obs.evidence.id)) {
-        const originalProfile = classifyWiktionaryProfile(obs.metadata);
-        const unrecoverableId = generateProfileRecoveryId({
-          observationEvidenceId: obs.evidence.id,
+      pairedProposalsMap.set(obs.evidence.id, []);
+    }
+
+    const unrecoveredObservations = observations.filter((obs) => {
+      const existing = explicitOrStructuralMap.get(obs.evidence.id);
+      return !existing || existing.recoveryStatus === 'UNRECOVERABLE';
+    });
+
+    if (unrecoveredObservations.length >= 2) {
+      // Enumerate all distinct pairs (i, j) with i < j
+      for (let i = 0; i < unrecoveredObservations.length; i++) {
+        for (let j = i + 1; j < unrecoveredObservations.length; j++) {
+          const obsA = unrecoveredObservations[i];
+          const obsB = unrecoveredObservations[j];
+
+          // Subdivision safety check
+          if (!this.areSubdivisionsCompatible(obsA, obsB)) {
+            continue;
+          }
+
+          const romA = obsA.evidence.observedRomanization;
+          const romB = obsB.evidence.observedRomanization;
+          if (!romA || !romB || romA.trim().length === 0 || romB.trim().length === 0) {
+            continue;
+          }
+
+          // Test Hypothesis 1: obsA is Classical, obsB is Iranian
+          const match1 = this.analyzePositionAlignedPair(obsA.evidence.persianForm, romA, romB);
+          // Test Hypothesis 2: obsB is Classical, obsA is Iranian
+          const match2 = this.analyzePositionAlignedPair(obsA.evidence.persianForm, romB, romA);
+
+          if (match1.valid && !match2.valid) {
+            const evA: WiktionaryProfileRecoveryEvidence = {
+              tier: 'TIER_C_PAIRED',
+              method: 'PAIRED_SCHEME_CORRESPONDENCE',
+              inferredProfile: 'CLASSICAL_DARI',
+              detail: match1.detail,
+              pairedEvidenceId: obsB.evidence.id,
+              pairedObservedRomanization: romB,
+              discriminativeFeatures: match1.featureStrings,
+              alignedFeatures: match1.alignedFeatures
+            };
+            const evB: WiktionaryProfileRecoveryEvidence = {
+              tier: 'TIER_C_PAIRED',
+              method: 'PAIRED_SCHEME_CORRESPONDENCE',
+              inferredProfile: 'IRANIAN',
+              detail: match1.detail,
+              pairedEvidenceId: obsA.evidence.id,
+              pairedObservedRomanization: romA,
+              discriminativeFeatures: match1.featureStrings,
+              alignedFeatures: match1.alignedFeatures
+            };
+            pairedProposalsMap.get(obsA.evidence.id)!.push({ profile: 'CLASSICAL_DARI', evidence: evA });
+            pairedProposalsMap.get(obsB.evidence.id)!.push({ profile: 'IRANIAN', evidence: evB });
+          } else if (match2.valid && !match1.valid) {
+            const evB: WiktionaryProfileRecoveryEvidence = {
+              tier: 'TIER_C_PAIRED',
+              method: 'PAIRED_SCHEME_CORRESPONDENCE',
+              inferredProfile: 'CLASSICAL_DARI',
+              detail: match2.detail,
+              pairedEvidenceId: obsA.evidence.id,
+              pairedObservedRomanization: romA,
+              discriminativeFeatures: match2.featureStrings,
+              alignedFeatures: match2.alignedFeatures
+            };
+            const evA: WiktionaryProfileRecoveryEvidence = {
+              tier: 'TIER_C_PAIRED',
+              method: 'PAIRED_SCHEME_CORRESPONDENCE',
+              inferredProfile: 'IRANIAN',
+              detail: match2.detail,
+              pairedEvidenceId: obsB.evidence.id,
+              pairedObservedRomanization: romB,
+              discriminativeFeatures: match2.featureStrings,
+              alignedFeatures: match2.alignedFeatures
+            };
+            pairedProposalsMap.get(obsB.evidence.id)!.push({ profile: 'CLASSICAL_DARI', evidence: evB });
+            pairedProposalsMap.get(obsA.evidence.id)!.push({ profile: 'IRANIAN', evidence: evA });
+          }
+        }
+      }
+    }
+
+    // Step 3: Global Reconciliation per Observation
+    for (const obs of observations) {
+      const eviId = obs.evidence.id;
+      const explicitOrStructural = explicitOrStructuralMap.get(eviId);
+
+      // If Tier A or Tier B resolved explicitly/structurally
+      if (
+        explicitOrStructural &&
+        (explicitOrStructural.recoveryStatus === 'EXPLICIT' || explicitOrStructural.recoveryStatus === 'RECOVERED')
+      ) {
+        // Check if any paired proposals contradict the explicit/structural profile
+        const paired = pairedProposalsMap.get(eviId) ?? [];
+        const hasContradictingPair = paired.some((p) => p.profile !== explicitOrStructural.recoveredProfile);
+
+        if (hasContradictingPair) {
+          // Conflict between explicit/structural and paired evidence
+          const confId = generateProfileRecoveryId({
+            observationEvidenceId: eviId,
+            sourceRecordId: obs.evidence.sourceRecordId,
+            persianForm: obs.evidence.persianForm,
+            recoveredProfile: 'CONFLICTING',
+            method: explicitOrStructural.method,
+            recoveryVersion: this.recoveryVersion,
+            policyVersion: this.policyVersion
+          });
+
+          results.set(eviId, {
+            ...explicitOrStructural,
+            id: confId,
+            recoveredProfile: 'CONFLICTING',
+            effectiveProfile: 'CONFLICTING',
+            recoveryStatus: 'CONFLICTING',
+            blockers: [
+              {
+                kind: 'PROFILE_RECOVERY_CONFLICT',
+                reason: 'Explicit or structural profile contradicts paired scheme correspondence proposals.'
+              }
+            ]
+          });
+        } else {
+          results.set(eviId, explicitOrStructural);
+        }
+        continue;
+      }
+
+      // If explicit was already CONFLICTING
+      if (explicitOrStructural && explicitOrStructural.recoveryStatus === 'CONFLICTING') {
+        results.set(eviId, explicitOrStructural);
+        continue;
+      }
+
+      // Reconcile paired proposals for this observation
+      const proposals = pairedProposalsMap.get(eviId) ?? [];
+      const originalProfile = classifyWiktionaryProfile(obs.metadata);
+
+      if (proposals.length === 0) {
+        // Unrecoverable
+        const unrecId = generateProfileRecoveryId({
+          observationEvidenceId: eviId,
           sourceRecordId: obs.evidence.sourceRecordId,
+          persianForm: obs.evidence.persianForm,
           recoveredProfile: 'UNCLASSIFIED',
           method: 'NONE',
           recoveryVersion: this.recoveryVersion,
           policyVersion: this.policyVersion
         });
 
-        results.set(obs.evidence.id, {
-          id: unrecoverableId,
-          observationEvidenceId: obs.evidence.id,
+        results.set(eviId, {
+          id: unrecId,
+          observationEvidenceId: eviId,
           sourceRecordId: obs.evidence.sourceRecordId,
           sourceFormIndex: obs.metadata.sourceFormIndex,
+          formHeadNr: obs.metadata.romanizationHeadNr,
           persianForm: obs.evidence.persianForm,
           observedRomanization: obs.evidence.observedRomanization ?? '',
           originalProfile,
@@ -165,10 +336,159 @@ export class WiktionaryProfileRecoveryEngine {
           policyVersion: this.policyVersion,
           recoveredAt: options?.recoveredAt
         });
+        continue;
+      }
+
+      const assignedProfiles = new Set(proposals.map((p) => p.profile));
+
+      if (assignedProfiles.size > 1) {
+        // Conflicting assignments from different paired partners
+        const confId = generateProfileRecoveryId({
+          observationEvidenceId: eviId,
+          sourceRecordId: obs.evidence.sourceRecordId,
+          persianForm: obs.evidence.persianForm,
+          recoveredProfile: 'CONFLICTING',
+          method: 'PAIRED_SCHEME_CORRESPONDENCE',
+          recoveryVersion: this.recoveryVersion,
+          policyVersion: this.policyVersion
+        });
+
+        results.set(eviId, {
+          id: confId,
+          observationEvidenceId: eviId,
+          sourceRecordId: obs.evidence.sourceRecordId,
+          sourceFormIndex: obs.metadata.sourceFormIndex,
+          formHeadNr: obs.metadata.romanizationHeadNr,
+          persianForm: obs.evidence.persianForm,
+          observedRomanization: obs.evidence.observedRomanization ?? '',
+          originalProfile,
+          recoveredProfile: 'CONFLICTING',
+          effectiveProfile: 'CONFLICTING',
+          profileOrigin: 'UNCLASSIFIED',
+          recoveryStatus: 'CONFLICTING',
+          method: 'PAIRED_SCHEME_CORRESPONDENCE',
+          evidence: proposals.map((p) => p.evidence),
+          blockers: [
+            {
+              kind: 'PROFILE_RECOVERY_CONFLICT',
+              reason: 'Different paired observations assign contradictory profiles to this observation.'
+            }
+          ],
+          recoveryVersion: this.recoveryVersion,
+          policyVersion: this.policyVersion,
+          recoveredAt: options?.recoveredAt
+        });
+      } else {
+        // Unanimous consistent profile assignment across all valid pairs
+        const recoveredProfile = proposals[0].profile;
+        const allEvidence = proposals.map((p) => p.evidence);
+
+        // Collect all paired IDs, feature signatures, and spans deterministically
+        const pairedIds = allEvidence
+          .map((e) => e.pairedEvidenceId)
+          .filter((id): id is string => typeof id === 'string' && id.length > 0);
+        const featureSignatures = Array.from(
+          new Set(
+            allEvidence.flatMap((e) =>
+              (e.alignedFeatures ?? []).map((f) => f.signatureId)
+            )
+          )
+        ).sort();
+        const spans = Array.from(
+          new Set(
+            allEvidence.flatMap((e) =>
+              (e.alignedFeatures ?? []).map((f) => `${f.persianSpan[0]}-${f.persianSpan[1]}`)
+            )
+          )
+        ).sort();
+
+        const id = generateProfileRecoveryId({
+          observationEvidenceId: eviId,
+          sourceRecordId: obs.evidence.sourceRecordId,
+          persianForm: obs.evidence.persianForm,
+          recoveredProfile,
+          method: 'PAIRED_SCHEME_CORRESPONDENCE',
+          recoveryVersion: this.recoveryVersion,
+          policyVersion: this.policyVersion,
+          evidenceBasis: {
+            pairedEvidenceIds: pairedIds,
+            alignedFeatureSignatures: featureSignatures,
+            alignedSpans: spans,
+            subdivisionId: obs.metadata.romanizationHeadNr !== undefined ? `fhead:${obs.metadata.romanizationHeadNr}` : undefined
+          }
+        });
+
+        results.set(eviId, {
+          id,
+          observationEvidenceId: eviId,
+          sourceRecordId: obs.evidence.sourceRecordId,
+          sourceFormIndex: obs.metadata.sourceFormIndex,
+          formHeadNr: obs.metadata.romanizationHeadNr,
+          persianForm: obs.evidence.persianForm,
+          observedRomanization: obs.evidence.observedRomanization ?? '',
+          originalProfile,
+          recoveredProfile,
+          effectiveProfile: recoveredProfile,
+          profileOrigin: 'RECOVERED_PAIRED',
+          recoveryStatus: 'RECOVERED',
+          method: 'PAIRED_SCHEME_CORRESPONDENCE',
+          evidence: allEvidence,
+          blockers: [],
+          recoveryVersion: this.recoveryVersion,
+          policyVersion: this.policyVersion,
+          recoveredAt: options?.recoveredAt
+        });
       }
     }
 
     return results;
+  }
+
+  /**
+   * Check subdivision compatibility between two observations.
+   */
+  private areSubdivisionsCompatible(
+    obsA: KaikkiExtractedObservation,
+    obsB: KaikkiExtractedObservation
+  ): boolean {
+    // Invariant: Never pair across different source records
+    if (obsA.evidence.sourceRecordId !== obsB.evidence.sourceRecordId) {
+      return false;
+    }
+
+    // Invariant: Persian form must match exactly
+    if (obsA.evidence.persianForm !== obsB.evidence.persianForm) {
+      return false;
+    }
+
+    // Invariant: Etymology number must match if both are present
+    if (
+      obsA.metadata.etymologyNumber !== undefined &&
+      obsB.metadata.etymologyNumber !== undefined &&
+      obsA.metadata.etymologyNumber !== obsB.metadata.etymologyNumber
+    ) {
+      return false;
+    }
+
+    // Invariant: Entry-level head_nr must match if both are present
+    if (
+      obsA.metadata.headNr !== undefined &&
+      obsB.metadata.headNr !== undefined &&
+      obsA.metadata.headNr !== obsB.metadata.headNr
+    ) {
+      return false;
+    }
+
+    // Invariant: Form-level romanizationHeadNr (forms[].head_nr) must match if both are present
+    if (
+      obsA.metadata.romanizationHeadNr !== undefined &&
+      obsB.metadata.romanizationHeadNr !== undefined &&
+      obsA.metadata.romanizationHeadNr !== obsB.metadata.romanizationHeadNr
+    ) {
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -187,6 +507,7 @@ export class WiktionaryProfileRecoveryEngine {
       const id = generateProfileRecoveryId({
         observationEvidenceId: obs.evidence.id,
         sourceRecordId: obs.evidence.sourceRecordId,
+        persianForm: obs.evidence.persianForm,
         recoveredProfile: originalProfile,
         method: 'EXPLICIT_ROMANIZATION_TAG',
         recoveryVersion: this.recoveryVersion,
@@ -206,6 +527,7 @@ export class WiktionaryProfileRecoveryEngine {
         observationEvidenceId: obs.evidence.id,
         sourceRecordId: obs.evidence.sourceRecordId,
         sourceFormIndex: obs.metadata.sourceFormIndex,
+        formHeadNr: obs.metadata.romanizationHeadNr,
         persianForm: obs.evidence.persianForm,
         observedRomanization: rawObserved,
         originalProfile,
@@ -226,6 +548,7 @@ export class WiktionaryProfileRecoveryEngine {
       const id = generateProfileRecoveryId({
         observationEvidenceId: obs.evidence.id,
         sourceRecordId: obs.evidence.sourceRecordId,
+        persianForm: obs.evidence.persianForm,
         recoveredProfile: 'CONFLICTING',
         method: 'EXPLICIT_ROMANIZATION_TAG',
         recoveryVersion: this.recoveryVersion,
@@ -237,6 +560,7 @@ export class WiktionaryProfileRecoveryEngine {
         observationEvidenceId: obs.evidence.id,
         sourceRecordId: obs.evidence.sourceRecordId,
         sourceFormIndex: obs.metadata.sourceFormIndex,
+        formHeadNr: obs.metadata.romanizationHeadNr,
         persianForm: obs.evidence.persianForm,
         observedRomanization: rawObserved,
         originalProfile: 'CONFLICTING',
@@ -258,94 +582,137 @@ export class WiktionaryProfileRecoveryEngine {
       };
     }
 
-    // Tier B: Direct structural template linkage
+    // Tier B: Direct structural template linkage with verified template semantics
     if (Array.isArray(rawEntry.head_templates) && obs.metadata.sourceFormIndex !== undefined) {
       for (const tmpl of rawEntry.head_templates) {
         if (tmpl && typeof tmpl === 'object' && 'args' in tmpl && tmpl.args && typeof tmpl.args === 'object') {
-          const args = tmpl.args as Record<string, unknown>;
-          const tmplName = String((tmpl as any).name ?? '');
-
-          // Check explicit cls / ira parameter bindings
-          if (typeof args.cls === 'string' && args.cls.trim() === rawObserved.trim()) {
-            const id = generateProfileRecoveryId({
-              observationEvidenceId: obs.evidence.id,
-              sourceRecordId: obs.evidence.sourceRecordId,
-              recoveredProfile: 'CLASSICAL_DARI',
-              method: 'STRUCTURAL_TEMPLATE_LINK',
-              recoveryVersion: this.recoveryVersion,
-              policyVersion: this.policyVersion
-            });
-
-            return {
-              id,
-              observationEvidenceId: obs.evidence.id,
-              sourceRecordId: obs.evidence.sourceRecordId,
-              sourceFormIndex: obs.metadata.sourceFormIndex,
-              persianForm: obs.evidence.persianForm,
-              observedRomanization: rawObserved,
-              originalProfile: 'UNCLASSIFIED',
-              recoveredProfile: 'CLASSICAL_DARI',
-              effectiveProfile: 'CLASSICAL_DARI',
-              profileOrigin: 'RECOVERED_STRUCTURAL',
-              recoveryStatus: 'RECOVERED',
-              method: 'STRUCTURAL_TEMPLATE_LINK',
-              evidence: [
-                {
-                  tier: 'TIER_B_STRUCTURAL',
-                  method: 'STRUCTURAL_TEMPLATE_LINK',
-                  inferredProfile: 'CLASSICAL_DARI',
-                  detail: `Matched explicit Classical argument in template ${tmplName}`,
-                  templateName: tmplName,
-                  templateArgName: 'cls',
-                  templateArgValue: args.cls
-                }
-              ],
-              blockers: [],
-              recoveryVersion: this.recoveryVersion,
-              policyVersion: this.policyVersion,
-              recoveredAt: options?.recoveredAt
-            };
+          const tmplName = String((tmpl as any).name ?? '').trim();
+          if (!VERIFIED_PERSIAN_HEAD_TEMPLATES.has(tmplName)) {
+            continue;
           }
 
-          if (typeof args.ira === 'string' && args.ira.trim() === rawObserved.trim()) {
-            const id = generateProfileRecoveryId({
-              observationEvidenceId: obs.evidence.id,
-              sourceRecordId: obs.evidence.sourceRecordId,
-              recoveredProfile: 'IRANIAN',
-              method: 'STRUCTURAL_TEMPLATE_LINK',
-              recoveryVersion: this.recoveryVersion,
-              policyVersion: this.policyVersion
-            });
+          const args = tmpl.args as Record<string, unknown>;
 
-            return {
-              id,
-              observationEvidenceId: obs.evidence.id,
-              sourceRecordId: obs.evidence.sourceRecordId,
-              sourceFormIndex: obs.metadata.sourceFormIndex,
-              persianForm: obs.evidence.persianForm,
-              observedRomanization: rawObserved,
-              originalProfile: 'UNCLASSIFIED',
-              recoveredProfile: 'IRANIAN',
-              effectiveProfile: 'IRANIAN',
-              profileOrigin: 'RECOVERED_STRUCTURAL',
-              recoveryStatus: 'RECOVERED',
-              method: 'STRUCTURAL_TEMPLATE_LINK',
-              evidence: [
-                {
-                  tier: 'TIER_B_STRUCTURAL',
+          // Check Classical parameter 'cls'
+          if (typeof args.cls === 'string' && isValidStructuralTransliteration(args.cls)) {
+            const clsVal = args.cls.trim();
+            if (clsVal === rawObserved.trim()) {
+              // Validate script alignment under CLASSICAL_DARI
+              const alignCls = alignAndTransduceWiktionary({
+                persianForm: obs.evidence.persianForm,
+                observedRomanization: clsVal,
+                sourceProfile: 'CLASSICAL_DARI'
+              });
+
+              if (alignCls.success) {
+                const id = generateProfileRecoveryId({
+                  observationEvidenceId: obs.evidence.id,
+                  sourceRecordId: obs.evidence.sourceRecordId,
+                  persianForm: obs.evidence.persianForm,
+                  recoveredProfile: 'CLASSICAL_DARI',
                   method: 'STRUCTURAL_TEMPLATE_LINK',
-                  inferredProfile: 'IRANIAN',
-                  detail: `Matched explicit Iranian argument in template ${tmplName}`,
-                  templateName: tmplName,
-                  templateArgName: 'ira',
-                  templateArgValue: args.ira
-                }
-              ],
-              blockers: [],
-              recoveryVersion: this.recoveryVersion,
-              policyVersion: this.policyVersion,
-              recoveredAt: options?.recoveredAt
-            };
+                  recoveryVersion: this.recoveryVersion,
+                  policyVersion: this.policyVersion,
+                  evidenceBasis: {
+                    templateName: tmplName,
+                    templateArgName: 'cls',
+                    templateArgValue: clsVal
+                  }
+                });
+
+                return {
+                  id,
+                  observationEvidenceId: obs.evidence.id,
+                  sourceRecordId: obs.evidence.sourceRecordId,
+                  sourceFormIndex: obs.metadata.sourceFormIndex,
+                  formHeadNr: obs.metadata.romanizationHeadNr,
+                  persianForm: obs.evidence.persianForm,
+                  observedRomanization: rawObserved,
+                  originalProfile: 'UNCLASSIFIED',
+                  recoveredProfile: 'CLASSICAL_DARI',
+                  effectiveProfile: 'CLASSICAL_DARI',
+                  profileOrigin: 'RECOVERED_STRUCTURAL',
+                  recoveryStatus: 'RECOVERED',
+                  method: 'STRUCTURAL_TEMPLATE_LINK',
+                  evidence: [
+                    {
+                      tier: 'TIER_B_STRUCTURAL',
+                      method: 'STRUCTURAL_TEMPLATE_LINK',
+                      inferredProfile: 'CLASSICAL_DARI',
+                      detail: `Matched verified Classical argument in template ${tmplName}`,
+                      templateName: tmplName,
+                      templateArgName: 'cls',
+                      templateArgValue: clsVal
+                    }
+                  ],
+                  blockers: [],
+                  recoveryVersion: this.recoveryVersion,
+                  policyVersion: this.policyVersion,
+                  recoveredAt: options?.recoveredAt
+                };
+              }
+            }
+          }
+
+          // Check Iranian parameter 'ira'
+          if (typeof args.ira === 'string' && isValidStructuralTransliteration(args.ira)) {
+            const iraVal = args.ira.trim();
+            if (iraVal === rawObserved.trim()) {
+              // Validate script alignment under IRANIAN
+              const alignIra = alignAndTransduceWiktionary({
+                persianForm: obs.evidence.persianForm,
+                observedRomanization: iraVal,
+                sourceProfile: 'IRANIAN'
+              });
+
+              if (alignIra.success) {
+                const id = generateProfileRecoveryId({
+                  observationEvidenceId: obs.evidence.id,
+                  sourceRecordId: obs.evidence.sourceRecordId,
+                  persianForm: obs.evidence.persianForm,
+                  recoveredProfile: 'IRANIAN',
+                  method: 'STRUCTURAL_TEMPLATE_LINK',
+                  recoveryVersion: this.recoveryVersion,
+                  policyVersion: this.policyVersion,
+                  evidenceBasis: {
+                    templateName: tmplName,
+                    templateArgName: 'ira',
+                    templateArgValue: iraVal
+                  }
+                });
+
+                return {
+                  id,
+                  observationEvidenceId: obs.evidence.id,
+                  sourceRecordId: obs.evidence.sourceRecordId,
+                  sourceFormIndex: obs.metadata.sourceFormIndex,
+                  formHeadNr: obs.metadata.romanizationHeadNr,
+                  persianForm: obs.evidence.persianForm,
+                  observedRomanization: rawObserved,
+                  originalProfile: 'UNCLASSIFIED',
+                  recoveredProfile: 'IRANIAN',
+                  effectiveProfile: 'IRANIAN',
+                  profileOrigin: 'RECOVERED_STRUCTURAL',
+                  recoveryStatus: 'RECOVERED',
+                  method: 'STRUCTURAL_TEMPLATE_LINK',
+                  evidence: [
+                    {
+                      tier: 'TIER_B_STRUCTURAL',
+                      method: 'STRUCTURAL_TEMPLATE_LINK',
+                      inferredProfile: 'IRANIAN',
+                      detail: `Matched verified Iranian argument in template ${tmplName}`,
+                      templateName: tmplName,
+                      templateArgName: 'ira',
+                      templateArgValue: iraVal
+                    }
+                  ],
+                  blockers: [],
+                  recoveryVersion: this.recoveryVersion,
+                  policyVersion: this.policyVersion,
+                  recoveredAt: options?.recoveredAt
+                };
+              }
+            }
           }
         }
       }
@@ -355,120 +722,72 @@ export class WiktionaryProfileRecoveryEngine {
   }
 
   /**
-   * Tier C: Paired-Scheme Correspondence Evaluation.
+   * Evaluates position-aligned correspondence between a candidate Classical and Iranian romanization.
    */
-  private evaluatePairedCorrespondences(
-    rawEntry: KaikkiRawEntry,
-    unrecoveredObs: KaikkiExtractedObservation[],
-    options?: ProfileRecoveryOptions
-  ): Map<string, WiktionaryProfileRecoveryResult> {
-    const results = new Map<string, WiktionaryProfileRecoveryResult>();
-
-    // Paired analysis requires at least 2 observations with non-empty romanizations
-    const candidatePairs = unrecoveredObs.filter(
-      (o) => o.evidence.observedRomanization && o.evidence.observedRomanization.trim().length > 0
-    );
-
-    if (candidatePairs.length < 2) {
-      return results;
-    }
-
-    // Try all distinct pairs (i, j)
-    for (let i = 0; i < candidatePairs.length; i++) {
-      for (let j = i + 1; j < candidatePairs.length; j++) {
-        const obsA = candidatePairs[i];
-        const obsB = candidatePairs[j];
-
-        // Invariant: Never pair across different source records
-        if (obsA.evidence.sourceRecordId !== obsB.evidence.sourceRecordId) {
-          continue;
-        }
-
-        // Invariant: Never pair across different etymology numbers if specified
-        if (
-          obsA.metadata.etymologyNumber !== undefined &&
-          obsB.metadata.etymologyNumber !== undefined &&
-          obsA.metadata.etymologyNumber !== obsB.metadata.etymologyNumber
-        ) {
-          continue;
-        }
-
-        // Invariant: Never pair across different head numbers if specified
-        if (
-          obsA.metadata.headNr !== undefined &&
-          obsB.metadata.headNr !== undefined &&
-          obsA.metadata.headNr !== obsB.metadata.headNr
-        ) {
-          continue;
-        }
-
-        // Invariant: Persian form must match exactly
-        if (obsA.evidence.persianForm !== obsB.evidence.persianForm) {
-          continue;
-        }
-
-        // Skip if either is already recovered
-        if (results.has(obsA.evidence.id) && results.has(obsB.evidence.id)) {
-          continue;
-        }
-
-        const romA = obsA.evidence.observedRomanization!;
-        const romB = obsB.evidence.observedRomanization!;
-
-        // Test Assignment 1: A is CLASSICAL_DARI, B is IRANIAN
-        const match1 = this.analyzePairAssignment(obsA.evidence.persianForm, romA, romB);
-        // Test Assignment 2: B is CLASSICAL_DARI, A is IRANIAN
-        const match2 = this.analyzePairAssignment(obsA.evidence.persianForm, romB, romA);
-
-        if (match1.valid && !match2.valid) {
-          this.applyPairedRecovery(obsA, 'CLASSICAL_DARI', obsB, 'IRANIAN', match1, results, options);
-        } else if (match2.valid && !match1.valid) {
-          this.applyPairedRecovery(obsB, 'CLASSICAL_DARI', obsA, 'IRANIAN', match2, results, options);
-        } else if (match1.valid && match2.valid) {
-          // Ambiguous symmetrical match
-          this.applyAmbiguousBlock(obsA, obsB, results, options);
-        }
-      }
-    }
-
-    return results;
-  }
-
-  /**
-   * Tests whether (romCls, romIra) form a valid, script-anchored Classical↔Iranian correspondence pair.
-   */
-  private analyzePairAssignment(
+  private analyzePositionAlignedPair(
     persianForm: string,
     romCls: string,
     romIra: string
   ): {
     valid: boolean;
-    discriminativeFeatures: string[];
+    featureStrings: string[];
+    alignedFeatures: AlignedDiscriminativeSlotFeature[];
     detail: string;
+    blocker?: ProfileRecoveryBlocker;
   } {
-    if (romCls === romIra) {
-      return { valid: false, discriminativeFeatures: [], detail: 'Identical romanizations cannot form a distinctive pair.' };
-    }
-
-    // 1. Incompatible consonantal alignment / skeleton check
-    const consonantsCls = romCls.normalize('NFD').toLowerCase().replace(/[\u0300-\u036f]/g, '').replace(/[aeiouāīūēōâ'-]/gi, '');
-    const consonantsIra = romIra.normalize('NFD').toLowerCase().replace(/[\u0300-\u036f]/g, '').replace(/[aeiouāīūēōâ'-]/gi, '');
-    if (consonantsCls !== consonantsIra) {
+    if (romCls.trim().toLowerCase() === romIra.trim().toLowerCase()) {
       return {
         valid: false,
-        discriminativeFeatures: [],
-        detail: `Consonantal skeleton mismatch: "${consonantsCls}" vs "${consonantsIra}".`
+        featureStrings: [],
+        alignedFeatures: [],
+        detail: 'Identical romanizations cannot form a distinctive pair.'
       };
     }
 
-    // 2. Script-aware alignment check for both forms under tentative profiles
+    const clsLower = romCls.normalize('NFC').toLowerCase().trim();
+    const iraLower = romIra.normalize('NFC').toLowerCase().trim();
+
+    // 1. Negative constraint check: prohibited markers in the opposite scheme
+    if (clsLower.includes('â') || clsLower.includes('ey') || clsLower.includes('ow')) {
+      return {
+        valid: false,
+        featureStrings: [],
+        alignedFeatures: [],
+        detail: 'Candidate Classical string contains Iranian markers (â/ey/ow).'
+      };
+    }
+    if (
+      iraLower.includes('ā') ||
+      iraLower.includes('ī') ||
+      iraLower.includes('ū') ||
+      iraLower.includes('ē') ||
+      iraLower.includes('ō')
+    ) {
+      return {
+        valid: false,
+        featureStrings: [],
+        alignedFeatures: [],
+        detail: 'Candidate Iranian string contains Classical macron markers (ā/ī/ū/ē/ō).'
+      };
+    }
+
+    // 2. Script-aware alignment and slot tracing for both candidate profiles
     const alignCls = alignAndTransduceWiktionary({
       persianForm,
       observedRomanization: romCls,
       sourceProfile: 'CLASSICAL_DARI'
     });
-    if (!alignCls.success || alignCls.blockers.some((b) => b.kind === 'SOURCE_SCRIPT_ALIGNMENT_FAILED')) {
-      return { valid: false, discriminativeFeatures: [], detail: 'Classical form failed script-aware alignment.' };
+    if (!alignCls.success || !alignCls.trace) {
+      return {
+        valid: false,
+        featureStrings: [],
+        alignedFeatures: [],
+        detail: 'Candidate Classical form failed script-aware alignment.',
+        blocker: {
+          kind: 'PROFILE_RECOVERY_ALIGNMENT_FAILED',
+          reason: 'Classical candidate failed script alignment.'
+        }
+      };
     }
 
     const alignIra = alignAndTransduceWiktionary({
@@ -476,178 +795,116 @@ export class WiktionaryProfileRecoveryEngine {
       observedRomanization: romIra,
       sourceProfile: 'IRANIAN'
     });
-    if (!alignIra.success || alignIra.blockers.some((b) => b.kind === 'SOURCE_SCRIPT_ALIGNMENT_FAILED')) {
-      return { valid: false, discriminativeFeatures: [], detail: 'Iranian form failed script-aware alignment.' };
+    if (!alignIra.success || !alignIra.trace) {
+      return {
+        valid: false,
+        featureStrings: [],
+        alignedFeatures: [],
+        detail: 'Candidate Iranian form failed script-aware alignment.',
+        blocker: {
+          kind: 'PROFILE_RECOVERY_ALIGNMENT_FAILED',
+          reason: 'Iranian candidate failed script alignment.'
+        }
+      };
     }
 
-    // 3. Discriminative Feature Analysis
-    const clsLower = romCls.normalize('NFC').toLowerCase();
-    const iraLower = romIra.normalize('NFC').toLowerCase();
+    // 3. Consonantal Skeleton Verification from Aligned Consonant Slots
+    const consonantsCls = alignCls.trace.filter((s) => s.role === 'CONSONANT');
+    const consonantsIra = alignIra.trace.filter((s) => s.role === 'CONSONANT');
 
-    // Check for negative constraints (prohibited features in wrong scheme)
-    if (clsLower.includes('â') || clsLower.includes('ey') || clsLower.includes('ow')) {
-      return { valid: false, discriminativeFeatures: [], detail: 'Candidate Classical string contains Iranian markers.' };
+    if (consonantsCls.length !== consonantsIra.length) {
+      return {
+        valid: false,
+        featureStrings: [],
+        alignedFeatures: [],
+        detail: `Consonant slot count mismatch: ${consonantsCls.length} vs ${consonantsIra.length}.`
+      };
     }
-    if (iraLower.includes('ā') || iraLower.includes('ī') || iraLower.includes('ū') || iraLower.includes('ē') || iraLower.includes('ō')) {
-      return { valid: false, discriminativeFeatures: [], detail: 'Candidate Iranian string contains Classical markers.' };
+
+    for (let c = 0; c < consonantsCls.length; c++) {
+      const slotC = consonantsCls[c];
+      const slotI = consonantsIra[c];
+      if (
+        slotC.persianSpan[0] !== slotI.persianSpan[0] ||
+        slotC.persianSpan[1] !== slotI.persianSpan[1] ||
+        slotC.targetUnit !== slotI.targetUnit
+      ) {
+        return {
+          valid: false,
+          featureStrings: [],
+          alignedFeatures: [],
+          detail: `Incompatible consonant slot alignment at span [${slotC.persianSpan[0]}, ${slotC.persianSpan[1]}].`
+        };
+      }
     }
 
-    const discriminativeFeatures: string[] = [];
+    // 4. Position-Aligned Discriminative Slot Analysis
+    // Match vowel/diphthong slots aligning to the exact same Persian span/context
+    const vowelsCls = alignCls.trace.filter((s) => s.role !== 'CONSONANT');
+    const vowelsIra = alignIra.trace.filter((s) => s.role !== 'CONSONANT');
 
-    // Check known vowel pair correspondences
-    for (const corr of VALID_VOWEL_CORRESPONDENCES) {
-      if (corr.isDiscriminative) {
-        if (clsLower.includes(corr.cls) && iraLower.includes(corr.ira)) {
-          discriminativeFeatures.push(`${corr.cls} (Classical) ↔ ${corr.ira} (Iranian) [${corr.phenomenon}]`);
+    const matchedFeatures: AlignedDiscriminativeSlotFeature[] = [];
+    const featureStrings: string[] = [];
+    const matchedSlotKeys = new Set<string>();
+
+    for (const vCls of vowelsCls) {
+      // Find corresponding Iranian vowel slot with the same Persian span
+      const vIra = vowelsIra.find(
+        (vi) =>
+          vi.persianSpan[0] === vCls.persianSpan[0] &&
+          vi.persianSpan[1] === vCls.persianSpan[1] &&
+          vi.role === vCls.role
+      );
+
+      if (!vIra) {
+        continue;
+      }
+
+      const correspondence = matchAlignedSlotCorrespondence(vCls.sourceUnit, vIra.sourceUnit);
+      if (!correspondence) {
+        // Incompatible vowel units at the same aligned Persian slot
+        return {
+          valid: false,
+          featureStrings: [],
+          alignedFeatures: [],
+          detail: `Incompatible vowel correspondence at span [${vCls.persianSpan[0]}, ${vCls.persianSpan[1]}]: "${vCls.sourceUnit}" vs "${vIra.sourceUnit}".`
+        };
+      }
+
+      if (correspondence.isDiscriminative) {
+        const slotKey = `${vCls.persianSpan[0]}-${vCls.persianSpan[1]}-${correspondence.signatureId}`;
+        if (!matchedSlotKeys.has(slotKey)) {
+          matchedSlotKeys.add(slotKey);
+          matchedFeatures.push({
+            signatureId: correspondence.signatureId,
+            phenomenon: correspondence.phenomenon,
+            persianSpan: vCls.persianSpan,
+            persianGraphemes: vCls.persianGraphemes,
+            classicalUnit: vCls.sourceUnit,
+            iranianUnit: vIra.sourceUnit
+          });
+          featureStrings.push(
+            `[${vCls.persianSpan[0]}:${vCls.persianSpan[1]}] ${vCls.sourceUnit} (Classical) ↔ ${vIra.sourceUnit} (Iranian) [${correspondence.phenomenon}]`
+          );
         }
       }
     }
 
-    // Require >= 2 independent discriminative correspondences (or >= 1 if no other vowel slots exist)
-    // Favor precision over yield: require >= 2 discriminative features for robust paired recovery
-    if (discriminativeFeatures.length < 2) {
+    // Require >= 2 independent discriminative correspondences across distinct aligned slots
+    if (matchedFeatures.length < 2) {
       return {
         valid: false,
-        discriminativeFeatures,
-        detail: `Insufficient discriminative signal (${discriminativeFeatures.length} found, minimum 2 required for paired recovery).`
+        featureStrings,
+        alignedFeatures: matchedFeatures,
+        detail: `Insufficient position-aligned discriminative signal (${matchedFeatures.length} found, minimum 2 required).`
       };
     }
 
     return {
       valid: true,
-      discriminativeFeatures,
-      detail: `Validated paired correspondence: ${discriminativeFeatures.join(', ')}`
+      featureStrings,
+      alignedFeatures: matchedFeatures,
+      detail: `Validated position-aligned paired correspondence: ${featureStrings.join(', ')}`
     };
-  }
-
-  private applyPairedRecovery(
-    obsCls: KaikkiExtractedObservation,
-    profileCls: 'CLASSICAL_DARI',
-    obsIra: KaikkiExtractedObservation,
-    profileIra: 'IRANIAN',
-    match: { discriminativeFeatures: string[]; detail: string },
-    results: Map<string, WiktionaryProfileRecoveryResult>,
-    options?: ProfileRecoveryOptions
-  ): void {
-    const idCls = generateProfileRecoveryId({
-      observationEvidenceId: obsCls.evidence.id,
-      sourceRecordId: obsCls.evidence.sourceRecordId,
-      recoveredProfile: profileCls,
-      method: 'PAIRED_SCHEME_CORRESPONDENCE',
-      recoveryVersion: this.recoveryVersion,
-      policyVersion: this.policyVersion
-    });
-
-    const idIra = generateProfileRecoveryId({
-      observationEvidenceId: obsIra.evidence.id,
-      sourceRecordId: obsIra.evidence.sourceRecordId,
-      recoveredProfile: profileIra,
-      method: 'PAIRED_SCHEME_CORRESPONDENCE',
-      recoveryVersion: this.recoveryVersion,
-      policyVersion: this.policyVersion
-    });
-
-    results.set(obsCls.evidence.id, {
-      id: idCls,
-      observationEvidenceId: obsCls.evidence.id,
-      sourceRecordId: obsCls.evidence.sourceRecordId,
-      sourceFormIndex: obsCls.metadata.sourceFormIndex,
-      persianForm: obsCls.evidence.persianForm,
-      observedRomanization: obsCls.evidence.observedRomanization ?? '',
-      originalProfile: 'UNCLASSIFIED',
-      recoveredProfile: profileCls,
-      effectiveProfile: profileCls,
-      profileOrigin: 'RECOVERED_PAIRED',
-      recoveryStatus: 'RECOVERED',
-      method: 'PAIRED_SCHEME_CORRESPONDENCE',
-      evidence: [
-        {
-          tier: 'TIER_C_PAIRED',
-          method: 'PAIRED_SCHEME_CORRESPONDENCE',
-          inferredProfile: profileCls,
-          detail: match.detail,
-          pairedEvidenceId: obsIra.evidence.id,
-          pairedObservedRomanization: obsIra.evidence.observedRomanization ?? undefined,
-          discriminativeFeatures: match.discriminativeFeatures
-        }
-      ],
-      blockers: [],
-      recoveryVersion: this.recoveryVersion,
-      policyVersion: this.policyVersion,
-      recoveredAt: options?.recoveredAt
-    });
-
-    results.set(obsIra.evidence.id, {
-      id: idIra,
-      observationEvidenceId: obsIra.evidence.id,
-      sourceRecordId: obsIra.evidence.sourceRecordId,
-      sourceFormIndex: obsIra.metadata.sourceFormIndex,
-      persianForm: obsIra.evidence.persianForm,
-      observedRomanization: obsIra.evidence.observedRomanization ?? '',
-      originalProfile: 'UNCLASSIFIED',
-      recoveredProfile: profileIra,
-      effectiveProfile: profileIra,
-      profileOrigin: 'RECOVERED_PAIRED',
-      recoveryStatus: 'RECOVERED',
-      method: 'PAIRED_SCHEME_CORRESPONDENCE',
-      evidence: [
-        {
-          tier: 'TIER_C_PAIRED',
-          method: 'PAIRED_SCHEME_CORRESPONDENCE',
-          inferredProfile: profileIra,
-          detail: match.detail,
-          pairedEvidenceId: obsCls.evidence.id,
-          pairedObservedRomanization: obsCls.evidence.observedRomanization ?? undefined,
-          discriminativeFeatures: match.discriminativeFeatures
-        }
-      ],
-      blockers: [],
-      recoveryVersion: this.recoveryVersion,
-      policyVersion: this.policyVersion,
-      recoveredAt: options?.recoveredAt
-    });
-  }
-
-  private applyAmbiguousBlock(
-    obsA: KaikkiExtractedObservation,
-    obsB: KaikkiExtractedObservation,
-    results: Map<string, WiktionaryProfileRecoveryResult>,
-    options?: ProfileRecoveryOptions
-  ): void {
-    for (const obs of [obsA, obsB]) {
-      const id = generateProfileRecoveryId({
-        observationEvidenceId: obs.evidence.id,
-        sourceRecordId: obs.evidence.sourceRecordId,
-        recoveredProfile: 'UNCLASSIFIED',
-        method: 'PAIRED_SCHEME_CORRESPONDENCE',
-        recoveryVersion: this.recoveryVersion,
-        policyVersion: this.policyVersion
-      });
-
-      results.set(obs.evidence.id, {
-        id,
-        observationEvidenceId: obs.evidence.id,
-        sourceRecordId: obs.evidence.sourceRecordId,
-        sourceFormIndex: obs.metadata.sourceFormIndex,
-        persianForm: obs.evidence.persianForm,
-        observedRomanization: obs.evidence.observedRomanization ?? '',
-        originalProfile: 'UNCLASSIFIED',
-        recoveredProfile: 'UNCLASSIFIED',
-        effectiveProfile: 'UNCLASSIFIED',
-        profileOrigin: 'UNCLASSIFIED',
-        recoveryStatus: 'UNRECOVERABLE',
-        method: 'PAIRED_SCHEME_CORRESPONDENCE',
-        evidence: [],
-        blockers: [
-          {
-            kind: 'PROFILE_RECOVERY_AMBIGUOUS_PAIRING',
-            reason: 'Symmetrical correspondence match; cannot disambiguate profile roles unambiguously.'
-          }
-        ],
-        recoveryVersion: this.recoveryVersion,
-        policyVersion: this.policyVersion,
-        recoveredAt: options?.recoveredAt
-      });
-    }
   }
 }

@@ -127,6 +127,9 @@ export interface KaikkiEvidenceMetadata {
   ipaObservations: KaikkiIpaObservation[];
   varietyTags: string[];
   romanizationTags?: string[];
+  romanizationRawTags?: string[];
+  romanizationSource?: string;
+  romanizationHeadNr?: number;
   sourceFormIndex?: number;
   sourceSenseIds: string[];
   glosses: string[];

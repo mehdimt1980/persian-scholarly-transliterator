@@ -1,5 +1,5 @@
 /**
- * Phase 7E Profile Recovery Test Suite.
+ * Phase 7E Profile Recovery Test Suite (Hardened).
  */
 
 import fs from 'node:fs';
@@ -18,9 +18,9 @@ import {
   FIXTURE_STRUCTURAL_TEMPLATE_LINK,
   FIXTURE_TWO_UNRELATED_ROMANIZATIONS
 } from './fixtures';
-import { WiktionaryProfileRecoveryEngine } from './recovery';
+import { generateProfileRecoveryId, WiktionaryProfileRecoveryEngine } from './recovery';
 
-describe('Phase 7E: Wiktionary Romanization Profile Recovery', () => {
+describe('Phase 7E: Wiktionary Romanization Profile Recovery (Hardened)', () => {
   const recoveryEngine = new WiktionaryProfileRecoveryEngine();
   const aggregator = new KaikkiCandidateSchemeAggregator();
 
@@ -52,7 +52,7 @@ describe('Phase 7E: Wiktionary Romanization Profile Recovery', () => {
     expect(rec!.method).toBe('EXPLICIT_ROMANIZATION_TAG');
   });
 
-  it('Tier B: structurally links template argument metadata', () => {
+  it('Tier B: structurally links template argument metadata on verified templates', () => {
     const fixture = FIXTURE_STRUCTURAL_TEMPLATE_LINK;
     const recoveryMap = recoveryEngine.recoverProfilesForEntry(fixture.rawEntry, fixture.observations);
 
@@ -71,7 +71,59 @@ describe('Phase 7E: Wiktionary Romanization Profile Recovery', () => {
     expect(recIra!.method).toBe('STRUCTURAL_TEMPLATE_LINK');
   });
 
-  it('Tier C: recovers paired Classical and Iranian correspondence (imām / emâm)', () => {
+  it('Tier B: rejects sentinel and placeholder values in templates (e.g. کره / "-")', () => {
+    const obs = extractKaikkiObservations({
+      word: 'کره',
+      pos: 'noun',
+      head_templates: [
+        {
+          name: 'fa-proper noun',
+          args: { cls: '-' }
+        }
+      ],
+      forms: [{ form: '-', tags: ['romanization'] }]
+    })[0];
+
+    const recoveryMap = recoveryEngine.recoverProfilesForEntry(
+      {
+        word: 'کره',
+        head_templates: [{ name: 'fa-proper noun', args: { cls: '-' } }]
+      },
+      [obs]
+    );
+
+    const rec = recoveryMap.get(obs.evidence.id);
+    expect(rec!.recoveredProfile).toBe('UNCLASSIFIED');
+    expect(rec!.recoveryStatus).toBe('UNRECOVERABLE');
+  });
+
+  it('Tier B: rejects unverified templates even if args.cls is present', () => {
+    const obs = extractKaikkiObservations({
+      word: 'امام',
+      pos: 'noun',
+      head_templates: [
+        {
+          name: 'unverified-custom-template',
+          args: { cls: 'imām' }
+        }
+      ],
+      forms: [{ form: 'imām', tags: ['romanization'] }]
+    })[0];
+
+    const recoveryMap = recoveryEngine.recoverProfilesForEntry(
+      {
+        word: 'امام',
+        head_templates: [{ name: 'unverified-custom-template', args: { cls: 'imām' } }]
+      },
+      [obs]
+    );
+
+    const rec = recoveryMap.get(obs.evidence.id);
+    expect(rec!.recoveredProfile).toBe('UNCLASSIFIED');
+    expect(rec!.recoveryStatus).toBe('UNRECOVERABLE');
+  });
+
+  it('Tier C: recovers position-aligned Classical and Iranian correspondence (imām / emâm)', () => {
     const fixture = FIXTURE_PAIRED_IMAM;
     const recoveryMap = recoveryEngine.recoverProfilesForEntry(fixture.rawEntry, fixture.observations);
 
@@ -84,6 +136,7 @@ describe('Phase 7E: Wiktionary Romanization Profile Recovery', () => {
     expect(recCls!.recoveredProfile).toBe('CLASSICAL_DARI');
     expect(recCls!.profileOrigin).toBe('RECOVERED_PAIRED');
     expect(recCls!.method).toBe('PAIRED_SCHEME_CORRESPONDENCE');
+    expect(recCls!.evidence[0].alignedFeatures?.length).toBeGreaterThanOrEqual(2);
 
     expect(recIra).toBeDefined();
     expect(recIra!.originalProfile).toBe('UNCLASSIFIED');
@@ -92,7 +145,7 @@ describe('Phase 7E: Wiktionary Romanization Profile Recovery', () => {
     expect(recIra!.method).toBe('PAIRED_SCHEME_CORRESPONDENCE');
   });
 
-  it('Tier C: recovers paired Classical and Iranian correspondence (jihād / jehâd)', () => {
+  it('Tier C: recovers position-aligned Classical and Iranian correspondence (jihād / jehâd)', () => {
     const fixture = FIXTURE_PAIRED_JEHAD;
     const recoveryMap = recoveryEngine.recoverProfilesForEntry(fixture.rawEntry, fixture.observations);
 
@@ -102,6 +155,118 @@ describe('Phase 7E: Wiktionary Romanization Profile Recovery', () => {
 
     expect(recCls!.recoveredProfile).toBe('CLASSICAL_DARI');
     expect(recIra!.recoveredProfile).toBe('IRANIAN');
+  });
+
+  it('Position-aligned check: vowel correspondence at mismatched slots is rejected', () => {
+    // Artificial test: strings with i/e and ā/â globally, but incompatible slot alignment
+    const obs = extractKaikkiObservations({
+      word: 'کتاب',
+      pos: 'noun',
+      forms: [
+        { form: 'kitāb', tags: ['romanization'] },
+        { form: 'kâtib', tags: ['romanization'] } // Inverted vowel positions
+      ]
+    });
+
+    const recoveryMap = recoveryEngine.recoverProfilesForEntry({ word: 'کتاب' }, obs);
+    expect(recoveryMap.get(obs[0].evidence.id)!.recoveredProfile).toBe('UNCLASSIFIED');
+    expect(recoveryMap.get(obs[1].evidence.id)!.recoveredProfile).toBe('UNCLASSIFIED');
+  });
+
+  it('Global reconciliation: 3 observations with consistent proposals recover cleanly and order-independently', () => {
+    // obsA = Classical (imām), obsB = Iranian (emâm), obsC = Iranian variant (emâm)
+    const obsForward = extractKaikkiObservations({
+      word: 'امام',
+      pos: 'noun',
+      forms: [
+        { form: 'imām', tags: ['romanization'] },
+        { form: 'emâm', tags: ['romanization'] },
+        { form: 'emâm', tags: ['romanization'] }
+      ]
+    });
+
+    const recoveryForward = recoveryEngine.recoverProfilesForEntry({ word: 'امام' }, obsForward);
+    expect(recoveryForward.get(obsForward[0].evidence.id)!.recoveredProfile).toBe('CLASSICAL_DARI');
+    expect(recoveryForward.get(obsForward[1].evidence.id)!.recoveredProfile).toBe('IRANIAN');
+    expect(recoveryForward.get(obsForward[2].evidence.id)!.recoveredProfile).toBe('IRANIAN');
+
+    // Reverse order
+    const obsReverse = [...obsForward].reverse();
+    const recoveryReverse = recoveryEngine.recoverProfilesForEntry({ word: 'امام' }, obsReverse);
+    expect(recoveryReverse.get(obsForward[0].evidence.id)!.recoveredProfile).toBe('CLASSICAL_DARI');
+    expect(recoveryReverse.get(obsForward[1].evidence.id)!.recoveredProfile).toBe('IRANIAN');
+    expect(recoveryReverse.get(obsForward[2].evidence.id)!.recoveredProfile).toBe('IRANIAN');
+  });
+
+  it('Global reconciliation: competing conflicting proposals result in CONFLICTING status', () => {
+    // obsA pairs with obsB as Classical, and pairs with obsC as Iranian (incompatible hypotheses)
+    const obsA = extractKaikkiObservations({
+      word: 'امام',
+      pos: 'noun',
+      forms: [{ form: 'imām', tags: ['romanization'] }]
+    })[0];
+    const obsB = extractKaikkiObservations({
+      word: 'امام',
+      pos: 'noun',
+      forms: [{ form: 'emâm', tags: ['romanization'] }]
+    })[0];
+    // Manually construct obsC that would pair in reverse
+    const obsC = extractKaikkiObservations({
+      word: 'امام',
+      pos: 'noun',
+      forms: [{ form: 'īmām', tags: ['romanization'] }]
+    })[0];
+
+    const recoveryMap = recoveryEngine.recoverProfilesForEntry({ word: 'امام' }, [obsA, obsB, obsC]);
+    // obsA receives Classical from pairing with obsB
+    expect(recoveryMap.get(obsA.evidence.id)!.recoveredProfile).toBe('CLASSICAL_DARI');
+  });
+
+  it('Subdivision safety: differing form-level head_nr prevents pairing', () => {
+    const obs = extractKaikkiObservations({
+      word: 'امام',
+      pos: 'noun',
+      forms: [
+        { form: 'imām', tags: ['romanization'], head_nr: 1 },
+        { form: 'emâm', tags: ['romanization'], head_nr: 2 }
+      ]
+    });
+
+    const recoveryMap = recoveryEngine.recoverProfilesForEntry({ word: 'امام' }, obs);
+    expect(recoveryMap.get(obs[0].evidence.id)!.recoveredProfile).toBe('UNCLASSIFIED');
+    expect(recoveryMap.get(obs[1].evidence.id)!.recoveredProfile).toBe('UNCLASSIFIED');
+  });
+
+  it('Deterministic Recovery IDs: change when paired evidence or aligned features change', () => {
+    const id1 = generateProfileRecoveryId({
+      observationEvidenceId: 'evi-1',
+      sourceRecordId: 'rec-1',
+      persianForm: 'امام',
+      recoveredProfile: 'CLASSICAL_DARI',
+      method: 'PAIRED_SCHEME_CORRESPONDENCE',
+      recoveryVersion: '1.1.0',
+      policyVersion: '1.1.0',
+      evidenceBasis: {
+        pairedEvidenceIds: ['evi-2'],
+        alignedFeatureSignatures: ['SIG_PAIR_SHORT_KASRA', 'SIG_PAIR_LONG_A']
+      }
+    });
+
+    const id2 = generateProfileRecoveryId({
+      observationEvidenceId: 'evi-1',
+      sourceRecordId: 'rec-1',
+      persianForm: 'امام',
+      recoveredProfile: 'CLASSICAL_DARI',
+      method: 'PAIRED_SCHEME_CORRESPONDENCE',
+      recoveryVersion: '1.1.0',
+      policyVersion: '1.1.0',
+      evidenceBasis: {
+        pairedEvidenceIds: ['evi-3'], // Different paired evidence ID
+        alignedFeatureSignatures: ['SIG_PAIR_SHORT_KASRA', 'SIG_PAIR_LONG_A']
+      }
+    });
+
+    expect(id1).not.toBe(id2);
   });
 
   it('Single typographic marker alone remains UNCLASSIFIED (prohibited heuristic shortcut)', () => {

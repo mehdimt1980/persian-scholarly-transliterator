@@ -1,4 +1,4 @@
-# Wiktionary Romanization Profile Recovery & Metadata Enrichment (Phase 7E)
+# Wiktionary Romanization Profile Recovery & Metadata Enrichment (Phase 7E Hardened)
 
 ## 1. Context & Motivation
 
@@ -21,7 +21,7 @@ Fallback eligible candidates: 0
 The dominant bottleneck across the dataset was **NOT lexical coverage**, but **Source Profile Recovery**:
 English Wiktionary defines separate transliteration policies for **Iranian Persian** and **Classical Persian / Dari**, but Wiktextract `forms[]` arrays in the Persian dump generally do not carry explicit variety tags (99%+ carry only the generic tag `["romanization"]`).
 
-Phase 7E introduces a formal, multi-tier profile recovery subsystem that unlocks **2,505 recovered observations** and **857 unanimous fallback candidates** with zero linguistic shortcuts and zero authoritative lexicon mutations.
+Phase 7E introduces a formal, multi-tier profile recovery subsystem that unlocks **3,161 recovered observations** and **1,099 unanimous fallback candidates** with zero linguistic shortcuts and zero authoritative lexicon mutations.
 
 ---
 
@@ -41,8 +41,8 @@ Raw Source Tag ≠ Recovered Profile Identity ≠ IJMES Target Hypothesis ≠ Au
 
 A single typographic glyph (e.g. `â` or `ā`) alone is **strictly prohibited** from determining a profile.
 Profile recovery requires a multi-evidence bundle anchored on:
-1. Source-local structural metadata, or
-2. Persian-script consonantal alignment and complementary vowel correspondences across >= 2 discriminative features.
+1. Source-local structural metadata on verified templates with successful script alignment, or
+2. Persian-script consonantal alignment and complementary vowel correspondences across >= 2 position-aligned discriminative slots.
 
 ---
 
@@ -77,64 +77,53 @@ Audit on the 20,288 Persian records (`f1647707c1bcbb7b18d355f7481ac4c656fa1ff8d9
 
 ### Tier B — Direct structural template linkage
 - Medium-high confidence (`STRUCTURAL_TEMPLATE_LINK`).
-- Applied when a head template argument explicitly binds a romanization slot (e.g. `cls = "..."` or `ira = "..."`).
+- Applied when a verified head template argument explicitly binds a valid romanization slot (e.g. `cls = "..."` or `ira = "..."`), rejects placeholders/sentinels (`"-"`), and validates under script alignment.
 - `profileOrigin: 'RECOVERED_STRUCTURAL'`.
 
-### Tier C — Script-Anchored Paired-Scheme Correspondence
+### Tier C — Position-Aligned Paired-Scheme Correspondence
 - Primary high-yield mechanism (`PAIRED_SCHEME_CORRESPONDENCE`).
 - Applies when:
   1. Same Persian lexical record and same Persian spelling;
-  2. Same etymology and head subdivision;
-  3. Consonantal skeletons match identically;
+  2. Same etymology and head subdivision (including `forms[].head_nr`);
+  3. Consonantal skeletons match identically in alignment slots;
   4. Both strings align independently to the Persian script;
-  5. The vowel slots satisfy >= 2 independent discriminative correspondences (e.g. `ā` ↔ `â` [Long A] and `i` ↔ `e` [Kasra] in `imām` / `emâm` or `jihād` / `jehâd`).
+  5. The vowel slots satisfy >= 2 independent position-aligned discriminative correspondences (e.g. `ā` ↔ `â` [Long A] and `i` ↔ `e` [Kasra] in `imām` / `emâm` or `jihād` / `jehâd`).
 - `profileOrigin: 'RECOVERED_PAIRED'`.
 
 ---
 
-## 5. Conflict Resolution & Precedence
+## 5. Conflict Resolution & Global Multi-Observation Reconciliation
 
-Effective profile resolution follows strict precedence:
+Effective profile resolution follows strict precedence and global order-invariance:
 1. `EXPLICIT` source tag.
 2. `RECOVERED_STRUCTURAL` template link.
 3. `RECOVERED_PAIRED` correspondence.
-4. `UNCLASSIFIED`.
 
-If explicit and recovered evidence disagree:
-```text
-effectiveProfile → CONFLICTING
-```
-
----
-
-## 6. Empirical Results & Yield Metrics
-
-| Metric | Phase 7D Baseline | Phase 7E Recovered |
-| :--- | :--- | :--- |
-| **Observation Recovery** | 0 (0.00%) | **2,505 (9.29%)** |
-| **Recovered Iranian** | 0 | **1,254** |
-| **Recovered Classical/Dari** | 0 | **1,251** |
-| **Unanimous Candidate Consensus** | 0 | **860 candidates** |
-| **Partial Consensus** | 0 | **99 candidates** |
-| **Conflicting Deterministic** | 0 | **42 candidates** |
-| **Fallback Eligible Forms** | 0 | **857 entries** (851 novel) |
-| **Reviewed Lexicon Overlap** | 0 | **6 forms** (5 exact matches, 1 divergence) |
-| **Reviewed Divergence Rate** | N/A | **16.67%** |
-| **Full Experimental Pack Size** | 0 KB | **72 KB gzipped (857 entries)** |
+Global reconciliation algorithm:
+- Enumerate all valid pair hypotheses across all observations in a record.
+- Collect all profile assignments per observation.
+- If all valid evidence assigns the same profile $\to$ `RECOVERED`, preserving all supporting evidence.
+- If contradictory assignments exist (e.g. observation paired as Classical with one partner and Iranian with another, or contradicting explicit tags) $\to$ `CONFLICTING`.
+- If insufficient signal $\to$ `UNCLASSIFIED`.
+- Output is mathematically independent of array or pair iteration order.
 
 ---
 
-## 7. Remaining Blockers & Next Interventions
+## 6. Official Wiktionary Policy Signatures
 
-The remaining blockers after Phase 7E profile recovery:
-1. `UNCLASSIFIED_WIKTIONARY_PROFILE` (20,178 observations = 81.91%):
-   - Single-romanization records without explicit tags or template bindings.
-2. `NON_LEMMA_SOURCE_FORM` (3,919 observations = 15.91%):
-   - Inflected forms and grammatical variants intentionally blocked from lexical fallback.
-3. `NO_ROMANIZATION` (537 observations = 2.18%):
-   - Records with no observed romanization string.
-4. `SOURCE_SCRIPT_ALIGNMENT_FAILED` (1 observation = 0.004%):
-   - Complex script-transcription mismatch.
+References:
+- Classical: [Wiktionary:Persian transliteration/Classical](https://en.wiktionary.org/wiki/Wiktionary:Persian_transliteration/Classical)
+- Iranian: [Wiktionary:Persian transliteration/Iranian](https://en.wiktionary.org/wiki/Wiktionary:Persian_transliteration/Iranian)
 
-**Recommended Next Step (Phase 7F)**:
-Investigate single-romanization source template extraction and IPA-assisted disambiguation for the 13,462 single-romanization cohort to safely unlock the remaining unclassified vocabulary.
+| Signature ID | Feature | Classical | Iranian | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| `SIG_PAIR_LONG_A` | Long A | `ā` | `â` | Discriminative |
+| `SIG_PAIR_SHORT_KASRA` | Kasra | `i` | `e` | Discriminative |
+| `SIG_PAIR_SHORT_ZAMMA` | Zamma | `u` | `o` | Discriminative |
+| `SIG_PAIR_LONG_I` | Long I | `ī` | `i` | Discriminative |
+| `SIG_PAIR_LONG_U` | Long U | `ū` | `u` | Discriminative |
+| `SIG_PAIR_MAJHUL_E_TO_I` | Majhul E | `ē` | `i` | Discriminative |
+| `SIG_PAIR_MAJHUL_O_TO_U` | Majhul O | `ō` | `u` | Discriminative |
+| `SIG_PAIR_DIPHTHONG_AY_EY` | Diphthong ay/ey | `ay` | `ey` | Discriminative |
+| `SIG_PAIR_DIPHTHONG_AW_OW` | Diphthong aw/ow | `aw` | `ow` | Discriminative |
+| `SIG_SHARED_FATHAH_A` | Fathah | `a` | `a` | Compatible (Non-discriminative) |

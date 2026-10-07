@@ -1,8 +1,8 @@
 {
-  "experimentVersion": "Phase 7E.1",
-  "recoveryVersion": "1.0.0",
-  "policyVersion": "1.0.0",
-  "timestamp": "2026-10-07T18:34:50.104Z",
+  "experimentVersion": "Phase 7E.2-Hardened",
+  "recoveryVersion": "1.1.0",
+  "policyVersion": "1.1.0",
+  "timestamp": "2026-10-07T18:49:58.710Z",
   "sourceSha256": "f1647707c1bcbb7b18d355f7481ac4c656fa1ff8d91d93a0dbc6bb2e808d06c2",
   "sourceFile": "kaikki.org-dictionary-Persian.jsonl",
   "totalPersianRecords": 20288,
@@ -390,29 +390,316 @@
   },
   "observationRecovery": {
     "baselineUnclassified": 26962,
-    "recoveredTotal": 2505,
-    "recoveredIranian": 1254,
-    "recoveredClassicalDari": 1251,
-    "stillUnclassified": 24457,
+    "explicitProfiles": 0,
+    "recoveredStructuralProfiles": 0,
+    "recoveredPairedProfiles": 3161,
+    "recoveredTotal": 3161,
+    "recoveredIranian": 1581,
+    "recoveredClassicalDari": 1580,
+    "stillUnclassified": 23801,
     "newConflicting": 0,
-    "recoveryYieldRate": 9.290853794228916
+    "recoveryYieldRate": 11.723907721979081
   },
   "recoveryMethodDistribution": {
     "EXPLICIT_ROMANIZATION_TAG": 0,
     "STRUCTURAL_SOUND_LINK": 0,
-    "STRUCTURAL_TEMPLATE_LINK": 1,
-    "PAIRED_SCHEME_CORRESPONDENCE": 2504,
+    "STRUCTURAL_TEMPLATE_LINK": 0,
+    "PAIRED_SCHEME_CORRESPONDENCE": 3161,
     "MULTI_SIGNAL_CONSENSUS": 0,
-    "NONE": 24457
+    "NONE": 23801
   },
   "multiRomanizationCohort": {
     "totalMultiRomanizationRecords": 6289,
     "pairedDiscriminatingRecords": 4013,
-    "successfullyRecoveredRecords": 1252,
-    "ambiguousRecords": 0,
-    "nonDiscriminatingRecords": 2276,
+    "recordsWithAtLeastOneValidPair": 1580,
+    "recordsWithUniqueConsistentRecovery": 1549,
+    "recordsWithMultipleConsistentRecoveryEvidence": 31,
+    "recordsWithConflictingRecoveryAssignments": 0,
+    "recordsWithInsufficientPositionalSignal": 0,
     "alignmentFailures": 0,
-    "pairedRecoverySuccessRate": 19.90777548099857
+    "subdivisionConflicts": 0,
+    "pairedRecoverySuccessRate": 25.123231038320874
+  },
+  "threePlusRomanizationCohort": {
+    "totalRecords": 280,
+    "fullyConsistent": 27,
+    "partiallyRecoverable": 49,
+    "conflictingAssignmentGraph": 0,
+    "nonDiscriminating": 204,
+    "subdivisionSeparated": 0,
+    "samples": [
+      {
+        "persianForm": "زبان",
+        "romanizations": [
+          "zabān",
+          "zubān",
+          "zabân",
+          "zobân"
+        ],
+        "outcome": "PARTIALLY_RECOVERABLE",
+        "detail": "2 of 4 observations recovered"
+      },
+      {
+        "persianForm": "و",
+        "romanizations": [
+          "wa",
+          "u",
+          "va",
+          "o"
+        ],
+        "outcome": "NON_DISCRIMINATING",
+        "detail": "Insufficient aligned discriminative pairs"
+      },
+      {
+        "persianForm": "موز",
+        "romanizations": [
+          "mōz",
+          "mawz",
+          "mowz"
+        ],
+        "outcome": "NON_DISCRIMINATING",
+        "detail": "Insufficient aligned discriminative pairs"
+      },
+      {
+        "persianForm": "صدا",
+        "romanizations": [
+          "sadā",
+          "sedâ",
+          "sadâ"
+        ],
+        "outcome": "NON_DISCRIMINATING",
+        "detail": "Insufficient aligned discriminative pairs"
+      },
+      {
+        "persianForm": "جهاز",
+        "romanizations": [
+          "jahāz",
+          "jihāz",
+          "jahâz",
+          "jehâz"
+        ],
+        "outcome": "PARTIALLY_RECOVERABLE",
+        "detail": "2 of 4 observations recovered"
+      },
+      {
+        "persianForm": "اژدها",
+        "romanizations": [
+          "aždahā",
+          "aždahâ",
+          "eždehâ"
+        ],
+        "outcome": "NON_DISCRIMINATING",
+        "detail": "Insufficient aligned discriminative pairs"
+      },
+      {
+        "persianForm": "چادر",
+        "romanizations": [
+          "čādur",
+          "čādar",
+          "čâdor"
+        ],
+        "outcome": "PARTIALLY_RECOVERABLE",
+        "detail": "2 of 3 observations recovered"
+      },
+      {
+        "persianForm": "پسر",
+        "romanizations": [
+          "pisar",
+          "pusar",
+          "pesar",
+          "posar"
+        ],
+        "outcome": "NON_DISCRIMINATING",
+        "detail": "Insufficient aligned discriminative pairs"
+      },
+      {
+        "persianForm": "ایران",
+        "romanizations": [
+          "ērān",
+          "irân",
+          "īrān"
+        ],
+        "outcome": "PARTIALLY_RECOVERABLE",
+        "detail": "2 of 3 observations recovered"
+      },
+      {
+        "persianForm": "۹",
+        "romanizations": [
+          "nine",
+          "nuh",
+          "noh",
+          "tis'",
+          "tes'"
+        ],
+        "outcome": "NON_DISCRIMINATING",
+        "detail": "Insufficient aligned discriminative pairs"
+      },
+      {
+        "persianForm": "۵",
+        "romanizations": [
+          "five",
+          "panj",
+          "xamsa",
+          "xamse"
+        ],
+        "outcome": "NON_DISCRIMINATING",
+        "detail": "Insufficient aligned discriminative pairs"
+      },
+      {
+        "persianForm": "۴",
+        "romanizations": [
+          "four",
+          "čahār",
+          "čahâr",
+          "arba'a",
+          "arba'e"
+        ],
+        "outcome": "NON_DISCRIMINATING",
+        "detail": "Insufficient aligned discriminative pairs"
+      },
+      {
+        "persianForm": "۶",
+        "romanizations": [
+          "six",
+          "šaš",
+          "šeš",
+          "sitta",
+          "sette"
+        ],
+        "outcome": "NON_DISCRIMINATING",
+        "detail": "Insufficient aligned discriminative pairs"
+      },
+      {
+        "persianForm": "۷",
+        "romanizations": [
+          "seven",
+          "haft",
+          "sab'a",
+          "sab'e"
+        ],
+        "outcome": "NON_DISCRIMINATING",
+        "detail": "Insufficient aligned discriminative pairs"
+      },
+      {
+        "persianForm": "۸",
+        "romanizations": [
+          "eight",
+          "hašt",
+          "samānī",
+          "samâni"
+        ],
+        "outcome": "NON_DISCRIMINATING",
+        "detail": "Insufficient aligned discriminative pairs"
+      },
+      {
+        "persianForm": "۰",
+        "romanizations": [
+          "zero",
+          "sifr",
+          "sefr"
+        ],
+        "outcome": "NON_DISCRIMINATING",
+        "detail": "Insufficient aligned discriminative pairs"
+      },
+      {
+        "persianForm": "۱",
+        "romanizations": [
+          "one",
+          "yak",
+          "yek",
+          "wāhid",
+          "vâhed"
+        ],
+        "outcome": "NON_DISCRIMINATING",
+        "detail": "Insufficient aligned discriminative pairs"
+      },
+      {
+        "persianForm": "۲",
+        "romanizations": [
+          "two",
+          "du",
+          "do",
+          "isnān",
+          "esnân"
+        ],
+        "outcome": "NON_DISCRIMINATING",
+        "detail": "Insufficient aligned discriminative pairs"
+      },
+      {
+        "persianForm": "۳",
+        "romanizations": [
+          "three",
+          "si",
+          "se",
+          "salāsa",
+          "salâse"
+        ],
+        "outcome": "NON_DISCRIMINATING",
+        "detail": "Insufficient aligned discriminative pairs"
+      },
+      {
+        "persianForm": "شمال",
+        "romanizations": [
+          "šamāl",
+          "šumāl",
+          "šimāl",
+          "šomâl"
+        ],
+        "outcome": "PARTIALLY_RECOVERABLE",
+        "detail": "2 of 4 observations recovered"
+      },
+      {
+        "persianForm": "شاهد",
+        "romanizations": [
+          "šāhid",
+          "šâhed",
+          "šâhed"
+        ],
+        "outcome": "PARTIALLY_RECOVERABLE",
+        "detail": "2 of 3 observations recovered"
+      },
+      {
+        "persianForm": "نوید",
+        "romanizations": [
+          "nawīd",
+          "nuwēd",
+          "navid"
+        ],
+        "outcome": "NON_DISCRIMINATING",
+        "detail": "Insufficient aligned discriminative pairs"
+      },
+      {
+        "persianForm": "نوید",
+        "romanizations": [
+          "nawīd",
+          "navid",
+          "nuwēd",
+          "-"
+        ],
+        "outcome": "NON_DISCRIMINATING",
+        "detail": "Insufficient aligned discriminative pairs"
+      },
+      {
+        "persianForm": "تاریخ",
+        "romanizations": [
+          "tārīx",
+          "ta'rīx",
+          "târix"
+        ],
+        "outcome": "PARTIALLY_RECOVERABLE",
+        "detail": "2 of 3 observations recovered"
+      },
+      {
+        "persianForm": "قاشق",
+        "romanizations": [
+          "qāšuq",
+          "ġâšoġ",
+          "ġâšeġ"
+        ],
+        "outcome": "PARTIALLY_RECOVERABLE",
+        "detail": "2 of 3 observations recovered"
+      }
+    ]
   },
   "candidateConsensus": {
     "baseline": {
@@ -423,79 +710,79 @@
       "noInterpretableEvidence": 499
     },
     "recovered": {
-      "unanimousDeterministic": 860,
-      "partial": 99,
-      "conflictingDeterministic": 42,
-      "blocked": 16098,
+      "unanimousDeterministic": 1102,
+      "partial": 122,
+      "conflictingDeterministic": 28,
+      "blocked": 15847,
       "noInterpretableEvidence": 499
     }
   },
   "blockersHistogram": [
     {
       "kind": "UNCLASSIFIED_WIKTIONARY_PROFILE",
-      "count": 20178,
-      "percentage": 81.90785467830322
+      "count": 19568,
+      "percentage": 81.45188145188145
     },
     {
       "kind": "NON_LEMMA_SOURCE_FORM",
       "count": 3919,
-      "percentage": 15.908260604830527
+      "percentage": 16.312853812853813
     },
     {
       "kind": "NO_ROMANIZATION",
       "count": 537,
-      "percentage": 2.1798254515932616
-    },
-    {
-      "kind": "SOURCE_SCRIPT_ALIGNMENT_FAILED",
-      "count": 1,
-      "percentage": 0.00405926527298559
+      "percentage": 2.2352647352647352
     }
   ],
   "fallbackEligibility": {
     "beforeEligible": 0,
-    "afterEligible": 857,
-    "novelEligibleForms": 851,
-    "reviewedOverlaps": 6,
-    "exactReviewedMatches": 5,
-    "reviewedDivergences": 1,
-    "divergenceRate": 16.666666666666664
+    "afterEligible": 1099,
+    "novelEligibleForms": 1089,
+    "reviewedOverlaps": 10,
+    "exactReviewedMatches": 9,
+    "formattingDifferences": 1,
+    "substantiveDivergences": 0,
+    "divergenceRate": 10
   },
   "experimentalPack": {
-    "fullEntryCount": 857,
-    "fullSizeBytes": 855368,
-    "fullGzipBytes": 73764,
-    "novelEntryCount": 851,
-    "novelSizeBytes": 849676,
-    "novelGzipBytes": 73303,
-    "bytesPerEntry": 998,
-    "browserPackFeasibility": "FEASIBLE: 857 recovered fallback entries (72 KB gzipped)."
+    "fullEntryCount": 1099,
+    "fullSizeBytes": 1098266,
+    "fullGzipBytes": 94739,
+    "novelEntryCount": 1089,
+    "novelSizeBytes": 1088788,
+    "novelGzipBytes": 93980,
+    "bytesPerEntry": 999,
+    "browserPackFeasibility": "FEASIBLE: 1099 recovered fallback entries (93 KB gzipped)."
   },
   "corpusEvaluation": {
-    "displayCoverageBefore": 100,
-    "displayCoverageAfter": 100,
-    "authoritativeCoverageBefore": 100,
-    "authoritativeCoverageAfter": 100,
-    "lexicalMissRecovery": 857,
-    "uniqueFormMissRecovery": 851
+    "v3DisplayCoverageBefore": 95.41284403669725,
+    "v3DisplayCoverageAfter": 95.41284403669725,
+    "v3AuthoritativeCoverageBefore": 95.41284403669725,
+    "v3AuthoritativeCoverageAfter": 95.41284403669725,
+    "pilotDisplayCoverageBefore": 92.15686274509804,
+    "pilotDisplayCoverageAfter": 92.15686274509804,
+    "pilotAuthoritativeCoverageBefore": 92.15686274509804,
+    "pilotAuthoritativeCoverageAfter": 92.15686274509804,
+    "tokenLexicalMissRecoveryRate": 0,
+    "uniqueFormLexicalMissRecoveryRate": 0,
+    "displayCoverageBefore": 95.41284403669725,
+    "displayCoverageAfter": 95.41284403669725,
+    "authoritativeCoverageBefore": 95.41284403669725,
+    "authoritativeCoverageAfter": 95.41284403669725,
+    "lexicalMissRecovery": 0,
+    "uniqueFormMissRecovery": 0
   },
   "auditSamples": {
     "structurallyRecoveredIranian": [],
-    "structurallyRecoveredClassical": [
-      {
-        "persianForm": "کره",
-        "romanization": "-",
-        "template": "fa-proper noun"
-      }
-    ],
+    "structurallyRecoveredClassical": [],
     "pairedRecoveries": [
       {
         "persianForm": "جهاد",
         "classical": "jihād",
         "iranian": "jehâd",
         "features": [
-          "ā (Classical) ↔ â (Iranian) [Long A]",
-          "i (Classical) ↔ e (Iranian) [Kasra (short i/e)]"
+          "[0:1] i (Classical) ↔ e (Iranian) [Kasra (i ↔ e)]",
+          "[2:3] ā (Classical) ↔ â (Iranian) [Long A (ā ↔ â)]"
         ]
       },
       {
@@ -503,8 +790,8 @@
         "classical": "imām",
         "iranian": "emâm",
         "features": [
-          "ā (Classical) ↔ â (Iranian) [Long A]",
-          "i (Classical) ↔ e (Iranian) [Kasra (short i/e)]"
+          "[0:1] i (Classical) ↔ e (Iranian) [Kasra (i ↔ e)]",
+          "[2:3] ā (Classical) ↔ â (Iranian) [Long A (ā ↔ â)]"
         ]
       },
       {
@@ -512,8 +799,8 @@
         "classical": "zubān",
         "iranian": "zobân",
         "features": [
-          "ā (Classical) ↔ â (Iranian) [Long A]",
-          "u (Classical) ↔ o (Iranian) [Zamma (short u/o)]"
+          "[0:1] u (Classical) ↔ o (Iranian) [Zamma (u ↔ o)]",
+          "[2:3] ā (Classical) ↔ â (Iranian) [Long A (ā ↔ â)]"
         ]
       },
       {
@@ -521,8 +808,8 @@
         "classical": "islām",
         "iranian": "eslâm",
         "features": [
-          "ā (Classical) ↔ â (Iranian) [Long A]",
-          "i (Classical) ↔ e (Iranian) [Kasra (short i/e)]"
+          "[0:1] i (Classical) ↔ e (Iranian) [Kasra (i ↔ e)]",
+          "[3:4] ā (Classical) ↔ â (Iranian) [Long A (ā ↔ â)]"
         ]
       },
       {
@@ -530,8 +817,8 @@
         "classical": "mizāj",
         "iranian": "mezâj",
         "features": [
-          "ā (Classical) ↔ â (Iranian) [Long A]",
-          "i (Classical) ↔ e (Iranian) [Kasra (short i/e)]"
+          "[0:1] i (Classical) ↔ e (Iranian) [Kasra (i ↔ e)]",
+          "[2:3] ā (Classical) ↔ â (Iranian) [Long A (ā ↔ â)]"
         ]
       },
       {
@@ -539,8 +826,8 @@
         "classical": "isnān",
         "iranian": "esnân",
         "features": [
-          "ā (Classical) ↔ â (Iranian) [Long A]",
-          "i (Classical) ↔ e (Iranian) [Kasra (short i/e)]"
+          "[0:1] i (Classical) ↔ e (Iranian) [Kasra (i ↔ e)]",
+          "[3:4] ā (Classical) ↔ â (Iranian) [Long A (ā ↔ â)]"
         ]
       },
       {
@@ -548,8 +835,8 @@
         "classical": "himār",
         "iranian": "hemâr",
         "features": [
-          "ā (Classical) ↔ â (Iranian) [Long A]",
-          "i (Classical) ↔ e (Iranian) [Kasra (short i/e)]"
+          "[0:1] i (Classical) ↔ e (Iranian) [Kasra (i ↔ e)]",
+          "[2:3] ā (Classical) ↔ â (Iranian) [Long A (ā ↔ â)]"
         ]
       },
       {
@@ -557,8 +844,8 @@
         "classical": "muslim",
         "iranian": "moslem",
         "features": [
-          "i (Classical) ↔ e (Iranian) [Kasra (short i/e)]",
-          "u (Classical) ↔ o (Iranian) [Zamma (short u/o)]"
+          "[0:1] u (Classical) ↔ o (Iranian) [Zamma (u ↔ o)]",
+          "[2:3] i (Classical) ↔ e (Iranian) [Kasra (i ↔ e)]"
         ]
       },
       {
@@ -566,8 +853,8 @@
         "classical": "muslim",
         "iranian": "moslem",
         "features": [
-          "i (Classical) ↔ e (Iranian) [Kasra (short i/e)]",
-          "u (Classical) ↔ o (Iranian) [Zamma (short u/o)]"
+          "[0:1] u (Classical) ↔ o (Iranian) [Zamma (u ↔ o)]",
+          "[2:3] i (Classical) ↔ e (Iranian) [Kasra (i ↔ e)]"
         ]
       },
       {
@@ -575,8 +862,8 @@
         "classical": "urdū",
         "iranian": "ordu",
         "features": [
-          "u (Classical) ↔ o (Iranian) [Zamma (short u/o)]",
-          "ū (Classical) ↔ u (Iranian) [Long U]"
+          "[0:1] u (Classical) ↔ o (Iranian) [Zamma (u ↔ o)]",
+          "[3:4] ū (Classical) ↔ u (Iranian) [Long U (ū ↔ u)]"
         ]
       },
       {
@@ -584,8 +871,8 @@
         "classical": "urdū",
         "iranian": "ordu",
         "features": [
-          "u (Classical) ↔ o (Iranian) [Zamma (short u/o)]",
-          "ū (Classical) ↔ u (Iranian) [Long U]"
+          "[0:1] u (Classical) ↔ o (Iranian) [Zamma (u ↔ o)]",
+          "[3:4] ū (Classical) ↔ u (Iranian) [Long U (ū ↔ u)]"
         ]
       },
       {
@@ -593,8 +880,8 @@
         "classical": "urdū",
         "iranian": "ordu",
         "features": [
-          "u (Classical) ↔ o (Iranian) [Zamma (short u/o)]",
-          "ū (Classical) ↔ u (Iranian) [Long U]"
+          "[0:1] u (Classical) ↔ o (Iranian) [Zamma (u ↔ o)]",
+          "[3:4] ū (Classical) ↔ u (Iranian) [Long U (ū ↔ u)]"
         ]
       },
       {
@@ -602,8 +889,8 @@
         "classical": "fārsī",
         "iranian": "fârsi",
         "features": [
-          "ā (Classical) ↔ â (Iranian) [Long A]",
-          "ī (Classical) ↔ i (Iranian) [Long I]"
+          "[1:2] ā (Classical) ↔ â (Iranian) [Long A (ā ↔ â)]",
+          "[4:5] ī (Classical) ↔ i (Iranian) [Long I (ī ↔ i)]"
         ]
       },
       {
@@ -611,8 +898,8 @@
         "classical": "fārsī",
         "iranian": "fârsi",
         "features": [
-          "ā (Classical) ↔ â (Iranian) [Long A]",
-          "ī (Classical) ↔ i (Iranian) [Long I]"
+          "[1:2] ā (Classical) ↔ â (Iranian) [Long A (ā ↔ â)]",
+          "[4:5] ī (Classical) ↔ i (Iranian) [Long I (ī ↔ i)]"
         ]
       },
       {
@@ -620,8 +907,26 @@
         "classical": "mutarjim",
         "iranian": "motarjem",
         "features": [
-          "i (Classical) ↔ e (Iranian) [Kasra (short i/e)]",
-          "u (Classical) ↔ o (Iranian) [Zamma (short u/o)]"
+          "[0:1] u (Classical) ↔ o (Iranian) [Zamma (u ↔ o)]",
+          "[3:4] i (Classical) ↔ e (Iranian) [Kasra (i ↔ e)]"
+        ]
+      },
+      {
+        "persianForm": "اجاق",
+        "classical": "ujāq",
+        "iranian": "ojâġ",
+        "features": [
+          "[0:1] u (Classical) ↔ o (Iranian) [Zamma (u ↔ o)]",
+          "[2:3] ā (Classical) ↔ â (Iranian) [Long A (ā ↔ â)]"
+        ]
+      },
+      {
+        "persianForm": "قاموس",
+        "classical": "qāmūs",
+        "iranian": "ġâmus",
+        "features": [
+          "[1:2] ā (Classical) ↔ â (Iranian) [Long A (ā ↔ â)]",
+          "[3:4] ū (Classical) ↔ u (Iranian) [Long U (ū ↔ u)]"
         ]
       },
       {
@@ -629,8 +934,8 @@
         "classical": "judā",
         "iranian": "jodâ",
         "features": [
-          "ā (Classical) ↔ â (Iranian) [Long A]",
-          "u (Classical) ↔ o (Iranian) [Zamma (short u/o)]"
+          "[0:1] u (Classical) ↔ o (Iranian) [Zamma (u ↔ o)]",
+          "[2:3] ā (Classical) ↔ â (Iranian) [Long A (ā ↔ â)]"
         ]
       },
       {
@@ -638,8 +943,8 @@
         "classical": "judā",
         "iranian": "jodâ",
         "features": [
-          "ā (Classical) ↔ â (Iranian) [Long A]",
-          "u (Classical) ↔ o (Iranian) [Zamma (short u/o)]"
+          "[0:1] u (Classical) ↔ o (Iranian) [Zamma (u ↔ o)]",
+          "[2:3] ā (Classical) ↔ â (Iranian) [Long A (ā ↔ â)]"
         ]
       },
       {
@@ -647,8 +952,8 @@
         "classical": "lisān",
         "iranian": "lesân",
         "features": [
-          "ā (Classical) ↔ â (Iranian) [Long A]",
-          "i (Classical) ↔ e (Iranian) [Kasra (short i/e)]"
+          "[0:1] i (Classical) ↔ e (Iranian) [Kasra (i ↔ e)]",
+          "[2:3] ā (Classical) ↔ â (Iranian) [Long A (ā ↔ â)]"
         ]
       },
       {
@@ -656,8 +961,8 @@
         "classical": "pārsī",
         "iranian": "pârsi",
         "features": [
-          "ā (Classical) ↔ â (Iranian) [Long A]",
-          "ī (Classical) ↔ i (Iranian) [Long I]"
+          "[1:2] ā (Classical) ↔ â (Iranian) [Long A (ā ↔ â)]",
+          "[4:5] ī (Classical) ↔ i (Iranian) [Long I (ī ↔ i)]"
         ]
       },
       {
@@ -665,8 +970,17 @@
         "classical": "pārsī",
         "iranian": "pârsi",
         "features": [
-          "ā (Classical) ↔ â (Iranian) [Long A]",
-          "ī (Classical) ↔ i (Iranian) [Long I]"
+          "[1:2] ā (Classical) ↔ â (Iranian) [Long A (ā ↔ â)]",
+          "[4:5] ī (Classical) ↔ i (Iranian) [Long I (ī ↔ i)]"
+        ]
+      },
+      {
+        "persianForm": "قبرستان",
+        "classical": "qabristān",
+        "iranian": "ġabrestân",
+        "features": [
+          "[2:3] i (Classical) ↔ e (Iranian) [Kasra (i ↔ e)]",
+          "[5:6] ā (Classical) ↔ â (Iranian) [Long A (ā ↔ â)]"
         ]
       },
       {
@@ -674,8 +988,8 @@
         "classical": "jihāz",
         "iranian": "jehâz",
         "features": [
-          "ā (Classical) ↔ â (Iranian) [Long A]",
-          "i (Classical) ↔ e (Iranian) [Kasra (short i/e)]"
+          "[0:1] i (Classical) ↔ e (Iranian) [Kasra (i ↔ e)]",
+          "[2:3] ā (Classical) ↔ â (Iranian) [Long A (ā ↔ â)]"
         ]
       },
       {
@@ -683,35 +997,8 @@
         "classical": "kuštī",
         "iranian": "košti",
         "features": [
-          "u (Classical) ↔ o (Iranian) [Zamma (short u/o)]",
-          "ī (Classical) ↔ i (Iranian) [Long I]"
-        ]
-      },
-      {
-        "persianForm": "کشتی",
-        "classical": "kištī",
-        "iranian": "kešti",
-        "features": [
-          "i (Classical) ↔ e (Iranian) [Kasra (short i/e)]",
-          "ī (Classical) ↔ i (Iranian) [Long I]"
-        ]
-      },
-      {
-        "persianForm": "کشتی",
-        "classical": "kištī",
-        "iranian": "kešti",
-        "features": [
-          "i (Classical) ↔ e (Iranian) [Kasra (short i/e)]",
-          "ī (Classical) ↔ i (Iranian) [Long I]"
-        ]
-      },
-      {
-        "persianForm": "پستان",
-        "classical": "pistān",
-        "iranian": "pestân",
-        "features": [
-          "ā (Classical) ↔ â (Iranian) [Long A]",
-          "i (Classical) ↔ e (Iranian) [Kasra (short i/e)]"
+          "[0:1] u (Classical) ↔ o (Iranian) [Zamma (u ↔ o)]",
+          "[3:4] ī (Classical) ↔ i (Iranian) [Long I (ī ↔ i)]"
         ]
       }
     ],
@@ -987,8 +1274,26 @@
         "method": "PAIRED_SCHEME_CORRESPONDENCE"
       },
       {
+        "persianForm": "اجاق",
+        "canonical": "ujāq",
+        "origin": "RECOVERED_PAIRED",
+        "method": "PAIRED_SCHEME_CORRESPONDENCE"
+      },
+      {
+        "persianForm": "قاموس",
+        "canonical": "qāmūs",
+        "origin": "RECOVERED_PAIRED",
+        "method": "PAIRED_SCHEME_CORRESPONDENCE"
+      },
+      {
         "persianForm": "لسان",
         "canonical": "lisān",
+        "origin": "RECOVERED_PAIRED",
+        "method": "PAIRED_SCHEME_CORRESPONDENCE"
+      },
+      {
+        "persianForm": "قبرستان",
+        "canonical": "qabristān",
         "origin": "RECOVERED_PAIRED",
         "method": "PAIRED_SCHEME_CORRESPONDENCE"
       },
@@ -1047,6 +1352,12 @@
         "method": "PAIRED_SCHEME_CORRESPONDENCE"
       },
       {
+        "persianForm": "بازار",
+        "canonical": "bāzār",
+        "origin": "RECOVERED_PAIRED",
+        "method": "PAIRED_SCHEME_CORRESPONDENCE"
+      },
+      {
         "persianForm": "استمنا",
         "canonical": "istimnā",
         "origin": "RECOVERED_PAIRED",
@@ -1063,37 +1374,15 @@
         "canonical": "yūnān",
         "origin": "RECOVERED_PAIRED",
         "method": "PAIRED_SCHEME_CORRESPONDENCE"
-      },
-      {
-        "persianForm": "نظام",
-        "canonical": "niẓām",
-        "origin": "RECOVERED_PAIRED",
-        "method": "PAIRED_SCHEME_CORRESPONDENCE"
-      },
-      {
-        "persianForm": "آدمی",
-        "canonical": "ādamī",
-        "origin": "RECOVERED_PAIRED",
-        "method": "PAIRED_SCHEME_CORRESPONDENCE"
-      },
-      {
-        "persianForm": "تابوت",
-        "canonical": "tābūt",
-        "origin": "RECOVERED_PAIRED",
-        "method": "PAIRED_SCHEME_CORRESPONDENCE"
-      },
-      {
-        "persianForm": "ترازو",
-        "canonical": "tarāzū",
-        "origin": "RECOVERED_PAIRED",
-        "method": "PAIRED_SCHEME_CORRESPONDENCE"
       }
     ],
     "reviewedDivergences": [
       {
         "persianForm": "همکاری",
         "recoveredHypothesis": "hamkārī",
-        "reviewedCanonical": "ham-kārī"
+        "reviewedCanonical": "ham-kārī",
+        "divergenceClass": "ORTHOGRAPHIC_FORMATTING_DIFFERENCE",
+        "divergenceDetail": "Hyphenation or non-joiner formatting difference (canonical values equivalent)"
       }
     ]
   },
