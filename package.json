@@ -35,7 +35,9 @@
     "experiment:profile-recovery": "tsx src/domain/evidence/kaikki/profile/cli.ts",
     "acquire:phase7f-openalex": "tsx src/domain/coverage/openalex/cli.ts",
     "validate:phase7f-freeze": "tsx src/validation/coverage/freezeValidatorCli.ts",
-    "evaluate:phase7f-coverage": "tsx src/domain/coverage/cli.ts"
+    "evaluate:phase7f-coverage": "tsx src/domain/coverage/cli.ts",
+    "evaluate:phase7g-safe-routing": "tsx src/domain/coverage/phase7gRunner.ts",
+    "experiment:loc-feasibility": "tsx src/domain/evidence/loc/pilot/pilotCli.ts"
   },
   "dependencies": {
     "next": "16.3.8",

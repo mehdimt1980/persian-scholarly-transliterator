@@ -64,3 +64,56 @@ export interface ProductiveSuffixRule {
   allowWithoutZwnj: boolean;
   rule: RuleDefinition;
 }
+
+export type MorphologyResolutionStrength =
+  | 'CONFIRMED_REVIEWED'
+  | 'COMPETING_REVIEWED'
+  | 'CANDIDATE_SHAPE_ONLY'
+  | 'BLOCKED_BY_EXPLICIT_EVIDENCE'
+  | 'UNSUPPORTED_OR_AMBIGUOUS';
+
+export function classifyMorphologyStrength(
+  morphology?: MorphologicalAnalysis,
+  hasUnsupportedOrthography?: boolean,
+  hasExplicitVowels?: boolean
+): MorphologyResolutionStrength {
+  if (!morphology) {
+    return 'CANDIDATE_SHAPE_ONLY';
+  }
+  if (
+    hasUnsupportedOrthography ||
+    hasExplicitVowels ||
+    morphology.warnings.some(
+      (w) =>
+        w.includes('Unsupported combining-mark') ||
+        w.includes('conflicts with every reviewed') ||
+        w.includes('Explicit source vowel')
+    )
+  ) {
+    return 'BLOCKED_BY_EXPLICIT_EVIDENCE';
+  }
+  if (morphology.status === 'CONFIRMED' && morphology.stemEntry) {
+    return 'CONFIRMED_REVIEWED';
+  }
+  if (
+    morphology.alternatives.includes('WHOLE_WORD') ||
+    (morphology.stemEntry && morphology.status === 'CANDIDATE')
+  ) {
+    return 'COMPETING_REVIEWED';
+  }
+  if (
+    morphology.status === 'CONFLICT' ||
+    morphology.warnings.some(
+      (w) =>
+        w.includes('allomorphs require review') ||
+        w.includes('no authoritative') ||
+        w.includes('lexically ambiguous')
+    )
+  ) {
+    return 'UNSUPPORTED_OR_AMBIGUOUS';
+  }
+  if (!morphology.stemEntry) {
+    return 'CANDIDATE_SHAPE_ONLY';
+  }
+  return 'UNSUPPORTED_OR_AMBIGUOUS';
+}
