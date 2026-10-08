@@ -1,11 +1,11 @@
 {
   "reportVersion": "1.2.0",
-  "generatedAt": "2026-10-08T13:37:46.120Z",
+  "generatedAt": "2026-10-08T13:50:37.185Z",
   "inputIdentity": {
     "frozenCorpusSha256": "28d91c460585ac028e987b01f4ea274f6bd991ad3a2ea79a16f8080fae9b5d5a",
     "holdoutSha256": "92ad183e088acbecded7165a806e808d9918482d3d6ce98f3c04072e0fd215d2",
-    "productionPackSemanticSha256": "4c725049874c65e04332d9436edd52ee18fbb13f6c4f31bfadd2a029ea1637fd",
-    "experimentalPackSemanticSha256": "c94dae2e42cf7964ea39321e3785b237bae76527201fcc9c2ac692419e19bcf9",
+    "productionPackSemanticSha256": "0023d8666cd71ca4a718e5d1e910511d8f529c02a44eb77907f9df92b534a77d",
+    "experimentalPackSemanticSha256": "867906aeadb8148300f1df2271c5b3fbef83523f4229ecdc1d8fbc5cf848bcca",
     "kaikkiSourceSha256": "f1647707c1bcbb7b18d355f7481ac4c656fa1ff8d91d93a0dbc6bb2e808d06c2",
     "recoveryVersion": "1.1.0",
     "diagnosticIndexVersion": "1.2.0",
@@ -1233,7 +1233,7 @@
       "tokenFrequency": 219,
       "titleCount": 218,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_NOT_APPLIED",
-      "kaikkiStateSummary": "Present in Phase 7E pack but not applied at runtime (intercepted by compositional morphology analyzer)",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 0, intercepted: 219)",
       "isProperName": false
     },
     {
@@ -1566,7 +1566,7 @@
       "tokenFrequency": 99,
       "titleCount": 95,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_NOT_APPLIED",
-      "kaikkiStateSummary": "Present in Phase 7E pack but not applied at runtime (intercepted by compositional morphology analyzer)",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 0, intercepted: 99)",
       "isProperName": false
     },
     {
@@ -1800,7 +1800,7 @@
       "tokenFrequency": 76,
       "titleCount": 74,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_NOT_APPLIED",
-      "kaikkiStateSummary": "Present in Phase 7E pack but not applied at runtime (intercepted by compositional morphology analyzer)",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 0, intercepted: 76)",
       "isProperName": false
     },
     {
@@ -2027,7 +2027,7 @@
       "tokenFrequency": 301,
       "titleCount": 298,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 301, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2036,7 +2036,7 @@
       "tokenFrequency": 192,
       "titleCount": 189,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 192, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2045,7 +2045,7 @@
       "tokenFrequency": 103,
       "titleCount": 103,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 103, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2054,7 +2054,7 @@
       "tokenFrequency": 101,
       "titleCount": 101,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 101, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2063,7 +2063,7 @@
       "tokenFrequency": 92,
       "titleCount": 90,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 92, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2072,7 +2072,7 @@
       "tokenFrequency": 86,
       "titleCount": 81,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 86, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2081,7 +2081,7 @@
       "tokenFrequency": 85,
       "titleCount": 82,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 85, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2090,7 +2090,7 @@
       "tokenFrequency": 74,
       "titleCount": 71,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 74, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2099,7 +2099,7 @@
       "tokenFrequency": 65,
       "titleCount": 62,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 65, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2108,7 +2108,7 @@
       "tokenFrequency": 52,
       "titleCount": 51,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 52, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2117,7 +2117,7 @@
       "tokenFrequency": 45,
       "titleCount": 41,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 45, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2126,7 +2126,7 @@
       "tokenFrequency": 44,
       "titleCount": 44,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 44, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2135,7 +2135,7 @@
       "tokenFrequency": 44,
       "titleCount": 43,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 44, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2144,7 +2144,7 @@
       "tokenFrequency": 41,
       "titleCount": 36,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 41, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2153,7 +2153,7 @@
       "tokenFrequency": 39,
       "titleCount": 39,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 39, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2162,7 +2162,7 @@
       "tokenFrequency": 39,
       "titleCount": 38,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 39, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2171,7 +2171,7 @@
       "tokenFrequency": 34,
       "titleCount": 34,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 34, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2180,7 +2180,7 @@
       "tokenFrequency": 34,
       "titleCount": 30,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 34, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2189,7 +2189,7 @@
       "tokenFrequency": 32,
       "titleCount": 30,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 32, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2198,7 +2198,7 @@
       "tokenFrequency": 32,
       "titleCount": 32,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 32, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2207,7 +2207,7 @@
       "tokenFrequency": 32,
       "titleCount": 32,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 32, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2216,7 +2216,7 @@
       "tokenFrequency": 29,
       "titleCount": 29,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 29, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2225,7 +2225,7 @@
       "tokenFrequency": 28,
       "titleCount": 28,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 28, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2234,7 +2234,7 @@
       "tokenFrequency": 27,
       "titleCount": 26,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 27, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2243,7 +2243,7 @@
       "tokenFrequency": 25,
       "titleCount": 25,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 25, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2252,7 +2252,7 @@
       "tokenFrequency": 25,
       "titleCount": 25,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 25, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2261,7 +2261,7 @@
       "tokenFrequency": 24,
       "titleCount": 21,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 24, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2270,7 +2270,7 @@
       "tokenFrequency": 23,
       "titleCount": 23,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 23, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2279,7 +2279,7 @@
       "tokenFrequency": 22,
       "titleCount": 22,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 22, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2288,7 +2288,7 @@
       "tokenFrequency": 22,
       "titleCount": 22,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 22, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2297,7 +2297,7 @@
       "tokenFrequency": 21,
       "titleCount": 21,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 21, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2306,7 +2306,7 @@
       "tokenFrequency": 21,
       "titleCount": 21,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 21, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2315,7 +2315,7 @@
       "tokenFrequency": 20,
       "titleCount": 20,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 20, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2324,7 +2324,7 @@
       "tokenFrequency": 20,
       "titleCount": 20,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 20, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2333,7 +2333,7 @@
       "tokenFrequency": 20,
       "titleCount": 20,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 20, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2342,7 +2342,7 @@
       "tokenFrequency": 19,
       "titleCount": 18,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 19, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2351,7 +2351,7 @@
       "tokenFrequency": 19,
       "titleCount": 18,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 19, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2360,7 +2360,7 @@
       "tokenFrequency": 18,
       "titleCount": 18,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 18, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2369,7 +2369,7 @@
       "tokenFrequency": 17,
       "titleCount": 16,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 17, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2378,7 +2378,7 @@
       "tokenFrequency": 15,
       "titleCount": 14,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 15, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2387,7 +2387,7 @@
       "tokenFrequency": 15,
       "titleCount": 15,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 15, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2396,7 +2396,7 @@
       "tokenFrequency": 14,
       "titleCount": 14,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 14, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2405,7 +2405,7 @@
       "tokenFrequency": 14,
       "titleCount": 13,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 14, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2414,7 +2414,7 @@
       "tokenFrequency": 14,
       "titleCount": 13,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 14, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2423,7 +2423,7 @@
       "tokenFrequency": 14,
       "titleCount": 14,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 14, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2432,7 +2432,7 @@
       "tokenFrequency": 14,
       "titleCount": 14,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 14, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2441,7 +2441,7 @@
       "tokenFrequency": 13,
       "titleCount": 12,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 13, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2450,7 +2450,7 @@
       "tokenFrequency": 13,
       "titleCount": 12,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 13, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2459,7 +2459,7 @@
       "tokenFrequency": 13,
       "titleCount": 13,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 13, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2468,7 +2468,7 @@
       "tokenFrequency": 12,
       "titleCount": 12,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 12, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2477,7 +2477,7 @@
       "tokenFrequency": 12,
       "titleCount": 12,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 12, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2486,7 +2486,7 @@
       "tokenFrequency": 12,
       "titleCount": 12,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 12, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2495,7 +2495,7 @@
       "tokenFrequency": 12,
       "titleCount": 12,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 12, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2504,7 +2504,7 @@
       "tokenFrequency": 12,
       "titleCount": 12,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 12, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2513,7 +2513,7 @@
       "tokenFrequency": 12,
       "titleCount": 12,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 12, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2522,7 +2522,7 @@
       "tokenFrequency": 11,
       "titleCount": 11,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 11, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2531,7 +2531,7 @@
       "tokenFrequency": 11,
       "titleCount": 11,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 11, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2540,7 +2540,7 @@
       "tokenFrequency": 10,
       "titleCount": 10,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 10, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2549,7 +2549,7 @@
       "tokenFrequency": 10,
       "titleCount": 10,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 10, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2558,7 +2558,7 @@
       "tokenFrequency": 10,
       "titleCount": 10,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 10, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2567,7 +2567,7 @@
       "tokenFrequency": 10,
       "titleCount": 10,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 10, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2576,7 +2576,7 @@
       "tokenFrequency": 10,
       "titleCount": 10,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 10, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2585,7 +2585,7 @@
       "tokenFrequency": 10,
       "titleCount": 10,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 10, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2594,7 +2594,7 @@
       "tokenFrequency": 10,
       "titleCount": 10,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 10, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2603,7 +2603,7 @@
       "tokenFrequency": 9,
       "titleCount": 9,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 9, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2612,7 +2612,7 @@
       "tokenFrequency": 9,
       "titleCount": 9,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 9, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2621,7 +2621,7 @@
       "tokenFrequency": 9,
       "titleCount": 9,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 9, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2630,7 +2630,7 @@
       "tokenFrequency": 9,
       "titleCount": 8,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 9, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2639,7 +2639,7 @@
       "tokenFrequency": 9,
       "titleCount": 8,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 9, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2648,7 +2648,7 @@
       "tokenFrequency": 9,
       "titleCount": 9,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 9, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2657,7 +2657,7 @@
       "tokenFrequency": 8,
       "titleCount": 7,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 8, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2666,7 +2666,7 @@
       "tokenFrequency": 8,
       "titleCount": 8,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 8, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2675,7 +2675,7 @@
       "tokenFrequency": 8,
       "titleCount": 8,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 8, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2684,7 +2684,7 @@
       "tokenFrequency": 8,
       "titleCount": 8,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 8, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2693,7 +2693,7 @@
       "tokenFrequency": 8,
       "titleCount": 8,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 8, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2702,7 +2702,7 @@
       "tokenFrequency": 8,
       "titleCount": 8,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 8, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2711,7 +2711,7 @@
       "tokenFrequency": 8,
       "titleCount": 7,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 8, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2720,7 +2720,7 @@
       "tokenFrequency": 8,
       "titleCount": 8,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 8, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2729,7 +2729,7 @@
       "tokenFrequency": 7,
       "titleCount": 7,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 7, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2738,7 +2738,7 @@
       "tokenFrequency": 6,
       "titleCount": 6,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 6, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2747,7 +2747,7 @@
       "tokenFrequency": 6,
       "titleCount": 6,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 6, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2756,7 +2756,7 @@
       "tokenFrequency": 6,
       "titleCount": 6,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 6, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2765,7 +2765,7 @@
       "tokenFrequency": 6,
       "titleCount": 6,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 6, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2774,7 +2774,7 @@
       "tokenFrequency": 6,
       "titleCount": 6,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 6, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2783,7 +2783,7 @@
       "tokenFrequency": 6,
       "titleCount": 6,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 6, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2792,7 +2792,7 @@
       "tokenFrequency": 6,
       "titleCount": 6,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 6, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2801,7 +2801,7 @@
       "tokenFrequency": 6,
       "titleCount": 6,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 6, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2810,7 +2810,7 @@
       "tokenFrequency": 6,
       "titleCount": 6,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 6, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2819,7 +2819,7 @@
       "tokenFrequency": 6,
       "titleCount": 6,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 6, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2828,7 +2828,7 @@
       "tokenFrequency": 6,
       "titleCount": 6,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 6, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2837,7 +2837,7 @@
       "tokenFrequency": 6,
       "titleCount": 6,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 6, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2846,7 +2846,7 @@
       "tokenFrequency": 6,
       "titleCount": 6,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 6, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2855,7 +2855,7 @@
       "tokenFrequency": 6,
       "titleCount": 6,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 6, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2864,7 +2864,7 @@
       "tokenFrequency": 5,
       "titleCount": 5,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 5, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2873,7 +2873,7 @@
       "tokenFrequency": 5,
       "titleCount": 5,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 5, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2882,7 +2882,7 @@
       "tokenFrequency": 5,
       "titleCount": 5,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 5, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2891,7 +2891,7 @@
       "tokenFrequency": 5,
       "titleCount": 5,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 5, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2900,7 +2900,7 @@
       "tokenFrequency": 5,
       "titleCount": 5,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 5, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2909,7 +2909,7 @@
       "tokenFrequency": 5,
       "titleCount": 5,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 5, intercepted: 0)",
       "isProperName": false
     },
     {
@@ -2918,7 +2918,7 @@
       "tokenFrequency": 5,
       "titleCount": 5,
       "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-      "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+      "kaikkiStateSummary": "Phase 7E pack entry (recovered: 5, intercepted: 0)",
       "isProperName": false
     }
   ],
@@ -5636,7 +5636,7 @@
         "tokenFrequency": 2,
         "titleCount": 2,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 2, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5645,7 +5645,7 @@
         "tokenFrequency": 14,
         "titleCount": 13,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 14, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5654,7 +5654,7 @@
         "tokenFrequency": 1,
         "titleCount": 1,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 1, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5663,7 +5663,7 @@
         "tokenFrequency": 1,
         "titleCount": 1,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 1, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5672,7 +5672,7 @@
         "tokenFrequency": 5,
         "titleCount": 5,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 5, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5681,7 +5681,7 @@
         "tokenFrequency": 12,
         "titleCount": 12,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 12, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5690,7 +5690,7 @@
         "tokenFrequency": 12,
         "titleCount": 12,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 12, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5699,7 +5699,7 @@
         "tokenFrequency": 5,
         "titleCount": 5,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 5, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5708,7 +5708,7 @@
         "tokenFrequency": 1,
         "titleCount": 1,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 1, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5717,7 +5717,7 @@
         "tokenFrequency": 1,
         "titleCount": 1,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 1, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5726,7 +5726,7 @@
         "tokenFrequency": 4,
         "titleCount": 4,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 4, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5735,7 +5735,7 @@
         "tokenFrequency": 20,
         "titleCount": 20,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 20, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5744,7 +5744,7 @@
         "tokenFrequency": 3,
         "titleCount": 3,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 3, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5753,7 +5753,7 @@
         "tokenFrequency": 1,
         "titleCount": 1,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 1, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5762,7 +5762,7 @@
         "tokenFrequency": 1,
         "titleCount": 1,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 1, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5771,7 +5771,7 @@
         "tokenFrequency": 6,
         "titleCount": 6,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 6, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5780,7 +5780,7 @@
         "tokenFrequency": 19,
         "titleCount": 18,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 19, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5789,7 +5789,7 @@
         "tokenFrequency": 2,
         "titleCount": 2,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 2, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5798,7 +5798,7 @@
         "tokenFrequency": 6,
         "titleCount": 6,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 6, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5807,7 +5807,7 @@
         "tokenFrequency": 2,
         "titleCount": 2,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 2, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5816,7 +5816,7 @@
         "tokenFrequency": 1,
         "titleCount": 1,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 1, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5825,7 +5825,7 @@
         "tokenFrequency": 18,
         "titleCount": 18,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 18, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5834,7 +5834,7 @@
         "tokenFrequency": 44,
         "titleCount": 44,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 44, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5843,7 +5843,7 @@
         "tokenFrequency": 1,
         "titleCount": 1,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 1, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5852,7 +5852,7 @@
         "tokenFrequency": 25,
         "titleCount": 25,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 25, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5861,7 +5861,7 @@
         "tokenFrequency": 10,
         "titleCount": 10,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 10, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5870,7 +5870,7 @@
         "tokenFrequency": 19,
         "titleCount": 18,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 19, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5879,7 +5879,7 @@
         "tokenFrequency": 7,
         "titleCount": 7,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 7, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5888,7 +5888,7 @@
         "tokenFrequency": 3,
         "titleCount": 3,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 3, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5897,7 +5897,7 @@
         "tokenFrequency": 10,
         "titleCount": 10,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 10, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5906,7 +5906,7 @@
         "tokenFrequency": 6,
         "titleCount": 6,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 6, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5915,7 +5915,7 @@
         "tokenFrequency": 20,
         "titleCount": 20,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 20, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5924,7 +5924,7 @@
         "tokenFrequency": 1,
         "titleCount": 1,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 1, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5933,7 +5933,7 @@
         "tokenFrequency": 12,
         "titleCount": 12,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 12, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5942,7 +5942,7 @@
         "tokenFrequency": 2,
         "titleCount": 2,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 2, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5951,7 +5951,7 @@
         "tokenFrequency": 1,
         "titleCount": 1,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 1, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5960,7 +5960,7 @@
         "tokenFrequency": 8,
         "titleCount": 7,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 8, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5969,7 +5969,7 @@
         "tokenFrequency": 192,
         "titleCount": 189,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 192, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5978,7 +5978,7 @@
         "tokenFrequency": 1,
         "titleCount": 1,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 1, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5987,7 +5987,7 @@
         "tokenFrequency": 2,
         "titleCount": 2,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 2, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -5996,7 +5996,7 @@
         "tokenFrequency": 1,
         "titleCount": 1,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 1, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -6005,7 +6005,7 @@
         "tokenFrequency": 2,
         "titleCount": 2,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 2, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -6014,7 +6014,7 @@
         "tokenFrequency": 5,
         "titleCount": 5,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 5, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -6023,7 +6023,7 @@
         "tokenFrequency": 12,
         "titleCount": 12,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 12, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -6032,7 +6032,7 @@
         "tokenFrequency": 2,
         "titleCount": 2,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 2, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -6041,7 +6041,7 @@
         "tokenFrequency": 1,
         "titleCount": 1,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 1, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -6050,7 +6050,7 @@
         "tokenFrequency": 1,
         "titleCount": 1,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 1, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -6059,7 +6059,7 @@
         "tokenFrequency": 11,
         "titleCount": 11,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 11, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -6068,7 +6068,7 @@
         "tokenFrequency": 2,
         "titleCount": 1,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 2, intercepted: 0)",
         "isProperName": false
       },
       {
@@ -6077,7 +6077,7 @@
         "tokenFrequency": 24,
         "titleCount": 21,
         "diagnosticCategory": "PACK_PRESENT_RUNTIME_RECOVERED",
-        "kaikkiStateSummary": "Present in Phase 7E pack and successfully applied as displayable proposal",
+        "kaikkiStateSummary": "Phase 7E pack entry (recovered: 24, intercepted: 0)",
         "isProperName": false
       }
     ],

@@ -52,6 +52,16 @@ export interface EvaluateCoverageCliOptions {
   coverageOnly?: boolean;
 }
 
+export async function computeFileSha256(filePath: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const hash = crypto.createHash('sha256');
+    const stream = fs.createReadStream(filePath);
+    stream.on('data', (chunk) => hash.update(chunk));
+    stream.on('end', () => resolve(hash.digest('hex')));
+    stream.on('error', (err) => reject(err));
+  });
+}
+
 export function computePackSemanticSha256(pack: EvidenceFallbackPack): string {
   const hash = crypto.createHash('sha256');
   const sortedKeys = Object.keys(pack.entries || {}).sort();
@@ -77,6 +87,7 @@ export async function runCoverageEvaluation(
   options: EvaluateCoverageCliOptions = {}
 ): Promise<Phase7FCoverageSummaryReport> {
   const isCustomCorpus = Boolean(options.corpusPath);
+  const isPartialRun = Boolean(options.coverageOnly);
 
   let corpusCases: CoverageCorpusCase[] = [];
   let corpusManifest: CoverageCorpusManifest = {
@@ -140,7 +151,7 @@ export async function runCoverageEvaluation(
     path.resolve(process.cwd(), 'artifacts', 'phase7e', 'kaikki-fallback-recovered-full.json');
 
   if (!fs.existsSync(phase7EPath)) {
-    if (options.coverageOnly) {
+    if (isPartialRun) {
       console.warn(`[Phase 7F] Phase 7E pack missing at ${phase7EPath} in --coverage-only mode.`);
     } else {
       throw new Error(
@@ -167,7 +178,7 @@ export async function runCoverageEvaluation(
 
   const experimentalPackSemanticSha256 = computePackSemanticSha256(phase7EPack);
 
-  // 3. Validate Kaikki diagnostic source file (Fail Closed for full evaluation)
+  // 3. Validate Kaikki diagnostic source file (Fail Closed with SHA check for full evaluation)
   const kaikkiJsonlPath =
     options.kaikkiJsonlPath ??
     path.resolve(process.cwd(), 'artifacts', 'phase7d', 'kaikki.org-dictionary-Persian.jsonl');
@@ -176,7 +187,7 @@ export async function runCoverageEvaluation(
   let kaikkiIndex: KaikkiDiagnosticIndex = {};
 
   if (!fs.existsSync(kaikkiJsonlPath)) {
-    if (options.coverageOnly) {
+    if (isPartialRun) {
       console.warn(`[Phase 7F] Kaikki source dataset missing at ${kaikkiJsonlPath} in --coverage-only mode.`);
     } else {
       throw new Error(
@@ -184,13 +195,18 @@ export async function runCoverageEvaluation(
       );
     }
   } else {
-    // Validate SHA256 of Kaikki dataset
-    const sourceBuffer = fs.readFileSync(kaikkiJsonlPath);
-    kaikkiSourceSha256 = crypto.createHash('sha256').update(sourceBuffer).digest('hex');
+    // Validate SHA256 of Kaikki dataset via streaming hash
+    kaikkiSourceSha256 = await computeFileSha256(kaikkiJsonlPath);
     if (kaikkiSourceSha256 !== EXPECTED_KAIKKI_SOURCE_SHA256) {
-      console.warn(
-        `[Phase 7F Warning] Kaikki source SHA256 (${kaikkiSourceSha256}) differs from expected baseline (${EXPECTED_KAIKKI_SOURCE_SHA256}).`
-      );
+      if (isPartialRun) {
+        console.warn(
+          `[Phase 7F Warning] Kaikki source SHA256 (${kaikkiSourceSha256}) differs from expected baseline (${EXPECTED_KAIKKI_SOURCE_SHA256}) in --coverage-only mode.`
+        );
+      } else {
+        throw new Error(
+          `[FAIL CLOSED] Kaikki source dataset SHA-256 (${kaikkiSourceSha256}) does not match expected reference (${EXPECTED_KAIKKI_SOURCE_SHA256}).\nFull evaluation requires the verified Kaikki source artifact.`
+        );
+      }
     }
     console.log('[Phase 7F] Indexing Kaikki Persian dataset for diagnostic attribution...');
     kaikkiIndex = await buildKaikkiDiagnosticIndex(kaikkiJsonlPath);
@@ -308,7 +324,7 @@ export async function runCoverageEvaluation(
   };
 
   const report: Phase7FCoverageSummaryReport = {
-    reportVersion: '1.2.0',
+    reportVersion: isPartialRun ? 'PARTIAL_COVERAGE_ONLY' : '1.2.0',
     generatedAt: new Date().toISOString(),
     inputIdentity,
     corpusManifest,
@@ -346,16 +362,18 @@ export async function runCoverageEvaluation(
     }
   };
 
-  // 7. Write reports
-  const reportJsonPath =
-    options.reportJsonPath ??
-    path.resolve(process.cwd(), 'src', 'validation', 'reports', 'phase7f-coverage-summary.json');
+  // 7. Write reports (Partial runs must never overwrite committed full experiment reports)
+  const defaultReportJsonPath = isPartialRun
+    ? path.resolve(process.cwd(), 'artifacts', 'phase7f', 'partial-coverage-summary.json')
+    : path.resolve(process.cwd(), 'src', 'validation', 'reports', 'phase7f-coverage-summary.json');
+  const reportJsonPath = options.reportJsonPath ?? defaultReportJsonPath;
   fs.mkdirSync(path.dirname(reportJsonPath), { recursive: true });
   fs.writeFileSync(reportJsonPath, JSON.stringify(report, null, 2), 'utf8');
 
-  const reportMdPath =
-    options.reportMdPath ??
-    path.resolve(process.cwd(), 'docs', 'experiments', 'PHASE_7F_REAL_SCHOLARLY_COVERAGE.md');
+  const defaultReportMdPath = isPartialRun
+    ? path.resolve(process.cwd(), 'artifacts', 'phase7f', 'PARTIAL_COVERAGE_SUMMARY.md')
+    : path.resolve(process.cwd(), 'docs', 'experiments', 'PHASE_7F_REAL_SCHOLARLY_COVERAGE.md');
+  const reportMdPath = options.reportMdPath ?? defaultReportMdPath;
   fs.mkdirSync(path.dirname(reportMdPath), { recursive: true });
   fs.writeFileSync(reportMdPath, formatMarkdownReport(report), 'utf8');
 

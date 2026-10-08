@@ -1,7 +1,7 @@
 # Phase 7F: Real Scholarly Persian Coverage Corpus & Held-Out Evaluation
 
 **Corpus Version:** `phase7f-openalex-persian-titles-v1`  
-**Generated At:** `2026-10-08T13:37:46.120Z`  
+**Generated At:** `2026-10-08T13:50:37.185Z`  
 **Evaluator Version:** `1.0.0`  
 **Diagnostic Index Version:** `1.2.0`  
 **Profile Recovery Version:** `1.1.0`  
@@ -45,8 +45,8 @@ To guarantee measurement integrity and reproducibility across offline CI and loc
 | :--- | :--- | :--- |
 | **Frozen Corpus SHA-256** | `28d91c460585ac028e987b01f4ea274f6bd991ad3a2ea79a16f8080fae9b5d5a` | Complete 5,000 title dataset |
 | **Locked Holdout SHA-256** | `92ad183e088acbecded7165a806e808d9918482d3d6ce98f3c04072e0fd215d2` | 20% locked evaluation holdout |
-| **Production Fallback Semantic SHA** | `4c725049874c65e04332d9436edd52ee18fbb13f6c4f31bfadd2a029ea1637fd` | Baseline production fallback pack |
-| **Phase 7E Experimental Semantic SHA** | `c94dae2e42cf7964ea39321e3785b237bae76527201fcc9c2ac692419e19bcf9` | Recovered Wiktionary fallback pack |
+| **Production Fallback Semantic SHA** | `0023d8666cd71ca4a718e5d1e910511d8f529c02a44eb77907f9df92b534a77d` | Baseline production fallback pack |
+| **Phase 7E Experimental Semantic SHA** | `867906aeadb8148300f1df2271c5b3fbef83523f4229ecdc1d8fbc5cf848bcca` | Recovered Wiktionary fallback pack |
 | **Kaikki Source SHA-256** | `f1647707c1bcbb7b18d355f7481ac4c656fa1ff8d91d93a0dbc6bb2e808d06c2` | Raw English Wiktionary Persian dataset |
 | **Profile Recovery Engine** | `v1.1.0` | Phase 7E multi-tier profile recovery |
 | **Diagnostic Index Engine** | `v1.2.0` | Multi-record lemma/non-lemma aggregator |

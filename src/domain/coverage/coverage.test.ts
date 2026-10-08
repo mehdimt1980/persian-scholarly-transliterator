@@ -633,6 +633,77 @@ describe('Phase 7F: Real Scholarly Persian Coverage Corpus & Evaluation', () => 
       expect(unappliedPackAudit[0].persianForm).toBe('تغییرات');
     });
 
+    it('conserves token counts when a single form has mixed runtime outcomes (some tokens recovered, some intercepted)', () => {
+      const missStats = new Map<string, FormRuntimeMissContext>();
+      // "استان" in pack: 10 tokens total, 6 recovered at runtime, 4 intercepted by morphology
+      missStats.set('استان', {
+        tokenCount: 10,
+        titleCount: 8,
+        runtimeRecoveredTokenCount: 6,
+        runtimeNotAppliedTokenCount: 4,
+        exampleTitle: 'استان البرز'
+      });
+
+      const packWithOstan: EvidenceFallbackPack = {
+        ...dummyPack,
+        entries: {
+          ...dummyPack.entries,
+          استان: {
+            id: 'fb-ostan',
+            normalizedForm: 'استان',
+            hypothesis: 'ustān',
+            consensusStatus: 'UNANIMOUS_DETERMINISTIC',
+            confidenceTier: 'SINGLE_OBSERVATION_DETERMINISTIC',
+            candidateAnalysisId: 'can-o',
+            evidenceCount: 1,
+            sourceProfiles: ['IRANIAN'],
+            interpretations: [],
+            generatedFrom: {
+              acquisitionVersion: '1.0.0',
+              interpreterVersion: '1.0.0',
+              ruleSetVersion: '1.0.0',
+              aggregatorVersion: '1.0.0'
+            }
+          }
+        }
+      };
+
+      const {
+        baselineDistribution,
+        postPhase7ERemainingDistribution,
+        unappliedPackAudit
+      } = computeBlockerDistributions(missStats, packWithOstan, mockKaikkiIndex);
+
+      // Baseline: 6 tokens recovered + 4 tokens not applied = 10 tokens total
+      const recoveredItem = baselineDistribution.find(
+        (i) => i.category === 'PACK_PRESENT_RUNTIME_RECOVERED'
+      );
+      const notAppliedItem = baselineDistribution.find(
+        (i) => i.category === 'PACK_PRESENT_RUNTIME_NOT_APPLIED'
+      );
+
+      expect(recoveredItem?.tokenOccurrences).toBe(6);
+      expect(notAppliedItem?.tokenOccurrences).toBe(4);
+
+      const totalBaselineTokens = baselineDistribution.reduce(
+        (acc, i) => acc + i.tokenOccurrences,
+        0
+      );
+      expect(totalBaselineTokens).toBe(10);
+
+      // Post-Phase 7E remaining: only the 4 non-applied tokens remain
+      const totalRemainingTokens = postPhase7ERemainingDistribution.reduce(
+        (acc, i) => acc + i.tokenOccurrences,
+        0
+      );
+      expect(totalRemainingTokens).toBe(4);
+
+      // Unapplied audit records the 4 intercepted occurrences
+      expect(unappliedPackAudit.length).toBe(1);
+      expect(unappliedPackAudit[0].persianForm).toBe('استان');
+      expect(unappliedPackAudit[0].tokenCount).toBe(4);
+    });
+
     it('measures raw vs normalized ZWNJ separately', () => {
       const forms = ['کتاب\u200cها', 'تحقیقی'];
       const rawCases: CoverageCorpusCase[] = [
@@ -730,6 +801,71 @@ describe('Phase 7F: Real Scholarly Persian Coverage Corpus & Evaluation', () => 
           kaikkiJsonlPath: 'non-existent/kaikki.jsonl'
         })
       ).rejects.toThrow('[FAIL CLOSED] Kaikki diagnostic source dataset missing');
+    });
+
+    it('fails closed when Kaikki diagnostic dataset SHA-256 mismatches expected reference', async () => {
+      const validDummyPack = path.resolve(
+        process.cwd(),
+        'src',
+        'data',
+        'generated',
+        'kaikki-fallback.v1.json'
+      );
+      const tempKaikkiPath = path.resolve(__dirname, 'temp-bad-kaikki.jsonl');
+      fs.writeFileSync(tempKaikkiPath, '{"word": "تست"}\n', 'utf8');
+
+      try {
+        await expect(
+          runCoverageEvaluation({
+            phase7EPackPath: validDummyPack,
+            kaikkiJsonlPath: tempKaikkiPath
+          })
+        ).rejects.toThrow(/\[FAIL CLOSED\] Kaikki source dataset SHA-256 .* does not match expected reference/);
+      } finally {
+        if (fs.existsSync(tempKaikkiPath)) {
+          fs.unlinkSync(tempKaikkiPath);
+        }
+      }
+    });
+
+    it('isolates partial evaluation outputs and does not overwrite committed reports in --coverage-only mode', async () => {
+      const validDummyPack = path.resolve(
+        process.cwd(),
+        'src',
+        'data',
+        'generated',
+        'kaikki-fallback.v1.json'
+      );
+      const tempJsonOut = path.resolve(__dirname, 'test-partial-report.json');
+      const tempMdOut = path.resolve(__dirname, 'test-partial-report.md');
+      const tempCorpusPath = path.resolve(__dirname, 'temp-mini-corpus.jsonl');
+      fs.writeFileSync(
+        tempCorpusPath,
+        JSON.stringify({ id: 'c-1', text: 'تاریخ و تمدن', kind: 'TITLE' }) + '\n',
+        'utf8'
+      );
+
+      try {
+        const report = await runCoverageEvaluation({
+          corpusPath: tempCorpusPath,
+          coverageOnly: true,
+          phase7EPackPath: validDummyPack,
+          kaikkiJsonlPath: 'non-existent/kaikki.jsonl',
+          reportJsonPath: tempJsonOut,
+          reportMdPath: tempMdOut
+        });
+
+        expect(report.reportVersion).toBe('PARTIAL_COVERAGE_ONLY');
+        expect(fs.existsSync(tempJsonOut)).toBe(true);
+        expect(fs.existsSync(tempMdOut)).toBe(true);
+
+        const loadedJson = JSON.parse(fs.readFileSync(tempJsonOut, 'utf8'));
+        expect(loadedJson.reportVersion).toBe('PARTIAL_COVERAGE_ONLY');
+      } finally {
+        if (fs.existsSync(tempCorpusPath)) fs.unlinkSync(tempCorpusPath);
+        if (fs.existsSync(tempJsonOut)) fs.unlinkSync(tempJsonOut);
+        if (fs.existsSync(tempMdOut)) fs.unlinkSync(tempMdOut);
+      }
     });
 
     it('computes deterministic pack semantic SHA256 invariant to object key ordering', () => {

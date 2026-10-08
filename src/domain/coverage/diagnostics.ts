@@ -354,6 +354,82 @@ export function computeBlockerDistributions(
 
   for (const [form, ctx] of missStats.entries()) {
     totalBaselineMissTokens += ctx.tokenCount;
+
+    // 1. Pack Presence & Runtime Outcome Checks (Token-level attribution)
+    if (conflictForms && conflictForms.has(form)) {
+      const cat = 'PACK_UNION_CONFLICT';
+      baselineCategoryTokens.set(cat, (baselineCategoryTokens.get(cat) ?? 0) + ctx.tokenCount);
+      baselineCategoryForms.set(cat, (baselineCategoryForms.get(cat) ?? 0) + 1);
+      remainingCategoryTokens.set(cat, (remainingCategoryTokens.get(cat) ?? 0) + ctx.tokenCount);
+      remainingCategoryForms.set(cat, (remainingCategoryForms.get(cat) ?? 0) + 1);
+      itemDetails.set(form, {
+        category: cat,
+        isProperName: false,
+        summary: 'Conflicting hypotheses between production and experimental fallback packs',
+        tokenCount: ctx.tokenCount,
+        titleCount: ctx.titleCount
+      });
+      continue;
+    }
+
+    if (phase7EPack.entries && phase7EPack.entries[form]) {
+      const recoveredTokens = ctx.runtimeRecoveredTokenCount;
+      const notAppliedTokens = ctx.runtimeNotAppliedTokenCount;
+
+      if (recoveredTokens > 0) {
+        baselineCategoryTokens.set(
+          'PACK_PRESENT_RUNTIME_RECOVERED',
+          (baselineCategoryTokens.get('PACK_PRESENT_RUNTIME_RECOVERED') ?? 0) + recoveredTokens
+        );
+        baselineCategoryForms.set(
+          'PACK_PRESENT_RUNTIME_RECOVERED',
+          (baselineCategoryForms.get('PACK_PRESENT_RUNTIME_RECOVERED') ?? 0) + 1
+        );
+      }
+
+      if (notAppliedTokens > 0) {
+        baselineCategoryTokens.set(
+          'PACK_PRESENT_RUNTIME_NOT_APPLIED',
+          (baselineCategoryTokens.get('PACK_PRESENT_RUNTIME_NOT_APPLIED') ?? 0) + notAppliedTokens
+        );
+        baselineCategoryForms.set(
+          'PACK_PRESENT_RUNTIME_NOT_APPLIED',
+          (baselineCategoryForms.get('PACK_PRESENT_RUNTIME_NOT_APPLIED') ?? 0) + 1
+        );
+        remainingCategoryTokens.set(
+          'PACK_PRESENT_RUNTIME_NOT_APPLIED',
+          (remainingCategoryTokens.get('PACK_PRESENT_RUNTIME_NOT_APPLIED') ?? 0) + notAppliedTokens
+        );
+        remainingCategoryForms.set(
+          'PACK_PRESENT_RUNTIME_NOT_APPLIED',
+          (remainingCategoryForms.get('PACK_PRESENT_RUNTIME_NOT_APPLIED') ?? 0) + 1
+        );
+
+        unappliedPackAudit.push({
+          persianForm: form,
+          tokenCount: notAppliedTokens,
+          titleCount: ctx.titleCount,
+          packHypothesis: phase7EPack.entries[form]?.hypothesis ?? 'unknown',
+          runtimeReason:
+            'Interpreted as candidate morphological stem/suffix; routed through resolveMorphologicalToken without fallback lookup',
+          exampleTitle: ctx.exampleTitle
+        });
+      }
+
+      itemDetails.set(form, {
+        category:
+          recoveredTokens > 0
+            ? 'PACK_PRESENT_RUNTIME_RECOVERED'
+            : 'PACK_PRESENT_RUNTIME_NOT_APPLIED',
+        isProperName: false,
+        summary: `Phase 7E pack entry (recovered: ${recoveredTokens}, intercepted: ${notAppliedTokens})`,
+        tokenCount: ctx.tokenCount,
+        titleCount: ctx.titleCount
+      });
+      continue;
+    }
+
+    // 2. Non-Pack Entries (Attributed via Kaikki / Absent classification)
     const classification = classifyDiagnosticBlocker(
       form,
       ctx,
@@ -369,36 +445,15 @@ export function computeBlockerDistributions(
     });
 
     const cat = classification.category;
-
-    // 1. Baseline distribution counts (all baseline misses)
     baselineCategoryTokens.set(cat, (baselineCategoryTokens.get(cat) ?? 0) + ctx.tokenCount);
     baselineCategoryForms.set(cat, (baselineCategoryForms.get(cat) ?? 0) + 1);
 
-    // 2. Post-Phase 7E remaining distribution (unresolved remaining population only)
-    if (cat !== 'PACK_PRESENT_RUNTIME_RECOVERED') {
-      const remainingTokens = ctx.tokenCount; // for non-recovered forms, all tokens remain
-      remainingCategoryTokens.set(
-        cat,
-        (remainingCategoryTokens.get(cat) ?? 0) + remainingTokens
-      );
-      remainingCategoryForms.set(cat, (remainingCategoryForms.get(cat) ?? 0) + 1);
-    }
+    remainingCategoryTokens.set(cat, (remainingCategoryTokens.get(cat) ?? 0) + ctx.tokenCount);
+    remainingCategoryForms.set(cat, (remainingCategoryForms.get(cat) ?? 0) + 1);
 
     if (classification.isProperName) {
       properNameTokens += ctx.tokenCount;
       properNameForms += 1;
-    }
-
-    if (cat === 'PACK_PRESENT_RUNTIME_NOT_APPLIED') {
-      unappliedPackAudit.push({
-        persianForm: form,
-        tokenCount: ctx.tokenCount,
-        titleCount: ctx.titleCount,
-        packHypothesis: phase7EPack.entries[form]?.hypothesis ?? 'unknown',
-        runtimeReason:
-          'Interpreted as candidate morphological stem/suffix; routed through resolveMorphologicalToken without fallback lookup',
-        exampleTitle: ctx.exampleTitle
-      });
     }
   }
 
@@ -589,7 +644,14 @@ export function rankNextInterventionFromDiagnostic(
     uniqueFormShare: number;
   };
 } {
-  const dominant = postPhase7ERemainingDistribution[0];
+  const dominant = postPhase7ERemainingDistribution[0] ?? {
+    category: 'NOT_PRESENT_IN_KAIKKI' as DiagnosticBlockerCategory,
+    tokenOccurrences: 0,
+    uniqueForms: 0,
+    tokenSharePercent: 0,
+    uniqueFormSharePercent: 0,
+    description: 'No remaining misses'
+  };
 
   let primaryFocus = 'External Authority Expansion (LoC / Academic Authority Lexicon Integration)';
   let rationale =
