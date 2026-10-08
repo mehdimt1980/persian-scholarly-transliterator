@@ -1,7 +1,7 @@
 # Phase 7G: Safe Whole-Word Evidence Resolution Evaluation
 
 **Corpus Version:** `phase7f-openalex-persian-titles-v1`  
-**Generated At:** `2026-10-08T14:18:25.126Z`  
+**Generated At:** `2026-10-08T14:21:16.414Z`  
 **Evaluator Version:** `1.0.0`  
 **Routing Policy Version:** `v1.0.0`  
 **Frozen Corpus SHA-256:** `28d91c460585ac028e987b01f4ea274f6bd991ad3a2ea79a16f8080fae9b5d5a`  
