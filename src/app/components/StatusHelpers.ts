@@ -1,5 +1,10 @@
 export function formatStatusLabel(status: string): string {
   switch (status.toUpperCase()) {
+    case 'AI_DRAFT':
+    case 'DRAFT':
+      return 'AI Draft — Not Verified';
+    case 'AI_DRAFT_NEEDS_REVIEW':
+      return 'AI Draft — Needs Review';
     case 'FINAL':
       return 'Ready';
     case 'REVIEW_REQUIRED':
@@ -23,7 +28,8 @@ export function formatStatusLabel(status: string): string {
     case 'LEXICON_RESOLVED':
       return 'Lexicon resolved';
     case 'USER_OVERRIDE':
-      return 'User override';
+    case 'HUMAN_ACCEPTED':
+      return 'Human Accepted';
     case 'PASSTHROUGH':
       return 'Passthrough';
     case 'INVALID':
@@ -41,16 +47,19 @@ export function formatStatusLabel(status: string): string {
 
 export function getStatusClass(status: string): string {
   const s = status.toUpperCase();
+  if (['AI_DRAFT', 'DRAFT'].includes(s)) {
+    return 'status-draft';
+  }
   if (['FINAL', 'READY', 'DETERMINISTIC', 'LEXICON_RESOLVED', 'CONFIRMED', 'UNANIMOUS_DETERMINISTIC'].includes(s)) {
     return 'status-ready';
   }
-  if (['REVIEW_REQUIRED', 'AMBIGUOUS', 'CANDIDATE', 'CONFLICTING_DETERMINISTIC'].includes(s)) {
+  if (['REVIEW_REQUIRED', 'AMBIGUOUS', 'CANDIDATE', 'CONFLICTING_DETERMINISTIC', 'AI_DRAFT_NEEDS_REVIEW'].includes(s)) {
     return 'status-review';
   }
   if (['BLOCKED', 'INVALID', 'UNRESOLVED'].includes(s)) {
     return 'status-blocked';
   }
-  if (['USER_OVERRIDE'].includes(s)) {
+  if (['USER_OVERRIDE', 'HUMAN_ACCEPTED'].includes(s)) {
     return 'status-override';
   }
   return 'status-neutral';
@@ -58,18 +67,17 @@ export function getStatusClass(status: string): string {
 
 export function formatIssueType(type: string): string {
   switch (type) {
-    case 'EVIDENCE_DERIVED_READING':
-      return 'Evidence-backed proposal';
-    case 'MORPHOLOGY_AMBIGUITY':
-      return 'Morphology ambiguity';
-    case 'IZAFAT_CANDIDATE':
-      return 'Possible izāfat relation';
     case 'LEXICAL_AMBIGUITY':
-      return 'Multiple lexical readings';
-    case 'UNRESOLVED_TOKEN':
-      return 'Unresolved token';
+      return 'Lexical Reading';
+    case 'IZAFAT_CANDIDATE':
+      return 'Izafat / Ezafe';
+    case 'MORPHOLOGY_AMBIGUITY':
+      return 'Morphology';
+    case 'EVIDENCE_DERIVED_READING':
+      return 'Evidence-Derived Reading';
+    case 'UNRESOLVED_LEXICAL_MISS':
+      return 'Unresolved Word';
     default:
       return type.replace(/_/g, ' ').toLowerCase();
   }
 }
-

@@ -1,24 +1,23 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import PhraseAssistantPanel from './components/PhraseAssistantPanel';
+import { useState } from 'react';
+import TokenReadingEditor from './components/TokenReadingEditor';
 import StatusBadge from './components/StatusBadge';
 import WhyThisReading from './components/WhyThisReading';
 import ReviewQueue from './components/ReviewQueue';
 import InspectionSection from './components/InspectionSection';
 import ResearchPrinciples from './components/ResearchPrinciples';
-import { transliterate } from '../domain/engine';
 import { ProfileId, ReviewActionType, ReviewDecision, ReviewIssue } from '../domain/types';
 import {
   AcceptedPhraseDecision,
   AssistedCandidate,
   AssistedResolution,
   buildResolverRequest,
-  candidateToReviewDecision,
-  resolveSelectedTransliteration
+  candidateToReviewDecision
 } from '../domain/assistance';
-
-const fixture = 'تأملی درباره ایران: مکتب تبریز و مبانی تجددخواهی';
+import { useResearchWorkspace } from '../client/workspace';
+import WorkspaceSaveStatus from './components/WorkspaceSaveStatus';
+import { useUnifiedTransliteration } from './hooks/useUnifiedTransliteration';
 
 function actionForAlternative(issue: ReviewIssue, altId: string): ReviewActionType {
   if (issue.type === 'EVIDENCE_DERIVED_READING') {
@@ -33,11 +32,7 @@ function actionForAlternative(issue: ReviewIssue, altId: string): ReviewActionTy
   return 'SELECT_LEXICAL_READING';
 }
 
-
 type AssistStatusType = 'idle' | 'loading' | 'available' | 'error' | 'stale' | 'unavailable';
-
-import { useResearchWorkspace } from '../client/workspace';
-import WorkspaceSaveStatus from './components/WorkspaceSaveStatus';
 
 export default function Home() {
   const { transliteration, updateTransliteration } = useResearchWorkspace();
@@ -47,15 +42,53 @@ export default function Home() {
   const decisions = transliteration.reviewDecisions;
   const acceptedPhraseDecision = transliteration.acceptedPhraseDecision;
 
-  const [copied, setCopied] = useState(false);
+  const [verifiedCopied, setVerifiedCopied] = useState(false);
+  const [draftCopied, setDraftCopied] = useState(false);
 
-  const result = useMemo(() => transliterate(input, profile, decisions), [input, profile, decisions]);
+  function setAcceptedPhraseDecision(decision: AcceptedPhraseDecision | null) {
+    updateTransliteration({ acceptedPhraseDecision: decision });
+  }
+
+  // Unified Draft-First Transliteration Hook
+  const translitState = useUnifiedTransliteration({
+    input,
+    profile,
+    reviewDecisions: decisions,
+    acceptedPhraseDecision,
+    onAcceptedDecision: setAcceptedPhraseDecision
+  });
+
   const {
-    activePhraseDecision,
-    primary: selectedOutput,
-    copyable: selectedCopyable,
-    status: selectedStatus
-  } = resolveSelectedTransliteration(result, acceptedPhraseDecision);
+    result,
+    unifiedOutput,
+    requestInFlight,
+    assistError: phraseAssistError,
+    isAiConfigured,
+    autoAssistEnabled,
+    aiDraft,
+    explanation,
+    editorOpen,
+    tokenEdits,
+    editedCanonical,
+    editedRendered,
+    unlocatedTokens,
+    alignmentWarning,
+    canAcceptEditedDraft,
+    actionError,
+    toggleAutoAssist,
+    regenerate,
+    openEditor,
+    closeEditor,
+    editToken,
+    editPhrase,
+    resetEdits,
+    acceptCurrentDraft,
+    acceptEditedDraft,
+    rejectCurrentDraft,
+    revokeAccepted
+  } = translitState;
+  const draftPresent = Boolean(aiDraft);
+  const canRegenerate = isAiConfigured === true && !result.copyable && result.reviewIssues.length > 0;
 
   function setInput(newInput: string) {
     updateTransliteration({ input: newInput });
@@ -89,10 +122,7 @@ export default function Home() {
     });
   }
 
-  function setAcceptedPhraseDecision(decision: AcceptedPhraseDecision | null) {
-    updateTransliteration({ acceptedPhraseDecision: decision });
-  }
-
+  // Issue-level assistant state (for fine-grained ReviewQueue items)
   const [assistStatus, setAssistStatus] = useState<Record<string, AssistStatusType>>({});
   const [assistResolutions, setAssistResolutions] = useState<Record<string, AssistedResolution>>({});
   const [assistErrors, setAssistErrors] = useState<Record<string, string>>({});
@@ -145,11 +175,18 @@ export default function Home() {
     }
   }
 
-  async function copy() {
-    if (!selectedCopyable) return;
-    await navigator.clipboard.writeText(selectedOutput);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1400);
+  async function copyVerified() {
+    if (!unifiedOutput.isVerifiedCopyable && !unifiedOutput.isHumanAcceptedCopyable) return;
+    await navigator.clipboard.writeText(unifiedOutput.primary);
+    setVerifiedCopied(true);
+    setTimeout(() => setVerifiedCopied(false), 1400);
+  }
+
+  async function copyDraft() {
+    if (!unifiedOutput.isCopyableDraft) return;
+    await navigator.clipboard.writeText(unifiedOutput.primary);
+    setDraftCopied(true);
+    setTimeout(() => setDraftCopied(false), 1400);
   }
 
   return (
@@ -163,7 +200,7 @@ export default function Home() {
           Evidence-aware transliteration for Persian scholarship.
         </p>
         <p className="page-subtag">
-          Deterministic IJMES · explicit ambiguity · human-reviewed authority
+          Deterministic IJMES · explicit ambiguity · AI draft-first workflow · human-reviewed authority
         </p>
       </section>
 
@@ -207,54 +244,148 @@ export default function Home() {
         <div className="panel-card output-panel">
           <div className="panel-card-header">
             <span className="panel-label">Transliteration</span>
-            <StatusBadge status={selectedStatus} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <StatusBadge
+                status={unifiedOutput.status}
+                label={unifiedOutput.badgeLabel}
+                tone={unifiedOutput.badgeTone}
+              />
+            </div>
           </div>
 
           <div className="output-display">
-            {selectedOutput || <span className="output-placeholder">Transliteration output appears here</span>}
+            {unifiedOutput.primary || (
+              <span className="output-placeholder">Transliteration output appears here</span>
+            )}
           </div>
 
-          {activePhraseDecision ? (
-            <p className="review-warning-note" style={{ background: '#f2f7f4', borderColor: '#b7d5c5', color: '#2d6a4f' }}>
-              Context-aware phrase proposal accepted by human reviewer.
+          {/* Contextual notice / warning note */}
+          {unifiedOutput.noticeText && (
+            <p
+              className="review-warning-note"
+              style={
+                unifiedOutput.presentation === 'HUMAN_ACCEPTED'
+                  ? { background: '#f2f7f4', borderColor: '#b7d5c5', color: '#2d6a4f' }
+                  : unifiedOutput.presentation === 'AI_DRAFT'
+                    ? { background: '#eef2ff', borderColor: '#c7d2fe', color: '#4338ca' }
+                    : unifiedOutput.presentation === 'AI_DRAFT_NEEDS_REVIEW'
+                      ? { background: '#fef9ee', borderColor: '#fcd34d', color: '#92400e' }
+                      : undefined
+              }
+            >
+              {unifiedOutput.noticeText}
             </p>
-          ) : !result.copyable ? (
-            <p className="review-warning-note">
-              {result.tokens.some((t) => t.evidenceDerivedProposal && t.status === 'UNRESOLVED')
-                ? `${result.tokens.filter((t) => t.evidenceDerivedProposal && t.status === 'UNRESOLVED').length} evidence-derived reading${result.tokens.filter((t) => t.evidenceDerivedProposal && t.status === 'UNRESOLVED').length === 1 ? '' : 's'} shown · review required before final copying.`
-                : 'Human review needed. Ambiguous or unresolved material is intentionally held for review before final copy.'}
-            </p>
-          ) : null}
+          )}
 
+          {/* Request lifecycle line: never claims 'analyzing' when a current draft exists */}
+          {requestInFlight && (
+            <p className="panel-hint" role="status" style={{ color: '#6366f1', fontStyle: 'italic' }}>
+              {draftPresent ? 'Regenerating suggestion… current draft shown below remains available.' : 'Analyzing phrase…'}
+            </p>
+          )}
+          {!requestInFlight && phraseAssistError && !draftPresent && (
+            <p className="review-warning-note" role="alert">
+              AI draft unavailable: {phraseAssistError} The deterministic analysis below remains fully usable.
+            </p>
+          )}
+          {!draftPresent && !requestInFlight && isAiConfigured === false && !result.copyable && result.reviewIssues.length > 0 && (
+            <p className="panel-hint">
+              AI draft unavailable: assistance is not configured (OpenAI credentials not set).
+            </p>
+          )}
+          {actionError && (
+            <p className="review-warning-note" role="alert">{actionError}</p>
+          )}
 
           <div className="output-footer">
-            <span className="profile-tag">
-              {profile === 'ijmes_citation_title' ? 'IJMES · Scholarly citation title' : 'IJMES · Scholarly'}
-            </span>
-            <button
-              type="button"
-              className="btn-primary"
-              onClick={copy}
-              disabled={!selectedCopyable}
-            >
-              {copied ? 'Copied' : selectedCopyable ? 'Copy' : 'Review needed'}
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <span className="profile-tag">
+                {profile === 'ijmes_citation_title' ? 'IJMES · Scholarly citation title' : 'IJMES · Scholarly'}
+              </span>
+              <button
+                type="button"
+                className="btn-secondary"
+                style={{
+                  fontSize: '0.75rem',
+                  padding: '0.2rem 0.5rem',
+                  background: autoAssistEnabled ? '#f0fdf4' : '#f9fafb',
+                  borderColor: autoAssistEnabled ? '#86efac' : '#d1d5db',
+                  color: autoAssistEnabled ? '#166534' : '#6b7280'
+                }}
+                onClick={toggleAutoAssist}
+                title="Toggle automatic AI draft assistance"
+              >
+                AI Draft: {autoAssistEnabled ? 'ON' : 'OFF'}
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              {unifiedOutput.isDraft && (
+                <>
+                  <button type="button" className="btn-secondary" onClick={editorOpen ? closeEditor : openEditor} aria-expanded={editorOpen} aria-controls="token-reading-editor">
+                    {editorOpen ? 'Close editor' : 'Review & Edit'}
+                  </button>
+                  <button type="button" className="btn-secondary" onClick={acceptCurrentDraft}>
+                    Accept Draft
+                  </button>
+                  <button type="button" className="btn-secondary" onClick={rejectCurrentDraft}>
+                    Dismiss
+                  </button>
+                  <button type="button" className="btn-primary" onClick={copyDraft}>
+                    {draftCopied ? 'Draft Copied' : 'Copy Draft'}
+                  </button>
+                </>
+              )}
+
+              {canRegenerate && (
+                <button type="button" className="btn-secondary" onClick={regenerate} disabled={requestInFlight}>
+                  Regenerate suggestion
+                </button>
+              )}
+
+              {unifiedOutput.presentation === 'HUMAN_ACCEPTED' && (
+                <button type="button" className="btn-secondary" onClick={revokeAccepted}>
+                  Revoke acceptance
+                </button>
+              )}
+
+              {(unifiedOutput.isVerifiedCopyable || unifiedOutput.isHumanAcceptedCopyable) && (
+                <button type="button" className="btn-primary" onClick={copyVerified}>
+                  {verifiedCopied ? 'Copied' : 'Copy'}
+                </button>
+              )}
+
+              {unifiedOutput.presentation === 'UNRESOLVED_NO_DRAFT' && (
+                <button type="button" className="btn-primary" disabled>
+                  {requestInFlight ? 'Generating draft…' : 'Review needed'}
+                </button>
+              )}
+            </div>
           </div>
+
+          {editorOpen && explanation && unifiedOutput.isDraft && (
+            <TokenReadingEditor
+              explanation={explanation}
+              tokenEdits={tokenEdits}
+              editedCanonical={editedCanonical}
+              editedRendered={editedRendered}
+              unlocatedTokens={unlocatedTokens}
+              alignmentWarning={alignmentWarning}
+              canAccept={canAcceptEditedDraft}
+              profileLabel={profile === 'ijmes_citation_title' ? 'Citation-title rendering' : 'Profile rendering'}
+              error={actionError}
+              onEditToken={editToken}
+              onEditPhrase={editPhrase}
+              onReset={resetEdits}
+              onAccept={acceptEditedDraft}
+              onClose={closeEditor}
+            />
+          )}
         </div>
       </section>
 
-      {/* Why this reading progressive disclosure */}
-      <WhyThisReading result={result} />
-
-      {/* Phrase Assistant Panel (Quiet callout by default) */}
-      {(!result.copyable || activePhraseDecision) && (
-        <PhraseAssistantPanel
-          result={result}
-          reviewDecisions={decisions}
-          acceptedDecision={acceptedPhraseDecision}
-          onAcceptedDecision={setAcceptedPhraseDecision}
-        />
-      )}
+      {/* Why this reading? (single home for AI rationale, token explanations, uncertainty, provenance) */}
+      <WhyThisReading result={result} explanation={explanation} />
 
       {/* Human Review Queue */}
       <ReviewQueue

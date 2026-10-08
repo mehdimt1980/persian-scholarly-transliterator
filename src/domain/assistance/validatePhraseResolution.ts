@@ -75,8 +75,17 @@ export function validatePhraseProviderResolution(
         renderedOutput = renderCanonicalForProfile(scholarlyCanonical, request.profile);
       }
     }
-  } else if (payload.scholarlyCanonical !== null || payload.renderedOutput !== null) {
-    errors.push('REVIEW_REQUIRED phrase resolution must not expose authoritative canonical or rendered output.');
+  } else if (payload.disposition === 'REVIEW_REQUIRED') {
+    if (payload.scholarlyCanonical !== null) {
+      scholarlyCanonical = validateLatinTransliteration(
+        payload.scholarlyCanonical,
+        'scholarlyCanonical',
+        errors
+      );
+      if (scholarlyCanonical) {
+        renderedOutput = renderCanonicalForProfile(scholarlyCanonical, request.profile);
+      }
+    }
   }
 
   const authoritativePersianTokens = new Map(

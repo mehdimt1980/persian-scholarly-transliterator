@@ -18,6 +18,23 @@ interface PhraseAssistantPanelProps {
   reviewDecisions: ReviewDecision[];
   acceptedDecision: AcceptedPhraseDecision | null;
   onAcceptedDecision: (decision: AcceptedPhraseDecision | null) => void;
+
+  // Optional shared state from useUnifiedTransliteration
+  sharedStatus?: PhraseAssistStatus;
+  sharedResolution?: PhraseResolution | null;
+  sharedError?: string | null;
+  sharedIsConfigured?: boolean | null;
+  sharedIsExpanded?: boolean;
+  sharedEditing?: boolean;
+  sharedCanonicalDraft?: string;
+  sharedRenderedDraft?: string;
+  onRequestAssistance?: () => Promise<void>;
+  onAcceptCurrentDraft?: () => void;
+  onRejectCurrentDraft?: () => void;
+  onToggleEditing?: () => void;
+  onSetCanonicalDraft?: (draft: string) => void;
+  onSetRenderedDraft?: (draft: string) => void;
+  onSetExpanded?: (expanded: boolean) => void;
 }
 
 function confidenceLabel(value: number | null): string {
@@ -31,16 +48,43 @@ export default function PhraseAssistantPanel({
   result,
   reviewDecisions,
   acceptedDecision,
-  onAcceptedDecision
+  onAcceptedDecision,
+  sharedStatus,
+  sharedResolution,
+  sharedError,
+  sharedIsConfigured,
+  sharedIsExpanded,
+  sharedEditing,
+  sharedCanonicalDraft,
+  sharedRenderedDraft,
+  onRequestAssistance,
+  onAcceptCurrentDraft,
+  onRejectCurrentDraft,
+  onToggleEditing,
+  onSetCanonicalDraft,
+  onSetRenderedDraft,
+  onSetExpanded
 }: PhraseAssistantPanelProps) {
-  const [configured, setConfigured] = useState<boolean | null>(null);
-  const [status, setStatus] = useState<PhraseAssistStatus>('idle');
-  const [resolution, setResolution] = useState<PhraseResolution | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [editing, setEditing] = useState(false);
-  const [canonicalDraft, setCanonicalDraft] = useState('');
-  const [renderedDraft, setRenderedDraft] = useState('');
-  const [isExpanded, setIsExpanded] = useState(false);
+  // Local state fallback when shared state is not provided
+  const [localConfigured, setLocalConfigured] = useState<boolean | null>(null);
+  const [localStatus, setLocalStatus] = useState<PhraseAssistStatus>('idle');
+  const [localResolution, setLocalResolution] = useState<PhraseResolution | null>(null);
+  const [localError, setLocalError] = useState<string | null>(null);
+  const [localEditing, setLocalEditing] = useState(false);
+  const [localCanonicalDraft, setLocalCanonicalDraft] = useState('');
+  const [localRenderedDraft, setLocalRenderedDraft] = useState('');
+  const [localIsExpanded, setLocalIsExpanded] = useState(false);
+
+  const isShared = sharedStatus !== undefined;
+
+  const configured = isShared ? (sharedIsConfigured ?? null) : localConfigured;
+  const status = isShared ? (sharedStatus ?? 'idle') : localStatus;
+  const resolution = isShared ? (sharedResolution ?? null) : localResolution;
+  const error = isShared ? (sharedError ?? null) : localError;
+  const editing = isShared ? (sharedEditing ?? false) : localEditing;
+  const canonicalDraft = isShared ? (sharedCanonicalDraft ?? '') : localCanonicalDraft;
+  const renderedDraft = isShared ? (sharedRenderedDraft ?? '') : localRenderedDraft;
+  const isExpanded = isShared ? (sharedIsExpanded ?? false) : localIsExpanded;
 
   const eligible = !result.copyable && result.reviewIssues.length > 0;
   const acceptedApplicable = acceptedDecision
@@ -65,6 +109,7 @@ export default function PhraseAssistantPanel({
   );
 
   useEffect(() => {
+    if (isShared) return;
     let cancelled = false;
     fetch('/api/assist/status')
       .then(async (response) => {
@@ -72,37 +117,43 @@ export default function PhraseAssistantPanel({
         return response.json();
       })
       .then((data) => {
-        if (!cancelled) setConfigured(Boolean(data.configured));
+        if (!cancelled) setLocalConfigured(Boolean(data.configured));
       })
       .catch(() => {
-        if (!cancelled) setConfigured(false);
+        if (!cancelled) setLocalConfigured(false);
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [isShared]);
 
   useEffect(() => {
-    setResolution(null);
-    setError(null);
-    setEditing(false);
-    setCanonicalDraft('');
-    setRenderedDraft('');
-    setStatus('idle');
-    setIsExpanded(false);
+    if (isShared) return;
+    setLocalResolution(null);
+    setLocalError(null);
+    setLocalEditing(false);
+    setLocalCanonicalDraft('');
+    setLocalRenderedDraft('');
+    setLocalStatus('idle');
+    setLocalIsExpanded(false);
 
     if (acceptedDecision && !acceptedApplicable) {
       onAcceptedDecision(null);
     }
-  }, [requestKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [requestKey, isShared]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const requestPhraseResolution = useCallback(async () => {
+  const handleRequestPhraseResolution = useCallback(async () => {
+    if (isShared && onRequestAssistance) {
+      await onRequestAssistance();
+      return;
+    }
+
     if (!eligible) return;
 
-    setStatus('loading');
-    setError(null);
-    setEditing(false);
-    setIsExpanded(true);
+    setLocalStatus('loading');
+    setLocalError(null);
+    setLocalEditing(false);
+    setLocalIsExpanded(true);
 
     try {
       const response = await fetch('/api/assist/phrase', {
@@ -124,69 +175,90 @@ export default function PhraseAssistantPanel({
       const data = await response.json();
       if (!response.ok) {
         if (response.status === 503) {
-          setConfigured(false);
-          setStatus('unavailable');
+          setLocalConfigured(false);
+          setLocalStatus('unavailable');
         } else if (response.status === 409) {
-          setStatus('idle');
+          setLocalStatus('idle');
         } else {
-          setStatus('error');
+          setLocalStatus('error');
         }
-        setError(data.message || data.error || 'Context-aware phrase resolution failed.');
+        setLocalError(data.message || data.error || 'Context-aware phrase resolution failed.');
         return;
       }
 
       const nextResolution = data.resolution as PhraseResolution;
-      setResolution(nextResolution);
-      setCanonicalDraft(nextResolution.scholarlyCanonical ?? '');
-      setRenderedDraft(nextResolution.renderedOutput ?? '');
-      setStatus('available');
+      setLocalResolution(nextResolution);
+      setLocalCanonicalDraft(nextResolution.scholarlyCanonical ?? '');
+      setLocalRenderedDraft(nextResolution.renderedOutput ?? '');
+      setLocalStatus('available');
     } catch (requestError) {
-      setStatus('error');
-      setError(requestError instanceof Error ? requestError.message : 'Network error during phrase resolution.');
+      setLocalStatus('error');
+      setLocalError(requestError instanceof Error ? requestError.message : 'Network error during phrase resolution.');
     }
-  }, [eligible, result.originalInput, result.profile, reviewDecisions]);
+  }, [isShared, onRequestAssistance, eligible, result.originalInput, result.profile, reviewDecisions]);
 
-  function acceptResolution() {
-    if (!resolution) return;
+  function handleAcceptResolution() {
+    if (isShared && onAcceptCurrentDraft) {
+      onAcceptCurrentDraft();
+      return;
+    }
+    if (!resolution || !resolution.scholarlyCanonical) return;
     try {
       const decision = createAcceptedPhraseDecision(
         resolution,
         result,
-        canonicalDraft,
-        renderedDraft
+        canonicalDraft || resolution.scholarlyCanonical,
+        renderedDraft || resolution.renderedOutput || undefined
       );
       onAcceptedDecision(decision);
-      setEditing(false);
-      setError(null);
+      setLocalEditing(false);
+      setLocalError(null);
     } catch (acceptError) {
-      setError(acceptError instanceof Error ? acceptError.message : 'Unable to accept this phrase resolution.');
+      setLocalError(acceptError instanceof Error ? acceptError.message : 'Unable to accept this phrase resolution.');
     }
   }
 
-  function rejectResolution() {
-    setResolution(null);
-    setCanonicalDraft('');
-    setRenderedDraft('');
-    setEditing(false);
-    setError(null);
-    setStatus('rejected');
-    setIsExpanded(false);
+  function handleRejectResolution() {
+    if (isShared && onRejectCurrentDraft) {
+      onRejectCurrentDraft();
+      return;
+    }
+    setLocalResolution(null);
+    setLocalCanonicalDraft('');
+    setLocalRenderedDraft('');
+    setLocalEditing(false);
+    setLocalError(null);
+    setLocalStatus('rejected');
+    setLocalIsExpanded(false);
     onAcceptedDecision(null);
   }
 
-  function toggleEditing() {
-    if (editing) {
-      setCanonicalDraft(resolution?.scholarlyCanonical ?? '');
-      setRenderedDraft(resolution?.renderedOutput ?? '');
-      setEditing(false);
+  function handleToggleEditing() {
+    if (isShared && onToggleEditing) {
+      onToggleEditing();
       return;
     }
-    setEditing(true);
+    if (editing) {
+      setLocalCanonicalDraft(resolution?.scholarlyCanonical ?? '');
+      setLocalRenderedDraft(resolution?.renderedOutput ?? '');
+      setLocalEditing(false);
+      return;
+    }
+    setLocalEditing(true);
+  }
+
+  function handleCanonicalChange(next: string) {
+    if (isShared && onSetCanonicalDraft && onSetRenderedDraft) {
+      onSetCanonicalDraft(next);
+      onSetRenderedDraft(renderCanonicalForProfile(next, result.profile));
+      return;
+    }
+    setLocalCanonicalDraft(next);
+    setLocalRenderedDraft(renderCanonicalForProfile(next, result.profile));
   }
 
   if (!eligible && !acceptedApplicable) return null;
 
-  // Accepted State
   const renderingLabel =
     result.profile === 'ijmes_citation_title'
       ? 'Citation-title rendering'
@@ -238,7 +310,7 @@ export default function PhraseAssistantPanel({
     );
   }
 
-  // Quiet callout state: default collapsed when not yet explicitly requested
+  // Quiet callout state: default collapsed when not yet explicitly requested or expanded
   if (!isExpanded && !resolution && status !== 'loading') {
     return (
       <div className={styles.callout}>
@@ -252,7 +324,7 @@ export default function PhraseAssistantPanel({
           type="button"
           className={styles.primaryButton}
           onClick={() => {
-            void requestPhraseResolution();
+            void handleRequestPhraseResolution();
           }}
           disabled={configured === false}
           aria-label={configured === false ? 'Assistant unavailable' : 'Ask assistant'}
@@ -262,6 +334,8 @@ export default function PhraseAssistantPanel({
       </div>
     );
   }
+
+  const hasDisplayableDraft = Boolean(resolution?.scholarlyCanonical && resolution?.renderedOutput);
 
   return (
     <section className={styles.panel} aria-label="Phrase Assistance Panel">
@@ -293,7 +367,7 @@ export default function PhraseAssistantPanel({
 
       {error && <div className={styles.errorBox}>{error}</div>}
 
-      {resolution?.disposition === 'REVIEW_REQUIRED' && (
+      {resolution?.disposition === 'REVIEW_REQUIRED' && !hasDisplayableDraft && (
         <div className={styles.reviewRequiredBox}>
           <strong>Assistant declined to force a single reading.</strong>
           <p>{resolution.rationale}</p>
@@ -312,14 +386,16 @@ export default function PhraseAssistantPanel({
         </div>
       )}
 
-      {resolution?.disposition === 'PROPOSED' && resolution.scholarlyCanonical && resolution.renderedOutput && (
+      {hasDisplayableDraft && resolution && (
         <>
           <div className={styles.proposalHeader}>
             <div className={styles.proposalMeta}>
-              <span className={styles.proposalBadge}>Suggestion · Not authoritative</span>
+              <span className={styles.proposalBadge}>
+                {resolution.disposition === 'REVIEW_REQUIRED' ? 'Draft · Needs Review' : 'Suggestion · Not authoritative'}
+              </span>
               <span className={styles.confidence}>
-                confidence: {confidenceLabel(resolution.confidence)}
-                {resolution.confidence !== null ? ` (${Math.round(resolution.confidence * 100)}%)` : ''}
+                model estimate: {confidenceLabel(resolution.confidence)}
+                {resolution.confidence !== null ? ` (${Math.round(resolution.confidence * 100)}%)` : ''} · uncalibrated
               </span>
             </div>
             <span className={styles.basis}>{resolution.basis.replaceAll('_', ' ').toLowerCase()}</span>
@@ -335,11 +411,7 @@ export default function PhraseAssistantPanel({
                   id="phrase-canonical"
                   className={styles.editInput}
                   value={canonicalDraft}
-                  onChange={(event) => {
-                    const next = event.target.value;
-                    setCanonicalDraft(next);
-                    setRenderedDraft(renderCanonicalForProfile(next, result.profile));
-                  }}
+                  onChange={(event) => handleCanonicalChange(event.target.value)}
                 />
               ) : (
                 <div className={styles.value}>{resolution.scholarlyCanonical}</div>
@@ -393,14 +465,24 @@ export default function PhraseAssistantPanel({
             </details>
           )}
 
+          {(resolution.warnings ?? []).length > 0 && (
+            <div className={styles.warningsList} style={{ marginTop: '0.5rem' }}>
+              {(resolution.warnings ?? []).map((warning) => (
+                <div key={warning} className={styles.warning}>
+                  {warning}
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className={styles.actions}>
-            <button type="button" className={styles.primaryButton} onClick={acceptResolution}>
+            <button type="button" className={styles.primaryButton} onClick={handleAcceptResolution}>
               {editing ? 'Accept edited suggestion' : 'Accept suggestion'}
             </button>
-            <button type="button" className={styles.secondaryButton} onClick={toggleEditing}>
+            <button type="button" className={styles.secondaryButton} onClick={handleToggleEditing}>
               {editing ? 'Cancel edit' : 'Edit before accepting'}
             </button>
-            <button type="button" className={styles.rejectButton} onClick={rejectResolution}>
+            <button type="button" className={styles.rejectButton} onClick={handleRejectResolution}>
               Dismiss
             </button>
           </div>
@@ -416,7 +498,7 @@ export default function PhraseAssistantPanel({
             type="button"
             className={styles.primaryButton}
             onClick={() => {
-              void requestPhraseResolution();
+              void handleRequestPhraseResolution();
             }}
             disabled={configured === false}
           >
