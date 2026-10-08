@@ -100,7 +100,8 @@ function resolveToken(
   analysis?: TokenAnalysis,
   lexicon: LexiconRepository = DEFAULT_LEXICON_REPOSITORY,
   fallbackRepository: EvidenceFallbackRepository = DEFAULT_EVIDENCE_FALLBACK_REPOSITORY,
-  profile: ProfileId = 'ijmes_full'
+  profile: ProfileId = 'ijmes_full',
+  resolutionPolicy: ResolutionPolicy = 'CURRENT_PRODUCTION'
 ): { result: TokenResult; entry?: LexicalEntry } {
   if (['whitespace', 'punctuation', 'number', 'latin'].includes(token.type)) {
     const automatic: AutomaticTokenSnapshot = {
@@ -164,7 +165,7 @@ function resolveToken(
       };
     }
 
-    if (analysis.explicitVowels.length) {
+    if (resolutionPolicy === 'SAFE_WHOLE_WORD_EVIDENCE' && analysis.explicitVowels.length) {
       return {
         result: unresolvedToken(
           token,
@@ -401,7 +402,7 @@ export function transliterate(
       // 1. Check exact reviewed whole-word authority first
       const exactReviewedEntry = lexicon.findByNormalized(analysis.lookupForm);
       if (exactReviewedEntry) {
-        return resolveToken(token, analysis, lexicon, effectiveFallback, profile);
+        return resolveToken(token, analysis, lexicon, effectiveFallback, profile, resolutionPolicy);
       }
 
       // 2. If morphology is present, classify its strength
@@ -488,7 +489,7 @@ export function transliterate(
       }
 
       // No morphology present -> standard token resolution
-      return resolveToken(token, analysis, lexicon, effectiveFallback, profile);
+      return resolveToken(token, analysis, lexicon, effectiveFallback, profile, resolutionPolicy);
     }
 
     // Default production resolution:

@@ -15,7 +15,6 @@ import { DEFAULT_LEXICON_REPOSITORY } from '../../../../data/lexicon';
 import { DEFAULT_EVIDENCE_FALLBACK_PACK } from '../../../../data/fallback';
 import { transliterate } from '../../../engine';
 import { buildEvaluationFallbackUnion } from '../../../coverage/fallbackUnion';
-import { EvidenceFallbackRepository } from '../../kaikki/fallback/repository';
 import type { CoverageCorpusFile, CoverageCorpusCase } from '../../../coverage/types';
 import type { EvidenceFallbackPack } from '../../kaikki/fallback/types';
 import type { LocPilotTitleCase } from './types';
@@ -51,21 +50,22 @@ export function selectLocPilotTitles(
     throw new Error(`[FAIL CLOSED] Corpus file not found at ${defaultCorpusPath}`);
   }
 
+  if (!fs.existsSync(defaultPhase7EPath)) {
+    throw new Error(`[FAIL CLOSED] Phase 7E experimental fallback pack missing at ${defaultPhase7EPath}`);
+  }
+
   const rawCorpus = JSON.parse(
     fs.readFileSync(defaultCorpusPath, 'utf8')
   ) as CoverageCorpusFile;
 
-  let fallbackRepo = new EvidenceFallbackRepository(DEFAULT_EVIDENCE_FALLBACK_PACK);
-  if (fs.existsSync(defaultPhase7EPath)) {
-    const pack = JSON.parse(fs.readFileSync(defaultPhase7EPath, 'utf8')) as EvidenceFallbackPack;
-    const union = buildEvaluationFallbackUnion(DEFAULT_EVIDENCE_FALLBACK_PACK, pack);
-    fallbackRepo = union.repository;
-  }
+  const pack = JSON.parse(fs.readFileSync(defaultPhase7EPath, 'utf8')) as EvidenceFallbackPack;
+  const union = buildEvaluationFallbackUnion(DEFAULT_EVIDENCE_FALLBACK_PACK, pack);
+  const fallbackRepo = union.repository;
 
   // 1. Filter strictly for DIAGNOSTIC cases
   const diagnosticCases = rawCorpus.cases.filter((c: CoverageCorpusCase) => c.split === 'DIAGNOSTIC');
 
-  // 2. Identify cases that contain genuine unresolved lexical tokens at runtime
+  // 2. Identify cases that contain genuine unresolved lexical tokens without a usable proposal
   const candidateCases: Array<{
     caseId: string;
     sourceId: string;
@@ -87,14 +87,26 @@ export function selectLocPilotTitles(
       fallbackRepo
     );
 
-    // Find actual unresolved Persian lexical tokens
-    const unresolvedTokens = result.tokens.filter(
-      (token) => token.tokenType === 'persian-word' && token.status === 'UNRESOLVED'
-    );
+    // Find actual undisplayable Persian lexical tokens (excluding already-displayable proposals)
+    const undisplayableTokens = result.tokens.filter((token) => {
+      if (token.tokenType !== 'persian-word') return false;
+      const isAuth =
+        token.status === 'DETERMINISTIC' || token.status === 'LEXICON_RESOLVED';
+      const hasProposal = Boolean(
+        token.automatic?.evidenceDerivedProposal || (token as unknown as { evidenceDerivedProposal?: unknown }).evidenceDerivedProposal
+      );
+      const isPlaceholder = Boolean(token.rendered && token.rendered.startsWith('⟦'));
+      const isDisplayable =
+        isAuth ||
+        (hasProposal &&
+          !isPlaceholder &&
+          token.blockingReason !== 'WHOLE_WORD_FALLBACK_MORPHOLOGY_COMPETITION');
+      return !isDisplayable;
+    });
 
-    if (unresolvedTokens.length > 0) {
+    if (undisplayableTokens.length > 0) {
       const unresolvedMisses = Array.from(
-        new Set(unresolvedTokens.map((t) => t.normalizedSurface))
+        new Set(undisplayableTokens.map((t) => t.normalizedSurface))
       );
 
       const hash = crypto

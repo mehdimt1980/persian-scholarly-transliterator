@@ -5,9 +5,11 @@ import {
   determineCatalogingConvention,
   determineRomanizationSchemeStatus,
   parseAllFixtureRecords,
-  runLocFeasibilityPilot
+  runLocFeasibilityPilot,
+  runLocFeasibilityPilotAsync
 } from './pilotRunner';
 import type { MarcRecord } from '../types';
+import type { LocClient } from '../client';
 
 describe('Phase 7G Track B: Library of Congress Evidence Feasibility Pilot', () => {
   describe('1. Deterministic Pilot Selection & Holdout Isolation', () => {
@@ -89,9 +91,10 @@ describe('Phase 7G Track B: Library of Congress Evidence Feasibility Pilot', () 
       expect(schemeStatus).toBe('UNVERIFIED_INFERRED');
     });
 
-    it('marks records with explicit 040$e ala-lc as SOURCE_EXPLICIT romanization scheme', () => {
+    it('prohibits 040$e alone from independently asserting SOURCE_EXPLICIT romanization scheme', () => {
       const mockRecord: MarcRecord = {
         lccn: '2025364468',
+        sourceUri: 'https://lccn.loc.gov/2025364468',
         controlFields: [],
         dataFields: [
           {
@@ -106,7 +109,7 @@ describe('Phase 7G Track B: Library of Congress Evidence Feasibility Pilot', () 
         ]
       };
       const schemeStatus = determineRomanizationSchemeStatus(mockRecord);
-      expect(schemeStatus).toBe('SOURCE_EXPLICIT');
+      expect(schemeStatus).toBe('UNVERIFIED_INFERRED');
     });
 
     it('marks records without explicit 040$e as UNKNOWN convention and UNVERIFIED_INFERRED scheme if from LoC', () => {
@@ -148,6 +151,82 @@ describe('Phase 7G Track B: Library of Congress Evidence Feasibility Pilot', () 
       expect(report.governance.zeroAuthorityPromotion).toBe(true);
       expect(report.governance.heldOutCorpusUntouched).toBe(true);
     }, 15000);
+
+    it('fails closed when LIVE_BOUNDED_PILOT mode is requested without liveClient', async () => {
+      await expect(
+        runLocFeasibilityPilotAsync({ mode: 'LIVE_BOUNDED_PILOT' })
+      ).rejects.toThrow('[FAIL CLOSED] LIVE_BOUNDED_PILOT mode requires an instantiated, configured LocClient.');
+    });
+
+    it('fails closed when Phase 7E experimental pack is missing during selection', () => {
+      expect(() =>
+        selectLocPilotTitles(undefined, 'non-existent-pack.json')
+      ).toThrow('[FAIL CLOSED] Phase 7E experimental fallback pack missing');
+    });
+
+    it('executes genuine case-specific live query matching with a mocked LocClient', async () => {
+      const mockXml = `<?xml version="1.0" encoding="UTF-8"?>
+<record xmlns="http://www.loc.gov/MARC21/slim">
+  <controlfield tag="001">99123456</controlfield>
+  <datafield tag="040" ind1=" " ind2=" ">
+    <subfield code="a">DLC</subfield>
+    <subfield code="e">rda</subfield>
+  </datafield>
+  <datafield tag="245" ind1="1" ind2="0">
+    <subfield code="6">880-01</subfield>
+    <subfield code="a">Dīvān-i Ḥāfiẓ /</subfield>
+  </datafield>
+  <datafield tag="880" ind1="1" ind2="0">
+    <subfield code="6">245-01/(3/r</subfield>
+    <subfield code="a">ديوان حافظ /</subfield>
+  </datafield>
+</record>`;
+
+      const mockClient = {
+        searchSru: async (cql: string) => {
+          if (cql.includes('حافظ')) {
+            return [{ sourceId: 'LOC', rawIdentifier: '99123456', payload: mockXml, fetchedAt: new Date().toISOString() }];
+          }
+          return [];
+        }
+      } as unknown as LocClient;
+
+      const report = await runLocFeasibilityPilotAsync({
+        mode: 'LIVE_BOUNDED_PILOT',
+        liveClient: mockClient,
+        maxLiveQueries: 5
+      });
+
+      expect(report.metrics.executionMode).toBe('LIVE_BOUNDED_PILOT');
+      expect(report.metrics.liveRequestsAttempted).toBe(5);
+      expect(report.metrics.liveResponsesSucceeded).toBe(5);
+      expect(report.metrics.realWorldSearchYield).toBe('MEASURED');
+      expect(report.queryOutcomesSample.length).toBeGreaterThan(0);
+      expect(report.queryOutcomesSample[0].retrievalStatus).toBeDefined();
+    });
+
+    it('handles rate limits, timeouts, and zero-record responses cleanly in live mode', async () => {
+      let callCount = 0;
+      const mockClient = {
+        searchSru: async () => {
+          callCount++;
+          if (callCount === 1) return []; // Zero records
+          if (callCount === 2) throw new Error('HTTP 429 Too Many Requests'); // Rate limit
+          return [];
+        }
+      } as unknown as LocClient;
+
+      const report = await runLocFeasibilityPilotAsync({
+        mode: 'LIVE_BOUNDED_PILOT',
+        liveClient: mockClient,
+        maxLiveQueries: 2
+      });
+
+      expect(report.metrics.executionMode).toBe('LIVE_BOUNDED_PILOT');
+      expect(report.metrics.liveRequestsAttempted).toBe(2);
+      expect(report.queryOutcomesSample[0].retrievalStatus).toBe('NO_RECORDS_FOUND');
+      expect(report.queryOutcomesSample[1].retrievalStatus).toBe('HTTP_ERROR');
+    });
 
     it('correctly loads all offline fixture records', () => {
       const fixtures = parseAllFixtureRecords();

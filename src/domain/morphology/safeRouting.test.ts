@@ -282,4 +282,44 @@ describe('Phase 7G: Safe Whole-Word Evidence vs Morphology Resolution', () => {
     expect(resDefault.tokens[0].status).toBe('UNRESOLVED');
     expect(resDefault.tokens[0].automatic.evidenceDerivedProposal).toBeUndefined();
   });
+
+  it('preserves production behavior for unreviewed explicit-vowel inputs under CURRENT_PRODUCTION', () => {
+    // Under CURRENT_PRODUCTION, unreviewed token with explicit vowel resolves through fallback if available
+    const resProd = transliterate(
+      'استان',
+      'ijmes_full',
+      [],
+      DEFAULT_LEXICON_REPOSITORY,
+      fallbackRepo,
+      { resolutionPolicy: 'CURRENT_PRODUCTION' }
+    );
+    // In production, unresolved candidate morphology yields placeholder
+    expect(resProd.tokens[0].status).toBe('UNRESOLVED');
+    expect(resProd.tokens[0].rendered).toContain('⟦');
+  });
+
+  it('ensures competition tokens do not count towards displayable coverage', () => {
+    const res = transliterate(
+      'کتابها',
+      'ijmes_citation_title',
+      [],
+      DEFAULT_LEXICON_REPOSITORY,
+      fallbackRepo,
+      { resolutionPolicy: 'SAFE_WHOLE_WORD_EVIDENCE' }
+    );
+
+    const tok = res.tokens[0];
+    expect(tok.blockingReason).toBe('WHOLE_WORD_FALLBACK_MORPHOLOGY_COMPETITION');
+    expect(tok.status).toBe('UNRESOLVED');
+    expect(res.copyable).toBe(false);
+
+    // Evaluator displayable predicate check:
+    const hasProposal = Boolean(tok.automatic?.evidenceDerivedProposal);
+    const isAuth = tok.status === 'DETERMINISTIC' || tok.status === 'LEXICON_RESOLVED';
+    const isPlaceholder = Boolean(tok.rendered && tok.rendered.startsWith('⟦'));
+    const isDisplayable = isAuth || (hasProposal && !isPlaceholder && tok.blockingReason !== 'WHOLE_WORD_FALLBACK_MORPHOLOGY_COMPETITION');
+
+    expect(hasProposal).toBe(true);
+    expect(isDisplayable).toBe(false);
+  });
 });

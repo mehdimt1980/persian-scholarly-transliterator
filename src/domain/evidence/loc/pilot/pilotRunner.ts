@@ -92,21 +92,12 @@ export function determineCatalogingConvention(record: MarcRecord): CatalogingCon
 }
 
 export function determineRomanizationSchemeStatus(record: MarcRecord): RomanizationSchemeStatus {
-  // A source-explicit romanization scheme requires actual scheme-specific evidence.
-  // MARC 040$e describes cataloging convention (e.g. RDA), not ALA-LC romanization scheme specifically.
-  const f040 = record.dataFields.find((f) => f.tag === '040');
-  if (f040) {
-    const subE = f040.subfields.find((sf) => sf.code === 'e')?.value.toLowerCase();
-    if (subE && (subE.includes('ala-lc') || subE.includes('alalc'))) {
-      return 'SOURCE_EXPLICIT';
-    }
-  }
-
-  // Default historical or institutional LoC provenance to unverified inferred
+  // MARC 040$e describes cataloging convention (e.g. RDA, AACR2),
+  // which does not independently establish ALA-LC transliteration of an individual Latin field.
+  // Field-specific or independently documented scheme evidence is required for SOURCE_EXPLICIT.
   if (record.sourceUri?.includes('loc.gov') || record.lccn) {
     return 'UNVERIFIED_INFERRED';
   }
-
   return 'UNKNOWN';
 }
 
@@ -123,61 +114,23 @@ export async function runLocFeasibilityPilotAsync(
 ): Promise<LocPilotReport> {
   const mode = options?.mode ?? 'FIXTURE_VALIDATION';
   const pilotCases = selectLocPilotTitles(options?.corpusPath, options?.phase7EPackPath, 100);
-  const fixtureRecords = parseAllFixtureRecords();
+
+  if (mode === 'LIVE_BOUNDED_PILOT' && !options?.liveClient) {
+    throw new Error('[FAIL CLOSED] LIVE_BOUNDED_PILOT mode requires an instantiated, configured LocClient.');
+  }
 
   const queryOutcomes: LocPilotQueryOutcome[] = [];
+  const liveRecordsMap = new Map<string, MarcRecord>();
 
   let liveRequestsAttempted = 0;
   let liveResponsesSucceeded = 0;
-  const liveRecordsMap = new Map<string, MarcRecord>();
-
-  // Unique fixture records analysis
-  const uniqueFixtureRecordsCount = fixtureRecords.length;
-  const persianLanguageRecordsCount = fixtureRecords.filter(hasPersianLanguageEvidence).length;
-  const recordsContainingField880Count = fixtureRecords.filter((r) => r.dataFields.some((f) => f.tag === '880')).length;
-
-  let totalValid880Linkages = 0;
-  let totalAmbiguousLinkages = 0;
-  let recordsWithUsableTitlePairsCount = 0;
-  let recordsWithUsablePersonalNamePairsCount = 0;
-  let sourceSchemeUnverifiedCount = 0;
-
-  for (const record of fixtureRecords) {
-    const linkages = resolveMarc880Linkages(record);
-    for (const link of linkages) {
-      if (link.status === 'MATCHED') {
-        totalValid880Linkages += 1;
-      } else if (
-        link.status === 'UNMATCHED_NONZERO' ||
-        link.status === 'AMBIGUOUS_DUPLICATE' ||
-        link.status === 'MALFORMED_LINKAGE'
-      ) {
-        totalAmbiguousLinkages += 1;
-      }
-    }
-
-    const extracted = extractEvidenceFromMarcRecord(record);
-    const schemeStatus = determineRomanizationSchemeStatus(record);
-    if (schemeStatus === 'UNVERIFIED_INFERRED') {
-      sourceSchemeUnverifiedCount += 1;
-    }
-
-    if (extracted.some((e) => e.entityType === 'TITLE' || e.entityType === 'WORK')) {
-      recordsWithUsableTitlePairsCount += 1;
-    }
-    if (extracted.some((e) => e.entityType === 'PERSON')) {
-      recordsWithUsablePersonalNamePairsCount += 1;
-    }
-  }
-
   let exactMatchedPilotTitles = 0;
   let partialMatchedPilotTitles = 0;
   let unmatchedPilotTitles = 0;
 
-  // If LIVE_BOUNDED_PILOT requested and client provided
   if (mode === 'LIVE_BOUNDED_PILOT' && options?.liveClient) {
     const client = options.liveClient;
-    const maxQueries = Math.min(options.maxLiveQueries ?? 10, pilotCases.length);
+    const maxQueries = Math.min(options.maxLiveQueries ?? 100, pilotCases.length);
 
     for (let i = 0; i < maxQueries; i++) {
       const pilotCase = pilotCases[i];
@@ -188,160 +141,206 @@ export async function runLocFeasibilityPilotAsync(
         const rawRecords = await client.searchSru(cql, { maximumRecords: 5 });
         liveResponsesSucceeded += 1;
 
+        if (rawRecords.length === 0) {
+          unmatchedPilotTitles += 1;
+          queryOutcomes.push({
+            pilotCase,
+            queryAttempted: cql,
+            retrievalStatus: 'NO_RECORDS_FOUND',
+            recordsRetrievedCount: 0,
+            persianLanguageRecordsCount: 0,
+            recordsWithField880Count: 0,
+            valid880LinkagesCount: 0,
+            rejectedOrAmbiguousLinkagesCount: 0,
+            matchClassification: 'NO_CONFIRMED_MATCH',
+            matchedRecordDetails: []
+          });
+          continue;
+        }
+
+        const caseRecords: MarcRecord[] = [];
         for (const raw of rawRecords) {
           const recs = parseMarcXml(raw.payload);
           for (const r of recs) {
             const ctrl001 = r.controlFields.find((cf) => cf.tag === '001')?.value;
             const key = r.lccn || ctrl001 || `${i}-${recs.indexOf(r)}`;
             liveRecordsMap.set(key, r);
+            caseRecords.push(r);
           }
         }
+
+        const matchedRecordDetails: LocMatchedRecordDetail[] = [];
+        let bestMatchClassification: TitleMatchClassification = 'NO_CONFIRMED_MATCH';
+
+        for (const record of caseRecords) {
+          const extracted = extractEvidenceFromMarcRecord(record);
+          const convention = determineCatalogingConvention(record);
+          const schemeStatus = determineRomanizationSchemeStatus(record);
+
+          for (const ev of extracted) {
+            if (ev.entityType === 'TITLE' || ev.entityType === 'WORK') {
+              const matchClass = classifyTitleMatch(
+                pilotCase.sourceTitle,
+                pilotCase.normalizedTitle,
+                ev.persianForm
+              );
+
+              if (
+                matchClass === 'EXACT_PERSIAN_TITLE_MATCH' ||
+                matchClass === 'NORMALIZATION_EQUIVALENT_TITLE_MATCH'
+              ) {
+                bestMatchClassification = matchClass;
+              } else if (
+                matchClass === 'PARTIAL_TITLE_MATCH' &&
+                bestMatchClassification === 'NO_CONFIRMED_MATCH'
+              ) {
+                bestMatchClassification = 'PARTIAL_TITLE_MATCH';
+              }
+
+              matchedRecordDetails.push({
+                lccn: record.lccn ?? 'UNKNOWN',
+                recordUri: record.sourceUri ?? '',
+                marcField: ev.sourceField ?? '',
+                linkageStatus: 'MATCHED',
+                persianObserved: ev.persianForm,
+                latinObserved: ev.observedRomanization ?? '',
+                entityType: ev.entityType,
+                observedScheme: ev.romanizationScheme ?? 'ALA_LC',
+                catalogingConvention: convention,
+                romanizationSchemeStatus: schemeStatus,
+                isExactTitleMatch:
+                  matchClass === 'EXACT_PERSIAN_TITLE_MATCH' ||
+                  matchClass === 'NORMALIZATION_EQUIVALENT_TITLE_MATCH',
+                isPartialTitleMatch: matchClass === 'PARTIAL_TITLE_MATCH',
+                isPersonalNameMatch: false,
+                novelEvidenceYieldNotes:
+                  'Live LoC monograph title observation (not split into word-level dictionary)'
+              });
+            }
+          }
+        }
+
+        if (
+          bestMatchClassification === 'EXACT_PERSIAN_TITLE_MATCH' ||
+          bestMatchClassification === 'NORMALIZATION_EQUIVALENT_TITLE_MATCH'
+        ) {
+          exactMatchedPilotTitles += 1;
+        } else if (bestMatchClassification === 'PARTIAL_TITLE_MATCH') {
+          partialMatchedPilotTitles += 1;
+        } else {
+          unmatchedPilotTitles += 1;
+        }
+
+        queryOutcomes.push({
+          pilotCase,
+          queryAttempted: cql,
+          retrievalStatus: 'SUCCESS',
+          recordsRetrievedCount: caseRecords.length,
+          persianLanguageRecordsCount: caseRecords.filter(hasPersianLanguageEvidence).length,
+          recordsWithField880Count: caseRecords.filter((r) =>
+            r.dataFields.some((f) => f.tag === '880')
+          ).length,
+          valid880LinkagesCount: caseRecords.reduce(
+            (acc, r) =>
+              acc + resolveMarc880Linkages(r).filter((l) => l.status === 'MATCHED').length,
+            0
+          ),
+          rejectedOrAmbiguousLinkagesCount: caseRecords.reduce(
+            (acc, r) =>
+              acc +
+              resolveMarc880Linkages(r).filter((l) => l.status !== 'MATCHED').length,
+            0
+          ),
+          matchClassification: bestMatchClassification,
+          matchedRecordDetails: matchedRecordDetails.slice(0, 3)
+        });
       } catch {
-        // Distinguish network/API failures
-      }
-    }
-  }
-
-  // Process each of the 100 pilot cases against evaluated records
-  for (const pilotCase of pilotCases) {
-    const matchedRecordDetails: LocMatchedRecordDetail[] = [];
-    let bestMatchClassification: TitleMatchClassification = 'NO_CONFIRMED_MATCH';
-
-    for (const record of fixtureRecords) {
-      const extracted = extractEvidenceFromMarcRecord(record);
-      const convention = determineCatalogingConvention(record);
-      const schemeStatus = determineRomanizationSchemeStatus(record);
-
-      for (const ev of extracted) {
-        if (ev.entityType === 'TITLE' || ev.entityType === 'WORK') {
-          const matchClass = classifyTitleMatch(
-            pilotCase.sourceTitle,
-            pilotCase.normalizedTitle,
-            ev.persianForm
-          );
-
-          if (matchClass === 'EXACT_PERSIAN_TITLE_MATCH' || matchClass === 'NORMALIZATION_EQUIVALENT_TITLE_MATCH') {
-            bestMatchClassification = matchClass;
-          } else if (matchClass === 'PARTIAL_TITLE_MATCH' && bestMatchClassification === 'NO_CONFIRMED_MATCH') {
-            bestMatchClassification = 'PARTIAL_TITLE_MATCH';
-          }
-
-          matchedRecordDetails.push({
-            lccn: record.lccn ?? 'UNKNOWN',
-            recordUri: record.sourceUri ?? '',
-            marcField: ev.sourceField ?? '',
-            linkageStatus: 'MATCHED',
-            persianObserved: ev.persianForm,
-            latinObserved: ev.observedRomanization ?? '',
-            entityType: ev.entityType,
-            observedScheme: ev.romanizationScheme ?? 'ALA_LC',
-            catalogingConvention: convention,
-            romanizationSchemeStatus: schemeStatus,
-            isExactTitleMatch: matchClass === 'EXACT_PERSIAN_TITLE_MATCH' || matchClass === 'NORMALIZATION_EQUIVALENT_TITLE_MATCH',
-            isPartialTitleMatch: matchClass === 'PARTIAL_TITLE_MATCH',
-            isPersonalNameMatch: false,
-            novelEvidenceYieldNotes: 'Bibliographic monograph title observation (not split into word-level dictionary)'
-          });
-        }
-
-        if (ev.entityType === 'PERSON') {
-          matchedRecordDetails.push({
-            lccn: record.lccn ?? 'UNKNOWN',
-            recordUri: record.sourceUri ?? '',
-            marcField: ev.sourceField ?? '',
-            linkageStatus: 'MATCHED',
-            persianObserved: ev.persianForm,
-            latinObserved: ev.observedRomanization ?? '',
-            entityType: ev.entityType,
-            observedScheme: ev.romanizationScheme ?? 'ALA_LC',
-            catalogingConvention: convention,
-            romanizationSchemeStatus: schemeStatus,
-            isExactTitleMatch: false,
-            isPartialTitleMatch: false,
-            isPersonalNameMatch: true,
-            novelEvidenceYieldNotes: 'Bibliographic personal name observation'
-          });
-        }
+        unmatchedPilotTitles += 1;
+        queryOutcomes.push({
+          pilotCase,
+          queryAttempted: cql,
+          retrievalStatus: 'HTTP_ERROR',
+          recordsRetrievedCount: 0,
+          persianLanguageRecordsCount: 0,
+          recordsWithField880Count: 0,
+          valid880LinkagesCount: 0,
+          rejectedOrAmbiguousLinkagesCount: 0,
+          matchClassification: 'NO_CONFIRMED_MATCH',
+          matchedRecordDetails: []
+        });
       }
     }
 
-    if (bestMatchClassification === 'EXACT_PERSIAN_TITLE_MATCH' || bestMatchClassification === 'NORMALIZATION_EQUIVALENT_TITLE_MATCH') {
-      exactMatchedPilotTitles += 1;
-    } else if (bestMatchClassification === 'PARTIAL_TITLE_MATCH') {
-      partialMatchedPilotTitles += 1;
-    } else {
-      unmatchedPilotTitles += 1;
-    }
+    const pilotSelectionHash = crypto
+      .createHash('sha256')
+      .update(pilotCases.map((c) => c.selectionHash).join(':'))
+      .digest('hex');
 
-    queryOutcomes.push({
-      pilotCase,
-      queryAttempted: `cql.anywhere = "${pilotCase.normalizedTitle}"`,
-      retrievalStatus: mode === 'FIXTURE_VALIDATION' ? 'FIXTURE_EVALUATED' : 'SUCCESS',
-      recordsRetrievedCount: uniqueFixtureRecordsCount,
-      persianLanguageRecordsCount,
-      recordsWithField880Count: recordsContainingField880Count,
-      valid880LinkagesCount: totalValid880Linkages,
-      rejectedOrAmbiguousLinkagesCount: totalAmbiguousLinkages,
-      matchClassification: bestMatchClassification,
-      matchedRecordDetails: matchedRecordDetails.slice(0, 3)
-    });
+    const metrics: LocPilotAggregateMetrics = {
+      executionMode: 'LIVE_BOUNDED_PILOT',
+      pilotTitlesSelected: pilotCases.length,
+      liveRequestsAttempted,
+      liveResponsesSucceeded,
+      uniqueFixtureRecords: 0,
+      uniqueLiveRecords: liveRecordsMap.size,
+      persianLanguageRecords: Array.from(liveRecordsMap.values()).filter(hasPersianLanguageEvidence).length,
+      recordsContainingField880: Array.from(liveRecordsMap.values()).filter((r) =>
+        r.dataFields.some((f) => f.tag === '880')
+      ).length,
+      validLinked880Pairs: Array.from(liveRecordsMap.values()).reduce(
+        (acc, r) => acc + resolveMarc880Linkages(r).filter((l) => l.status === 'MATCHED').length,
+        0
+      ),
+      rejectedOrAmbiguousLinkages: Array.from(liveRecordsMap.values()).reduce(
+        (acc, r) => acc + resolveMarc880Linkages(r).filter((l) => l.status !== 'MATCHED').length,
+        0
+      ),
+      eligiblePersianLatinTitlePairs: Array.from(liveRecordsMap.values()).filter((r) =>
+        extractEvidenceFromMarcRecord(r).some((e) => e.entityType === 'TITLE' || e.entityType === 'WORK')
+      ).length,
+      eligiblePersianLatinPersonPairs: Array.from(liveRecordsMap.values()).filter((r) =>
+        extractEvidenceFromMarcRecord(r).some((e) => e.entityType === 'PERSON')
+      ).length,
+      exactMatchedPilotTitles,
+      partialMatchedPilotTitles,
+      unmatchedPilotTitles,
+      sourceSchemeUnverifiedCases: Array.from(liveRecordsMap.values()).filter(
+        (r) => determineRomanizationSchemeStatus(r) === 'UNVERIFIED_INFERRED'
+      ).length,
+      realWorldSearchYield: liveResponsesSucceeded > 0 ? 'MEASURED' : 'NOT_MEASURED',
+      lexicalTransliterationCoverageDelta: 'UNDETERMINED'
+    };
+
+    return {
+      reportVersion: '1.2.0',
+      generatedAt: new Date().toISOString(),
+      pilotVersion: LOC_PILOT_VERSION,
+      selectionDataVersion: `phase7g-diagnostic-runtime-v${LOC_PILOT_SELECTION_VERSION}`,
+      pilotSelectionSha256: pilotSelectionHash,
+      corpusManifestSha256: '28d91c460585ac028e987b01f4ea274f6bd991ad3a2ea79a16f8080fae9b5d5a',
+      pilotCasesCount: pilotCases.length,
+      metrics,
+      limitations: {
+        workTypeMismatch:
+          'The OpenAlex scholarly coverage corpus is 99.82% journal articles, whereas Library of Congress catalog records index monographic publications (books, manuscripts, monographs). Articles do not have individual catalog records in national bibliographic catalogs.',
+        wordLevelAlignmentLimitation:
+          'A multiword Romanized title in MARC 245 does not constitute an independently verified word-level transliteration dictionary. Splitting titles into words by whitespace or position creates false lexical hypotheses.',
+        catalogingSchemeLimitation:
+          'LoC cataloging adheres to historical ALA-LC Persian romanization conventions (e.g. vowel representations and izafah hyphens) which differ systematically from modern IJMES transliteration standards.',
+        apiRateLimitLimitation:
+          'Live SRU queries against catalog.loc.gov are subject to strict rate limits and network latency. Production evaluation must rely on committed, reproducible offline fixtures.'
+      },
+      queryOutcomesSample: queryOutcomes.slice(0, 10),
+      governance: {
+        zeroAutomaticDictionaryExtraction: true,
+        zeroAuthorityPromotion: true,
+        heldOutCorpusUntouched: true
+      }
+    };
   }
 
-  // Calculate unique selection hash
-  const pilotSelectionHash = crypto
-    .createHash('sha256')
-    .update(pilotCases.map((c) => c.selectionHash).join(':'))
-    .digest('hex');
-
-  const metrics: LocPilotAggregateMetrics = {
-    executionMode: mode,
-    pilotTitlesSelected: pilotCases.length,
-    liveRequestsAttempted,
-    liveResponsesSucceeded,
-    uniqueFixtureRecords: uniqueFixtureRecordsCount,
-    uniqueLiveRecords: liveRecordsMap.size,
-    persianLanguageRecords: persianLanguageRecordsCount,
-    recordsContainingField880: recordsContainingField880Count,
-    validLinked880Pairs: totalValid880Linkages,
-    rejectedOrAmbiguousLinkages: totalAmbiguousLinkages,
-    eligiblePersianLatinTitlePairs: recordsWithUsableTitlePairsCount,
-    eligiblePersianLatinPersonPairs: recordsWithUsablePersonalNamePairsCount,
-    exactMatchedPilotTitles,
-    partialMatchedPilotTitles,
-    unmatchedPilotTitles,
-    sourceSchemeUnverifiedCases: sourceSchemeUnverifiedCount,
-    realWorldSearchYield: mode === 'FIXTURE_VALIDATION' ? 'NOT_MEASURED' : 'MEASURED',
-    lexicalTransliterationCoverageDelta: 'UNDETERMINED'
-  };
-
-  const report: LocPilotReport = {
-    reportVersion: '1.1.0',
-    generatedAt: new Date().toISOString(),
-    pilotVersion: LOC_PILOT_VERSION,
-    selectionDataVersion: `phase7g-diagnostic-runtime-v${LOC_PILOT_SELECTION_VERSION}`,
-    pilotSelectionSha256: pilotSelectionHash,
-    corpusManifestSha256: '28d91c460585ac028e987b01f4ea274f6bd991ad3a2ea79a16f8080fae9b5d5a',
-    pilotCasesCount: pilotCases.length,
-    metrics,
-    limitations: {
-      workTypeMismatch:
-        'The OpenAlex scholarly coverage corpus is 99.82% journal articles, whereas Library of Congress catalog records index monographic publications (books, manuscripts, monographs). Articles do not have individual catalog records in national bibliographic catalogs.',
-      wordLevelAlignmentLimitation:
-        'A multiword Romanized title in MARC 245 does not constitute an independently verified word-level transliteration dictionary. Splitting titles into words by whitespace or position creates false lexical hypotheses.',
-      catalogingSchemeLimitation:
-        'LoC cataloging adheres to historical ALA-LC Persian romanization conventions (e.g. vowel representations and izafah hyphens) which differ systematically from modern IJMES transliteration standards.',
-      apiRateLimitLimitation:
-        'Live SRU queries against catalog.loc.gov are subject to strict rate limits and network latency. Production evaluation must rely on committed, reproducible offline fixtures.'
-    },
-    queryOutcomesSample: queryOutcomes.slice(0, 10),
-    governance: {
-      zeroAutomaticDictionaryExtraction: true,
-      zeroAuthorityPromotion: true,
-      heldOutCorpusUntouched: true
-    }
-  };
-
-  return report;
+  // Otherwise, default FIXTURE_VALIDATION mode:
+  return runLocFeasibilityPilot(options?.corpusPath, options?.phase7EPackPath);
 }
 
 export function runLocFeasibilityPilot(
@@ -507,7 +506,7 @@ export function runLocFeasibilityPilot(
   };
 
   const report: LocPilotReport = {
-    reportVersion: '1.1.0',
+    reportVersion: '1.2.0',
     generatedAt: new Date().toISOString(),
     pilotVersion: LOC_PILOT_VERSION,
     selectionDataVersion: `phase7g-diagnostic-runtime-v${LOC_PILOT_SELECTION_VERSION}`,

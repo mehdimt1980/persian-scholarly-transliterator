@@ -94,7 +94,12 @@ function evaluateSingleTitle(
     );
     const isAuthoritative =
       token.status === 'DETERMINISTIC' || token.status === 'LEXICON_RESOLVED';
-    const isDisplayable = isAuthoritative || hasProposal;
+    const isPlaceholder = Boolean(token.rendered && token.rendered.startsWith('⟦'));
+    const isDisplayable =
+      isAuthoritative ||
+      (hasProposal &&
+        !isPlaceholder &&
+        token.blockingReason !== 'WHOLE_WORD_FALLBACK_MORPHOLOGY_COMPETITION');
     const proposal = (
       token as unknown as {
         evidenceDerivedProposal?: { renderedProposal?: string; hypothesis?: string };
