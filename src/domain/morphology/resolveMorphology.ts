@@ -70,11 +70,14 @@ export function resolveMorphologicalToken(token: Token, morphology: Morphologica
   if (morphology.status !== 'CONFIRMED' || !morphology.stemEntry) {
     const ambiguous = morphology.alternatives.includes('WHOLE_WORD');
     const isUnsupportedAllomorph = morphology.warnings.some((w) => w.includes('allomorphs require review') || w.includes('no authoritative'));
+    const isUnsupportedOrthography = morphology.warnings.some((w) => w.includes('Unsupported combining-mark'));
     const blockingReason: AutomaticBlockingReason = ambiguous
       ? 'MORPHOLOGY_AMBIGUITY'
-      : isUnsupportedAllomorph
-        ? 'UNSUPPORTED_ALLOMORPH'
-        : 'NO_LEXICAL_ENTRY';
+      : isUnsupportedOrthography
+        ? 'UNSUPPORTED_ORTHOGRAPHIC_EVIDENCE'
+        : isUnsupportedAllomorph
+          ? 'UNSUPPORTED_ALLOMORPH'
+          : 'NO_LEXICAL_ENTRY';
 
     return {
       result: reviewResult(

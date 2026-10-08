@@ -5,6 +5,7 @@ import { normalizePersian } from './normalization';
 import { analyzeOrthography } from './orthography';
 import { analyzeMorphology } from './morphology/analyzeMorphology';
 import { resolveMorphologicalToken } from './morphology/resolveMorphology';
+import { classifyMorphologyStrength } from './morphology/types';
 import { applyTitleProfile, SUPPORTED_PROFILES } from './profiles';
 import { RULES } from './provenance';
 import { analyzeRelations } from './relations';
@@ -331,12 +332,19 @@ function renderOutput(results: TokenResult[], relations: ContextRelation[]): str
   return results.map((result, index) => result.rendered + (markers.get(index) ?? '')).join('');
 }
 
+export type ResolutionPolicy = 'CURRENT_PRODUCTION' | 'SAFE_WHOLE_WORD_EVIDENCE';
+
+export interface TransliterationOptions {
+  resolutionPolicy?: ResolutionPolicy;
+}
+
 export function transliterate(
   input: string,
   profile: ProfileId = 'ijmes_full',
   reviewDecisions: ReviewDecision[] = [],
   lexicon: LexiconRepository = DEFAULT_LEXICON_REPOSITORY,
-  fallbackRepository?: EvidenceFallbackRepository
+  fallbackRepository?: EvidenceFallbackRepository,
+  options?: TransliterationOptions
 ): TransliterationResult {
   if (!SUPPORTED_PROFILES.includes(profile)) {
     throw new Error(`Unsupported profile: ${profile}`);
@@ -371,11 +379,87 @@ export function transliterate(
   const morphology = analyzeMorphology(tokens, analyses, lexicon);
   const morphologyByToken = new Map(morphology.map((analysis) => [analysis.tokenIndex, analysis]));
 
-  const resolved = tokens.map((token, index) =>
-    morphologyByToken.has(index)
+  const resolutionPolicy = options?.resolutionPolicy ?? 'CURRENT_PRODUCTION';
+
+  const resolved = tokens.map((token, index) => {
+    const analysis = analysisByToken.get(index);
+    const morph = morphologyByToken.get(index);
+
+    if (resolutionPolicy === 'SAFE_WHOLE_WORD_EVIDENCE' && analysis && analysis.lookupForm) {
+      // 1. Check exact reviewed whole-word authority first
+      const exactReviewedEntry = lexicon.findByNormalized(analysis.lookupForm);
+      if (exactReviewedEntry) {
+        return resolveToken(token, analysis, lexicon, effectiveFallback, profile);
+      }
+
+      // 2. If morphology is present, classify its strength
+      if (morph) {
+        const hasUnsupportedOrthography = analysis.unsupportedCombiningMarks.length > 0;
+        const strength = classifyMorphologyStrength(morph, hasUnsupportedOrthography);
+
+        if (strength === 'CONFIRMED_REVIEWED') {
+          // Confirmed authoritative reviewed morphology takes precedence
+          return resolveMorphologicalToken(token, morph);
+        }
+
+        if (strength === 'BLOCKED_BY_EXPLICIT_EVIDENCE') {
+          // Explicit combining marks or vocalization conflicts cannot be bypassed
+          return resolveMorphologicalToken(token, morph);
+        }
+
+        if (strength === 'COMPETING_REVIEWED') {
+          // Reviewed stem exists and competes with whole-word reading
+          const fallback = resolveEvidenceFallback(token, analysis, effectiveFallback, profile);
+          if (fallback) {
+            const morphResult = resolveMorphologicalToken(token, morph).result;
+            const combinedWarnings = [
+              'Whole-word fallback proposal competes with candidate/reviewed morphology; review is required.',
+              ...morphResult.warnings,
+              ...fallback.warnings
+            ];
+            const combinedAlternatives = Array.from(
+              new Set([fallback.rendered, ...morphResult.alternatives])
+            );
+            return {
+              result: {
+                ...morphResult,
+                status: 'UNRESOLVED' as const,
+                automaticStatus: 'UNRESOLVED' as const,
+                canonicalTransliteration: null,
+                automaticCanonical: null,
+                warnings: combinedWarnings,
+                alternatives: combinedAlternatives,
+                blockingReason: 'WHOLE_WORD_FALLBACK_MORPHOLOGY_COMPETITION' as const,
+                evidenceDerivedProposal: fallback.automatic?.evidenceDerivedProposal
+              },
+              entry: morph.stemEntry
+            };
+          }
+          return resolveMorphologicalToken(token, morph);
+        }
+
+        // 3. Candidate shape only (e.g. استان, دانش, تغییرات, بارش, پذیرش, کرمان, گلستان)
+        // Stem has no reviewed entry in lexicon.
+        // Evaluate unresolved candidate morphology against exact whole-word fallback evidence:
+        const fallback = resolveEvidenceFallback(token, analysis, effectiveFallback, profile);
+        if (fallback) {
+          // Safely surface the whole-word evidence-derived proposal
+          return { result: fallback };
+        }
+
+        // No whole-word fallback exists -> fallback to candidate morphology unresolved result
+        return resolveMorphologicalToken(token, morph);
+      }
+
+      // No morphology present -> standard token resolution
+      return resolveToken(token, analysis, lexicon, effectiveFallback, profile);
+    }
+
+    // Default production resolution:
+    return morphologyByToken.has(index)
       ? resolveMorphologicalToken(token, morphologyByToken.get(index)!)
-      : resolveToken(token, analysisByToken.get(index), lexicon, effectiveFallback, profile)
-  );
+      : resolveToken(token, analysisByToken.get(index), lexicon, effectiveFallback, profile);
+  });
 
 
   const initialResults = resolved.map((item) => item.result);

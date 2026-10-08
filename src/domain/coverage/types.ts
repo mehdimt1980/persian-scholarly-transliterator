@@ -54,7 +54,8 @@ export interface CoverageCorpusFile {
 export type CoverageConfigurationName =
   | 'REVIEWED_ONLY'
   | 'CURRENT_PRODUCTION'
-  | 'PHASE7E_EXPERIMENTAL';
+  | 'PHASE7E_EXPERIMENTAL'
+  | 'PHASE7G_SAFE_ROUTING';
 
 export interface CoverageTokenOutcome {
   surface: string;
@@ -311,5 +312,47 @@ export interface Phase7FCoverageSummaryReport {
     automaticPromotions: 0;
     authoritativeLexiconMutations: 0;
     productionFallbackPackUnchanged: true;
+  };
+}
+
+export interface InterceptedTokenReconciliation {
+  totalOriginalInterceptedTokens: number;
+  safeRoutingProposalsCreated: number;
+  stillBlockedByConfirmedMorphology: number;
+  blockedByCompetingReviewedEvidence: number;
+  blockedByExplicitOrthography: number;
+  invalidOrMissingFallback: number;
+  unresolvedForOtherReasons: number;
+  recoveredUniqueForms: number;
+  affectedTitles: number;
+}
+
+export interface RegressionSummary {
+  newlyDisplayableTokens: number;
+  unchangedDisplayableTokens: number;
+  lostDisplayabilityTokens: number;
+  newAmbiguityTokens: number;
+  newAuthoritativeTokens: number;
+}
+
+export interface Phase7GSafeResolutionSummaryReport {
+  reportVersion: string;
+  generatedAt: string;
+  inputIdentity: ExperimentalInputIdentity;
+  corpusManifest: CoverageCorpusManifest;
+  totalPersianTokens: number;
+  uniqueNormalizedPersianForms: number;
+  configurations: Record<CoverageConfigurationName, ConfigurationMetrics>;
+  diagnosticConfigurations: Record<CoverageConfigurationName, ConfigurationMetrics>;
+  holdoutConfigurations: Record<CoverageConfigurationName, ConfigurationMetrics>;
+  interceptedDiagnosticReconciliation: InterceptedTokenReconciliation;
+  regressionSummary: RegressionSummary;
+  governance: {
+    falseAuthoritative: 0;
+    underBlocked: 0;
+    automaticPromotions: 0;
+    authoritativeLexiconMutations: 0;
+    productionFallbackPackUnchanged: true;
+    productionDefaultUnchanged: true;
   };
 }

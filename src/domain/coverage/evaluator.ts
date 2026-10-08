@@ -19,7 +19,7 @@ import {
   DEFAULT_EVIDENCE_FALLBACK_REPOSITORY,
   EMPTY_EVIDENCE_FALLBACK_REPOSITORY
 } from '../../data/fallback';
-import { transliterate } from '../engine';
+import { transliterate, type TransliterationOptions } from '../engine';
 import { EvidenceFallbackRepository } from '../evidence/kaikki/fallback/repository';
 import type {
   ConfigurationMetrics,
@@ -71,14 +71,16 @@ export interface FullCorpusEvaluationResult {
 function evaluateSingleTitle(
   corpusCase: CoverageCorpusCase,
   configName: CoverageConfigurationName,
-  fallbackRepo: EvidenceFallbackRepository
+  fallbackRepo: EvidenceFallbackRepository,
+  transliterationOptions?: TransliterationOptions
 ): CoverageTitleOutcome {
   const result = transliterate(
     corpusCase.rawText,
     'ijmes_citation_title',
     [],
     DEFAULT_LEXICON_REPOSITORY,
-    fallbackRepo
+    fallbackRepo,
+    transliterationOptions
   );
 
   // Filter strictly for Persian lexical tokens
@@ -338,17 +340,35 @@ export function evaluateCoverageCorpus(
   cases: CoverageCorpusCase[],
   options: EvaluatorOptions = {}
 ): FullCorpusEvaluationResult {
-  const configs: Record<CoverageConfigurationName, EvidenceFallbackRepository> = {
-    REVIEWED_ONLY: EMPTY_EVIDENCE_FALLBACK_REPOSITORY,
-    CURRENT_PRODUCTION: DEFAULT_EVIDENCE_FALLBACK_REPOSITORY,
-    PHASE7E_EXPERIMENTAL:
-      options.phase7ERepository ?? DEFAULT_EVIDENCE_FALLBACK_REPOSITORY
-  };
+  const configDefs: Array<{
+    name: CoverageConfigurationName;
+    repo: EvidenceFallbackRepository;
+    transOptions?: TransliterationOptions;
+  }> = [
+    {
+      name: 'REVIEWED_ONLY',
+      repo: EMPTY_EVIDENCE_FALLBACK_REPOSITORY
+    },
+    {
+      name: 'CURRENT_PRODUCTION',
+      repo: DEFAULT_EVIDENCE_FALLBACK_REPOSITORY
+    },
+    {
+      name: 'PHASE7E_EXPERIMENTAL',
+      repo: options.phase7ERepository ?? DEFAULT_EVIDENCE_FALLBACK_REPOSITORY
+    },
+    {
+      name: 'PHASE7G_SAFE_ROUTING',
+      repo: options.phase7ERepository ?? DEFAULT_EVIDENCE_FALLBACK_REPOSITORY,
+      transOptions: { resolutionPolicy: 'SAFE_WHOLE_WORD_EVIDENCE' }
+    }
+  ];
 
   const detailedByConfig: Record<CoverageConfigurationName, CoverageTitleOutcome[]> = {
     REVIEWED_ONLY: [],
     CURRENT_PRODUCTION: [],
-    PHASE7E_EXPERIMENTAL: []
+    PHASE7E_EXPERIMENTAL: [],
+    PHASE7G_SAFE_ROUTING: []
   };
 
   const configurations = {} as Record<CoverageConfigurationName, ConfigurationMetrics>;
@@ -366,9 +386,9 @@ export function evaluateCoverageCorpus(
     pubYearDist[py] = (pubYearDist[py] ?? 0) + 1;
   }
 
-  for (const [name, repo] of Object.entries(configs) as Array<[CoverageConfigurationName, EvidenceFallbackRepository]>) {
+  for (const { name, repo, transOptions } of configDefs) {
     const titleOutcomes: CoverageTitleOutcome[] = cases.map((c) =>
-      evaluateSingleTitle(c, name, repo)
+      evaluateSingleTitle(c, name, repo, transOptions)
     );
 
     detailedByConfig[name] = titleOutcomes;
