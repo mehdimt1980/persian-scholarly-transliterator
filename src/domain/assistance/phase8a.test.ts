@@ -50,6 +50,9 @@ describe('Phase 8A: AI Draft-First Transliteration Workspace', () => {
       expect(unified.primary).toBe(result.output);
       expect(unified.isDraft).toBe(false);
       expect(unified.isVerifiedCopyable).toBe(true);
+      expect(unified.isHumanAcceptedCopyable).toBe(false);
+      expect(unified.isScholarlyAuthority).toBe(true);
+      expect(unified.isFinalExportEligible).toBe(true);
       expect(unified.isCopyableDraft).toBe(false);
       expect(unified.badgeTone).toBe('ready');
     });
@@ -135,7 +138,10 @@ describe('Phase 8A: AI Draft-First Transliteration Workspace', () => {
       expect(unified.presentation).toBe('HUMAN_ACCEPTED');
       expect(unified.primary).toBe(decision.renderedOutput);
       expect(unified.isDraft).toBe(false);
-      expect(unified.isVerifiedCopyable).toBe(true);
+      expect(unified.isVerifiedCopyable).toBe(false);
+      expect(unified.isHumanAcceptedCopyable).toBe(true);
+      expect(unified.isScholarlyAuthority).toBe(false);
+      expect(unified.isFinalExportEligible).toBe(false);
       expect(unified.badgeLabel).toBe('Human Accepted');
       expect(unified.badgeTone).toBe('override');
       expect(unified.activePhraseDecision).toBe(decision);

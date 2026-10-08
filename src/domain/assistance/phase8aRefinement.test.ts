@@ -5,6 +5,7 @@ import { transliterate } from '../engine';
 import {
   INITIAL_TOKEN_EDITOR_STATE,
   PhraseResolution,
+  alignTokenReadings,
   applyTokenReadingEdits,
   buildAiExplanation,
   buildPhraseResolverRequest,
@@ -309,6 +310,10 @@ describe('Phase 8A refinement: single source of truth and token editing', () => 
     expect(INITIAL_TOKEN_EDITOR_STATE.open).toBe(false);
     const why = fs.readFileSync(path.resolve(process.cwd(), 'src/app/components/WhyThisReading.tsx'), 'utf8');
     expect(why).not.toMatch(/<details[^>]*\bopen\b/);
+    expect(why).toContain('AI-assisted interpretation (provisional)');
+    expect(why).toContain('separately retrieved external authority evidence');
+    expect(why).toContain('deterministic lexical source');
+    expect(why).toContain('AI-proposed reading');
   });
 
   it('AI explanation carries rationale, token notes, assumptions, uncertainty and provenance', () => {
@@ -353,7 +358,59 @@ describe('Phase 8A refinement: single source of truth and token editing', () => 
       ],
       { 2: 'z' }
     );
-    expect(out).toEqual({ canonical: 'x y z', unlocated: [] });
+    expect(out.canonical).toBe('x y z');
+    expect(out.unlocated).toEqual([]);
+    expect(out.alignment.status).toBe('ALIGNED');
+  });
+
+  it('fails closed when repetition permits more than one global alignment', () => {
+    const readings = [
+      { tokenIndex: 0, surface: 'الف', canonical: 'x', note: 'n' },
+      { tokenIndex: 1, surface: 'ب', canonical: 'y', note: 'n' }
+    ];
+    const out = applyTokenReadingEdits('x-y-y', readings, { 1: 'z' });
+    expect(out.canonical).toBe('x-y-y');
+    expect(out.unlocated).toEqual([1]);
+    expect(out.alignment.status).toBe('AMBIGUOUS');
+  });
+
+  it('does not align a reading inside a different lexical word', () => {
+    const alignment = alignTokenReadings(
+      'darbār',
+      [{ tokenIndex: 0, surface: 'در', canonical: 'bar', note: 'n' }]
+    );
+    expect(alignment.status).toBe('UNALIGNED');
+  });
+
+  it('aligns joined morphology and izafat without consuming their structural segments', () => {
+    const morphology = applyTokenReadingEdits(
+      'kitāb-am',
+      [{ tokenIndex: 4, surface: 'کتابم', canonical: 'kitāb', note: 'stem' }],
+      { 4: 'daftar' }
+    );
+    expect(morphology).toMatchObject({ canonical: 'daftar-am', unlocated: [], alignment: { status: 'ALIGNED' } });
+
+    const izafat = applyTokenReadingEdits(
+      'ṣadā-yi bārān',
+      [
+        { tokenIndex: 0, surface: 'صدای', canonical: 'ṣadā', note: 'host' },
+        { tokenIndex: 2, surface: 'باران', canonical: 'bārān', note: 'complement' }
+      ],
+      { 2: 'bādhā' }
+    );
+    expect(izafat).toMatchObject({ canonical: 'ṣadā-yi bādhā', unlocated: [], alignment: { status: 'ALIGNED' } });
+  });
+
+  it('aligns through punctuation and capitalization differences', () => {
+    const out = applyTokenReadingEdits(
+      'Ṣadā, Bārān!',
+      [
+        { tokenIndex: 0, surface: 'صدا', canonical: 'ṣadā', note: 'n' },
+        { tokenIndex: 2, surface: 'باران', canonical: 'bārān', note: 'n' }
+      ],
+      { 2: 'Bādhā' }
+    );
+    expect(out).toMatchObject({ canonical: 'Ṣadā, Bādhā!', unlocated: [], alignment: { status: 'ALIGNED' } });
   });
 
   it('unalignable token edits are reported rather than silently dropped', () => {
@@ -363,6 +420,22 @@ describe('Phase 8A refinement: single source of truth and token editing', () => 
       { 0: 'new' }
     );
     expect(out.unlocated).toEqual([0]);
+    expect(out.alignment.status).toBe('UNALIGNED');
+  });
+
+  it('full-phrase review bypasses failed token alignment without losing provenance', () => {
+    const result = transliterate(MULTI, 'ijmes_citation_title');
+    const draft = makeDraft(result, {
+      scholarlyCanonical: 'phrase differs',
+      tokenReadings: [{ tokenIndex: 0, surface: 'واژه', canonical: 'missing', note: 'AI-proposed' }]
+    });
+    let state = tokenEditorReducer(INITIAL_TOKEN_EDITOR_STATE, { type: 'EDIT_TOKEN', tokenIndex: 0, value: 'edited' });
+    expect(computeEditedCanonical(draft, state).unlocated).toEqual([0]);
+    state = tokenEditorReducer(state, { type: 'EDIT_PHRASE', value: 'explicitly reviewed phrase' });
+    const edited = computeEditedCanonical(draft, state);
+    expect(edited).toMatchObject({ canonical: 'explicitly reviewed phrase', unlocated: [], alignment: { status: 'ALIGNED' } });
+    expect(createAcceptedPhraseDecision(draft, result, edited.canonical).acceptance)
+      .toBe('HUMAN_EDITED_AI_SUGGESTION');
   });
 
   it('phrase-level override supersedes token edits; reset keeps editor open; close discards edits', () => {
@@ -376,14 +449,20 @@ describe('Phase 8A refinement: single source of truth and token editing', () => 
     expect(tokenEditorReducer(s, { type: 'CLOSE' })).toEqual(INITIAL_TOKEN_EDITOR_STATE);
   });
 
-  it('copy semantics: draft is provisional; edited acceptance is the only path to verified copy; stale decisions invalidate', () => {
+  it('copy semantics distinguish provisional, human-accepted, scholarly authority, and final export', () => {
     const result = transliterate(MULTI, 'ijmes_citation_title');
     const draft = makeDraft(result);
     const view = resolveUnifiedOutput(result, null, draft);
     expect(view).toMatchObject({ presentation: 'AI_DRAFT', isCopyableDraft: true, isVerifiedCopyable: false });
 
     const decision = createAcceptedPhraseDecision(draft, result, draft.scholarlyCanonical!);
-    expect(resolveUnifiedOutput(result, decision, draft).presentation).toBe('HUMAN_ACCEPTED');
+    expect(resolveUnifiedOutput(result, decision, draft)).toMatchObject({
+      presentation: 'HUMAN_ACCEPTED',
+      isHumanAcceptedCopyable: true,
+      isVerifiedCopyable: false,
+      isScholarlyAuthority: false,
+      isFinalExportEligible: false
+    });
 
     const other = transliterate(SINGLE, 'ijmes_citation_title');
     expect(resolveUnifiedOutput(other, decision, null).presentation).toBe('UNRESOLVED_NO_DRAFT');

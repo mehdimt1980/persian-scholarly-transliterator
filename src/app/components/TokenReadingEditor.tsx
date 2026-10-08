@@ -9,6 +9,8 @@ interface TokenReadingEditorProps {
   editedCanonical: string;
   editedRendered: string;
   unlocatedTokens: number[];
+  alignmentWarning: string | null;
+  canAccept: boolean;
   profileLabel: string;
   error: string | null;
   onEditToken: (tokenIndex: number, value: string) => void;
@@ -28,6 +30,8 @@ export default function TokenReadingEditor({
   editedCanonical,
   editedRendered,
   unlocatedTokens,
+  alignmentWarning,
+  canAccept,
   profileLabel,
   error,
   onEditToken,
@@ -92,16 +96,19 @@ export default function TokenReadingEditor({
           onChange={(event) => onEditPhrase(event.target.value)}
         />
         <span className={styles.meta}>{profileLabel}: <strong>{editedRendered || '—'}</strong></span>
+        {alignmentWarning && (
+          <span className={styles.warn} role="alert">{alignmentWarning}</span>
+        )}
         {unlocatedTokens.length > 0 && (
           <span className={styles.warn}>
-            {unlocatedTokens.length} token edit{unlocatedTokens.length === 1 ? '' : 's'} could not be aligned inside the phrase; edit the full phrase instead.
+            {unlocatedTokens.length} requested token edit{unlocatedTokens.length === 1 ? '' : 's'} remain unapplied; edit the full phrase instead.
           </span>
         )}
         {error && <span className={styles.warn}>{error}</span>}
       </div>
 
       <div className={styles.actions}>
-        <button type="button" className="btn-primary" onClick={onAccept}>Accept edited reading</button>
+        <button type="button" className="btn-primary" onClick={onAccept} disabled={!canAccept}>Accept edited reading</button>
         <button type="button" className="btn-secondary" onClick={onReset}>Reset edits</button>
         <button type="button" className="btn-secondary" onClick={onClose}>Close</button>
       </div>

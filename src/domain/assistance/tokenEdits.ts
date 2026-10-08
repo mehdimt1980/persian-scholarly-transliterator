@@ -13,13 +13,109 @@ import type { PhraseResolution, PhraseTokenReadingProposal } from './phraseTypes
 
 export interface TokenEditResult {
   canonical: string;
-  /** tokenIndexes whose proposed reading could not be located in the phrase canonical. */
+  /** tokenIndexes whose requested edits could not be safely applied. */
   unlocated: number[];
+  alignment: TokenPhraseAlignment;
+}
+
+export type TokenPhraseAlignmentStatus = 'ALIGNED' | 'AMBIGUOUS' | 'UNALIGNED';
+
+export interface TokenPhraseSpan {
+  tokenIndex: number;
+  start: number;
+  end: number;
+}
+
+export interface TokenPhraseAlignment {
+  status: TokenPhraseAlignmentStatus;
+  spans: TokenPhraseSpan[];
+  warning: string | null;
+}
+
+const LEXICAL_CHARACTER = /[\p{L}\p{M}ʾʿ]/u;
+const NON_LEXICAL_GAP = /^[\s\p{P}\p{S}]*$/u;
+const STRUCTURAL_GAP = /^(?:-[\p{L}\p{M}ʾʿ]+)*[\s\p{P}\p{S}]*$/u;
+
+function hasLexicalBoundary(text: string, start: number, end: number): boolean {
+  return (start === 0 || !LEXICAL_CHARACTER.test(text[start - 1])) &&
+    (end === text.length || !LEXICAL_CHARACTER.test(text[end]));
+}
+
+function candidateStarts(phrase: string, canonical: string): number[] {
+  if (!canonical) return [];
+  const phraseFolded = phrase.toLocaleLowerCase('en-US');
+  const canonicalFolded = canonical.toLocaleLowerCase('en-US');
+  const starts: number[] = [];
+  let cursor = 0;
+  while (cursor <= phraseFolded.length - canonicalFolded.length) {
+    const start = phraseFolded.indexOf(canonicalFolded, cursor);
+    if (start < 0) break;
+    const end = start + canonical.length;
+    if (hasLexicalBoundary(phrase, start, end)) starts.push(start);
+    cursor = start + 1;
+  }
+  return starts;
 }
 
 /**
- * Replace each edited token reading inside the phrase canonical, scanning left-to-right
- * in tokenIndex order so repeated readings are aligned positionally, not by first match.
+ * Establish one global, order-preserving alignment. Every lexical part of the phrase
+ * must be accounted for by a reading or by a hyphen-attached suffix/izafat segment.
+ * Multiple valid mappings fail closed instead of selecting the first substring hit.
+ */
+export function alignTokenReadings(
+  phraseCanonical: string,
+  readings: PhraseTokenReadingProposal[]
+): TokenPhraseAlignment {
+  const ordered = [...readings].sort((a, b) => a.tokenIndex - b.tokenIndex);
+  if (ordered.length === 0) {
+    return {
+      status: phraseCanonical.trim() ? 'UNALIGNED' : 'ALIGNED',
+      spans: [],
+      warning: phraseCanonical.trim()
+        ? 'No token readings were supplied for this phrase. Use full-phrase editing.'
+        : null
+    };
+  }
+
+  const candidates = ordered.map((reading) => candidateStarts(phraseCanonical, reading.canonical));
+  const solutions: TokenPhraseSpan[][] = [];
+
+  function visit(readingIndex: number, cursor: number, spans: TokenPhraseSpan[]): void {
+    if (solutions.length > 1) return;
+    if (readingIndex === ordered.length) {
+      if (STRUCTURAL_GAP.test(phraseCanonical.slice(cursor))) solutions.push(spans);
+      return;
+    }
+
+    const reading = ordered[readingIndex];
+    for (const start of candidates[readingIndex]) {
+      if (start < cursor) continue;
+      const gap = phraseCanonical.slice(cursor, start);
+      const gapAllowed = readingIndex === 0 ? NON_LEXICAL_GAP.test(gap) : STRUCTURAL_GAP.test(gap);
+      if (!gapAllowed) continue;
+      const end = start + reading.canonical.length;
+      visit(readingIndex + 1, end, [...spans, { tokenIndex: reading.tokenIndex, start, end }]);
+    }
+  }
+
+  visit(0, 0, []);
+  if (solutions.length === 1) return { status: 'ALIGNED', spans: solutions[0], warning: null };
+  if (solutions.length > 1) {
+    return {
+      status: 'AMBIGUOUS',
+      spans: [],
+      warning: 'Token readings match the phrase in more than one valid way. Use full-phrase editing.'
+    };
+  }
+  return {
+    status: 'UNALIGNED',
+    spans: [],
+    warning: 'Token readings do not align exactly with the phrase canonical. Use full-phrase editing.'
+  };
+}
+
+/**
+ * Replace edited token readings only after a unique global alignment is established.
  */
 export function applyTokenReadingEdits(
   phraseCanonical: string,
@@ -27,25 +123,31 @@ export function applyTokenReadingEdits(
   edits: Record<number, string>
 ): TokenEditResult {
   const ordered = [...readings].sort((a, b) => a.tokenIndex - b.tokenIndex);
+  const alignment = alignTokenReadings(phraseCanonical, ordered);
+  const requested = ordered.filter(
+    (reading) => edits[reading.tokenIndex] !== undefined && edits[reading.tokenIndex] !== reading.canonical
+  );
+  if (alignment.status !== 'ALIGNED') {
+    return {
+      canonical: phraseCanonical,
+      unlocated: requested.map((reading) => reading.tokenIndex),
+      alignment
+    };
+  }
+
   let output = '';
   let cursor = 0;
-  const unlocated: number[] = [];
-
-  for (const reading of ordered) {
-    const at = phraseCanonical.indexOf(reading.canonical, cursor);
-    if (at < 0) {
-      if (edits[reading.tokenIndex] !== undefined && edits[reading.tokenIndex] !== reading.canonical) {
-        unlocated.push(reading.tokenIndex);
-      }
-      continue;
-    }
+  for (let index = 0; index < ordered.length; index += 1) {
+    const reading = ordered[index];
+    const span = alignment.spans[index];
     const edited = edits[reading.tokenIndex];
-    output += phraseCanonical.slice(cursor, at) + (edited !== undefined ? edited : reading.canonical);
-    cursor = at + reading.canonical.length;
+    output += phraseCanonical.slice(cursor, span.start) +
+      (edited !== undefined ? edited : phraseCanonical.slice(span.start, span.end));
+    cursor = span.end;
   }
 
   output += phraseCanonical.slice(cursor);
-  return { canonical: output, unlocated };
+  return { canonical: output, unlocated: [], alignment };
 }
 
 export interface TokenEditorState {
@@ -93,9 +195,21 @@ export function tokenEditorReducer(state: TokenEditorState, action: TokenEditorA
 export function computeEditedCanonical(
   draft: PhraseResolution | null,
   state: TokenEditorState
-): { canonical: string; unlocated: number[] } {
-  if (!draft?.scholarlyCanonical) return { canonical: '', unlocated: [] };
-  if (state.phraseOverride !== null) return { canonical: state.phraseOverride, unlocated: [] };
+): TokenEditResult {
+  if (!draft?.scholarlyCanonical) {
+    return {
+      canonical: '',
+      unlocated: [],
+      alignment: { status: 'UNALIGNED', spans: [], warning: 'No AI draft is available to align.' }
+    };
+  }
+  if (state.phraseOverride !== null) {
+    return {
+      canonical: state.phraseOverride,
+      unlocated: [],
+      alignment: { status: 'ALIGNED', spans: [], warning: null }
+    };
+  }
   return applyTokenReadingEdits(draft.scholarlyCanonical, draft.tokenReadings, state.tokenEdits);
 }
 

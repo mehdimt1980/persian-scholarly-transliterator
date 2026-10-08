@@ -72,6 +72,8 @@ export default function Home() {
     editedCanonical,
     editedRendered,
     unlocatedTokens,
+    alignmentWarning,
+    canAcceptEditedDraft,
     actionError,
     toggleAutoAssist,
     regenerate,
@@ -174,7 +176,7 @@ export default function Home() {
   }
 
   async function copyVerified() {
-    if (!unifiedOutput.isVerifiedCopyable) return;
+    if (!unifiedOutput.isVerifiedCopyable && !unifiedOutput.isHumanAcceptedCopyable) return;
     await navigator.clipboard.writeText(unifiedOutput.primary);
     setVerifiedCopied(true);
     setTimeout(() => setVerifiedCopied(false), 1400);
@@ -347,7 +349,7 @@ export default function Home() {
                 </button>
               )}
 
-              {unifiedOutput.isVerifiedCopyable && (
+              {(unifiedOutput.isVerifiedCopyable || unifiedOutput.isHumanAcceptedCopyable) && (
                 <button type="button" className="btn-primary" onClick={copyVerified}>
                   {verifiedCopied ? 'Copied' : 'Copy'}
                 </button>
@@ -368,6 +370,8 @@ export default function Home() {
               editedCanonical={editedCanonical}
               editedRendered={editedRendered}
               unlocatedTokens={unlocatedTokens}
+              alignmentWarning={alignmentWarning}
+              canAccept={canAcceptEditedDraft}
               profileLabel={profile === 'ijmes_citation_title' ? 'Citation-title rendering' : 'Profile rendering'}
               error={actionError}
               onEditToken={editToken}

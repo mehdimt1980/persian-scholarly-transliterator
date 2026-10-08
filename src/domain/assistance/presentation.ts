@@ -46,8 +46,17 @@ export interface UnifiedOutputViewModel {
   /** True if the user can copy the provisional draft */
   isCopyableDraft: boolean;
 
-  /** True if the output is verified/reviewed and copyable as scholarly authority */
+  /** True only if independently verified output is copyable as scholarly authority. */
   isVerifiedCopyable: boolean;
+
+  /** True after an explicit human acceptance; this preserves acceptance provenance without implying authority. */
+  isHumanAcceptedCopyable: boolean;
+
+  /** True only for independently reviewed/deterministically authoritative output. */
+  isScholarlyAuthority: boolean;
+
+  /** True only when the output is eligible for final/verified export. */
+  isFinalExportEligible: boolean;
 
   /** Active applicable human phrase decision, if any */
   activePhraseDecision: AcceptedPhraseDecision | null;
@@ -88,13 +97,16 @@ export function resolveUnifiedOutput(
         profileRendering: acceptedPhraseDecision.renderedOutput,
         isDraft: false,
         isCopyableDraft: false,
-        isVerifiedCopyable: true,
+        isVerifiedCopyable: false,
+        isHumanAcceptedCopyable: true,
+        isScholarlyAuthority: false,
+        isFinalExportEligible: false,
         activePhraseDecision: acceptedPhraseDecision,
         activeAiDraft: null,
         status: 'USER_OVERRIDE',
         badgeLabel: 'Human Accepted',
         badgeTone: 'override',
-        noticeText: 'Context-aware phrase proposal accepted by human reviewer.'
+        noticeText: 'Human-accepted AI-assisted reading · copyable with acceptance provenance, but not independently verified scholarly authority.'
       };
     }
   }
@@ -111,6 +123,9 @@ export function resolveUnifiedOutput(
       isDraft: false,
       isCopyableDraft: false,
       isVerifiedCopyable: true,
+      isHumanAcceptedCopyable: false,
+      isScholarlyAuthority: true,
+      isFinalExportEligible: true,
       activePhraseDecision: null,
       activeAiDraft: null,
       status: result.status,
@@ -141,6 +156,9 @@ export function resolveUnifiedOutput(
           isDraft: true,
           isCopyableDraft: true,
           isVerifiedCopyable: false,
+          isHumanAcceptedCopyable: false,
+          isScholarlyAuthority: false,
+          isFinalExportEligible: false,
           activePhraseDecision: null,
           activeAiDraft: aiDraft,
           status: result.status,
@@ -159,6 +177,9 @@ export function resolveUnifiedOutput(
           isDraft: true,
           isCopyableDraft: true,
           isVerifiedCopyable: false,
+          isHumanAcceptedCopyable: false,
+          isScholarlyAuthority: false,
+          isFinalExportEligible: false,
           activePhraseDecision: null,
           activeAiDraft: aiDraft,
           status: result.status,
@@ -188,6 +209,9 @@ export function resolveUnifiedOutput(
     isDraft: false,
     isCopyableDraft: false,
     isVerifiedCopyable: false,
+    isHumanAcceptedCopyable: false,
+    isScholarlyAuthority: false,
+    isFinalExportEligible: false,
     activePhraseDecision: null,
     activeAiDraft: null,
     status: result.status,

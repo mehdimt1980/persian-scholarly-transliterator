@@ -52,6 +52,8 @@ export interface UseUnifiedTransliterationReturn {
   editedCanonical: string;
   editedRendered: string;
   unlocatedTokens: number[];
+  alignmentWarning: string | null;
+  canAcceptEditedDraft: boolean;
   actionError: string | null;
 
   toggleAutoAssist: () => void;
@@ -207,6 +209,8 @@ export function useUnifiedTransliteration({
     editedCanonical: edited.canonical,
     editedRendered,
     unlocatedTokens: edited.unlocated,
+    alignmentWarning: edited.alignment.warning,
+    canAcceptEditedDraft: edited.unlocated.length === 0,
     actionError,
 
     toggleAutoAssist: () => controller.setAutoEnabled(!snapshot.autoEnabled),
@@ -217,7 +221,13 @@ export function useUnifiedTransliteration({
     editPhrase: (value) => dispatch({ type: 'EDIT_PHRASE', value }),
     resetEdits: () => dispatch({ type: 'RESET' }),
     acceptCurrentDraft: () => aiDraft?.scholarlyCanonical && accept(aiDraft.scholarlyCanonical),
-    acceptEditedDraft: () => accept(edited.canonical),
+    acceptEditedDraft: () => {
+      if (edited.unlocated.length > 0) {
+        setActionError('Requested token edits remain unapplied. Review and edit the full phrase before accepting.');
+        return;
+      }
+      accept(edited.canonical);
+    },
     rejectCurrentDraft: () => {
       controller.reject();
       dispatch({ type: 'CLOSE' });
