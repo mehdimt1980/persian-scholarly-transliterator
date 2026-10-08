@@ -1,27 +1,31 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState, useSyncExternalStore } from 'react';
 import { transliterate } from '../../domain/engine';
-import { renderCanonicalForProfile } from '../../domain/profiles';
 import {
   AcceptedPhraseDecision,
+  AiExplanation,
+  INITIAL_TOKEN_EDITOR_STATE,
   PhraseResolution,
   UnifiedOutputViewModel,
+  buildAiExplanation,
   buildPhraseResolverRequest,
   checkAcceptedPhraseApplicability,
+  computeEditedCanonical,
   computePhraseRequestFingerprint,
   createAcceptedPhraseDecision,
-  resolveUnifiedOutput
+  resolveUnifiedOutput,
+  tokenEditorReducer
 } from '../../domain/assistance';
+import { renderCanonicalForProfile } from '../../domain/profiles';
 import type { ProfileId, ReviewDecision, TransliterationResult } from '../../domain/types';
+import {
+  DraftStatus,
+  PhraseDraftController,
+  deriveDraftView
+} from '../../client/assistance/phraseDraftController';
 
-export type PhraseAssistStatus =
-  | 'idle'
-  | 'loading'
-  | 'available'
-  | 'error'
-  | 'unavailable'
-  | 'rejected';
+export type PhraseAssistStatus = DraftStatus;
 
 export interface UseUnifiedTransliterationProps {
   input: string;
@@ -36,29 +40,31 @@ export interface UseUnifiedTransliterationReturn {
   result: TransliterationResult;
   unifiedOutput: UnifiedOutputViewModel;
   assistStatus: PhraseAssistStatus;
+  /** True while a request for the current input is running (initial or regenerate). */
+  requestInFlight: boolean;
   assistError: string | null;
   isAiConfigured: boolean | null;
   autoAssistEnabled: boolean;
-  isExpanded: boolean;
-  editing: boolean;
-  canonicalDraft: string;
-  renderedDraft: string;
   aiDraft: PhraseResolution | null;
-  requestKey: string;
-  requestFingerprint: string;
+  explanation: AiExplanation | null;
+  editorOpen: boolean;
+  tokenEdits: Record<number, string>;
+  editedCanonical: string;
+  editedRendered: string;
+  unlocatedTokens: number[];
+  actionError: string | null;
 
-  // Actions
-  setAutoAssistEnabled: (enabled: boolean) => void;
   toggleAutoAssist: () => void;
-  setIsExpanded: (expanded: boolean) => void;
-  toggleExpanded: () => void;
-  setCanonicalDraft: (draft: string) => void;
-  setRenderedDraft: (draft: string) => void;
-  toggleEditing: () => void;
-  requestAssistance: () => Promise<void>;
+  regenerate: () => void;
+  openEditor: () => void;
+  closeEditor: () => void;
+  editToken: (tokenIndex: number, value: string) => void;
+  editPhrase: (value: string) => void;
+  resetEdits: () => void;
   acceptCurrentDraft: () => void;
-  acceptCustomDraft: (canonical: string, rendered?: string) => void;
+  acceptEditedDraft: () => void;
   rejectCurrentDraft: () => void;
+  revokeAccepted: () => void;
 }
 
 const DEFAULT_DEBOUNCE_MS = 900;
@@ -71,62 +77,61 @@ export function useUnifiedTransliteration({
   onAcceptedDecision,
   debounceMs = DEFAULT_DEBOUNCE_MS
 }: UseUnifiedTransliterationProps): UseUnifiedTransliterationReturn {
-  const [configured, setConfigured] = useState<boolean | null>(null);
-  const [autoAssistEnabled, setAutoAssistEnabled] = useState<boolean>(true);
-  const [assistStatus, setAssistStatus] = useState<PhraseAssistStatus>('idle');
-  const [aiDraft, setAiDraft] = useState<PhraseResolution | null>(null);
-  const [assistError, setAssistError] = useState<string | null>(null);
-  const [isExpanded, setIsExpanded] = useState<boolean>(false);
-  const [editing, setEditing] = useState<boolean>(false);
-  const [canonicalDraft, setCanonicalDraft] = useState<string>('');
-  const [renderedDraft, setRenderedDraft] = useState<string>('');
+  const controllerRef = useRef<PhraseDraftController | null>(null);
+  if (controllerRef.current === null) {
+    controllerRef.current = new PhraseDraftController({
+      debounceMs,
+      fetchImpl: (url, init) => fetch(url, init)
+    });
+  }
+  const controller = controllerRef.current;
 
-  // Resolution cache by requestFingerprint to prevent duplicate network calls
-  const resolutionCacheRef = useRef<Map<string, PhraseResolution>>(new Map());
-  const requestSequenceRef = useRef<number>(0);
-  const inFlightAbortRef = useRef<AbortController | null>(null);
+  const snapshot = useSyncExternalStore(controller.subscribe, controller.getSnapshot, controller.getSnapshot);
+  const view = useMemo(() => deriveDraftView(snapshot), [snapshot]);
 
-  // Deterministic transliteration evaluation
+  const [editor, dispatch] = useReducer(tokenEditorReducer, INITIAL_TOKEN_EDITOR_STATE);
+  const [actionError, setActionError] = useState<string | null>(null);
+
   const result = useMemo(
     () => transliterate(input, profile, reviewDecisions),
     [input, profile, reviewDecisions]
   );
 
-  const eligibleForAssistance = useMemo(() => {
-    if (result.copyable) return false;
-    const hasPersianWord = result.tokens.some((token) => token.tokenType === 'persian-word');
-    return hasPersianWord && result.reviewIssues.length > 0;
-  }, [result.copyable, result.tokens, result.reviewIssues.length]);
-
-  const requestKey = useMemo(
-    () => [
-      result.normalizedInput,
-      result.profile,
-      result.status,
-      result.reviewIssues.map((issue) => issue.id).sort().join(','),
-      reviewDecisions.map((decision) => [
-        decision.issueId,
-        decision.action,
-        decision.selectedAlternativeId ?? '',
-        decision.manualCanonicalTransliteration ?? '',
-        decision.note ?? ''
-      ].join(':')).sort().join(',')
-    ].join('::'),
-    [result.normalizedInput, result.profile, result.status, result.reviewIssues, reviewDecisions]
+  const eligible = useMemo(
+    () =>
+      !result.copyable &&
+      result.reviewIssues.length > 0 &&
+      result.tokens.some((token) => token.tokenType === 'persian-word'),
+    [result]
   );
 
-  const requestFingerprint = useMemo(() => {
-    const resolverReq = buildPhraseResolverRequest(result);
-    return computePhraseRequestFingerprint(resolverReq, 'openai', 'default');
-  }, [result]);
-
-  // Unified Output View Model calculation (pure precedence)
-  const unifiedOutput = useMemo(
-    () => resolveUnifiedOutput(result, acceptedPhraseDecision, aiDraft),
-    [result, acceptedPhraseDecision, aiDraft]
+  // Client-side dedupe/cache identity. Distinct from the server's acceptance fingerprint.
+  const cacheId = useMemo(
+    () => computePhraseRequestFingerprint(buildPhraseResolverRequest(result), 'client-draft-cache', 'v1'),
+    [result]
   );
 
-  // Check configuration status on mount
+  const payload = useMemo(
+    () => ({
+      input: result.originalInput,
+      profile: result.profile,
+      reviewDecisions: reviewDecisions.map((d) => ({
+        issueId: d.issueId,
+        action: d.action,
+        selectedAlternativeId: d.selectedAlternativeId,
+        manualCanonicalTransliteration: d.manualCanonicalTransliteration,
+        note: d.note
+      }))
+    }),
+    [result.originalInput, result.profile, reviewDecisions]
+  );
+
+  // Feed context to the controller.
+  useEffect(() => {
+    controller.setContext({ cacheId, eligible, payload });
+  }, [controller, cacheId, eligible, payload]);
+
+  // Configuration status.
   useEffect(() => {
     let cancelled = false;
     fetch('/api/assist/status')
@@ -135,272 +140,89 @@ export function useUnifiedTransliteration({
         return response.json();
       })
       .then((data) => {
-        if (!cancelled) setConfigured(Boolean(data.configured));
+        if (!cancelled) controller.setConfigured(Boolean(data.configured));
       })
       .catch(() => {
-        if (!cancelled) setConfigured(false);
+        if (!cancelled) controller.setConfigured(false);
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [controller]);
 
-  // Sync draft strings when active AI draft changes
+  useEffect(() => () => controller.destroy(), [controller]);
+
+  // Close the editor whenever the identity changes.
   useEffect(() => {
-    if (aiDraft?.scholarlyCanonical) {
-      setCanonicalDraft(aiDraft.scholarlyCanonical);
-      setRenderedDraft(aiDraft.renderedOutput ?? '');
-    }
-  }, [aiDraft]);
+    dispatch({ type: 'CLOSE' });
+  }, [cacheId]);
 
-  // Handle input / key changes: check cache, reset stale drafts, invalidate stale accepted decisions
+  // Stale accepted-decision invalidation (existing fingerprint rules).
   useEffect(() => {
-    // Invalidate stale accepted decisions if applicable
-    if (acceptedPhraseDecision) {
-      const { applicable } = checkAcceptedPhraseApplicability(acceptedPhraseDecision, result);
-      if (!applicable) {
-        onAcceptedDecision(null);
-      }
+    if (acceptedPhraseDecision && !checkAcceptedPhraseApplicability(acceptedPhraseDecision, result).applicable) {
+      onAcceptedDecision(null);
     }
+  }, [acceptedPhraseDecision, result, onAcceptedDecision]);
 
-    // Check if we already have a cached resolution for this exact fingerprint
-    const cached = resolutionCacheRef.current.get(requestFingerprint);
-    if (cached) {
-      setAiDraft(cached);
-      setAssistStatus('available');
-      setAssistError(null);
-      setCanonicalDraft(cached.scholarlyCanonical ?? '');
-      setRenderedDraft(cached.renderedOutput ?? '');
-      return;
-    }
+  const aiDraft = view.draft;
+  const unifiedOutput = useMemo(
+    () => resolveUnifiedOutput(result, acceptedPhraseDecision, aiDraft),
+    [result, acceptedPhraseDecision, aiDraft]
+  );
+  const explanation = useMemo(() => buildAiExplanation(result, aiDraft), [result, aiDraft]);
 
-    // Clear previous un-cached draft on input change
-    setAiDraft(null);
-    setCanonicalDraft('');
-    setRenderedDraft('');
-    setEditing(false);
-    setAssistError(null);
-    setAssistStatus('idle');
-  }, [requestKey, requestFingerprint]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Execute actual assist fetch
-  const executeFetch = useCallback(
-    async (manual: boolean = false) => {
-      if (!eligibleForAssistance) return;
-
-      // Abort previous in-flight request if still running
-      if (inFlightAbortRef.current) {
-        inFlightAbortRef.current.abort();
-        inFlightAbortRef.current = null;
-      }
-
-      const controller = new AbortController();
-      inFlightAbortRef.current = controller;
-      const currentSequence = ++requestSequenceRef.current;
-
-      setAssistStatus('loading');
-      setAssistError(null);
-      if (manual) {
-        setIsExpanded(true);
-      }
-
-      try {
-        const response = await fetch('/api/assist/phrase', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            input: result.originalInput,
-            profile: result.profile,
-            reviewDecisions: reviewDecisions.map((d) => ({
-              issueId: d.issueId,
-              action: d.action,
-              selectedAlternativeId: d.selectedAlternativeId,
-              manualCanonicalTransliteration: d.manualCanonicalTransliteration,
-              note: d.note
-            }))
-          }),
-          signal: controller.signal
-        });
-
-        if (currentSequence !== requestSequenceRef.current) {
-          // Out of order response; discard
-          return;
-        }
-
-        const data = await response.json();
-        if (!response.ok) {
-          if (response.status === 503) {
-            setConfigured(false);
-            setAssistStatus('unavailable');
-          } else if (response.status === 409) {
-            setAssistStatus('idle');
-          } else {
-            setAssistStatus('error');
-          }
-          setAssistError(data.message || data.error || 'Phrase assistance request failed.');
-          return;
-        }
-
-        const resolution = data.resolution as PhraseResolution;
-        // Store in fingerprint cache
-        if (resolution.requestFingerprint) {
-          resolutionCacheRef.current.set(resolution.requestFingerprint, resolution);
-        }
-
-        setAiDraft(resolution);
-        setCanonicalDraft(resolution.scholarlyCanonical ?? '');
-        setRenderedDraft(resolution.renderedOutput ?? '');
-        setAssistStatus('available');
-      } catch (err: unknown) {
-        if (err instanceof Error && err.name === 'AbortError') {
-          return;
-        }
-        if (currentSequence === requestSequenceRef.current) {
-          setAssistStatus('error');
-          setAssistError(err instanceof Error ? err.message : 'Network error during phrase resolution.');
-        }
-      } finally {
-        if (inFlightAbortRef.current === controller) {
-          inFlightAbortRef.current = null;
-        }
-      }
-    },
-    [eligibleForAssistance, result.originalInput, result.profile, reviewDecisions]
+  const edited = useMemo(() => computeEditedCanonical(aiDraft, editor), [aiDraft, editor]);
+  const editedRendered = useMemo(
+    () => (edited.canonical.trim() ? renderCanonicalForProfile(edited.canonical, profile) : ''),
+    [edited.canonical, profile]
   );
 
-  // Automatic debounced invocation (~900ms)
-  useEffect(() => {
-    if (!autoAssistEnabled) return;
-    if (configured === false) return;
-    if (!eligibleForAssistance) return;
-    if (assistStatus === 'rejected') return;
-
-    // If already cached or active, do nothing
-    if (aiDraft && aiDraft.requestFingerprint === requestFingerprint) return;
-
-    const timer = setTimeout(() => {
-      executeFetch(false);
-    }, debounceMs);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [
-    autoAssistEnabled,
-    configured,
-    eligibleForAssistance,
-    assistStatus,
-    requestKey,
-    requestFingerprint,
-    debounceMs,
-    executeFetch,
-    aiDraft
-  ]);
-
-  // Clean up in-flight abort controller on unmount
-  useEffect(() => {
-    return () => {
-      if (inFlightAbortRef.current) {
-        inFlightAbortRef.current.abort();
-      }
-    };
-  }, []);
-
-  const requestAssistance = useCallback(async () => {
-    await executeFetch(true);
-  }, [executeFetch]);
-
-  const acceptCurrentDraft = useCallback(() => {
-    if (!aiDraft || !aiDraft.scholarlyCanonical) return;
-    try {
-      const decision = createAcceptedPhraseDecision(
-        aiDraft,
-        result,
-        canonicalDraft || aiDraft.scholarlyCanonical,
-        renderedDraft || aiDraft.renderedOutput || undefined
-      );
-      onAcceptedDecision(decision);
-      setEditing(false);
-      setAssistError(null);
-    } catch (err) {
-      setAssistError(err instanceof Error ? err.message : 'Unable to accept this phrase resolution.');
-    }
-  }, [aiDraft, result, canonicalDraft, renderedDraft, onAcceptedDecision]);
-
-  const acceptCustomDraft = useCallback(
-    (canonical: string, rendered?: string) => {
+  const accept = useCallback(
+    (canonical: string) => {
       if (!aiDraft) return;
       try {
-        const decision = createAcceptedPhraseDecision(
-          aiDraft,
-          result,
-          canonical,
-          rendered
-        );
+        const decision = createAcceptedPhraseDecision(aiDraft, result, canonical);
         onAcceptedDecision(decision);
-        setEditing(false);
-        setAssistError(null);
+        dispatch({ type: 'CLOSE' });
+        setActionError(null);
       } catch (err) {
-        setAssistError(err instanceof Error ? err.message : 'Unable to accept this phrase resolution.');
+        setActionError(err instanceof Error ? err.message : 'Unable to accept this phrase resolution.');
       }
     },
-    [aiDraft, result, onAcceptedDecision]
+    [aiDraft, result, onAcceptedDecision, setActionError]
   );
-
-  const rejectCurrentDraft = useCallback(() => {
-    setAiDraft(null);
-    setCanonicalDraft('');
-    setRenderedDraft('');
-    setEditing(false);
-    setAssistError(null);
-    setAssistStatus('rejected');
-    setIsExpanded(false);
-    onAcceptedDecision(null);
-  }, [onAcceptedDecision]);
-
-  const toggleEditing = useCallback(() => {
-    if (editing) {
-      setCanonicalDraft(aiDraft?.scholarlyCanonical ?? '');
-      setRenderedDraft(aiDraft?.renderedOutput ?? '');
-      setEditing(false);
-      return;
-    }
-    setEditing(true);
-  }, [editing, aiDraft]);
-
-  const toggleAutoAssist = useCallback(() => {
-    setAutoAssistEnabled((prev) => !prev);
-  }, []);
-
-  const toggleExpanded = useCallback(() => {
-    setIsExpanded((prev) => !prev);
-  }, []);
 
   return {
     result,
     unifiedOutput,
-    assistStatus,
-    assistError,
-    isAiConfigured: configured,
-    autoAssistEnabled,
-    isExpanded,
-    editing,
-    canonicalDraft,
-    renderedDraft,
+    assistStatus: view.status,
+    requestInFlight: view.requestInFlight,
+    assistError: view.error,
+    isAiConfigured: snapshot.configured,
+    autoAssistEnabled: snapshot.autoEnabled,
     aiDraft,
-    requestKey,
-    requestFingerprint,
+    explanation,
+    editorOpen: editor.open,
+    tokenEdits: editor.tokenEdits,
+    editedCanonical: edited.canonical,
+    editedRendered,
+    unlocatedTokens: edited.unlocated,
+    actionError,
 
-    setAutoAssistEnabled,
-    toggleAutoAssist,
-    setIsExpanded,
-    toggleExpanded,
-    setCanonicalDraft,
-    setRenderedDraft,
-    toggleEditing,
-    requestAssistance,
-    acceptCurrentDraft,
-    acceptCustomDraft,
-    rejectCurrentDraft
+    toggleAutoAssist: () => controller.setAutoEnabled(!snapshot.autoEnabled),
+    regenerate: () => controller.regenerate(),
+    openEditor: () => dispatch({ type: 'OPEN' }),
+    closeEditor: () => dispatch({ type: 'CLOSE' }),
+    editToken: (tokenIndex, value) => dispatch({ type: 'EDIT_TOKEN', tokenIndex, value }),
+    editPhrase: (value) => dispatch({ type: 'EDIT_PHRASE', value }),
+    resetEdits: () => dispatch({ type: 'RESET' }),
+    acceptCurrentDraft: () => aiDraft?.scholarlyCanonical && accept(aiDraft.scholarlyCanonical),
+    acceptEditedDraft: () => accept(edited.canonical),
+    rejectCurrentDraft: () => {
+      controller.reject();
+      dispatch({ type: 'CLOSE' });
+      setActionError(null);
+    },
+    revokeAccepted: () => onAcceptedDecision(null)
   };
 }

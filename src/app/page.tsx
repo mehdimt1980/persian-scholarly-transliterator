@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import PhraseAssistantPanel from './components/PhraseAssistantPanel';
+import TokenReadingEditor from './components/TokenReadingEditor';
 import StatusBadge from './components/StatusBadge';
 import WhyThisReading from './components/WhyThisReading';
 import ReviewQueue from './components/ReviewQueue';
@@ -61,24 +61,32 @@ export default function Home() {
   const {
     result,
     unifiedOutput,
-    assistStatus: phraseAssistStatus,
+    requestInFlight,
     assistError: phraseAssistError,
     isAiConfigured,
     autoAssistEnabled,
-    isExpanded: isPhraseExpanded,
-    editing: isPhraseEditing,
-    canonicalDraft,
-    renderedDraft,
     aiDraft,
+    explanation,
+    editorOpen,
+    tokenEdits,
+    editedCanonical,
+    editedRendered,
+    unlocatedTokens,
+    actionError,
     toggleAutoAssist,
-    setIsExpanded: setIsPhraseExpanded,
-    setCanonicalDraft,
-    setRenderedDraft,
-    toggleEditing: togglePhraseEditing,
-    requestAssistance: requestPhraseAssistance,
+    regenerate,
+    openEditor,
+    closeEditor,
+    editToken,
+    editPhrase,
+    resetEdits,
     acceptCurrentDraft,
-    rejectCurrentDraft
+    acceptEditedDraft,
+    rejectCurrentDraft,
+    revokeAccepted
   } = translitState;
+  const draftPresent = Boolean(aiDraft);
+  const canRegenerate = isAiConfigured === true && !result.copyable && result.reviewIssues.length > 0;
 
   function setInput(newInput: string) {
     updateTransliteration({ input: newInput });
@@ -235,11 +243,6 @@ export default function Home() {
           <div className="panel-card-header">
             <span className="panel-label">Transliteration</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              {phraseAssistStatus === 'loading' && (
-                <span style={{ fontSize: '0.75rem', color: '#6366f1', fontStyle: 'italic' }}>
-                  Analyzing phrase…
-                </span>
-              )}
               <StatusBadge
                 status={unifiedOutput.status}
                 label={unifiedOutput.badgeLabel}
@@ -272,6 +275,26 @@ export default function Home() {
             </p>
           )}
 
+          {/* Request lifecycle line: never claims 'analyzing' when a current draft exists */}
+          {requestInFlight && (
+            <p className="panel-hint" role="status" style={{ color: '#6366f1', fontStyle: 'italic' }}>
+              {draftPresent ? 'Regenerating suggestion… current draft shown below remains available.' : 'Analyzing phrase…'}
+            </p>
+          )}
+          {!requestInFlight && phraseAssistError && !draftPresent && (
+            <p className="review-warning-note" role="alert">
+              AI draft unavailable: {phraseAssistError} The deterministic analysis below remains fully usable.
+            </p>
+          )}
+          {!draftPresent && !requestInFlight && isAiConfigured === false && !result.copyable && result.reviewIssues.length > 0 && (
+            <p className="panel-hint">
+              AI draft unavailable: assistance is not configured (OpenAI credentials not set).
+            </p>
+          )}
+          {actionError && (
+            <p className="review-warning-note" role="alert">{actionError}</p>
+          )}
+
           <div className="output-footer">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
               <span className="profile-tag">
@@ -294,87 +317,71 @@ export default function Home() {
               </button>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              {/* Draft actions */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               {unifiedOutput.isDraft && (
                 <>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={() => setIsPhraseExpanded(true)}
-                  >
-                    Review &amp; Edit
+                  <button type="button" className="btn-secondary" onClick={editorOpen ? closeEditor : openEditor} aria-expanded={editorOpen} aria-controls="token-reading-editor">
+                    {editorOpen ? 'Close editor' : 'Review & Edit'}
                   </button>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={acceptCurrentDraft}
-                  >
+                  <button type="button" className="btn-secondary" onClick={acceptCurrentDraft}>
                     Accept Draft
                   </button>
-                  <button
-                    type="button"
-                    className="btn-primary"
-                    onClick={copyDraft}
-                  >
+                  <button type="button" className="btn-secondary" onClick={rejectCurrentDraft}>
+                    Dismiss
+                  </button>
+                  <button type="button" className="btn-primary" onClick={copyDraft}>
                     {draftCopied ? 'Draft Copied' : 'Copy Draft'}
                   </button>
                 </>
               )}
 
-              {/* Verified copy action */}
+              {canRegenerate && (
+                <button type="button" className="btn-secondary" onClick={regenerate} disabled={requestInFlight}>
+                  Regenerate suggestion
+                </button>
+              )}
+
+              {unifiedOutput.presentation === 'HUMAN_ACCEPTED' && (
+                <button type="button" className="btn-secondary" onClick={revokeAccepted}>
+                  Revoke acceptance
+                </button>
+              )}
+
               {unifiedOutput.isVerifiedCopyable && (
-                <button
-                  type="button"
-                  className="btn-primary"
-                  onClick={copyVerified}
-                >
+                <button type="button" className="btn-primary" onClick={copyVerified}>
                   {verifiedCopied ? 'Copied' : 'Copy'}
                 </button>
               )}
 
-              {/* Unresolved / no draft action */}
               {unifiedOutput.presentation === 'UNRESOLVED_NO_DRAFT' && (
-                <button
-                  type="button"
-                  className="btn-primary"
-                  disabled
-                >
-                  {phraseAssistStatus === 'loading' ? 'Generating draft…' : 'Review needed'}
+                <button type="button" className="btn-primary" disabled>
+                  {requestInFlight ? 'Generating draft…' : 'Review needed'}
                 </button>
               )}
             </div>
           </div>
+
+          {editorOpen && explanation && unifiedOutput.isDraft && (
+            <TokenReadingEditor
+              explanation={explanation}
+              tokenEdits={tokenEdits}
+              editedCanonical={editedCanonical}
+              editedRendered={editedRendered}
+              unlocatedTokens={unlocatedTokens}
+              profileLabel={profile === 'ijmes_citation_title' ? 'Citation-title rendering' : 'Profile rendering'}
+              error={actionError}
+              onEditToken={editToken}
+              onEditPhrase={editPhrase}
+              onReset={resetEdits}
+              onAccept={acceptEditedDraft}
+              onClose={closeEditor}
+            />
+          )}
         </div>
       </section>
 
-      {/* Why this reading progressive disclosure */}
-      <WhyThisReading result={result} />
-
-      {/* Phrase Assistant Panel (Detailed breakdown, rationale, and editing) */}
-      {(!result.copyable || unifiedOutput.activePhraseDecision || isPhraseExpanded) && (
-        <PhraseAssistantPanel
-          result={result}
-          reviewDecisions={decisions}
-          acceptedDecision={acceptedPhraseDecision}
-          onAcceptedDecision={setAcceptedPhraseDecision}
-          sharedStatus={phraseAssistStatus}
-          sharedResolution={aiDraft}
-          sharedError={phraseAssistError}
-          sharedIsConfigured={isAiConfigured}
-          sharedIsExpanded={isPhraseExpanded}
-          sharedEditing={isPhraseEditing}
-          sharedCanonicalDraft={canonicalDraft}
-          sharedRenderedDraft={renderedDraft}
-          onRequestAssistance={requestPhraseAssistance}
-          onAcceptCurrentDraft={acceptCurrentDraft}
-          onRejectCurrentDraft={rejectCurrentDraft}
-          onToggleEditing={togglePhraseEditing}
-          onSetCanonicalDraft={setCanonicalDraft}
-          onSetRenderedDraft={setRenderedDraft}
-          onSetExpanded={setIsPhraseExpanded}
-        />
-      )}
+      {/* Why this reading? (single home for AI rationale, token explanations, uncertainty, provenance) */}
+      <WhyThisReading result={result} explanation={explanation} />
 
       {/* Human Review Queue */}
       <ReviewQueue

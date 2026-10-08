@@ -1,12 +1,15 @@
 import React from 'react';
 import type { TransliterationResult } from '../../domain/types';
+import type { AiExplanation } from '../../domain/assistance';
 import ScholarlyProvenance from './ScholarlyProvenance';
 
 interface WhyThisReadingProps {
   result: TransliterationResult;
+  /** Optional AI draft explanation; rendered only here (single source for rationale). */
+  explanation?: AiExplanation | null;
 }
 
-export default function WhyThisReading({ result }: WhyThisReadingProps) {
+export default function WhyThisReading({ result, explanation = null }: WhyThisReadingProps) {
   const issueCount = result.reviewIssues.length;
   const appliedCount = result.appliedDecisions.length;
   const profileName =
@@ -20,6 +23,7 @@ export default function WhyThisReading({ result }: WhyThisReadingProps) {
         <summary className="why-summary">
           <span className="why-title">Why this reading?</span>
           <span className="why-hint">
+            {explanation ? 'AI draft explanation · ' : ''}
             {issueCount === 0 ? 'Deterministic rules applied' : `${issueCount} item${issueCount === 1 ? '' : 's'} need review`}
           </span>
         </summary>
@@ -52,6 +56,51 @@ export default function WhyThisReading({ result }: WhyThisReadingProps) {
               emptyNotice="No external authority evidence is attached to this transliteration."
             />
           </div>
+
+          {explanation && (
+            <div className="why-section" id="ai-draft-explanation">
+              <h4 className="why-section-heading">AI draft explanation (provisional, not authority)</h4>
+              <p className="why-section-text">{explanation.rationale}</p>
+              <p className="why-section-text">
+                Basis: {explanation.basis}
+                {explanation.disposition === 'REVIEW_REQUIRED' ? ' · model flagged uncertainty — review required' : ''}
+              </p>
+              {explanation.tokens.length > 0 && (
+                <ul className="why-section-text">
+                  {explanation.tokens.map((row) => (
+                    <li key={row.tokenIndex}>
+                      <bdi dir="rtl">{row.surface}</bdi> → <strong>{row.proposedReading}</strong>
+                      {row.locked ? ' (deterministic reading)' : ' (AI-proposed)'}
+                      {row.lexicalSources.length > 0 ? ` · sources: ${row.lexicalSources.join(', ')}` : ''}
+                      {row.note ? ` — ${row.note}` : ''}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {explanation.assumptions.length > 0 && (
+                <>
+                  <p className="why-section-text"><strong>Assumptions</strong></p>
+                  <ul className="why-section-text">
+                    {explanation.assumptions.map((a) => <li key={a}>{a}</li>)}
+                  </ul>
+                </>
+              )}
+              {explanation.warnings.length > 0 && (
+                <>
+                  <p className="why-section-text"><strong>Uncertainty</strong></p>
+                  <ul className="why-section-text">
+                    {explanation.warnings.map((w) => <li key={w}>{w}</li>)}
+                  </ul>
+                </>
+              )}
+              <p className="why-section-text">
+                Provenance: {explanation.provenance.provider} · {explanation.provenance.model} · prompt {explanation.provenance.promptVersion}
+                {explanation.provenance.modelEstimate !== null
+                  ? ` · model estimate ${Math.round(explanation.provenance.modelEstimate * 100)}% (uncalibrated, not a validated accuracy score)`
+                  : ''}
+              </p>
+            </div>
+          )}
 
           <details className="technical-details-disclosure">
             <summary className="technical-summary">Technical details</summary>
