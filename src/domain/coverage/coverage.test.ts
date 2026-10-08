@@ -717,8 +717,16 @@ describe('Phase 7F: Real Scholarly Persian Coverage Corpus & Evaluation', () => 
     });
 
     it('fails closed when Kaikki diagnostic dataset is missing in full evaluation mode', async () => {
+      const validDummyPack = path.resolve(
+        process.cwd(),
+        'src',
+        'data',
+        'generated',
+        'kaikki-fallback.v1.json'
+      );
       await expect(
         runCoverageEvaluation({
+          phase7EPackPath: validDummyPack,
           kaikkiJsonlPath: 'non-existent/kaikki.jsonl'
         })
       ).rejects.toThrow('[FAIL CLOSED] Kaikki diagnostic source dataset missing');
