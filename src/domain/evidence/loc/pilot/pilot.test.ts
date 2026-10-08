@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { selectLocPilotTitles } from './pilotSelection';
 import {
@@ -11,24 +12,31 @@ import {
 import type { MarcRecord } from '../types';
 import type { LocClient } from '../client';
 
+const SYNTHETIC_PACK_PATH = path.resolve(
+  __dirname,
+  '..',
+  'fixtures',
+  'syntheticPhase7EPack.json'
+);
+
 describe('Phase 7G Track B: Library of Congress Evidence Feasibility Pilot', () => {
   describe('1. Deterministic Pilot Selection & Holdout Isolation', () => {
     it('selects exactly 100 DIAGNOSTIC cases with unresolved lexical misses', () => {
-      const selected = selectLocPilotTitles();
+      const selected = selectLocPilotTitles(undefined, SYNTHETIC_PACK_PATH);
       expect(selected.length).toBe(100);
       expect(selected[0].rank).toBe(1);
       expect(selected[99].rank).toBe(100);
     }, 15000);
 
     it('produces deterministic output across multiple selection calls', () => {
-      const run1 = selectLocPilotTitles();
-      const run2 = selectLocPilotTitles();
+      const run1 = selectLocPilotTitles(undefined, SYNTHETIC_PACK_PATH);
+      const run2 = selectLocPilotTitles(undefined, SYNTHETIC_PACK_PATH);
       expect(run1.map((c) => c.caseId)).toEqual(run2.map((c) => c.caseId));
       expect(run1.map((c) => c.selectionHash)).toEqual(run2.map((c) => c.selectionHash));
     }, 20000);
 
     it('strictly isolates LOCKED_HOLDOUT partition (contains zero holdout titles)', () => {
-      const selected = selectLocPilotTitles();
+      const selected = selectLocPilotTitles(undefined, SYNTHETIC_PACK_PATH);
       // All selected cases must have DIAGNOSTIC-derived IDs
       for (const c of selected) {
         expect(c.unresolvedLexicalMisses.length).toBeGreaterThan(0);
@@ -135,7 +143,7 @@ describe('Phase 7G Track B: Library of Congress Evidence Feasibility Pilot', () 
 
   describe('4. Feasibility Pilot Execution & Invariants', () => {
     it('runs offline feasibility pilot in FIXTURE_VALIDATION mode and produces compliant report structure', () => {
-      const report = runLocFeasibilityPilot();
+      const report = runLocFeasibilityPilot(undefined, SYNTHETIC_PACK_PATH);
       expect(report.pilotCasesCount).toBe(100);
       expect(report.metrics.executionMode).toBe('FIXTURE_VALIDATION');
       expect(report.metrics.pilotTitlesSelected).toBe(100);
@@ -154,7 +162,10 @@ describe('Phase 7G Track B: Library of Congress Evidence Feasibility Pilot', () 
 
     it('fails closed when LIVE_BOUNDED_PILOT mode is requested without liveClient', async () => {
       await expect(
-        runLocFeasibilityPilotAsync({ mode: 'LIVE_BOUNDED_PILOT' })
+        runLocFeasibilityPilotAsync({
+          mode: 'LIVE_BOUNDED_PILOT',
+          phase7EPackPath: SYNTHETIC_PACK_PATH
+        })
       ).rejects.toThrow('[FAIL CLOSED] LIVE_BOUNDED_PILOT mode requires an instantiated, configured LocClient.');
     });
 
@@ -165,6 +176,9 @@ describe('Phase 7G Track B: Library of Congress Evidence Feasibility Pilot', () 
     });
 
     it('executes genuine case-specific live query matching with a mocked LocClient', async () => {
+      const selected = selectLocPilotTitles(undefined, SYNTHETIC_PACK_PATH, 5);
+      const targetCase = selected[0];
+
       const mockXml = `<?xml version="1.0" encoding="UTF-8"?>
 <record xmlns="http://www.loc.gov/MARC21/slim">
   <controlfield tag="001">99123456</controlfield>
@@ -172,19 +186,22 @@ describe('Phase 7G Track B: Library of Congress Evidence Feasibility Pilot', () 
     <subfield code="a">DLC</subfield>
     <subfield code="e">rda</subfield>
   </datafield>
+  <datafield tag="041" ind1="0" ind2=" ">
+    <subfield code="a">per</subfield>
+  </datafield>
   <datafield tag="245" ind1="1" ind2="0">
     <subfield code="6">880-01</subfield>
-    <subfield code="a">Dīvān-i Ḥāfiẓ /</subfield>
+    <subfield code="a">Mocked Transliteration /</subfield>
   </datafield>
   <datafield tag="880" ind1="1" ind2="0">
     <subfield code="6">245-01/(3/r</subfield>
-    <subfield code="a">ديوان حافظ /</subfield>
+    <subfield code="a">${targetCase.sourceTitle}</subfield>
   </datafield>
 </record>`;
 
       const mockClient = {
         searchSru: async (cql: string) => {
-          if (cql.includes('حافظ')) {
+          if (cql.includes(targetCase.normalizedTitle)) {
             return [{ sourceId: 'LOC', rawIdentifier: '99123456', payload: mockXml, fetchedAt: new Date().toISOString() }];
           }
           return [];
@@ -194,7 +211,8 @@ describe('Phase 7G Track B: Library of Congress Evidence Feasibility Pilot', () 
       const report = await runLocFeasibilityPilotAsync({
         mode: 'LIVE_BOUNDED_PILOT',
         liveClient: mockClient,
-        maxLiveQueries: 5
+        maxLiveQueries: 5,
+        phase7EPackPath: SYNTHETIC_PACK_PATH
       });
 
       expect(report.metrics.executionMode).toBe('LIVE_BOUNDED_PILOT');
@@ -202,7 +220,12 @@ describe('Phase 7G Track B: Library of Congress Evidence Feasibility Pilot', () 
       expect(report.metrics.liveResponsesSucceeded).toBe(5);
       expect(report.metrics.realWorldSearchYield).toBe('MEASURED');
       expect(report.queryOutcomesSample.length).toBeGreaterThan(0);
-      expect(report.queryOutcomesSample[0].retrievalStatus).toBeDefined();
+      expect(report.queryOutcomesSample[0].retrievalStatus).toBe('SUCCESS');
+      expect(report.queryOutcomesSample[0].matchClassification).toBe('EXACT_PERSIAN_TITLE_MATCH');
+      expect(report.queryOutcomesSample[0].matchedRecordDetails?.length).toBeGreaterThan(0);
+      expect(report.queryOutcomesSample[0].matchedRecordDetails?.[0]?.isExactTitleMatch).toBe(true);
+      expect(report.governance.zeroAuthorityPromotion).toBe(true);
+      expect(report.governance.zeroAutomaticDictionaryExtraction).toBe(true);
     });
 
     it('handles rate limits, timeouts, and zero-record responses cleanly in live mode', async () => {
@@ -219,7 +242,8 @@ describe('Phase 7G Track B: Library of Congress Evidence Feasibility Pilot', () 
       const report = await runLocFeasibilityPilotAsync({
         mode: 'LIVE_BOUNDED_PILOT',
         liveClient: mockClient,
-        maxLiveQueries: 2
+        maxLiveQueries: 2,
+        phase7EPackPath: SYNTHETIC_PACK_PATH
       });
 
       expect(report.metrics.executionMode).toBe('LIVE_BOUNDED_PILOT');
