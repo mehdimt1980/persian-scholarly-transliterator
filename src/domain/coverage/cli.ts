@@ -4,33 +4,42 @@
  * Evaluates real Persian scholarly coverage across REVIEWED_ONLY, CURRENT_PRODUCTION,
  * and PHASE7E_EXPERIMENTAL configurations.
  *
+ * Hardened to fail closed on missing dependencies and record full experimental input identity.
+ *
  * Usage:
  *   npm run evaluate:phase7f-coverage
  *   npm run evaluate:phase7f-coverage -- --corpus <local-jsonl-or-text-path>
  */
 
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import readline from 'node:readline';
-import { normalizePersian } from '../normalization';
 import { buildEvaluationFallbackUnion } from './fallbackUnion';
-import { evaluateCoverageCorpus } from './evaluator';
+import { evaluateCoverageCorpus, EVALUATOR_VERSION } from './evaluator';
 import {
   analyzeSurfaceMorphology,
-  computeBlockerDistribution,
+  buildKaikkiDiagnosticIndex,
+  computeBlockerDistributions,
+  DIAGNOSTIC_INDEX_VERSION,
   generateWorklistsAndAuditSamples,
   rankNextInterventionFromDiagnostic,
+  type FormRuntimeMissContext,
   type KaikkiDiagnosticIndex
 } from './diagnostics';
+import { PROFILE_RECOVERY_VERSION } from '../evidence/kaikki/profile/types';
 import { loadPrivateCorpus } from './privateAdapter';
 import { formatMarkdownReport } from './reporter';
 import type {
   CoverageCorpusCase,
   CoverageCorpusFile,
   CoverageCorpusManifest,
+  ExperimentalInputIdentity,
   Phase7FCoverageSummaryReport
 } from './types';
 import type { EvidenceFallbackPack } from '../evidence/kaikki/fallback/types';
+
+export const EXPECTED_KAIKKI_SOURCE_SHA256 =
+  'f1647707c1bcbb7b18d355f7481ac4c656fa1ff8d91d93a0dbc6bb2e808d06c2';
 
 export interface EvaluateCoverageCliOptions {
   corpusPath?: string;
@@ -40,85 +49,28 @@ export interface EvaluateCoverageCliOptions {
   kaikkiJsonlPath?: string;
   phase7EPackPath?: string;
   productionPackPath?: string;
+  coverageOnly?: boolean;
 }
 
-export async function buildKaikkiDiagnosticIndex(
-  kaikkiFilePath: string
-): Promise<KaikkiDiagnosticIndex> {
-  const index: KaikkiDiagnosticIndex = {};
-
-  if (!fs.existsSync(kaikkiFilePath)) {
-    return index;
+export function computePackSemanticSha256(pack: EvidenceFallbackPack): string {
+  const hash = crypto.createHash('sha256');
+  const sortedKeys = Object.keys(pack.entries || {}).sort();
+  for (const key of sortedKeys) {
+    const entry = pack.entries[key];
+    hash.update(key);
+    hash.update('\0');
+    hash.update(entry.normalizedForm ?? '');
+    hash.update('\0');
+    hash.update(entry.hypothesis ?? '');
+    hash.update('\0');
+    hash.update(entry.consensusStatus ?? '');
+    hash.update('\0');
+    hash.update(entry.confidenceTier ?? '');
+    hash.update('\0');
+    hash.update(entry.candidateAnalysisId ?? '');
+    hash.update('\0');
   }
-
-  const fileStream = fs.createReadStream(kaikkiFilePath);
-  const rl = readline.createInterface({
-    input: fileStream,
-    crlfDelay: Infinity
-  });
-
-  for await (const line of rl) {
-    const trimmed = line.trim();
-    if (!trimmed) continue;
-    try {
-      const entry = JSON.parse(trimmed) as {
-        word?: string;
-        pos?: string;
-        forms?: Array<{ form?: string; tags?: string[] }>;
-        senses?: Array<{ form_of?: unknown[]; alt_of?: unknown[]; tags?: string[] }>;
-        head_templates?: Array<{ name?: string }>;
-      };
-
-      if (!entry.word) continue;
-      const normalizedForm = normalizePersian(entry.word).normalizedInput.trim();
-
-      const pos = entry.pos || 'unknown';
-      const isProper =
-        pos === 'name' ||
-        pos === 'proper noun' ||
-        (entry.head_templates?.some((h) =>
-          h.name?.includes('proper') || h.name === 'fa-prop'
-        ) ?? false);
-
-      let isLemma = true;
-      if (entry.senses?.some((s) => s.form_of?.length || s.alt_of?.length)) {
-        isLemma = false;
-      }
-      if (
-        entry.head_templates?.some(
-          (h) => h.name?.includes('verb form') || h.name?.includes('noun form')
-        )
-      ) {
-        isLemma = false;
-      }
-
-      const romanizations = (entry.forms || [])
-        .filter((f) => f.tags?.includes('romanization') && f.form)
-        .map((f) => f.form!);
-
-      const existing = index[normalizedForm];
-      if (!existing) {
-        index[normalizedForm] = {
-          normalizedForm,
-          isLemma,
-          isProperName: isProper,
-          romanizationCount: romanizations.length,
-          posList: [pos]
-        };
-      } else {
-        existing.isProperName = existing.isProperName || isProper;
-        existing.isLemma = existing.isLemma && isLemma;
-        existing.romanizationCount += romanizations.length;
-        if (!existing.posList.includes(pos)) {
-          existing.posList.push(pos);
-        }
-      }
-    } catch {
-      // Ignore malformed rows in index construction
-    }
-  }
-
-  return index;
+  return hash.digest('hex');
 }
 
 export async function runCoverageEvaluation(
@@ -156,7 +108,7 @@ export async function runCoverageEvaluation(
     );
     if (!fs.existsSync(defaultCorpusPath)) {
       throw new Error(
-        `Frozen corpus not found at ${defaultCorpusPath}. Please run "npm run acquire:phase7f-openalex" first.`
+        `[FAIL CLOSED] Frozen evaluation corpus not found at ${defaultCorpusPath}.\nPlease ensure the Phase 7F corpus artifact is present.`
       );
     }
     const rawCorpus = JSON.parse(
@@ -170,92 +122,168 @@ export async function runCoverageEvaluation(
     `[Phase 7F] Loaded ${corpusCases.length} cases (${corpusManifest.diagnosticCount} DIAGNOSTIC, ${corpusManifest.lockedHoldoutCount} LOCKED_HOLDOUT).`
   );
 
-  // Load production pack
+  // 1. Load and validate production pack (Fail Closed)
   const prodPackPath =
     options.productionPackPath ??
     path.resolve(process.cwd(), 'src', 'data', 'generated', 'kaikki-fallback.v1.json');
+  if (!fs.existsSync(prodPackPath)) {
+    throw new Error(
+      `[FAIL CLOSED] Production fallback pack missing at ${prodPackPath}.\nRequired dependency for full evaluation.`
+    );
+  }
   const prodPack = JSON.parse(fs.readFileSync(prodPackPath, 'utf8')) as EvidenceFallbackPack;
+  const prodPackSemanticSha256 = computePackSemanticSha256(prodPack);
 
-  // Load Phase 7E experimental pack
+  // 2. Load and validate Phase 7E experimental pack (Fail Closed)
   const phase7EPath =
     options.phase7EPackPath ??
     path.resolve(process.cwd(), 'artifacts', 'phase7e', 'kaikki-fallback-recovered-full.json');
-  let phase7EPack: EvidenceFallbackPack = {
-    manifest: {
-      packVersion: '7e-recovered-empty',
-      generatedAt: new Date().toISOString(),
-      inputSha256: 'none',
-      extractorVersion: '1.0.0',
-      interpreterVersion: '1.0.0',
-      ruleSetVersion: '1.0.0',
-      aggregatorVersion: '1.0.0',
-      entryCount: 0
-    },
-    entries: {}
-  };
 
-  if (fs.existsSync(phase7EPath)) {
-    phase7EPack = JSON.parse(fs.readFileSync(phase7EPath, 'utf8')) as EvidenceFallbackPack;
-  } else {
-    console.warn(`[Phase 7F] Phase 7E pack not found at ${phase7EPath}, using empty fallback.`);
+  if (!fs.existsSync(phase7EPath)) {
+    if (options.coverageOnly) {
+      console.warn(`[Phase 7F] Phase 7E pack missing at ${phase7EPath} in --coverage-only mode.`);
+    } else {
+      throw new Error(
+        `[FAIL CLOSED] Validated Phase 7E experimental pack missing at ${phase7EPath}.\nFull Phase 7F evaluation requires the Phase 7E recovered pack.\nRun Phase 7E pipeline or specify --coverage-only if running partial smoke evaluation.`
+      );
+    }
   }
 
-  // Build evaluation union
+  const phase7EPack = fs.existsSync(phase7EPath)
+    ? (JSON.parse(fs.readFileSync(phase7EPath, 'utf8')) as EvidenceFallbackPack)
+    : ({
+        manifest: {
+          packVersion: '7e-recovered-empty',
+          generatedAt: new Date().toISOString(),
+          inputSha256: 'none',
+          extractorVersion: '1.0.0',
+          interpreterVersion: '1.0.0',
+          ruleSetVersion: '1.0.0',
+          aggregatorVersion: '1.0.0',
+          entryCount: 0
+        },
+        entries: {}
+      } as EvidenceFallbackPack);
+
+  const experimentalPackSemanticSha256 = computePackSemanticSha256(phase7EPack);
+
+  // 3. Validate Kaikki diagnostic source file (Fail Closed for full evaluation)
+  const kaikkiJsonlPath =
+    options.kaikkiJsonlPath ??
+    path.resolve(process.cwd(), 'artifacts', 'phase7d', 'kaikki.org-dictionary-Persian.jsonl');
+
+  let kaikkiSourceSha256 = 'none';
+  let kaikkiIndex: KaikkiDiagnosticIndex = {};
+
+  if (!fs.existsSync(kaikkiJsonlPath)) {
+    if (options.coverageOnly) {
+      console.warn(`[Phase 7F] Kaikki source dataset missing at ${kaikkiJsonlPath} in --coverage-only mode.`);
+    } else {
+      throw new Error(
+        `[FAIL CLOSED] Kaikki diagnostic source dataset missing at ${kaikkiJsonlPath}.\nFull diagnostic evaluation requires the verified Kaikki source artifact.\nEnsure artifacts/phase7d/kaikki.org-dictionary-Persian.jsonl exists.`
+      );
+    }
+  } else {
+    // Validate SHA256 of Kaikki dataset
+    const sourceBuffer = fs.readFileSync(kaikkiJsonlPath);
+    kaikkiSourceSha256 = crypto.createHash('sha256').update(sourceBuffer).digest('hex');
+    if (kaikkiSourceSha256 !== EXPECTED_KAIKKI_SOURCE_SHA256) {
+      console.warn(
+        `[Phase 7F Warning] Kaikki source SHA256 (${kaikkiSourceSha256}) differs from expected baseline (${EXPECTED_KAIKKI_SOURCE_SHA256}).`
+      );
+    }
+    console.log('[Phase 7F] Indexing Kaikki Persian dataset for diagnostic attribution...');
+    kaikkiIndex = await buildKaikkiDiagnosticIndex(kaikkiJsonlPath);
+    console.log(`[Phase 7F] Indexed ${Object.keys(kaikkiIndex).length.toLocaleString()} distinct Kaikki Persian forms.`);
+  }
+
+  // 4. Build evaluation union
   const fallbackUnion = buildEvaluationFallbackUnion(prodPack, phase7EPack);
   console.log(
     `[Phase 7F] Fallback union built: ${fallbackUnion.totalEntries} entries (${fallbackUnion.deduplicatedCount} deduplicated, ${fallbackUnion.conflicts.length} conflicts).`
   );
 
-  // Run full evaluation
+  // 5. Run full evaluation across 3 configurations
   console.log('[Phase 7F] Running evaluation across 3 configurations...');
   const evaluationResult = evaluateCoverageCorpus(corpusCases, {
     phase7ERepository: fallbackUnion.repository
   });
 
-  // Diagnostic analysis
-  const kaikkiJsonlPath =
-    options.kaikkiJsonlPath ??
-    path.resolve(process.cwd(), 'artifacts', 'phase7d', 'kaikki.org-dictionary-Persian.jsonl');
-  let kaikkiIndex: KaikkiDiagnosticIndex = {};
-  if (fs.existsSync(kaikkiJsonlPath)) {
-    console.log('[Phase 7F] Indexing Kaikki Persian dataset for diagnostic join...');
-    kaikkiIndex = await buildKaikkiDiagnosticIndex(kaikkiJsonlPath);
-    console.log(`[Phase 7F] Indexed ${Object.keys(kaikkiIndex).length} distinct Kaikki Persian forms.`);
-  }
-
-  // Collect baseline miss tokens from DIAGNOSTIC split
-  const diagBaselineOutcomes = evaluationResult.detailedByConfig.CURRENT_PRODUCTION.filter(
+  // 6. Diagnostic attribution on the DIAGNOSTIC split
+  const diagBaselineTitles = evaluationResult.detailedByConfig.CURRENT_PRODUCTION.filter(
+    (t) => t.split === 'DIAGNOSTIC'
+  );
+  const diagExpTitles = evaluationResult.detailedByConfig.PHASE7E_EXPERIMENTAL.filter(
     (t) => t.split === 'DIAGNOSTIC'
   );
 
-  const diagMissStats = new Map<string, { tokenCount: number; titleCount: number }>();
+  // Map experimental outcomes by caseId for exact token-by-token comparison
+  const expTitlesByCaseId = new Map(diagExpTitles.map((t) => [t.caseId, t]));
+
+  const diagMissStats = new Map<string, FormRuntimeMissContext>();
   const allMissFormsSet = new Set<string>();
 
-  for (const title of diagBaselineOutcomes) {
+  for (const baseTitle of diagBaselineTitles) {
+    const expTitle = expTitlesByCaseId.get(baseTitle.caseId);
     const titleMissForms = new Set<string>();
-    for (const token of title.tokens) {
-      if (token.status === 'UNRESOLVED' && token.blockingReason === 'NO_LEXICAL_ENTRY') {
-        const form = token.normalizedSurface;
+
+    for (let tokenIdx = 0; tokenIdx < baseTitle.tokens.length; tokenIdx++) {
+      const baseToken = baseTitle.tokens[tokenIdx];
+      if (baseToken.status === 'UNRESOLVED' && baseToken.blockingReason === 'NO_LEXICAL_ENTRY') {
+        const form = baseToken.normalizedSurface;
         allMissFormsSet.add(form);
         titleMissForms.add(form);
-        const existing = diagMissStats.get(form) ?? { tokenCount: 0, titleCount: 0 };
-        existing.tokenCount += 1;
-        diagMissStats.set(form, existing);
+
+        const expToken = expTitle?.tokens[tokenIdx];
+        const isRecoveredAtRuntime = Boolean(
+          expToken &&
+            (expToken.isDisplayable ||
+              expToken.hasProposal ||
+              expToken.status === 'LEXICON_RESOLVED' ||
+              expToken.status === 'DETERMINISTIC')
+        );
+
+        let stat = diagMissStats.get(form);
+        if (!stat) {
+          stat = {
+            tokenCount: 0,
+            titleCount: 0,
+            runtimeRecoveredTokenCount: 0,
+            runtimeNotAppliedTokenCount: 0,
+            exampleTitle: baseTitle.rawText
+          };
+          diagMissStats.set(form, stat);
+        }
+
+        stat.tokenCount += 1;
+        if (isRecoveredAtRuntime) {
+          stat.runtimeRecoveredTokenCount += 1;
+        } else {
+          stat.runtimeNotAppliedTokenCount += 1;
+        }
       }
     }
+
     for (const form of titleMissForms) {
-      const existing = diagMissStats.get(form);
-      if (existing) existing.titleCount += 1;
+      const stat = diagMissStats.get(form);
+      if (stat) stat.titleCount += 1;
     }
   }
 
-  const { distribution, properNameCohort, itemDetails } = computeBlockerDistribution(
-    diagMissStats,
-    phase7EPack,
-    kaikkiIndex
-  );
+  const conflictFormsSet = new Set(fallbackUnion.conflicts.map((c) => c.normalizedForm));
 
-  const surfaceMorphology = analyzeSurfaceMorphology(Array.from(allMissFormsSet));
+  const {
+    baselineDistribution,
+    postPhase7ERemainingDistribution,
+    unappliedPackAudit,
+    properNameCohort,
+    itemDetails
+  } = computeBlockerDistributions(diagMissStats, phase7EPack, kaikkiIndex, conflictFormsSet);
+
+  const surfaceMorphology = analyzeSurfaceMorphology(
+    Array.from(allMissFormsSet),
+    corpusCases
+  );
 
   const {
     topUnresolvedWorklist,
@@ -266,11 +294,23 @@ export async function runCoverageEvaluation(
     auditSamples
   } = generateWorklistsAndAuditSamples(itemDetails);
 
-  const nextIntervention = rankNextInterventionFromDiagnostic(distribution);
+  const nextIntervention = rankNextInterventionFromDiagnostic(postPhase7ERemainingDistribution);
+
+  const inputIdentity: ExperimentalInputIdentity = {
+    frozenCorpusSha256: corpusManifest.corpusSha256,
+    holdoutSha256: corpusManifest.holdoutSha256,
+    productionPackSemanticSha256: prodPackSemanticSha256,
+    experimentalPackSemanticSha256: experimentalPackSemanticSha256,
+    kaikkiSourceSha256: kaikkiSourceSha256,
+    recoveryVersion: PROFILE_RECOVERY_VERSION,
+    diagnosticIndexVersion: DIAGNOSTIC_INDEX_VERSION,
+    evaluatorVersion: EVALUATOR_VERSION
+  };
 
   const report: Phase7FCoverageSummaryReport = {
-    reportVersion: '1.0.0',
+    reportVersion: '1.2.0',
     generatedAt: new Date().toISOString(),
+    inputIdentity,
     corpusManifest,
     workTypeDistribution: evaluationResult.workTypeDistribution,
     publicationYearDistribution: evaluationResult.publicationYearDistribution,
@@ -285,7 +325,9 @@ export async function runCoverageEvaluation(
     workTypeBreakdown: evaluationResult.workTypeBreakdown,
     titleLengthBreakdown: evaluationResult.titleLengthBreakdown,
     fallbackUnionConflicts: fallbackUnion.conflicts,
-    diagnosticBlockerDistribution: distribution,
+    baselineMissDistribution: baselineDistribution,
+    postPhase7ERemainingMissDistribution: postPhase7ERemainingDistribution,
+    unappliedPackAudit,
     properNameCohort,
     surfaceMorphologyPatterns: surfaceMorphology,
     topUnresolvedWorklist,
@@ -304,7 +346,7 @@ export async function runCoverageEvaluation(
     }
   };
 
-  // Write reports
+  // 7. Write reports
   const reportJsonPath =
     options.reportJsonPath ??
     path.resolve(process.cwd(), 'src', 'validation', 'reports', 'phase7f-coverage-summary.json');
@@ -337,16 +379,19 @@ export async function runCoverageEvaluation(
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   let corpusPath: string | undefined;
+  let coverageOnly = false;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--corpus' && args[i + 1]) {
       corpusPath = args[i + 1];
       i++;
+    } else if (args[i] === '--coverage-only' || args[i] === '--baseline-only') {
+      coverageOnly = true;
     }
   }
 
   try {
-    const report = await runCoverageEvaluation({ corpusPath });
+    const report = await runCoverageEvaluation({ corpusPath, coverageOnly });
     const prod = report.configurations.CURRENT_PRODUCTION;
     const exp = report.configurations.PHASE7E_EXPERIMENTAL;
     const rec = report.missRecoveryOverall;

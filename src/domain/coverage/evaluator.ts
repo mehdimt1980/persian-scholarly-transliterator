@@ -32,6 +32,8 @@ import type {
   WorkTypeMetrics
 } from './types';
 
+export const EVALUATOR_VERSION = '1.0.0';
+
 export interface EvaluatorOptions {
   phase7ERepository?: EvidenceFallbackRepository;
 }

@@ -159,14 +159,19 @@ export interface TitleLengthMetrics {
   phase7EFullyDisplayableRate: number;
 }
 
+/**
+ * Mutually exclusive blocker categories for diagnostic attribution.
+ */
 export type DiagnosticBlockerCategory =
-  | 'PHASE7E_ELIGIBLE'
+  | 'PACK_PRESENT_RUNTIME_RECOVERED'
+  | 'PACK_PRESENT_RUNTIME_NOT_APPLIED'
+  | 'PACK_UNION_CONFLICT'
+  | 'KAIKKI_MIXED_LEMMA_AND_NON_LEMMA'
   | 'KAIKKI_LEMMA_SINGLE_ROMANIZATION_UNCLASSIFIED'
-  | 'KAIKKI_LEMMA_MULTI_ROMANIZATION_INSUFFICIENT_SIGNAL'
-  | 'KAIKKI_NON_LEMMA'
+  | 'KAIKKI_LEMMA_MULTI_ROMANIZATION_UNCLASSIFIED'
+  | 'KAIKKI_NON_LEMMA_ONLY'
   | 'KAIKKI_NO_ROMANIZATION'
-  | 'KAIKKI_PROFILE_OR_ALIGNMENT_BLOCKED'
-  | 'KAIKKI_CONFLICTING'
+  | 'KAIKKI_PRESENT_UNCLASSIFIED_CAUSE'
   | 'NOT_PRESENT_IN_KAIKKI';
 
 export interface BlockerDistributionItem {
@@ -175,11 +180,13 @@ export interface BlockerDistributionItem {
   uniqueForms: number;
   tokenSharePercent: number;
   uniqueFormSharePercent: number;
+  description: string;
 }
 
 export interface SurfaceMorphologyDiagnosticMetrics {
   totalAnalyzedForms: number;
-  surfaceZwnjCount: number;
+  rawZwnjCount: number;
+  normalizedZwnjCount: number;
   surfaceSuffixHaCount: number;
   surfaceSuffixHayeCount: number;
   surfaceSuffixYeCount: number;
@@ -212,9 +219,30 @@ export interface FallbackUnionConflict {
   reason: 'EVALUATION_FALLBACK_CONFLICT';
 }
 
+export interface UnappliedPackTokenDetail {
+  persianForm: string;
+  tokenCount: number;
+  titleCount: number;
+  packHypothesis: string;
+  runtimeReason: string;
+  exampleTitle: string;
+}
+
+export interface ExperimentalInputIdentity {
+  frozenCorpusSha256: string;
+  holdoutSha256: string;
+  productionPackSemanticSha256: string;
+  experimentalPackSemanticSha256: string;
+  kaikkiSourceSha256: string;
+  recoveryVersion: string;
+  diagnosticIndexVersion: string;
+  evaluatorVersion: string;
+}
+
 export interface Phase7FCoverageSummaryReport {
   reportVersion: string;
   generatedAt: string;
+  inputIdentity: ExperimentalInputIdentity;
   corpusManifest: CoverageCorpusManifest;
   workTypeDistribution: Record<string, number>;
   publicationYearDistribution: Record<string, number>;
@@ -240,8 +268,13 @@ export interface Phase7FCoverageSummaryReport {
   // Fallback union conflicts
   fallbackUnionConflicts: FallbackUnionConflict[];
 
-  // Remaining miss diagnostics (Diagnostic Split)
-  diagnosticBlockerDistribution: BlockerDistributionItem[];
+  // Diagnostic attribution distributions (DIAGNOSTIC split)
+  baselineMissDistribution: BlockerDistributionItem[];
+  postPhase7ERemainingMissDistribution: BlockerDistributionItem[];
+
+  // Reconciled unapplied pack cases
+  unappliedPackAudit: UnappliedPackTokenDetail[];
+
   properNameCohort: ProperNameMissMetrics;
   surfaceMorphologyPatterns: SurfaceMorphologyDiagnosticMetrics;
 

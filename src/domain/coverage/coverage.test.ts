@@ -2,9 +2,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_LEXICON_REPOSITORY } from '../../data/lexicon';
-import {
-  DEFAULT_EVIDENCE_FALLBACK_REPOSITORY
-} from '../../data/fallback';
 import { evaluateTitleEligibility } from './openalex/eligibility';
 import {
   computeCorpusSha256,
@@ -13,18 +10,20 @@ import {
   type CandidatePoolItem
 } from './openalex/selection';
 import { buildEvaluationFallbackUnion } from './fallbackUnion';
-import { evaluateCoverageCorpus } from './evaluator';
+import { evaluateCoverageCorpus, EVALUATOR_VERSION } from './evaluator';
 import {
   analyzeSurfaceMorphology,
   classifyDiagnosticBlocker,
+  computeBlockerDistributions,
+  DIAGNOSTIC_INDEX_VERSION,
   generateWorklistsAndAuditSamples,
+  type FormRuntimeMissContext,
   type KaikkiDiagnosticIndex
 } from './diagnostics';
 import { loadPrivateCorpus } from './privateAdapter';
+import { computePackSemanticSha256, runCoverageEvaluation } from './cli';
 import type { CoverageCorpusCase } from './types';
-import type {
-  EvidenceFallbackPack
-} from '../evidence/kaikki/fallback/types';
+import type { EvidenceFallbackPack } from '../evidence/kaikki/fallback/types';
 
 describe('Phase 7F: Real Scholarly Persian Coverage Corpus & Evaluation', () => {
   describe('1. Persian-Script Title Eligibility Filter', () => {
@@ -332,7 +331,7 @@ describe('Phase 7F: Real Scholarly Persian Coverage Corpus & Evaluation', () => 
         id: 'c1',
         source: 'OPENALEX',
         sourceId: 'W1',
-        rawText: 'تاریخ و تمدن', // "تاریخ" and "و" and "تمدن" (reviewed lexicon covers all 3)
+        rawText: 'تاریخ و تمدن',
         normalizedText: 'تاریخ و تمدن',
         kind: 'TITLE',
         metadata: { workType: 'book', publicationYear: 2020 },
@@ -342,7 +341,7 @@ describe('Phase 7F: Real Scholarly Persian Coverage Corpus & Evaluation', () => 
         id: 'c2',
         source: 'OPENALEX',
         sourceId: 'W2',
-        rawText: 'گفتار در شیراز', // "گفتار", "در", "شیراز" ("گفتار" and "شیراز" in fallback)
+        rawText: 'گفتار در شیراز',
         normalizedText: 'گفتار در شیراز',
         kind: 'TITLE',
         metadata: { workType: 'article', publicationYear: 2021 },
@@ -380,17 +379,17 @@ describe('Phase 7F: Real Scholarly Persian Coverage Corpus & Evaluation', () => 
     });
   });
 
-  describe('6. Diagnostic Blocker & Surface Morphology Classification', () => {
+  describe('6. Hardened Diagnostic Blocker & Mixed Lemma/Non-Lemma Attribution', () => {
     const dummyPack: EvidenceFallbackPack = {
       manifest: {
         packVersion: '7e',
         generatedAt: '',
         inputSha256: '',
-        extractorVersion: '',
-        interpreterVersion: '',
-        ruleSetVersion: '',
-        aggregatorVersion: '',
-        entryCount: 1
+        extractorVersion: '1.0.0',
+        interpreterVersion: '1.0.0',
+        ruleSetVersion: '1.0.0',
+        aggregatorVersion: '1.0.0',
+        entryCount: 2
       },
       entries: {
         جهاد: {
@@ -404,10 +403,27 @@ describe('Phase 7F: Real Scholarly Persian Coverage Corpus & Evaluation', () => 
           sourceProfiles: ['CLASSICAL_DARI', 'IRANIAN'],
           interpretations: [],
           generatedFrom: {
-            acquisitionVersion: '',
-            interpreterVersion: '',
-            ruleSetVersion: '',
-            aggregatorVersion: ''
+            acquisitionVersion: '1.0.0',
+            interpreterVersion: '1.0.0',
+            ruleSetVersion: '1.0.0',
+            aggregatorVersion: '1.0.0'
+          }
+        },
+        تغییرات: {
+          id: 'fb-taghyirat',
+          normalizedForm: 'تغییرات',
+          hypothesis: 'taghyīrāt',
+          consensusStatus: 'UNANIMOUS_DETERMINISTIC',
+          confidenceTier: 'SINGLE_OBSERVATION_DETERMINISTIC',
+          candidateAnalysisId: 'can-t',
+          evidenceCount: 1,
+          sourceProfiles: ['IRANIAN'],
+          interpretations: [],
+          generatedFrom: {
+            acquisitionVersion: '1.0.0',
+            interpreterVersion: '1.0.0',
+            ruleSetVersion: '1.0.0',
+            aggregatorVersion: '1.0.0'
           }
         }
       }
@@ -416,82 +432,239 @@ describe('Phase 7F: Real Scholarly Persian Coverage Corpus & Evaluation', () => 
     const mockKaikkiIndex: KaikkiDiagnosticIndex = {
       کتابها: {
         normalizedForm: 'کتابها',
-        isLemma: false,
-        isProperName: false,
-        romanizationCount: 1,
-        posList: ['noun']
+        sourceRecordCount: 1,
+        hasLemmaRecord: false,
+        hasNonLemmaRecord: true,
+        hasUnknownLemmaStatus: false,
+        lemmaRomanizationCount: 0,
+        nonLemmaRomanizationCount: 1,
+        distinctRomanizations: ['ketâbhâ'],
+        posList: ['noun'],
+        isProperName: false
       },
       تهران: {
         normalizedForm: 'تهران',
-        isLemma: true,
-        isProperName: true,
-        romanizationCount: 1,
-        posList: ['name']
+        sourceRecordCount: 1,
+        hasLemmaRecord: true,
+        hasNonLemmaRecord: false,
+        hasUnknownLemmaStatus: false,
+        lemmaRomanizationCount: 1,
+        nonLemmaRomanizationCount: 0,
+        distinctRomanizations: ['tehrân'],
+        posList: ['name'],
+        isProperName: true
+      },
+      بر: {
+        // High frequency word with multiple records: lemma (prep) + non-lemma (verb form)
+        normalizedForm: 'بر',
+        sourceRecordCount: 3,
+        hasLemmaRecord: true,
+        hasNonLemmaRecord: true,
+        hasUnknownLemmaStatus: false,
+        lemmaRomanizationCount: 1,
+        nonLemmaRomanizationCount: 2,
+        distinctRomanizations: ['bar', 'bor'],
+        posList: ['prep', 'verb'],
+        isProperName: false
+      },
+      با: {
+        // High frequency preposition: lemma only
+        normalizedForm: 'با',
+        sourceRecordCount: 1,
+        hasLemmaRecord: true,
+        hasNonLemmaRecord: false,
+        hasUnknownLemmaStatus: false,
+        lemmaRomanizationCount: 1,
+        nonLemmaRomanizationCount: 0,
+        distinctRomanizations: ['bā'],
+        posList: ['prep'],
+        isProperName: false
       },
       واژه_تک_روم: {
         normalizedForm: 'واژه_تک_روم',
-        isLemma: true,
-        isProperName: false,
-        romanizationCount: 1,
-        posList: ['noun']
+        sourceRecordCount: 1,
+        hasLemmaRecord: true,
+        hasNonLemmaRecord: false,
+        hasUnknownLemmaStatus: false,
+        lemmaRomanizationCount: 1,
+        nonLemmaRomanizationCount: 0,
+        distinctRomanizations: ['single-rom'],
+        posList: ['noun'],
+        isProperName: false
       },
       واژه_چند_روم: {
         normalizedForm: 'واژه_چند_روم',
-        isLemma: true,
-        isProperName: false,
-        romanizationCount: 3,
-        posList: ['noun']
+        sourceRecordCount: 2,
+        hasLemmaRecord: true,
+        hasNonLemmaRecord: false,
+        hasUnknownLemmaStatus: false,
+        lemmaRomanizationCount: 3,
+        nonLemmaRomanizationCount: 0,
+        distinctRomanizations: ['rom1', 'rom2', 'rom3'],
+        posList: ['noun'],
+        isProperName: false
       }
     };
 
-    it('classifies miss categories accurately', () => {
-      // 1. Phase 7E eligible
-      expect(
-        classifyDiagnosticBlocker('جهاد', dummyPack, mockKaikkiIndex).category
-      ).toBe('PHASE7E_ELIGIBLE');
+    it('distinguishes PACK_PRESENT_RUNTIME_RECOVERED from PACK_PRESENT_RUNTIME_NOT_APPLIED', () => {
+      // 1. Recovered at runtime
+      const ctxRecovered: FormRuntimeMissContext = {
+        tokenCount: 10,
+        titleCount: 8,
+        runtimeRecoveredTokenCount: 10,
+        runtimeNotAppliedTokenCount: 0,
+        exampleTitle: 'جهاد علمی'
+      };
+      const resRecovered = classifyDiagnosticBlocker('جهاد', ctxRecovered, dummyPack, mockKaikkiIndex);
+      expect(resRecovered.category).toBe('PACK_PRESENT_RUNTIME_RECOVERED');
 
-      // 2. Non-lemma
-      expect(
-        classifyDiagnosticBlocker('کتابها', dummyPack, mockKaikkiIndex).category
-      ).toBe('KAIKKI_NON_LEMMA');
+      // 2. Present in pack but intercepted/not applied at runtime
+      const ctxNotApplied: FormRuntimeMissContext = {
+        tokenCount: 5,
+        titleCount: 4,
+        runtimeRecoveredTokenCount: 0,
+        runtimeNotAppliedTokenCount: 5,
+        exampleTitle: 'بررسی تغییرات اقلیمی'
+      };
+      const resNotApplied = classifyDiagnosticBlocker('تغییرات', ctxNotApplied, dummyPack, mockKaikkiIndex);
+      expect(resNotApplied.category).toBe('PACK_PRESENT_RUNTIME_NOT_APPLIED');
+    });
 
-      // 3. Single romanization unclassified
-      expect(
-        classifyDiagnosticBlocker('واژه_تک_روم', dummyPack, mockKaikkiIndex).category
-      ).toBe('KAIKKI_LEMMA_SINGLE_ROMANIZATION_UNCLASSIFIED');
+    it('identifies mixed lemma + non-lemma forms accurately (including high-frequency words)', () => {
+      const ctx: FormRuntimeMissContext = {
+        tokenCount: 12,
+        titleCount: 10,
+        runtimeRecoveredTokenCount: 0,
+        runtimeNotAppliedTokenCount: 12,
+        exampleTitle: 'مروری بر تاریخ'
+      };
 
-      // 4. Multi romanization
-      expect(
-        classifyDiagnosticBlocker('واژه_چند_روم', dummyPack, mockKaikkiIndex).category
-      ).toBe('KAIKKI_LEMMA_MULTI_ROMANIZATION_INSUFFICIENT_SIGNAL');
+      // "بر" has both lemma and non-lemma records in Kaikki -> MIXED
+      const resBar = classifyDiagnosticBlocker('بر', ctx, dummyPack, mockKaikkiIndex);
+      expect(resBar.category).toBe('KAIKKI_MIXED_LEMMA_AND_NON_LEMMA');
 
-      // 5. Not in Kaikki
+      // "با" has only lemma records -> SINGLE ROMANIZATION
+      const resBa = classifyDiagnosticBlocker('با', ctx, dummyPack, mockKaikkiIndex);
+      expect(resBa.category).toBe('KAIKKI_LEMMA_SINGLE_ROMANIZATION_UNCLASSIFIED');
+    });
+
+    it('classifies non-lemma-only vs unclassified lemma records', () => {
+      const dummyCtx: FormRuntimeMissContext = {
+        tokenCount: 2,
+        titleCount: 2,
+        runtimeRecoveredTokenCount: 0,
+        runtimeNotAppliedTokenCount: 2,
+        exampleTitle: 'کتابها در ایران'
+      };
+
+      // Non-lemma only
       expect(
-        classifyDiagnosticBlocker('واژه_کاملا_غایب', dummyPack, mockKaikkiIndex).category
+        classifyDiagnosticBlocker('کتابها', dummyCtx, dummyPack, mockKaikkiIndex).category
+      ).toBe('KAIKKI_NON_LEMMA_ONLY');
+
+      // Multi-romanization lemma
+      expect(
+        classifyDiagnosticBlocker('واژه_چند_روم', dummyCtx, dummyPack, mockKaikkiIndex).category
+      ).toBe('KAIKKI_LEMMA_MULTI_ROMANIZATION_UNCLASSIFIED');
+
+      // Not present in Kaikki
+      expect(
+        classifyDiagnosticBlocker('غایب_کامل', dummyCtx, dummyPack, mockKaikkiIndex).category
       ).toBe('NOT_PRESENT_IN_KAIKKI');
     });
 
-    it('analyzes transparent surface morphology patterns', () => {
-      const forms = [
-        'کتاب\u200cها',
-        'مقاله‌های',
-        'تحقیقی',
-        'سریع‌تر',
-        'بهترین',
-        'کتاب‌شان'
-      ];
-      const res = analyzeSurfaceMorphology(forms);
+    it('conserves token and form totals in dual distribution calculations', () => {
+      const missStats = new Map<string, FormRuntimeMissContext>();
+      missStats.set('جهاد', {
+        tokenCount: 10,
+        titleCount: 8,
+        runtimeRecoveredTokenCount: 10,
+        runtimeNotAppliedTokenCount: 0,
+        exampleTitle: 'جهاد علمی'
+      });
+      missStats.set('تغییرات', {
+        tokenCount: 5,
+        titleCount: 4,
+        runtimeRecoveredTokenCount: 0,
+        runtimeNotAppliedTokenCount: 5,
+        exampleTitle: 'تغییرات اقلیمی'
+      });
+      missStats.set('بر', {
+        tokenCount: 20,
+        titleCount: 15,
+        runtimeRecoveredTokenCount: 0,
+        runtimeNotAppliedTokenCount: 20,
+        exampleTitle: 'مروری بر تاریخ'
+      });
+      missStats.set('غایب_کامل', {
+        tokenCount: 7,
+        titleCount: 5,
+        runtimeRecoveredTokenCount: 0,
+        runtimeNotAppliedTokenCount: 7,
+        exampleTitle: 'یک عنوان'
+      });
 
-      expect(res.surfaceZwnjCount).toBeGreaterThan(0);
-      expect(res.surfaceSuffixHaCount).toBe(1);
-      expect(res.surfaceSuffixHayeCount).toBe(1);
-      expect(res.surfaceSuffixYeCount).toBe(2);
-      expect(res.surfaceSuffixTarCount).toBe(1);
-      expect(res.surfaceSuffixTarinCount).toBe(1);
-      expect(res.surfaceEncliticPronounCount).toBe(1);
+      const {
+        baselineDistribution,
+        postPhase7ERemainingDistribution,
+        unappliedPackAudit
+      } = computeBlockerDistributions(missStats, dummyPack, mockKaikkiIndex);
+
+      // Baseline total: 10 + 5 + 20 + 7 = 42 tokens, 4 forms
+      const totalBaselineTokens = baselineDistribution.reduce((acc, i) => acc + i.tokenOccurrences, 0);
+      const totalBaselineForms = baselineDistribution.reduce((acc, i) => acc + i.uniqueForms, 0);
+      expect(totalBaselineTokens).toBe(42);
+      expect(totalBaselineForms).toBe(4);
+
+      // Remaining total (minus 10 recovered tokens for 'جهاد'): 32 tokens, 3 forms
+      const totalRemainingTokens = postPhase7ERemainingDistribution.reduce(
+        (acc, i) => acc + i.tokenOccurrences,
+        0
+      );
+      const totalRemainingForms = postPhase7ERemainingDistribution.reduce(
+        (acc, i) => acc + i.uniqueForms,
+        0
+      );
+      expect(totalRemainingTokens).toBe(32);
+      expect(totalRemainingForms).toBe(3);
+
+      // Unapplied audit has 1 entry ('تغییرات')
+      expect(unappliedPackAudit.length).toBe(1);
+      expect(unappliedPackAudit[0].persianForm).toBe('تغییرات');
     });
 
-    it('generates deterministic audit samples and worklists without random variation', () => {
+    it('measures raw vs normalized ZWNJ separately', () => {
+      const forms = ['کتاب\u200cها', 'تحقیقی'];
+      const rawCases: CoverageCorpusCase[] = [
+        {
+          id: '1',
+          source: 'OPENALEX',
+          sourceId: 'W1',
+          rawText: 'کتاب\u200cها در ایران',
+          normalizedText: 'کتاب\u200cها در ایران',
+          kind: 'TITLE',
+          metadata: {},
+          split: 'DIAGNOSTIC'
+        },
+        {
+          id: '2',
+          source: 'OPENALEX',
+          sourceId: 'W2',
+          rawText: 'داده های تجربی',
+          normalizedText: 'داده های تجربی',
+          kind: 'TITLE',
+          metadata: {},
+          split: 'DIAGNOSTIC'
+        }
+      ];
+
+      const res = analyzeSurfaceMorphology(forms, rawCases);
+      expect(res.rawZwnjCount).toBe(1);
+      expect(res.normalizedZwnjCount).toBe(1);
+      expect(res.surfaceSuffixHaCount).toBe(1);
+    });
+
+    it('generates deterministic worklists and audit samples', () => {
       const itemDetails = new Map<
         string,
         {
@@ -504,7 +677,7 @@ describe('Phase 7F: Real Scholarly Persian Coverage Corpus & Evaluation', () => 
       >();
 
       itemDetails.set('جهاد', {
-        category: 'PHASE7E_ELIGIBLE',
+        category: 'PACK_PRESENT_RUNTIME_RECOVERED',
         isProperName: false,
         summary: 'sum',
         tokenCount: 10,
@@ -526,7 +699,94 @@ describe('Phase 7F: Real Scholarly Persian Coverage Corpus & Evaluation', () => 
     });
   });
 
-  describe('7. Local Private Corpus Adapter', () => {
+  describe('7. Fail-Closed Dependency Gate Checks', () => {
+    it('fails closed when production fallback pack is missing', async () => {
+      await expect(
+        runCoverageEvaluation({
+          productionPackPath: 'non-existent/path.json'
+        })
+      ).rejects.toThrow('[FAIL CLOSED] Production fallback pack missing');
+    });
+
+    it('fails closed when Phase 7E experimental pack is missing in full evaluation mode', async () => {
+      await expect(
+        runCoverageEvaluation({
+          phase7EPackPath: 'non-existent/phase7e.json'
+        })
+      ).rejects.toThrow('[FAIL CLOSED] Validated Phase 7E experimental pack missing');
+    });
+
+    it('fails closed when Kaikki diagnostic dataset is missing in full evaluation mode', async () => {
+      await expect(
+        runCoverageEvaluation({
+          kaikkiJsonlPath: 'non-existent/kaikki.jsonl'
+        })
+      ).rejects.toThrow('[FAIL CLOSED] Kaikki diagnostic source dataset missing');
+    });
+
+    it('computes deterministic pack semantic SHA256 invariant to object key ordering', () => {
+      const packA: EvidenceFallbackPack = {
+        manifest: {
+          packVersion: '1.0.0',
+          generatedAt: '2026-01-01T00:00:00Z',
+          inputSha256: 'sha',
+          extractorVersion: '1.0.0',
+          interpreterVersion: '1.0.0',
+          ruleSetVersion: '1.0.0',
+          aggregatorVersion: '1.0.0',
+          entryCount: 2
+        },
+        entries: {
+          گفتار: {
+            id: '1',
+            normalizedForm: 'گفتار',
+            hypothesis: 'guftār',
+            consensusStatus: 'UNANIMOUS_DETERMINISTIC',
+            confidenceTier: 'CROSS_PROFILE_CONSENSUS',
+            candidateAnalysisId: 'c1',
+            evidenceCount: 1,
+            sourceProfiles: ['IRANIAN'],
+            interpretations: [],
+            generatedFrom: {
+              acquisitionVersion: '1.0.0',
+              interpreterVersion: '1.0.0',
+              ruleSetVersion: '1.0.0',
+              aggregatorVersion: '1.0.0'
+            }
+          },
+          شیراز: {
+            id: '2',
+            normalizedForm: 'شیراز',
+            hypothesis: 'shīrāz',
+            consensusStatus: 'UNANIMOUS_DETERMINISTIC',
+            confidenceTier: 'CROSS_PROFILE_CONSENSUS',
+            candidateAnalysisId: 'c2',
+            evidenceCount: 1,
+            sourceProfiles: ['IRANIAN'],
+            interpretations: [],
+            generatedFrom: {
+              acquisitionVersion: '1.0.0',
+              interpreterVersion: '1.0.0',
+              ruleSetVersion: '1.0.0',
+              aggregatorVersion: '1.0.0'
+            }
+          }
+        }
+      };
+
+      const packB: EvidenceFallbackPack = {
+        manifest: { ...packA.manifest },
+        entries: {
+          شیراز: packA.entries.شیراز,
+          گفتار: packA.entries.گفتار
+        }
+      };
+
+      expect(computePackSemanticSha256(packA)).toBe(computePackSemanticSha256(packB));
+    });
+  });
+
+  describe('8. Local Private Corpus Adapter', () => {
     it('loads and normalizes local JSONL test lines correctly', () => {
       const tmpPath = path.resolve(__dirname, 'test-private-corpus.jsonl');
       const lines = [
@@ -547,7 +807,7 @@ describe('Phase 7F: Real Scholarly Persian Coverage Corpus & Evaluation', () => 
     });
   });
 
-  describe('8. Production Governance Invariants', () => {
+  describe('9. Production Governance & Engine Immutability Invariants', () => {
     it('verifies production fallback pack remains strictly untouched', () => {
       const prodPackPath = path.resolve(
         process.cwd(),
@@ -564,6 +824,11 @@ describe('Phase 7F: Real Scholarly Persian Coverage Corpus & Evaluation', () => 
 
     it('verifies DEFAULT_LEXICON_REPOSITORY is unchanged and valid', () => {
       expect(() => DEFAULT_LEXICON_REPOSITORY.assertValid()).not.toThrow();
+    });
+
+    it('exports defined engine and evaluator versions', () => {
+      expect(EVALUATOR_VERSION).toBe('1.0.0');
+      expect(DIAGNOSTIC_INDEX_VERSION).toBe('1.2.0');
     });
   });
 });
