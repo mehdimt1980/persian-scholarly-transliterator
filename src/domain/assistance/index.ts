@@ -8,3 +8,4 @@ export * from './buildPhraseResolverRequest';
 export * from './phraseIdentity';
 export * from './validatePhraseResolution';
 export * from './phraseDecision';
+export * from './presentation';

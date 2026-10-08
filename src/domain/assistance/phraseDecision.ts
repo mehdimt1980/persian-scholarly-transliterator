@@ -18,8 +18,8 @@ export function createAcceptedPhraseDecision(
   renderedOutput?: string,
   acceptedAt: string = new Date().toISOString()
 ): AcceptedPhraseDecision {
-  if (resolution.disposition !== 'PROPOSED' || !resolution.scholarlyCanonical) {
-    throw new Error('Only a complete PROPOSED phrase resolution can be accepted.');
+  if (!resolution.scholarlyCanonical) {
+    throw new Error('Only a phrase resolution with a valid scholarly canonical transliteration can be accepted.');
   }
 
   const canonicalValidation = validateManualTransliteration(scholarlyCanonical);

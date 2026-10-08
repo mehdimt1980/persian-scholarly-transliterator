@@ -34,6 +34,10 @@
   --status-override-bg: #f0f4f8;
   --status-override-border: #bfdbfe;
 
+  --status-draft-text: #4338ca;
+  --status-draft-bg: #eef2ff;
+  --status-draft-border: #c7d2fe;
+
   --status-neutral-text: #4b5563;
   --status-neutral-bg: #f9fafb;
   --status-neutral-border: #e5e7eb;
@@ -326,6 +330,12 @@ summary:focus-visible {
   background: var(--status-override-bg);
   color: var(--status-override-text);
   border: 1px solid var(--status-override-border);
+}
+
+.badge.status-draft {
+  background: var(--status-draft-bg);
+  color: var(--status-draft-text);
+  border: 1px solid var(--status-draft-border);
 }
 
 .badge.status-neutral {

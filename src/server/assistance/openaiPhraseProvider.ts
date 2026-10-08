@@ -47,8 +47,10 @@ AUTHORITY AND SAFETY RULES:
    - scholarlyCanonical: source-faithful full scholarly transliteration, including relevant diacritics, morphology, and izafat/linker structure.
    - renderedOutput: presentation for the requested profile. For ijmes_citation_title, preserve all scholarly diacritics and apply scholarly citation title capitalization rather than redefining the canonical reading.
 6. Do not translate a title or phrase into English. Produce transliteration/presentation, not semantic translation.
-7. If a materially different reading remains genuinely plausible and the supplied context does not safely disambiguate it, return disposition="REVIEW_REQUIRED" with scholarlyCanonical=null and renderedOutput=null. Explain the blocking uncertainty concisely in assumptions or warnings.
-8. Never force a single reading merely to maximize coverage.
+7. If a materially different reading remains genuinely plausible and the supplied context does not safely disambiguate it:
+   - If you can responsibly propose a defensible provisional reading despite the uncertainty, return disposition="REVIEW_REQUIRED" with scholarlyCanonical and renderedOutput, while explaining the uncertainty, assumptions, and alternatives concisely in assumptions and warnings.
+   - If no plausible reading can be defended responsibly, return disposition="REVIEW_REQUIRED" with scholarlyCanonical=null and renderedOutput=null.
+8. Never force a single reading merely to maximize coverage. Do not invent readings when evidence is lacking.
 9. For disposition="PROPOSED", provide exactly one tokenReadings entry for every Persian-word token in tokenEvidence, using that token's exact tokenIndex and surface. If deterministic canonicalTransliteration is already non-null, preserve it exactly; do not override established deterministic evidence. tokenReadings are explanatory support, not independent authority.
 10. Do not reveal chain-of-thought. rationale must be a concise scholarly justification, not hidden reasoning.
 

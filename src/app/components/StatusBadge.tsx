@@ -3,13 +3,21 @@ import { formatStatusLabel, getStatusClass } from './StatusHelpers';
 
 interface StatusBadgeProps {
   status: string;
+  label?: string;
+  tone?: 'ready' | 'draft' | 'review' | 'blocked' | 'override';
   className?: string;
   showRawTooltip?: boolean;
 }
 
-export default function StatusBadge({ status, className = '', showRawTooltip = true }: StatusBadgeProps) {
-  const label = formatStatusLabel(status);
-  const statusClass = getStatusClass(status);
+export default function StatusBadge({
+  status,
+  label: customLabel,
+  tone,
+  className = '',
+  showRawTooltip = true
+}: StatusBadgeProps) {
+  const label = customLabel ?? formatStatusLabel(status);
+  const statusClass = tone ? `status-${tone}` : getStatusClass(status);
 
   return (
     <span
