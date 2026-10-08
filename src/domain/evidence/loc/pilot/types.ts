@@ -20,7 +20,11 @@ export type TitleMatchClassification =
   | 'NO_CONFIRMED_MATCH'
   | 'AMBIGUOUS_RECORD_MATCH';
 
-export type SchemeVerificationStatus =
+export type LocPilotExecutionMode = 'FIXTURE_VALIDATION' | 'LIVE_BOUNDED_PILOT';
+
+export type CatalogingConvention = 'RDA' | 'AACR2' | 'OTHER' | 'UNKNOWN';
+
+export type RomanizationSchemeStatus =
   | 'SOURCE_EXPLICIT'
   | 'UNVERIFIED_INFERRED'
   | 'UNKNOWN';
@@ -40,7 +44,7 @@ export interface LocPilotTitleCase {
 export interface LocPilotQueryOutcome {
   pilotCase: LocPilotTitleCase;
   queryAttempted: string;
-  retrievalStatus: 'SUCCESS' | 'NO_RECORDS_FOUND' | 'HTTP_ERROR' | 'OFFLINE_SIMULATED';
+  retrievalStatus: 'SUCCESS' | 'NO_RECORDS_FOUND' | 'HTTP_ERROR' | 'FIXTURE_EVALUATED';
   recordsRetrievedCount: number;
   persianLanguageRecordsCount: number;
   recordsWithField880Count: number;
@@ -59,7 +63,8 @@ export interface LocMatchedRecordDetail {
   latinObserved: string;
   entityType: LexicalEntityType;
   observedScheme: RomanizationScheme;
-  schemeVerificationStatus: SchemeVerificationStatus;
+  catalogingConvention: CatalogingConvention;
+  romanizationSchemeStatus: RomanizationSchemeStatus;
   isExactTitleMatch: boolean;
   isPartialTitleMatch: boolean;
   isPersonalNameMatch: boolean;
@@ -67,21 +72,23 @@ export interface LocMatchedRecordDetail {
 }
 
 export interface LocPilotAggregateMetrics {
+  executionMode: LocPilotExecutionMode;
   pilotTitlesSelected: number;
-  queriesAttempted: number;
-  successfulResponses: number;
-  recordsRetrieved: number;
+  liveRequestsAttempted: number;
+  liveResponsesSucceeded: number;
+  uniqueFixtureRecords: number;
+  uniqueLiveRecords: number;
   persianLanguageRecords: number;
   recordsContainingField880: number;
-  valid880Linkages: number;
-  ambiguousOrInvalidLinkages: number;
-  recordsWithUsableTitlePairs: number;
-  recordsWithUsablePersonalNamePairs: number;
-  exactTitleMatches: number;
-  partialTitleMatches: number;
+  validLinked880Pairs: number;
+  rejectedOrAmbiguousLinkages: number;
+  eligiblePersianLatinTitlePairs: number;
+  eligiblePersianLatinPersonPairs: number;
+  exactMatchedPilotTitles: number;
+  partialMatchedPilotTitles: number;
+  unmatchedPilotTitles: number;
   sourceSchemeUnverifiedCases: number;
-  structurallyValidNonComparableRecords: number;
-  genuinelyNovelEvidenceObservations: number;
+  realWorldSearchYield: 'NOT_MEASURED' | 'MEASURED';
   lexicalTransliterationCoverageDelta: 'UNDETERMINED';
 }
 
@@ -89,6 +96,7 @@ export interface LocPilotReport {
   reportVersion: string;
   generatedAt: string;
   pilotVersion: string;
+  selectionDataVersion: string;
   pilotSelectionSha256: string;
   corpusManifestSha256: string;
   pilotCasesCount: number;

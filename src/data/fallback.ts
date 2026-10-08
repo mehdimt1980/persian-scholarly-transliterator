@@ -4,7 +4,9 @@ import type { EvidenceFallbackPack } from '../domain/evidence/kaikki/fallback/ty
 
 export const EMPTY_EVIDENCE_FALLBACK_REPOSITORY = new EvidenceFallbackRepository();
 
+export const DEFAULT_EVIDENCE_FALLBACK_PACK = rawPack as unknown as EvidenceFallbackPack;
+
 export const DEFAULT_EVIDENCE_FALLBACK_REPOSITORY = new EvidenceFallbackRepository(
-  rawPack as unknown as EvidenceFallbackPack
+  DEFAULT_EVIDENCE_FALLBACK_PACK
 );
 

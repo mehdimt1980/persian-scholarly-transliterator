@@ -164,6 +164,18 @@ function resolveToken(
       };
     }
 
+    if (analysis.explicitVowels.length) {
+      return {
+        result: unresolvedToken(
+          token,
+          analysis,
+          'Explicit source vowel cannot be validated because no reviewed lexical vocalization metadata exists.',
+          [],
+          'INSUFFICIENT_VOCALIZATION'
+        )
+      };
+    }
+
     const fallback = resolveEvidenceFallback(token, analysis, fallbackRepository, profile);
     if (fallback) {
       return { result: fallback };
@@ -395,7 +407,8 @@ export function transliterate(
       // 2. If morphology is present, classify its strength
       if (morph) {
         const hasUnsupportedOrthography = analysis.unsupportedCombiningMarks.length > 0;
-        const strength = classifyMorphologyStrength(morph, hasUnsupportedOrthography);
+        const hasExplicitVowels = analysis.explicitVowels.length > 0;
+        const strength = classifyMorphologyStrength(morph, hasUnsupportedOrthography, hasExplicitVowels);
 
         if (strength === 'CONFIRMED_REVIEWED') {
           // Confirmed authoritative reviewed morphology takes precedence
@@ -420,6 +433,17 @@ export function transliterate(
             const combinedAlternatives = Array.from(
               new Set([fallback.rendered, ...morphResult.alternatives])
             );
+            const proposal = fallback.automatic?.evidenceDerivedProposal;
+            const updatedAutomatic: AutomaticTokenSnapshot = {
+              ...morphResult.automatic,
+              status: 'UNRESOLVED',
+              canonicalTransliteration: null,
+              blockingReason: 'WHOLE_WORD_FALLBACK_MORPHOLOGY_COMPETITION',
+              evidenceDerivedProposal: proposal,
+              warnings: [...combinedWarnings],
+              alternatives: [...combinedAlternatives]
+            };
+
             return {
               result: {
                 ...morphResult,
@@ -430,7 +454,8 @@ export function transliterate(
                 warnings: combinedWarnings,
                 alternatives: combinedAlternatives,
                 blockingReason: 'WHOLE_WORD_FALLBACK_MORPHOLOGY_COMPETITION' as const,
-                evidenceDerivedProposal: fallback.automatic?.evidenceDerivedProposal
+                evidenceDerivedProposal: proposal,
+                automatic: updatedAutomatic
               },
               entry: morph.stemEntry
             };
@@ -438,17 +463,28 @@ export function transliterate(
           return resolveMorphologicalToken(token, morph);
         }
 
-        // 3. Candidate shape only (e.g. استان, دانش, تغییرات, بارش, پذیرش, کرمان, گلستان)
-        // Stem has no reviewed entry in lexicon.
-        // Evaluate unresolved candidate morphology against exact whole-word fallback evidence:
-        const fallback = resolveEvidenceFallback(token, analysis, effectiveFallback, profile);
-        if (fallback) {
-          // Safely surface the whole-word evidence-derived proposal
-          return { result: fallback };
+        if (strength === 'CANDIDATE_SHAPE_ONLY') {
+          // Stem has no reviewed entry in lexicon.
+          // Fallback must not bypass explicit written vowels or unsupported combining marks
+          if (hasExplicitVowels || hasUnsupportedOrthography) {
+            return resolveMorphologicalToken(token, morph);
+          }
+
+          // Evaluate unresolved candidate morphology against exact whole-word fallback evidence:
+          const fallback = resolveEvidenceFallback(token, analysis, effectiveFallback, profile);
+          if (fallback) {
+            // Safely surface the whole-word evidence-derived proposal
+            return { result: fallback };
+          }
+
+          // No whole-word fallback exists -> fallback to candidate morphology unresolved result
+          return resolveMorphologicalToken(token, morph);
         }
 
-        // No whole-word fallback exists -> fallback to candidate morphology unresolved result
-        return resolveMorphologicalToken(token, morph);
+        if (strength === 'UNSUPPORTED_OR_AMBIGUOUS') {
+          // Materially ambiguous or conflicting morphology fails closed
+          return resolveMorphologicalToken(token, morph);
+        }
       }
 
       // No morphology present -> standard token resolution

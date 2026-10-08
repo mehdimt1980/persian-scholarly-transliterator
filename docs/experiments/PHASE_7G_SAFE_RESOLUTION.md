@@ -1,7 +1,7 @@
 # Phase 7G: Safe Whole-Word Evidence Resolution Evaluation
 
 **Corpus Version:** `phase7f-openalex-persian-titles-v1`  
-**Generated At:** `2026-10-08T14:21:16.414Z`  
+**Generated At:** `2026-10-08T14:33:29.286Z`  
 **Evaluator Version:** `1.0.0`  
 **Routing Policy Version:** `v1.0.0`  
 **Frozen Corpus SHA-256:** `28d91c460585ac028e987b01f4ea274f6bd991ad3a2ea79a16f8080fae9b5d5a`  
@@ -25,9 +25,9 @@ Under Phase 7G, an explicit **Resolution Precedence Contract** evaluates candida
 | Metric | REVIEWED_ONLY | CURRENT_PRODUCTION | PHASE7E_EXPERIMENTAL | PHASE7G_SAFE_ROUTING | Δ (7G vs 7E) | Total Δ vs Prod |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
 | **Authoritative Token Coverage** | 11.23% | 11.23% | 11.23% | 11.23% | +0.00% | +0.00% (Strict Invariant) |
-| **Display Token Coverage** | 11.23% | 11.30% | 15.97% | 17.40% | **+1.43%** | **+6.10%** |
-| **Unique-Form Display Coverage** | 0.43% | 0.46% | 3.20% | 3.86% | **+0.66%** | **+3.40%** |
-| **Displayable Tokens Count** | 8,339 | 8,390 | 11,856 | 12,920 | **+1,064** | **+4,530** |
+| **Display Token Coverage** | 11.23% | 11.30% | 16.04% | 17.47% | **+1.43%** | **+6.17%** |
+| **Unique-Form Display Coverage** | 0.43% | 0.46% | 3.23% | 3.89% | **+0.66%** | **+3.43%** |
+| **Displayable Tokens Count** | 8,339 | 8,390 | 11,907 | 12,971 | **+1,064** | **+4,581** |
 | **Fully Displayable Title Rate** | 0.00% | 0.00% | 0.00% | 0.00% | **+0.00%** | **+0.00%** |
 | **Fully Displayable Titles Count** | 0 | 0 | 0 | 0 | **+0** | **+0** |
 | **Fully Authoritative Title Rate** | 0.00% | 0.00% | 0.00% | 0.00% | +0.00% | +0.00% |
@@ -41,15 +41,15 @@ To verify generalization without leakage, performance is tracked across partitio
 
 ### DIAGNOSTIC Partition (4,000 Titles, 59,380 Tokens)
 - **Production Display Coverage:** 11.26% (6,698 tokens)
-- **Phase 7E Display Coverage:** 15.92% (9,471 tokens)
-- **Phase 7G Safe Routing Coverage:** 17.32% (10,305 tokens)
+- **Phase 7E Display Coverage:** 15.99% (9,513 tokens)
+- **Phase 7G Safe Routing Coverage:** 17.39% (10,347 tokens)
 - **DIAGNOSTIC Incremental Gain:** **+1.40 percentage points** (+834 tokens)
 - **Fully Displayable Titles:** 0 titles (vs 0 in 7E)
 
 ### LOCKED_HOLDOUT Partition (1,000 Titles, 14,867 Tokens - Aggregate Only)
 - **Production Display Coverage:** 11.46% (1,692 tokens)
-- **Phase 7E Display Coverage:** 16.16% (2,385 tokens)
-- **Phase 7G Safe Routing Coverage:** 17.71% (2,615 tokens)
+- **Phase 7E Display Coverage:** 16.22% (2,394 tokens)
+- **Phase 7G Safe Routing Coverage:** 17.77% (2,624 tokens)
 - **LOCKED_HOLDOUT Incremental Gain:** **+1.56 percentage points** (+230 tokens)
 - **Fully Displayable Titles:** 0 titles (vs 0 in 7E)
 
@@ -81,7 +81,7 @@ The 834 tokens in the DIAGNOSTIC partition that were intercepted by candidate mo
 | Regression Check | Result | Safety Assessment |
 | :--- | :---: | :--- |
 | **Newly Displayable Tokens** | +1,064 | Expected: Recovered from candidate morphology intercept |
-| **Unchanged Displayable Tokens** | 11,856 | Stable: Existing proposals preserved |
+| **Unchanged Displayable Tokens** | 11,907 | Stable: Existing proposals preserved |
 | **Lost Displayability Tokens** | 0 | Pass: Zero silent loss of displayability |
 | **New Ambiguity Tokens** | 0 | Pass: Explicit competition flags preserved |
 | **New Authoritative Results** | **0** | **STRICT PASS: Zero unreviewed fallback promoted to authority** |

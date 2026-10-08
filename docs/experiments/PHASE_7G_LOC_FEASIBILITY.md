@@ -1,8 +1,9 @@
 # Phase 7G Track B: Library of Congress Bibliographic Evidence Feasibility Pilot
 
-**Pilot Version:** `1.0.0`  
-**Generated At:** `2026-10-08T14:18:30.402Z`  
-**Selection Version:** `v1.0.0`  
+**Pilot Version:** `1.1.0`  
+**Generated At:** `2026-10-08T14:32:23.475Z`  
+**Execution Mode:** `FIXTURE_VALIDATION`  
+**Selection Version:** `phase7g-diagnostic-runtime-v1.1.0`  
 **Pilot Selection SHA-256:** `40cb8fc7ce2307f5cf06a0b3f4069fe9be2fcb3c92f1c69e92cb19257737886b`  
 **Corpus Manifest SHA-256:** `28d91c460585ac028e987b01f4ea274f6bd991ad3a2ea79a16f8080fae9b5d5a`  
 
@@ -17,37 +18,42 @@ Phase 7G Track B determines whether the existing Library of Congress (LoC) bibli
    WorldCat and LoC catalog records attest monographic titles, author names, publishers, and corporate bodies. They do **not** provide independently verified romanization for every constituent word within a title.
 2. **No Automatic Multiword Dictionary Extraction:**  
    A multiword Latin title cannot be naively tokenized to create word-level dictionary entries. Token alignment without contextual morphological grounding introduces severe lexical distortion.
-3. **Cataloging Scheme Distinction (ALA-LC vs IJMES):**  
-   ALA-LC cataloging conventions are distinct from IJMES scholarly transliteration. Catalog provenance does not confer authoritative transliteration status.
+3. **Cataloging Scheme vs Convention Distinction (ALA-LC vs RDA vs IJMES):**  
+   MARC 040$e denotes cataloging description conventions (e.g., RDA, AACR2), not ALA-LC romanization scheme confirmation. Catalog provenance does not confer authoritative transliteration status.
 
 ---
 
 ## 2. Pilot Selection Frame (DIAGNOSTIC Split Only)
 
 - **Total Diagnostic Cases Available:** 4,000 titles
-- **Eligible Unresolved Cases:** Titles with unresolved lexical misses after Phase 7E
+- **Eligible Unresolved Cases:** Titles with unresolved Persian lexical tokens at runtime (`status === 'UNRESOLVED'`)
 - **Sampling Method:** Deterministic SHA-256 hash ranking (`sha256-ranked-v1`)
 - **Sample Size:** **100 titles**
 - **Holdout Partition Protection:** **LOCKED_HOLDOUT partition was strictly untouched (zero leakage).**
 
 ---
 
-## 3. Quantitative Pilot Findings & Extraction Yield
+## 3. Quantitative Pilot Findings & Linkage Validation
 
 | Extraction & Linkage Metric | Pilot Yield | Interpretation |
 | :--- | :---: | :--- |
+| **Execution Mode** | **`FIXTURE_VALIDATION`** | Fixture-based structural validation (Offline CI) |
 | **Pilot Titles Selected** | **100** | Bounded, reproducible DIAGNOSTIC sample |
-| **Queries Attempted** | 100 | Deterministic query generation |
-| **Successful Query Handling** | 100 | Fully evaluated against MARC 21 parser |
+| **Live Remote Requests Attempted** | 0 | Zero live requests in fixture validation mode |
+| **Live Remote Responses Succeeded** | 0 | Zero live responses in fixture validation mode |
+| **Unique Fixture Records Loaded** | 13 | Committed XML fixtures across catalog sample |
+| **Unique Live Records Retrieved** | 0 | Offline execution (live network optional) |
 | **Persian-Language Records Verified** | 10 | Verified via 008, 041, 546 language markers |
 | **Records Containing MARC Field 880** | 13 | Alternate graphic representation present |
-| **Valid MARC 880 Linkages ($6 MATCHED)** | 29 | Robust bi-directional pairing |
+| **Valid MARC 880 Linkages ($6 MATCHED)** | 29 | Robust bi-directional pairing across fixture records |
 | **Rejected / Ambiguous Linkages** | 3 | Correctly rejected by linkage validator |
-| **Usable Persian/Latin Title Pairs** | 6 | Monographic titles (MARC 245$a, 245$b, 246$a) |
-| **Usable Personal Name Pairs** | 4 | Author/Editor names (MARC 100$a, 700$a) |
-| **Exact Title Matches to Scholarly Titles** | **0** | **Zero exact title matches to journal articles** |
-| **Partial Title Matches** | 0 | Coincidental sub-phrase overlap only |
+| **Eligible Persian/Latin Title Pairs** | 6 | Monographic titles (MARC 245$a, 245$b, 246$a) |
+| **Eligible Personal Name Pairs** | 4 | Author/Editor names (MARC 100$a, 700$a) |
+| **Exact Matched Pilot Titles** | **0** | **Zero exact title matches to journal articles** |
+| **Partial Matched Pilot Titles** | 0 | Coincidental sub-phrase overlap only |
+| **Unmatched Pilot Titles** | 100 | Unmatched against monographic catalog records |
 | **Source Scheme Status** | Inferred | `UNVERIFIED_INFERRED` (ALA-LC cataloging basis) |
+| **Real-World Search Yield** | **NOT_MEASURED** | Structural validation, not empirical search yield |
 | **Lexical Coverage Delta** | **UNDETERMINED** | **Cannot calculate lexical delta without word alignment** |
 
 ---

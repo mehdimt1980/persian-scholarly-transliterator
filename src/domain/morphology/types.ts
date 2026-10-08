@@ -74,17 +74,20 @@ export type MorphologyResolutionStrength =
 
 export function classifyMorphologyStrength(
   morphology?: MorphologicalAnalysis,
-  hasUnsupportedOrthography?: boolean
+  hasUnsupportedOrthography?: boolean,
+  hasExplicitVowels?: boolean
 ): MorphologyResolutionStrength {
   if (!morphology) {
     return 'CANDIDATE_SHAPE_ONLY';
   }
   if (
     hasUnsupportedOrthography ||
+    hasExplicitVowels ||
     morphology.warnings.some(
       (w) =>
         w.includes('Unsupported combining-mark') ||
-        w.includes('conflicts with every reviewed')
+        w.includes('conflicts with every reviewed') ||
+        w.includes('Explicit source vowel')
     )
   ) {
     return 'BLOCKED_BY_EXPLICIT_EVIDENCE';
@@ -99,6 +102,7 @@ export function classifyMorphologyStrength(
     return 'COMPETING_REVIEWED';
   }
   if (
+    morphology.status === 'CONFLICT' ||
     morphology.warnings.some(
       (w) =>
         w.includes('allomorphs require review') ||

@@ -11,12 +11,17 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import { DEFAULT_LEXICON_REPOSITORY } from '../../../../data/lexicon';
+import { DEFAULT_EVIDENCE_FALLBACK_PACK } from '../../../../data/fallback';
+import { transliterate } from '../../../engine';
+import { buildEvaluationFallbackUnion } from '../../../coverage/fallbackUnion';
+import { EvidenceFallbackRepository } from '../../kaikki/fallback/repository';
 import type { CoverageCorpusFile, CoverageCorpusCase } from '../../../coverage/types';
 import type { EvidenceFallbackPack } from '../../kaikki/fallback/types';
 import type { LocPilotTitleCase } from './types';
 import { normalizePersian } from '../../../normalization';
 
-export const LOC_PILOT_SELECTION_VERSION = '1.0.0';
+export const LOC_PILOT_SELECTION_VERSION = '1.1.0';
 export const LOC_PILOT_TARGET_COUNT = 100;
 const SELECTION_SALT = 'phase7g-loc-diagnostic-pilot-v1';
 
@@ -50,16 +55,17 @@ export function selectLocPilotTitles(
     fs.readFileSync(defaultCorpusPath, 'utf8')
   ) as CoverageCorpusFile;
 
-  let phase7EEntries: Record<string, unknown> = {};
+  let fallbackRepo = new EvidenceFallbackRepository(DEFAULT_EVIDENCE_FALLBACK_PACK);
   if (fs.existsSync(defaultPhase7EPath)) {
     const pack = JSON.parse(fs.readFileSync(defaultPhase7EPath, 'utf8')) as EvidenceFallbackPack;
-    phase7EEntries = pack.entries || {};
+    const union = buildEvaluationFallbackUnion(DEFAULT_EVIDENCE_FALLBACK_PACK, pack);
+    fallbackRepo = union.repository;
   }
 
   // 1. Filter strictly for DIAGNOSTIC cases
   const diagnosticCases = rawCorpus.cases.filter((c: CoverageCorpusCase) => c.split === 'DIAGNOSTIC');
 
-  // 2. Identify cases that contain unresolved lexical forms
+  // 2. Identify cases that contain genuine unresolved lexical tokens at runtime
   const candidateCases: Array<{
     caseId: string;
     sourceId: string;
@@ -73,17 +79,24 @@ export function selectLocPilotTitles(
 
   for (const c of diagnosticCases) {
     const normalized = normalizePersian(c.rawText).normalizedInput;
-    const tokens = normalized.split(/\s+/).filter(Boolean);
-    const unresolvedMisses: string[] = [];
+    const result = transliterate(
+      c.rawText,
+      'ijmes_citation_title',
+      [],
+      DEFAULT_LEXICON_REPOSITORY,
+      fallbackRepo
+    );
 
-    for (const t of tokens) {
-      // If token is not in Phase 7E pack, it was unresolved
-      if (!phase7EEntries[t]) {
-        unresolvedMisses.push(t);
-      }
-    }
+    // Find actual unresolved Persian lexical tokens
+    const unresolvedTokens = result.tokens.filter(
+      (token) => token.tokenType === 'persian-word' && token.status === 'UNRESOLVED'
+    );
 
-    if (unresolvedMisses.length > 0) {
+    if (unresolvedTokens.length > 0) {
+      const unresolvedMisses = Array.from(
+        new Set(unresolvedTokens.map((t) => t.normalizedSurface))
+      );
+
       const hash = crypto
         .createHash('sha256')
         .update(`${SELECTION_SALT}:${c.id}:${c.sourceId}`)
@@ -96,7 +109,7 @@ export function selectLocPilotTitles(
         normalizedTitle: normalized,
         workType: String(c.metadata?.workType ?? 'article'),
         publicationYear: c.metadata?.publicationYear,
-        unresolvedLexicalMisses: Array.from(new Set(unresolvedMisses)),
+        unresolvedLexicalMisses: unresolvedMisses,
         selectionHash: hash
       });
     }
