@@ -32,7 +32,10 @@
     "experiment:kaikki-scale": "tsx src/domain/evidence/kaikki/scale/cli.ts",
     "validate:kaikki-scale-pack": "tsx src/domain/evidence/kaikki/scale/validatorCli.ts",
     "audit:profile-metadata": "tsx src/domain/evidence/kaikki/profile/metadataAuditCli.ts",
-    "experiment:profile-recovery": "tsx src/domain/evidence/kaikki/profile/cli.ts"
+    "experiment:profile-recovery": "tsx src/domain/evidence/kaikki/profile/cli.ts",
+    "acquire:phase7f-openalex": "tsx src/domain/coverage/openalex/cli.ts",
+    "validate:phase7f-freeze": "tsx src/validation/coverage/freezeValidatorCli.ts",
+    "evaluate:phase7f-coverage": "tsx src/domain/coverage/cli.ts"
   },
   "dependencies": {
     "next": "16.3.8",

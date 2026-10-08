@@ -60,6 +60,9 @@ jobs:
       - name: Validate existing validation corpus
         run: npm run validate:corpus
 
+      - name: Validate Phase 7F frozen coverage corpus
+        run: npm run validate:phase7f-freeze
+
       - name: Typecheck
         run: npm run typecheck
 

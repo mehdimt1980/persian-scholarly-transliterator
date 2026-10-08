@@ -1,0 +1,19 @@
+{
+  "source": "OpenAlex",
+  "retrievedAt": "2026-10-08T13:04:52.883Z",
+  "queryFilter": "filter=language:fa",
+  "selectedFields": [
+    "id",
+    "title",
+    "language",
+    "type",
+    "publication_year",
+    "doi",
+    "updated_date"
+  ],
+  "recordsScanned": 8411,
+  "eligiblePersianPoolCount": 6000,
+  "selectedCorpusCount": 5000,
+  "openAlexLicense": "CC0-1.0",
+  "builderVersion": "1.0.0"
+}
