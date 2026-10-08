@@ -16,7 +16,12 @@
  */
 
 import type { ResultStatus, TransliterationResult } from '../types';
-import { checkAcceptedPhraseApplicability, computePhraseRequestFingerprint } from './phraseIdentity';
+import { renderCanonicalForProfile } from '../profiles';
+import {
+  checkAcceptedPhraseApplicability,
+  computePhraseReadingFingerprintV2,
+  computePhraseRequestFingerprint
+} from './phraseIdentity';
 import { buildPhraseResolverRequest } from './buildPhraseResolverRequest';
 import type { AcceptedPhraseDecision, PhraseResolution } from './phraseTypes';
 
@@ -140,19 +145,21 @@ export function resolveUnifiedOutput(
   // 3. Current validated AI draft (matching current request fingerprint)
   if (aiDraft && aiDraft.scholarlyCanonical && aiDraft.renderedOutput) {
     const currentRequest = buildPhraseResolverRequest(result, aiDraft.promptVersion);
-    const expectedFingerprint = computePhraseRequestFingerprint(
-      currentRequest,
-      aiDraft.provider,
-      aiDraft.model
-    );
+    const expectedFingerprint = aiDraft.readingIdentityVersion === '2'
+      ? computePhraseReadingFingerprintV2(currentRequest, aiDraft.provider, aiDraft.model)
+      : computePhraseRequestFingerprint(currentRequest, aiDraft.provider, aiDraft.model);
+    const storedFingerprint = aiDraft.readingIdentityVersion === '2'
+      ? aiDraft.readingFingerprint
+      : aiDraft.requestFingerprint;
+    const currentRenderedOutput = renderCanonicalForProfile(aiDraft.scholarlyCanonical, result.profile);
 
-    if (aiDraft.requestFingerprint === expectedFingerprint) {
+    if (storedFingerprint === expectedFingerprint) {
       if (aiDraft.disposition === 'PROPOSED') {
         return {
           presentation: 'AI_DRAFT',
-          primary: aiDraft.renderedOutput,
+          primary: currentRenderedOutput,
           scholarlyCanonical: aiDraft.scholarlyCanonical,
-          profileRendering: aiDraft.renderedOutput,
+          profileRendering: currentRenderedOutput,
           isDraft: true,
           isCopyableDraft: true,
           isVerifiedCopyable: false,
@@ -171,9 +178,9 @@ export function resolveUnifiedOutput(
       if (aiDraft.disposition === 'REVIEW_REQUIRED') {
         return {
           presentation: 'AI_DRAFT_NEEDS_REVIEW',
-          primary: aiDraft.renderedOutput,
+          primary: currentRenderedOutput,
           scholarlyCanonical: aiDraft.scholarlyCanonical,
-          profileRendering: aiDraft.renderedOutput,
+          profileRendering: currentRenderedOutput,
           isDraft: true,
           isCopyableDraft: true,
           isVerifiedCopyable: false,

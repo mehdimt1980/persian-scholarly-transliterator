@@ -4,6 +4,7 @@ import { validateManualTransliteration } from '../review/validation';
 import { buildPhraseResolverRequest } from './buildPhraseResolverRequest';
 import {
   checkAcceptedPhraseApplicability,
+  computePhraseReadingFingerprintV2,
   computePhraseRequestFingerprint
 } from './phraseIdentity';
 import type {
@@ -59,6 +60,12 @@ export function createAcceptedPhraseDecision(
     model: resolution.model,
     promptVersion: resolution.promptVersion,
     requestFingerprint: resolution.requestFingerprint,
+    readingFingerprint: resolution.readingFingerprint ?? computePhraseReadingFingerprintV2(
+      currentRequest,
+      resolution.provider,
+      resolution.model
+    ),
+    readingIdentityVersion: '2',
     modelConfidence: resolution.confidence,
     acceptedAt
   };

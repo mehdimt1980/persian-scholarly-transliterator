@@ -61,6 +61,8 @@ export function toPersistedAcceptedPhraseDecision(
     model,
     promptVersion,
     requestFingerprint,
+    readingFingerprint,
+    readingIdentityVersion,
     modelConfidence,
     acceptedAt
   } = decision;
@@ -76,6 +78,9 @@ export function toPersistedAcceptedPhraseDecision(
     model,
     promptVersion,
     requestFingerprint,
+    ...(readingFingerprint && readingIdentityVersion === '2'
+      ? { readingFingerprint, readingIdentityVersion }
+      : {}),
     modelConfidence: typeof modelConfidence === 'number' && Number.isFinite(modelConfidence) ? modelConfidence : null,
     acceptedAt
   };
@@ -219,6 +224,19 @@ function validatePersistedAcceptedPhraseDecision(
   if (typeof data.promptVersion !== 'string' || data.promptVersion.trim().length === 0) return null;
   if (typeof data.requestFingerprint !== 'string' || data.requestFingerprint.trim().length === 0) return null;
 
+  let readingIdentity: Pick<PersistedAcceptedPhraseDecisionV1, 'readingFingerprint' | 'readingIdentityVersion'> = {};
+  if (data.readingFingerprint !== undefined || data.readingIdentityVersion !== undefined) {
+    if (
+      typeof data.readingFingerprint !== 'string' ||
+      data.readingFingerprint.trim().length === 0 ||
+      data.readingIdentityVersion !== '2'
+    ) return null;
+    readingIdentity = {
+      readingFingerprint: data.readingFingerprint,
+      readingIdentityVersion: '2'
+    };
+  }
+
   if (!('modelConfidence' in data)) {
     return null;
   }
@@ -252,6 +270,7 @@ function validatePersistedAcceptedPhraseDecision(
     model: data.model,
     promptVersion: data.promptVersion,
     requestFingerprint: data.requestFingerprint,
+    ...readingIdentity,
     modelConfidence,
     acceptedAt: data.acceptedAt
   };

@@ -12,7 +12,7 @@ import {
   buildPhraseResolverRequest,
   checkAcceptedPhraseApplicability,
   computeEditedCanonical,
-  computePhraseRequestFingerprint,
+  computePhraseReadingFingerprintV2,
   createAcceptedPhraseDecision,
   resolveUnifiedOutput,
   tokenEditorReducer
@@ -107,9 +107,9 @@ export function useUnifiedTransliteration({
     [result]
   );
 
-  // Client-side dedupe/cache identity. Distinct from the server's acceptance fingerprint.
+  // Client-side V2 reading identity excludes rendering-only profile/output fields.
   const cacheId = useMemo(
-    () => computePhraseRequestFingerprint(buildPhraseResolverRequest(result), 'client-draft-cache', 'v1'),
+    () => computePhraseReadingFingerprintV2(buildPhraseResolverRequest(result), 'client-draft-cache', 'v2'),
     [result]
   );
 

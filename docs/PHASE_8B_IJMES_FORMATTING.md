@@ -1,6 +1,6 @@
 # Phase 8B: IJMES publication-format alignment
 
-Phase 8A deliberately keeps the existing `ijmes_citation_title` profile stable. The profile is a project-specific, fully diacritized citation-title view; it is not presently an IJMES publication-ready title renderer.
+Phase 8A deliberately kept the existing `ijmes_citation_title` profile stable. It remains a project-specific, fully diacritized citation-title view. Phase 8B adds the separate `ijmes_publication_v1` presentation policy; it does not redefine the legacy profile.
 
 ## Diagnostic fixture
 
@@ -8,11 +8,11 @@ Persian input: `صدای پای باران در کوچه های تهران`
 
 Observed Phase 8A draft: `Ṣadā-yi Pā-yi Bārān Dar Kūchehā-yi Tihrān`
 
-The following differences require a broader policy decision and are deferred rather than silently changing frozen scholarly behavior in PR #52:
+The following differences motivated the additive Phase 8B policy rather than a change to frozen scholarly behavior in PR #52:
 
-1. **Persian short vowels.** The current IJMES Translation and Transliteration Guide says Persian uses `i` and `u`, not modern Iranian `e` and `o`. Phase 8B must validate AI proposals and reviewed lexical forms against that rule without guessing unwritten vowels.
-2. **English title capitalization.** IJMES says articles, prefixes, coordinating conjunctions, and prepositions remain lowercase in transliterated titles. For this fixture, medial `dar` should therefore render lowercase in an IJMES-compliant title profile.
-3. **Publication-title diacritics.** IJMES publication titles omit diacritical marks while retaining ʿayn and non-initial hamza. The current `ijmes_citation_title` profile intentionally preserves full diacritics; Phase 8B should add or select a distinct publication renderer instead of redefining this profile silently.
+1. **Persian short vowels.** The current IJMES Translation and Transliteration Guide says Persian uses `i` and `u`, not modern Iranian `e` and `o`. Phase 8B reports conservative, token-level `e/o` diagnostics without guessing or rewriting unwritten vowels.
+2. **English title capitalization.** The new publication renderer keeps its bounded minor words, including medial `dar`, lowercase and handles documented article/prefix structures.
+3. **Publication-title diacritics.** `ijmes_publication_v1` removes ordinary letter diacritics while retaining ʿayn and hamza code points. `ijmes_citation_title` continues to preserve full diacritics.
 
 ## Explicit expected outcomes for Phase 8B
 

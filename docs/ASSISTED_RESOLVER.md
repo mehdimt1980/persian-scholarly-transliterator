@@ -189,9 +189,9 @@ An accepted phrase decision is currently session-scoped. It does **not** write t
 
 Both assisted surfaces are fingerprint-bound to deterministic input state.
 
-For phrase assistance, the fingerprint covers the source text, profile/context, deterministic status/output, token evidence, current review issues, morphology, relations, prompt version, provider, and model.
+Legacy phrase decisions retain the original fingerprint, which covers source text, profile/context, deterministic status/output, token evidence, current review issues, morphology, relations, prompt version, provider, and model. New decisions additionally carry reading identity V2. V2 covers source and semantic context, canonical deterministic evidence, review/morphology/relation evidence, prompt version, provider, and model, but excludes the selected rendering profile, rendered token strings, and aggregate rendered output.
 
-If the source, profile, deterministic evidence, or current review state changes:
+For V2 decisions, a rendering-only profile change does not trigger another provider request. If the source, semantic context, deterministic evidence, or current review state changes:
 
 - the proposal is no longer applicable;
 - a previously accepted phrase decision is revoked from the selected output;

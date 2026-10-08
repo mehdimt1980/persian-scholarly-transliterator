@@ -27,6 +27,9 @@ export interface PersistedAcceptedPhraseDecisionV1 {
   model: string;
   promptVersion: string;
   requestFingerprint: string;
+  /** Additive V2 identity excludes presentation-only profile/rendering changes. */
+  readingFingerprint?: string;
+  readingIdentityVersion?: '2';
   modelConfidence: number | null;
   acceptedAt: string;
 }

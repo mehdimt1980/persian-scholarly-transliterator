@@ -64,6 +64,31 @@ describe('context-aware phrase assistance', () => {
     expect(validation.resolution?.requestFingerprint).toBe(
       computePhraseRequestFingerprint(request, 'fake-provider', 'fake-model')
     );
+    expect(validation.resolution?.readingIdentityVersion).toBe('2');
+    expect(validation.resolution?.policyVersion).toBe('ijmes-canonical-diagnostics-v1');
+  });
+
+  it('makes a suspected Persian e/o reading independently reviewable without rewriting it', () => {
+    const request = buildPhraseResolverRequest(unresolvedPhrase());
+    const validation = validatePhraseProviderResolution({
+      disposition: 'PROPOSED',
+      scholarlyCanonical: 'kūchehā',
+      renderedOutput: 'untrusted model rendering',
+      confidence: 0.7,
+      basis: 'MODEL_INFERENCE',
+      rationale: 'Synthetic policy-diagnostic proposal.',
+      assumptions: [],
+      tokenReadings: syntheticReadings(request),
+      warnings: []
+    }, request, 'fake-provider', 'fake-model');
+
+    expect(validation.valid).toBe(true);
+    expect(validation.resolution?.disposition).toBe('REVIEW_REQUIRED');
+    expect(validation.resolution?.scholarlyCanonical).toBe('kūchehā');
+    expect(validation.resolution?.policyDiagnostics).toContainEqual(expect.objectContaining({
+      id: 'IJMES_PERSIAN_SHORT_VOWEL_SUSPECTED',
+      severity: 'REVIEW_REQUIRED'
+    }));
   });
 
   it('rejects Persian/Arabic script in proposed Latin outputs', () => {

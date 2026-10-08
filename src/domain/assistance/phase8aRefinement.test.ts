@@ -10,6 +10,7 @@ import {
   buildAiExplanation,
   buildPhraseResolverRequest,
   computeEditedCanonical,
+  computePhraseReadingFingerprintV2,
   computePhraseRequestFingerprint,
   createAcceptedPhraseDecision,
   resolveUnifiedOutput,
@@ -47,6 +48,8 @@ function makeDraft(
     model: 'mock-model',
     promptVersion: request.promptVersion,
     requestFingerprint: computePhraseRequestFingerprint(request, 'mock', 'mock-model'),
+    readingFingerprint: computePhraseReadingFingerprintV2(request, 'mock', 'mock-model'),
+    readingIdentityVersion: '2',
     ...overrides
   };
 }
@@ -56,7 +59,7 @@ function ctxFor(input: string, profile: 'ijmes_citation_title' | 'ijmes_full' = 
   result: ReturnType<typeof transliterate>;
 } {
   const result = transliterate(input, profile);
-  const cacheId = computePhraseRequestFingerprint(buildPhraseResolverRequest(result), 'client-draft-cache', 'v1');
+  const cacheId = computePhraseReadingFingerprintV2(buildPhraseResolverRequest(result), 'client-draft-cache', 'v2');
   return {
     result,
     ctx: {
@@ -165,6 +168,29 @@ describe('Phase 8A refinement: request lifecycle controller', () => {
     vi.advanceTimersByTime(5000);
     await flush();
     expect(calls).toHaveLength(1);
+  });
+
+  it('reuses a cached reading across a rendering-only legacy profile switch with zero provider calls', async () => {
+    const { fetchImpl, pending, calls } = mockFetch();
+    const c = new PhraseDraftController({ fetchImpl });
+    const title = ctxFor(MULTI, 'ijmes_citation_title');
+    const renderingOnly = {
+      ...title.ctx,
+      payload: { ...title.ctx.payload, profile: 'ijmes_full' }
+    };
+
+    c.setConfigured(true);
+    c.setContext(title.ctx);
+    vi.advanceTimersByTime(901);
+    await flush();
+    pending[0].resolve(makeDraft(title.result));
+    await flush();
+
+    c.setContext(renderingOnly);
+    vi.advanceTimersByTime(2000);
+    await flush();
+    expect(calls).toHaveLength(1);
+    expect(deriveDraftView(c.getSnapshot()).draft).not.toBeNull();
   });
 
   it('deduplicates by identity: switching away and back reuses the cached draft', async () => {

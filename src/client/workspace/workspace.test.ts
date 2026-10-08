@@ -245,6 +245,8 @@ describe('Local Research Workspace Persistence', () => {
         model: 'gpt-4o',
         promptVersion: 'v1',
         requestFingerprint: 'fp-12345',
+        readingFingerprint: 'reading-fp-v2',
+        readingIdentityVersion: '2',
         modelConfidence: 0.95,
         acceptedAt: '2026-10-06T12:00:00.000Z'
       };
@@ -252,6 +254,7 @@ describe('Local Research Workspace Persistence', () => {
       const persisted = toPersistedAcceptedPhraseDecision(runtimeDecision);
       expect((persisted as any).renderedOutput).toBeUndefined();
       expect(persisted.scholarlyCanonical).toBe('shabhā-yi tīra dar farāmūshkhāna-yi ashbāḥ');
+      expect(persisted).toMatchObject({ readingFingerprint: 'reading-fp-v2', readingIdentityVersion: '2' });
 
       const hydratedCitation = fromPersistedAcceptedPhraseDecision(persisted, 'ijmes_citation_title');
       expect(hydratedCitation.renderedOutput).toBe('Shabhā-yi Tīra Dar Farāmūshkhāna-yi Ashbāḥ');
@@ -259,6 +262,7 @@ describe('Local Research Workspace Persistence', () => {
 
       const hydratedFull = fromPersistedAcceptedPhraseDecision(persisted, 'ijmes_full');
       expect(hydratedFull.renderedOutput).toBe('shabhā-yi tīra dar farāmūshkhāna-yi ashbāḥ');
+      expect(hydratedFull.readingFingerprint).toBe('reading-fp-v2');
     });
 
     it('strictly requires modelConfidence field presence (distinguishes explicit null from missing)', () => {
