@@ -1,6 +1,6 @@
 node_modules
 .next
-coverage
+/coverage
 *.tsbuildinfo
 
 # Local acquisition dumps and pilot artifacts

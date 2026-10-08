@@ -1,0 +1,12 @@
+{
+  "corpusVersion": "phase7f-openalex-persian-titles-v1",
+  "selectionAlgorithm": "sha256-ranked-v1",
+  "selectionFormula": "SHA-256(\"phase7f-openalex-v1:\" + openAlexId) ascending",
+  "splitFormula": "SHA-256(\"phase7f-split-v1:\" + openAlexId) -> 80% DIAGNOSTIC / 20% LOCKED_HOLDOUT",
+  "totalRecords": 5000,
+  "diagnosticCount": 4000,
+  "lockedHoldoutCount": 1000,
+  "corpusSha256": "28d91c460585ac028e987b01f4ea274f6bd991ad3a2ea79a16f8080fae9b5d5a",
+  "holdoutSha256": "92ad183e088acbecded7165a806e808d9918482d3d6ce98f3c04072e0fd215d2",
+  "createdAt": "2026-10-08T13:04:52.883Z"
+}
