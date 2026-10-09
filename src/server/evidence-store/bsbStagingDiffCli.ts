@@ -7,6 +7,9 @@ import { createHash } from 'node:crypto';
 import { neon } from '@neondatabase/serverless';
 import { collectBsbPagedEvidence } from '../../validation/bsbPagedAcquisitionCli';
 import { databaseIdentityFingerprint } from './guard';
+import { parseMarcCollection, parseSruMarcXml } from '../../validation/acquisition/bsb/marcxml';
+import { lexicalCandidateSchema } from '../../validation/lexical-evidence/schema';
+import { reconcileBsbSelectedFixture } from './bsbFixtureReconciliation';
 import { compareBsbWithActiveStaging, type ActiveRecordVersion, type ActiveCandidateProjection } from './bsbStagingComparison';
 
 const expectedBranchId='br-noisy-field-b2m5q1zb';
@@ -88,6 +91,14 @@ async function main():Promise<void>{
   `)).map(candidate);
   if(activeCandidates.length!==Number(snapshot.candidate_count))
     throw new Error('Active BSB candidate count inconsistent with snapshot');
+  const activeCandidateJsonRows=rowsOf(await sql.query(`
+    SELECT cp.candidate_json
+    FROM evidence_active_snapshot a JOIN evidence_candidate_projection cp ON cp.snapshot_id=a.snapshot_id
+    WHERE a.singleton=true AND cp.provider='BSB_SRU_MARCXML'
+  `));
+  if(activeCandidateJsonRows.length!==activeCandidates.length)
+    throw new Error('Active candidate JSON count mismatch');
+  const persistedCandidates=activeCandidateJsonRows.map(row=>lexicalCandidateSchema.parse(row.candidate_json));
 
   const {manifest,rawPages}=await collectBsbPagedEvidence();
   if(rawPages.length!==manifest.pages.length||rawPages.length<1)
@@ -99,6 +110,15 @@ async function main():Promise<void>{
   const comparison=compareBsbWithActiveStaging({
     manifest, activeSnapshotId, baselineManifestChecksum, activeRecords,historicalRecords,activeCandidates,
   });
+  const fixtureXml=fs.readFileSync('validation/acquisition/bsb/authentic-selected-records.v1.xml','utf8');
+  const reconciliation=reconcileBsbSelectedFixture({
+    fixtureRecords:parseMarcCollection(fixtureXml),
+    liveRecords:rawPages.flatMap(page=>parseSruMarcXml(page.xml).records),
+    persistedCandidates,
+  });
+  if(reconciliation.matchedLiveRecordCount!==reconciliation.baselineRecordCount)
+    throw new Error('Not all two baseline source records were found in bounded live pages');
+
   // Fail closed if baseline moved or storage permission changed during network acquisition.
   const after=rowsOf(await sql.query(`
     SELECT a.snapshot_id,b.writes_enabled
@@ -115,6 +135,8 @@ async function main():Promise<void>{
   const comparisonFileContent=JSON.stringify(comparison,null,2)+'\n';
   fs.writeFileSync(path.join(directory,'source-manifest.json'),manifestFileContent,{flag:'wx'});
   fs.writeFileSync(path.join(directory,'comparison.json'),comparisonFileContent,{flag:'wx'});
+  const reconciliationFileContent=JSON.stringify(reconciliation,null,2)+'\n';
+  fs.writeFileSync(path.join(directory,'fixture-reconciliation.json'),reconciliationFileContent,{flag:'wx'});
   const reviewCsvCell=(value:string):string=>{
     const normalized=value.replace(/\r\n?/gu,'\n');
     // Prevent spreadsheet formula execution in exported, untrusted catalogue fields.
@@ -134,16 +156,42 @@ async function main():Promise<void>{
     sourceManifestSha256:sha(manifestFileContent),
     comparisonSha256:sha(comparisonFileContent),
     reviewWorklistSha256:sha(csv),
+    fixtureReconciliationSha256:sha(reconciliationFileContent),
     rawPages:manifest.pages.map(p=>({file:p.file,checksum:p.rawSha256})),
     reviewRequired:true,importAuthorized:false,writesPerformed:false,
   };
   fs.writeFileSync(path.join(directory,'package-checksums.json'),JSON.stringify(aggregateManifest,null,2)+'\n',{flag:'wx'});
+  console.log(JSON.stringify({
+    status:'BSB_FIXTURE_RECONCILIATION_DIAGNOSTICS',
+    selectedFieldDifferences:reconciliation.records.flatMap(record=>
+      record.selectedFields.filter(field=>field.state!=='EXACT_SELECTED_FIELD').map(field=>({
+        recordId:record.id,tag:field.tag,comparison:field.state,
+        fixtureField:field.fixtureField,liveSameTagFields:field.liveSameTagFields,
+      }))),
+    candidateVariantReviewFindings:reconciliation.records.flatMap(record=>
+      record.candidateDifferences.filter(item=>['SEMANTIC_EVIDENCE_CHANGED','ADDITIVE_LATIN_VARIANTS_REQUIRE_REVIEW'].includes(item.state)).map(item=>({
+        classification:item.state,
+        recordId:record.id,candidateId:item.candidateId,
+        fixtureForm:item.fixtureForm,liveForm:item.liveForm,
+        fixtureLatinVariants:item.fixtureLatinVariants,liveLatinVariants:item.liveLatinVariants,
+      }))),
+    decision:'BLOCKED_PENDING_FIELD_REVIEW',
+  },null,2));
   console.log(JSON.stringify({
     status:'BSB_STAGING_READONLY_DIFF_COMPLETE',snapshotId:activeSnapshotId,
     baselineVerified:true,sourcePages:manifest.pages.length,sourceRecords:manifest.metrics.unique,
     sourceCandidates:manifest.metrics.candidateCount,
     records:comparison.recordCounts,candidates:comparison.candidateCounts,
     blockers:comparison.blockers,archiveDirectory:directory,
+    reconciliation:{matchedFixtureRecords:reconciliation.matchedLiveRecordCount,
+      exactSelectedFields:reconciliation.totals.exactSelectedFields,
+      differentSelectedFields:reconciliation.totals.differentSelectedFields,
+      semanticMatches:reconciliation.totals.semanticMatches,
+      semanticDifferences:reconciliation.totals.semanticDifferences,
+      additiveLatinVariantCandidates:reconciliation.totals.additiveLatinVariantCandidates,
+      missingCandidates:reconciliation.totals.missingCandidates,
+      newCandidatesWithinTwoRecords:reconciliation.totals.newCandidates,
+      blockers:reconciliation.blockers},
     importDecision:comparison.importDecision,writesPerformed:false,
   },null,2));
 }
