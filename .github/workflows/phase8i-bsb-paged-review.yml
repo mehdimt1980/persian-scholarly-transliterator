@@ -1,0 +1,30 @@
+name: Phase 8I BSB bounded paged harvest (review only)
+on:
+  pull_request:
+    types: [labeled]
+permissions:
+  contents: read
+jobs:
+  bsb-paged-review:
+    if: github.event.label.name == 'phase8i-run-bsb-paged' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'phase8i/bsb-paged-evidence-package'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Bounded live BSB MARCXML acquisition (max 5 pages x 10 records)
+        run: npm run acquire:bsb:paged
+      - name: Archive source XML and review manifest (7-day review window)
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase8i-bsb-source-and-review
+          path: artifacts/phase8i-bsb-paged/
+          retention-days: 7
+          if-no-files-found: error
