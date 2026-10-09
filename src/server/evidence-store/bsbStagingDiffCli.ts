@@ -162,6 +162,21 @@ async function main():Promise<void>{
   };
   fs.writeFileSync(path.join(directory,'package-checksums.json'),JSON.stringify(aggregateManifest,null,2)+'\n',{flag:'wx'});
   console.log(JSON.stringify({
+    status:'BSB_FIXTURE_RECONCILIATION_DIAGNOSTICS',
+    selectedFieldDifferences:reconciliation.records.flatMap(record=>
+      record.selectedFields.filter(field=>field.state!=='EXACT_SELECTED_FIELD').map(field=>({
+        recordId:record.id,tag:field.tag,comparison:field.state,
+        fixtureField:field.fixtureField,liveSameTagFields:field.liveSameTagFields,
+      }))),
+    candidateSemanticDifferences:reconciliation.records.flatMap(record=>
+      record.candidateDifferences.filter(item=>item.state==='SEMANTIC_EVIDENCE_CHANGED').map(item=>({
+        recordId:record.id,candidateId:item.candidateId,
+        fixtureForm:item.fixtureForm,liveForm:item.liveForm,
+        fixtureLatinVariants:item.fixtureLatinVariants,liveLatinVariants:item.liveLatinVariants,
+      }))),
+    decision:'BLOCKED_PENDING_FIELD_REVIEW',
+  },null,2));
+  console.log(JSON.stringify({
     status:'BSB_STAGING_READONLY_DIFF_COMPLETE',snapshotId:activeSnapshotId,
     baselineVerified:true,sourcePages:manifest.pages.length,sourceRecords:manifest.metrics.unique,
     sourceCandidates:manifest.metrics.candidateCount,
