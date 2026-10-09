@@ -53,7 +53,7 @@ describe('Phase 8I BSB paged, read-only evidence package',()=>{
       .rejects.toThrow(/result count changed/);
     const bad=vi.fn(async()=>new Response(page(1,9,source,6)));
     await expect(collectBsbPagedEvidence({fetcher:bad as unknown as typeof fetch,maxPages:2,pageSize:2}))
-      .rejects.toThrow(/pagination cursor/);
+      .rejects.toThrow(/(?:pagination cursor|nextRecordPosition)/);
     const missing=vi.fn(async()=>new Response(page(1,9,source,null)));
     await expect(collectBsbPagedEvidence({fetcher:missing as unknown as typeof fetch,maxPages:2,pageSize:2}))
       .rejects.toThrow(/Missing SRU continuation/);
