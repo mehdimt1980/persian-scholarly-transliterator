@@ -16,9 +16,9 @@ export const FROZEN_BASELINE = 'snapshot-7946161b2af2652b776a6bd4';
 export const PREVIOUS_RECORD_IDS = ['991071006889707356','991144600686807356'] as const;
 const sha=(value:string)=>createHash('sha256').update(value,'utf8').digest('hex');
 const hashPattern=/^[a-f0-9]{64}$/u;
-const assert=(condition:unknown,message:string):asserts condition=>{
+function assert(condition:unknown,message:string):asserts condition {
   if(!condition)throw new Error('Frozen BSB rejected: '+message);
-};
+}
 const recordId=(record:MarcRecord):string=>{
   const id=record.controlfields.find(f=>f.tag==='001')?.value;
   assert(id,'MARC 001 missing');
