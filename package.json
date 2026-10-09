@@ -37,7 +37,9 @@
     "validate:phase7f-freeze": "tsx src/validation/coverage/freezeValidatorCli.ts",
     "evaluate:phase7f-coverage": "tsx src/domain/coverage/cli.ts",
     "evaluate:phase7g-safe-routing": "tsx src/domain/coverage/phase7gRunner.ts",
-    "experiment:loc-feasibility": "tsx src/domain/evidence/loc/pilot/pilotCli.ts"
+    "experiment:loc-feasibility": "tsx src/domain/evidence/loc/pilot/pilotCli.ts",
+    "validate:phase8c": "tsx src/validation/accuracy/phase8c/offlineCli.ts",
+    "evaluate:phase8c:live": "tsx src/validation/accuracy/phase8c/liveCli.ts"
   },
   "dependencies": {
     "next": "16.3.8",

@@ -1,0 +1,80 @@
+{
+  "fixtureLabel": "SYNTHETIC EVALUATOR FIXTURE — NOT SCHOLARLY EVIDENCE",
+  "corpus": {
+    "schemaVersion": "phase8c-corpus-schema-v1",
+    "datasetVersion": "phase8c-accuracy-pilot-v1",
+    "cases": [
+      {
+        "id": "p8c-synthetic-exact",
+        "datasetVersion": "phase8c-accuracy-pilot-v1",
+        "originalPersian": "نمونه یک",
+        "normalizedInput": "نمونه یک",
+        "contextKind": "BOOK_OR_ARTICLE_TITLE",
+        "contentCategory": "BOOK_OR_ARTICLE_TITLE",
+        "stratum": "BOOK_OR_ARTICLE_TITLE",
+        "split": "DEVELOPMENT_DIAGNOSTIC",
+        "duplicateGroupId": "synthetic-exact",
+        "provenance": { "sourceType": "SYNTHETIC_TEST_FIXTURE", "sourceId": "synthetic-1", "citation": "Phase 8C evaluator test fixture", "licenseNote": "Artificial data; not authentic Persian scholarship." },
+        "review": { "status": "INDEPENDENTLY_REVIEWED", "reviewerId": "synthetic-fixture", "reviewerRole": "test oracle", "reviewedAt": "2000-01-01T00:00:00.000Z" },
+        "reference": {
+          "primaryCanonical": "namūna-yi yak", "acceptedAlternatives": [],
+          "tokens": [{ "tokenIndex": 0, "surface": "نمونه", "canonical": "namūna" }, { "tokenIndex": 2, "surface": "یک", "canonical": "yak" }],
+          "features": [{ "id": "s1-izafat", "kind": "IZAFAT_REALIZATION", "scope": "RELATION", "tokenIndexes": [0, 2], "expected": "-yi" }],
+          "izafatRelations": [{ "sourceTokenIndex": 0, "targetTokenIndex": 2, "realization": "-yi" }], "properNameConventions": [], "ijmesConsiderations": [], "citations": ["Synthetic test oracle"],
+          "validatorGroundTruth": { "structuralError": false, "deterministicConsistencyError": false, "policySeverity": "NONE", "linguisticReviewRequired": false, "status": "INDEPENDENTLY_REVIEWED", "reviewerId": "synthetic-validator-reviewer", "reviewedAt": "2000-01-01T00:00:00.000Z", "citation": "Synthetic validator test oracle" }
+        }
+      },
+      {
+        "id": "p8c-synthetic-alternative",
+        "datasetVersion": "phase8c-accuracy-pilot-v1",
+        "originalPersian": "نمونه دو",
+        "normalizedInput": "نمونه دو",
+        "contextKind": "GENERAL_SCHOLARLY_TEXT",
+        "contentCategory": "GENERAL_SCHOLARLY_TEXT",
+        "stratum": "AMBIGUOUS_OR_DIFFICULT",
+        "split": "LOCKED_EVALUATION",
+        "duplicateGroupId": "synthetic-locked-0",
+        "provenance": { "sourceType": "SYNTHETIC_TEST_FIXTURE", "sourceId": "synthetic-2", "citation": "Phase 8C evaluator test fixture", "licenseNote": "Artificial data; not authentic Persian scholarship." },
+        "review": { "status": "ADJUDICATED", "reviewerId": "synthetic-fixture", "reviewerRole": "test oracle", "reviewedAt": "2000-01-01T00:00:00.000Z", "adjudicatorId": "synthetic-adjudicator", "adjudicatedAt": "2000-01-02T00:00:00.000Z" },
+        "reference": {
+          "primaryCanonical": "namūna-yi du", "acceptedAlternatives": ["namūna-yi daw"],
+          "tokens": [{ "tokenIndex": 0, "surface": "نمونه", "canonical": "namūna" }, { "tokenIndex": 2, "surface": "دو", "canonical": "daw" }],
+          "features": [{ "id": "s2-vowel", "kind": "SHORT_VOWEL", "scope": "TOKEN", "tokenIndexes": [2], "expected": "aw" }],
+          "izafatRelations": [], "properNameConventions": [], "ijmesConsiderations": [], "citations": ["Synthetic test oracle"],
+          "validatorGroundTruth": { "structuralError": false, "deterministicConsistencyError": false, "policySeverity": "NONE", "linguisticReviewRequired": true, "status": "ADJUDICATED", "reviewerId": "synthetic-validator-adjudicator", "reviewedAt": "2000-01-02T00:00:00.000Z", "citation": "Synthetic validator test oracle", "adjudicationNotes": "Artificial reviewed label for evaluator regression." },
+          "adjudicationNotes": "Two artificial alternatives exercise accepted-alternative matching."
+        }
+      },
+      {
+        "id": "p8c-synthetic-unreviewed",
+        "datasetVersion": "phase8c-accuracy-pilot-v1",
+        "originalPersian": "تشخیصی",
+        "normalizedInput": "تشخیصی",
+        "contextKind": "GENERAL_SCHOLARLY_TEXT",
+        "contentCategory": "GENERAL_SCHOLARLY_TEXT",
+        "stratum": "TECHNICAL_OR_HISTORICAL_TERM",
+        "split": "DEVELOPMENT_DIAGNOSTIC",
+        "duplicateGroupId": "synthetic-unreviewed",
+        "provenance": { "sourceType": "SYNTHETIC_TEST_FIXTURE", "sourceId": "synthetic-3", "citation": "Phase 8C evaluator test fixture", "licenseNote": "Artificial data; not authentic Persian scholarship." },
+        "review": { "status": "REVIEW_PENDING" },
+        "reference": null
+      }
+    ]
+  },
+  "predictions": [
+    {
+      "caseId": "p8c-synthetic-exact", "provider": "mock", "model": "deterministic-fixture", "promptVersion": "fixture-v1", "responseClassification": "PROPOSED", "validationPassed": true, "validationErrors": [],
+      "canonicalProposal": "namūna-yi yak", "renderedFull": "namūna-yi yak", "renderedIjmesPublication": "Namuna-yi Yak",
+      "tokenReadings": [{ "tokenIndex": 0, "surface": "نمونه", "canonical": "namūna" }, { "tokenIndex": 2, "surface": "یک", "canonical": "yak" }],
+      "predictedFeatures": [{ "referenceFeatureId": "s1-izafat", "value": "-yi" }], "warnings": [], "assumptions": [], "errorCategories": [],
+      "validatorSignals": [], "durationMs": 0
+    },
+    {
+      "caseId": "p8c-synthetic-alternative", "provider": "mock", "model": "deterministic-fixture", "promptVersion": "fixture-v1", "responseClassification": "PROPOSED", "validationPassed": true, "validationErrors": [],
+      "canonicalProposal": "namūna-yi daw", "renderedFull": "namūna-yi daw", "renderedIjmesPublication": "namūna-yi daw",
+      "tokenReadings": [{ "tokenIndex": 0, "surface": "نمونه", "canonical": "namūna" }, { "tokenIndex": 2, "surface": "دو", "canonical": "daw" }],
+      "predictedFeatures": [{ "referenceFeatureId": "s2-vowel", "value": "aw" }], "warnings": [], "assumptions": [], "errorCategories": [],
+      "validatorSignals": [{ "layer": "LINGUISTIC_REVIEW", "severity": "REVIEW_REQUIRED" }], "durationMs": 0
+    }
+  ]
+}

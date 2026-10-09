@@ -1,0 +1,295 @@
+{
+  "schemaVersion": "phase8c-evaluation-report-v2",
+  "runKind": "OFFLINE_MOCKED",
+  "datasetVersion": "phase8c-accuracy-pilot-v1",
+  "totalCases": 3,
+  "reviewedCases": 2,
+  "caseFlow": {
+    "unreviewedExcluded": 1,
+    "eligibleReferenceCases": 2,
+    "missingPredictions": 0,
+    "providerFailures": 0,
+    "timeouts": 0,
+    "invalidPredictions": 0,
+    "unalignablePredictions": 0,
+    "successfullyEvaluated": 2
+  },
+  "phrase": {
+    "exact": {
+      "numerator": 1,
+      "denominator": 2,
+      "percent": 50,
+      "wilson95": {
+        "low": 9.453120573423075,
+        "high": 90.54687942657694
+      }
+    },
+    "acceptedAlternative": {
+      "numerator": 2,
+      "denominator": 2,
+      "percent": 100,
+      "wilson95": {
+        "low": 34.2380227506653,
+        "high": 100
+      }
+    },
+    "normalizedReference": {
+      "numerator": 2,
+      "denominator": 2,
+      "percent": 100,
+      "wilson95": {
+        "low": 34.2380227506653,
+        "high": 100
+      }
+    },
+    "endToEndSuccess": {
+      "numerator": 2,
+      "denominator": 2,
+      "percent": 100,
+      "wilson95": {
+        "low": 34.2380227506653,
+        "high": 100
+      }
+    },
+    "caseOnlyDifference": 0,
+    "unicodeOnlyDifference": 0
+  },
+  "tokens": {
+    "eligibleReferenceTokens": 4,
+    "correct": 4,
+    "incorrect": 0,
+    "unalignable": 0,
+    "unsuccessfulFromMissingOrFailedPredictions": 0,
+    "alignmentAmbiguity": 0,
+    "conditionalAccuracy": {
+      "numerator": 4,
+      "denominator": 4,
+      "percent": 100,
+      "wilson95": {
+        "low": 51.01091635454027,
+        "high": 100
+      }
+    },
+    "endToEndSuccess": {
+      "numerator": 4,
+      "denominator": 4,
+      "percent": 100,
+      "wilson95": {
+        "low": 51.01091635454027,
+        "high": 100
+      }
+    }
+  },
+  "features": {
+    "SHORT_VOWEL": {
+      "correct": 1,
+      "incorrect": 0,
+      "unevaluable": 0
+    },
+    "LONG_VOWEL": {
+      "correct": 0,
+      "incorrect": 0,
+      "unevaluable": 0
+    },
+    "CONSONANT": {
+      "correct": 0,
+      "incorrect": 0,
+      "unevaluable": 0
+    },
+    "IZAFAT_PRESENCE": {
+      "correct": 0,
+      "incorrect": 0,
+      "unevaluable": 0
+    },
+    "IZAFAT_REALIZATION": {
+      "correct": 1,
+      "incorrect": 0,
+      "unevaluable": 0
+    },
+    "MORPHOLOGICAL_SUFFIX": {
+      "correct": 0,
+      "incorrect": 0,
+      "unevaluable": 0
+    },
+    "COMPOUND_BOUNDARY": {
+      "correct": 0,
+      "incorrect": 0,
+      "unevaluable": 0
+    },
+    "PROPER_NAME": {
+      "correct": 0,
+      "incorrect": 0,
+      "unevaluable": 0
+    },
+    "HAMZA": {
+      "correct": 0,
+      "incorrect": 0,
+      "unevaluable": 0
+    },
+    "AYN": {
+      "correct": 0,
+      "incorrect": 0,
+      "unevaluable": 0
+    }
+  },
+  "presentation": {
+    "fullScholarly": {
+      "numerator": 1,
+      "denominator": 2,
+      "percent": 50,
+      "wilson95": {
+        "low": 9.453120573423075,
+        "high": 90.54687942657694
+      }
+    },
+    "ijmesPublication": {
+      "numerator": 1,
+      "denominator": 2,
+      "percent": 50,
+      "wilson95": {
+        "low": 9.453120573423075,
+        "high": 90.54687942657694
+      }
+    }
+  },
+  "validator": {
+    "STRUCTURAL": {
+      "outcome": "MEASURABLE",
+      "trueDetectedErrors": 0,
+      "missedErrors": 0,
+      "falseWarnings": 0,
+      "correctUnflagged": 2,
+      "uncertain": 0,
+      "signalCounts": {
+        "BLOCK": 0,
+        "REVIEW_REQUIRED": 0,
+        "INFO": 0
+      },
+      "precision": {
+        "numerator": 0,
+        "denominator": 0,
+        "percent": null,
+        "wilson95": null
+      },
+      "recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "percent": null,
+        "wilson95": null
+      }
+    },
+    "DETERMINISTIC_CONSISTENCY": {
+      "outcome": "MEASURABLE",
+      "trueDetectedErrors": 0,
+      "missedErrors": 0,
+      "falseWarnings": 0,
+      "correctUnflagged": 2,
+      "uncertain": 0,
+      "signalCounts": {
+        "BLOCK": 0,
+        "REVIEW_REQUIRED": 0,
+        "INFO": 0
+      },
+      "precision": {
+        "numerator": 0,
+        "denominator": 0,
+        "percent": null,
+        "wilson95": null
+      },
+      "recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "percent": null,
+        "wilson95": null
+      }
+    },
+    "IJMES_POLICY": {
+      "outcome": "MEASURABLE",
+      "trueDetectedErrors": 0,
+      "missedErrors": 0,
+      "falseWarnings": 0,
+      "correctUnflagged": 2,
+      "uncertain": 0,
+      "signalCounts": {
+        "BLOCK": 0,
+        "REVIEW_REQUIRED": 0,
+        "INFO": 0
+      },
+      "precision": {
+        "numerator": 0,
+        "denominator": 0,
+        "percent": null,
+        "wilson95": null
+      },
+      "recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "percent": null,
+        "wilson95": null
+      }
+    },
+    "LINGUISTIC_REVIEW": {
+      "outcome": "MEASURABLE",
+      "trueDetectedErrors": 1,
+      "missedErrors": 0,
+      "falseWarnings": 0,
+      "correctUnflagged": 1,
+      "uncertain": 0,
+      "signalCounts": {
+        "BLOCK": 0,
+        "REVIEW_REQUIRED": 1,
+        "INFO": 0
+      },
+      "precision": {
+        "numerator": 1,
+        "denominator": 1,
+        "percent": 100,
+        "wilson95": {
+          "low": 20.654931437723747,
+          "high": 100
+        }
+      },
+      "recall": {
+        "numerator": 1,
+        "denominator": 1,
+        "percent": 100,
+        "wilson95": {
+          "low": 20.654931437723747,
+          "high": 100
+        }
+      }
+    }
+  },
+  "correctionProxy": {
+    "phrasesNeedingCorrection": 0,
+    "tokensNeedingCorrection": 0,
+    "completeReanalysisCases": 0,
+    "note": "Automatic reference-distance proxy only; it is not measured human effort or editing time."
+  },
+  "errors": {
+    "LEXICAL_READING_ERROR": 0,
+    "SHORT_VOWEL_ERROR": 0,
+    "LONG_VOWEL_ERROR": 0,
+    "CONSONANT_MAPPING_ERROR": 0,
+    "IZAFAT_DETECTION_ERROR": 0,
+    "IZAFAT_RENDERING_ERROR": 0,
+    "MORPHOLOGY_ERROR": 0,
+    "COMPOUND_BOUNDARY_ERROR": 0,
+    "PROPER_NAME_ERROR": 0,
+    "HAMZA_AYN_ERROR": 0,
+    "IJMES_PRESENTATION_ERROR": 0,
+    "TOKEN_ALIGNMENT_ERROR": 0,
+    "MODEL_UNCERTAINTY": 0,
+    "VALIDATOR_FALSE_NEGATIVE": 0,
+    "VALIDATOR_FALSE_POSITIVE": 0,
+    "REFERENCE_DISPUTE": 0,
+    "OTHER": 0
+  },
+  "exclusions": [
+    {
+      "caseId": "p8c-synthetic-unreviewed",
+      "reason": "Reference status REVIEW_PENDING is not eligible for scholarly scoring."
+    }
+  ],
+  "predictionFailures": []
+}
