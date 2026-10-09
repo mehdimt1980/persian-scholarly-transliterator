@@ -1,7 +1,9 @@
 import { z } from 'zod';
 import { renderCanonicalForProfile } from '../profiles';
 import { validateManualTransliteration } from '../review/validation';
-import { computePhraseRequestFingerprint } from './phraseIdentity';
+import { computePhraseReadingFingerprintV3, computePhraseRequestFingerprint } from './phraseIdentity';
+import { diagnoseScholarlyCanonical } from '../presentation/policyDiagnostics';
+import { alignTokenReadings } from './tokenEdits';
 import type {
   PhraseResolution,
   PhraseResolverRequest,
@@ -160,10 +162,41 @@ export function validatePhraseProviderResolution(
     };
   }
 
+  if (scholarlyCanonical) {
+    const alignment = alignTokenReadings(scholarlyCanonical, tokenReadings);
+    if (alignment.status !== 'ALIGNED') {
+      return {
+        valid: false,
+        errors: [`PHRASE_CANONICAL_TOKEN_ALIGNMENT_${alignment.status}: ${alignment.warning ?? 'Phrase canonical cannot be verified against token readings.'}`]
+      };
+    }
+  }
+
+  const policy = scholarlyCanonical
+    ? diagnoseScholarlyCanonical({
+        canonical: scholarlyCanonical,
+        contentCategory: request.contextKind
+      })
+    : null;
+  const blockingPolicy = policy?.diagnostics.filter((item) => item.severity === 'BLOCK') ?? [];
+  if (blockingPolicy.length > 0) {
+    return {
+      valid: false,
+      errors: blockingPolicy.map((item) => `${item.id}: ${item.message}`)
+    };
+  }
+  const requiresPolicyReview = policy?.diagnostics.some((item) => item.severity === 'REVIEW_REQUIRED') ?? false;
+  const disposition = payload.disposition === 'PROPOSED' && requiresPolicyReview
+    ? 'REVIEW_REQUIRED'
+    : payload.disposition;
+  const policyWarnings = policy?.diagnostics
+    .filter((item) => item.severity === 'REVIEW_REQUIRED')
+    .map((item) => `${item.id}: ${item.message}`) ?? [];
+
   return {
     valid: true,
     resolution: {
-      disposition: payload.disposition,
+      disposition,
       scholarlyCanonical,
       renderedOutput,
       confidence: payload.confidence,
@@ -171,11 +204,14 @@ export function validatePhraseProviderResolution(
       rationale: payload.rationale.trim(),
       assumptions: payload.assumptions.map((item) => item.trim()),
       tokenReadings,
-      warnings: (payload.warnings ?? []).map((item) => item.trim()),
+      warnings: [...(payload.warnings ?? []).map((item) => item.trim()), ...policyWarnings],
       provider,
       model,
       promptVersion: request.promptVersion,
-      requestFingerprint: computePhraseRequestFingerprint(request, provider, model)
+      requestFingerprint: computePhraseRequestFingerprint(request, provider, model),
+      readingFingerprint: computePhraseReadingFingerprintV3(request, provider, model),
+      readingIdentityVersion: '3',
+      ...(policy ? { policyVersion: policy.policyVersion, policyDiagnostics: policy.diagnostics } : {})
     },
     errors: []
   };

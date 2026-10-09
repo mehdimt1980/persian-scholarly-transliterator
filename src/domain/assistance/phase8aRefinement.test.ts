@@ -10,6 +10,7 @@ import {
   buildAiExplanation,
   buildPhraseResolverRequest,
   computeEditedCanonical,
+  computePhraseReadingFingerprintV3,
   computePhraseRequestFingerprint,
   createAcceptedPhraseDecision,
   resolveUnifiedOutput,
@@ -47,22 +48,34 @@ function makeDraft(
     model: 'mock-model',
     promptVersion: request.promptVersion,
     requestFingerprint: computePhraseRequestFingerprint(request, 'mock', 'mock-model'),
+    readingFingerprint: computePhraseReadingFingerprintV3(request, 'mock', 'mock-model'),
+    readingIdentityVersion: '3',
     ...overrides
   };
 }
 
-function ctxFor(input: string, profile: 'ijmes_citation_title' | 'ijmes_full' = 'ijmes_citation_title'): {
+function ctxFor(
+  input: string,
+  profile: 'ijmes_citation_title' | 'ijmes_full' = 'ijmes_citation_title',
+  contextKind = profile === 'ijmes_citation_title' ? 'BOOK_OR_ARTICLE_TITLE' as const : 'GENERAL_SCHOLARLY_TEXT' as const
+): {
   ctx: DraftRequestContext;
   result: ReturnType<typeof transliterate>;
 } {
   const result = transliterate(input, profile);
-  const cacheId = computePhraseRequestFingerprint(buildPhraseResolverRequest(result), 'client-draft-cache', 'v1');
+  const request = buildPhraseResolverRequest(result, undefined, contextKind);
+  const cacheId = computePhraseReadingFingerprintV3(request, 'client-draft-cache', 'v3');
   return {
     result,
     ctx: {
       cacheId,
       eligible: !result.copyable && result.reviewIssues.length > 0,
-      payload: { input: result.originalInput, profile, reviewDecisions: [] }
+      payload: {
+        input: result.originalInput,
+        profile,
+        contextKind,
+        reviewDecisions: []
+      }
     }
   };
 }
@@ -165,6 +178,27 @@ describe('Phase 8A refinement: request lifecycle controller', () => {
     vi.advanceTimersByTime(5000);
     await flush();
     expect(calls).toHaveLength(1);
+  });
+
+  it('reuses a cached reading across a real rendering-only profile transition with zero provider calls', async () => {
+    const { fetchImpl, pending, calls } = mockFetch();
+    const c = new PhraseDraftController({ fetchImpl });
+    const title = ctxFor(MULTI, 'ijmes_citation_title');
+    const renderingOnly = ctxFor(MULTI, 'ijmes_full', 'BOOK_OR_ARTICLE_TITLE');
+    expect(renderingOnly.ctx.cacheId).toBe(title.ctx.cacheId);
+
+    c.setConfigured(true);
+    c.setContext(title.ctx);
+    vi.advanceTimersByTime(901);
+    await flush();
+    pending[0].resolve(makeDraft(title.result));
+    await flush();
+
+    c.setContext(renderingOnly.ctx);
+    vi.advanceTimersByTime(2000);
+    await flush();
+    expect(calls).toHaveLength(1);
+    expect(deriveDraftView(c.getSnapshot()).draft).not.toBeNull();
   });
 
   it('deduplicates by identity: switching away and back reuses the cached draft', async () => {

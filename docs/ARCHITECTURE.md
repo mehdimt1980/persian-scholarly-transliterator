@@ -14,6 +14,10 @@ The public `transliterate(input, profile, reviewDecisions?, lexicon?)` pipeline 
 10. **Canonical IJMES rendering** applies deterministic rules to confirmed morphology, relations, and lexical readings (including human-confirmed izāfat).
 11. **Output profiles and copyability** format canonical output. Copying is allowed only when all blocking issues have been resolved.
 
+    Phase 8B adds an independent, pure presentation layer after an established canonical reading. Its versioned identifiers (`full_scholarly_v1`, `ijmes_publication_v1`, and bounded `custom_scholarly_v1`) are deliberately separate from legacy engine `ProfileId`, frozen authority keys, and bibliography field policies. Remediated phrase decisions carry a V3 reading fingerprint that excludes rendering-only fields; V1 and V2 decisions retain their historical applicability contracts.
+
+    The workspace exposes semantic reading context separately from presentation selection. Reading identity V3 includes that explicit semantic context and complete interpretation-relevant evidence, while presentation-only switches rerender locally with no provider call. V1 and V2 fingerprints retain their exact historical verification contracts.
+
 12. **Batch bibliography processing (Phase 4)** extends single-record transliteration to structured CSV batches (`docs/BIBLIOGRAPHY_BATCH.md`):
     - Parses canonical records while preserving custom passthrough columns.
     - Applies field-level policies (`ijmes_title` for titles, `ijmes_full` for creators/places/publishers).

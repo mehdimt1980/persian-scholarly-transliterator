@@ -3,6 +3,7 @@ import { transliterate } from '../engine';
 import {
   buildPhraseResolverRequest,
   checkAcceptedPhraseApplicability,
+  computePhraseReadingFingerprintV2,
   computePhraseRequestFingerprint,
   createAcceptedPhraseDecision,
   resolveSelectedTransliteration,
@@ -23,10 +24,14 @@ function syntheticReadings(request: PhraseResolverRequest) {
       return {
         tokenIndex: token.index,
         surface: token.surface,
-        canonical: token.canonicalTransliteration ?? `synthetic-${unresolvedCounter}`,
+        canonical: token.canonicalTransliteration ?? `alpha${unresolvedCounter}`,
         note: 'Synthetic mechanics-only token reading.'
       };
     });
+}
+
+function syntheticCanonical(request: PhraseResolverRequest): string {
+  return syntheticReadings(request).map((reading) => reading.canonical).join(' ');
 }
 
 describe('context-aware phrase assistance', () => {
@@ -47,7 +52,7 @@ describe('context-aware phrase assistance', () => {
     const request = buildPhraseResolverRequest(unresolvedPhrase());
     const raw = {
       disposition: 'PROPOSED' as const,
-      scholarlyCanonical: 'alpha beta',
+      scholarlyCanonical: syntheticCanonical(request),
       renderedOutput: 'Alpha Beta',
       confidence: 0.78,
       basis: 'CONTEXTUAL_INFERENCE' as const,
@@ -59,11 +64,38 @@ describe('context-aware phrase assistance', () => {
 
     const validation = validatePhraseProviderResolution(raw, request, 'fake-provider', 'fake-model');
     expect(validation.valid).toBe(true);
-    expect(validation.resolution?.scholarlyCanonical).toBe('alpha beta');
-    expect(validation.resolution?.renderedOutput).toBe('Alpha Beta');
+    expect(validation.resolution?.scholarlyCanonical).toBe(syntheticCanonical(request));
     expect(validation.resolution?.requestFingerprint).toBe(
       computePhraseRequestFingerprint(request, 'fake-provider', 'fake-model')
     );
+    expect(validation.resolution?.readingIdentityVersion).toBe('3');
+    expect(validation.resolution?.policyVersion).toBe('ijmes-canonical-diagnostics-v1');
+  });
+
+  it('makes a suspected Persian e/o reading independently reviewable without rewriting it', () => {
+    const request = buildPhraseResolverRequest(unresolvedPhrase());
+    const readings = syntheticReadings(request);
+    readings[0] = { ...readings[0], canonical: 'kūchehā' };
+    const canonical = readings.map((reading) => reading.canonical).join(' ');
+    const validation = validatePhraseProviderResolution({
+      disposition: 'PROPOSED',
+      scholarlyCanonical: canonical,
+      renderedOutput: 'untrusted model rendering',
+      confidence: 0.7,
+      basis: 'MODEL_INFERENCE',
+      rationale: 'Synthetic policy-diagnostic proposal.',
+      assumptions: [],
+      tokenReadings: readings,
+      warnings: []
+    }, request, 'fake-provider', 'fake-model');
+
+    expect(validation.valid).toBe(true);
+    expect(validation.resolution?.disposition).toBe('REVIEW_REQUIRED');
+    expect(validation.resolution?.scholarlyCanonical).toBe(canonical);
+    expect(validation.resolution?.policyDiagnostics).toContainEqual(expect.objectContaining({
+      id: 'IJMES_PERSIAN_SHORT_VOWEL_SUSPECTED',
+      severity: 'REVIEW_REQUIRED'
+    }));
   });
 
   it('rejects Persian/Arabic script in proposed Latin outputs', () => {
@@ -124,7 +156,7 @@ describe('context-aware phrase assistance', () => {
     const validation = validatePhraseProviderResolution(
       {
         disposition: 'PROPOSED',
-        scholarlyCanonical: 'alpha alpha',
+        scholarlyCanonical: readings.map((reading) => reading.canonical).join(' '),
         renderedOutput: 'Alpha Alpha',
         confidence: 0.7,
         basis: 'MODEL_INFERENCE',
@@ -152,7 +184,7 @@ describe('context-aware phrase assistance', () => {
     const validation = validatePhraseProviderResolution(
       {
         disposition: 'PROPOSED',
-        scholarlyCanonical: 'alpha beta',
+        scholarlyCanonical: syntheticCanonical(request),
         renderedOutput: 'Alpha Beta',
         confidence: 0.7,
         basis: 'MODEL_INFERENCE',
@@ -175,7 +207,7 @@ describe('context-aware phrase assistance', () => {
     const validation = validatePhraseProviderResolution(
       {
         disposition: 'PROPOSED',
-        scholarlyCanonical: 'alpha beta',
+        scholarlyCanonical: syntheticCanonical(request),
         renderedOutput: 'Alpha Beta',
         confidence: 0.7,
         basis: 'MODEL_INFERENCE',
@@ -227,13 +259,60 @@ describe('context-aware phrase assistance', () => {
     expect(validation.errors.join(' ')).toContain('conflicts with deterministic canonical evidence');
   });
 
+  it('rejects an overall phrase canonical that contradicts correct deterministic token readings', () => {
+    const request = buildPhraseResolverRequest(transliterate('کتاب‌ها واژه', 'ijmes_full'));
+    const readings = syntheticReadings(request);
+    const correctCanonical = readings.map((reading) => reading.canonical).join(' ');
+    const deterministicReading = readings.find((reading) =>
+      request.tokenEvidence.find((token) => token.index === reading.tokenIndex)?.canonicalTransliteration
+    );
+    expect(deterministicReading).toBeDefined();
+
+    const validation = validatePhraseProviderResolution({
+      disposition: 'PROPOSED',
+      scholarlyCanonical: correctCanonical.replace(deterministicReading!.canonical, 'wrong-reading'),
+      renderedOutput: 'ignored',
+      confidence: 0.6,
+      basis: 'MIXED',
+      rationale: 'Regression fixture: token evidence is correct but phrase canonical is contradictory.',
+      assumptions: [],
+      tokenReadings: readings,
+      warnings: []
+    }, request, 'fake-provider', 'fake-model');
+
+    expect(validation.valid).toBe(false);
+    expect(validation.errors.join(' ')).toContain('PHRASE_CANONICAL_TOKEN_ALIGNMENT_UNALIGNED');
+  });
+
+  it('fails closed when token-to-phrase alignment is ambiguous', () => {
+    const request = buildPhraseResolverRequest(transliterate('واژه واژه', 'ijmes_citation_title'));
+    const readings = syntheticReadings(request).map((reading, index) => ({
+      ...reading,
+      canonical: index === 0 ? 'alpha' : 'beta'
+    }));
+    const validation = validatePhraseProviderResolution({
+      disposition: 'PROPOSED',
+      scholarlyCanonical: 'alpha-beta-beta',
+      renderedOutput: 'ignored',
+      confidence: 0.6,
+      basis: 'MODEL_INFERENCE',
+      rationale: 'Ambiguous alignment fixture.',
+      assumptions: [],
+      tokenReadings: readings,
+      warnings: []
+    }, request, 'fake-provider', 'fake-model');
+
+    expect(validation.valid).toBe(false);
+    expect(validation.errors.join(' ')).toContain('PHRASE_CANONICAL_TOKEN_ALIGNMENT_AMBIGUOUS');
+  });
+
   it('selects the profile rendering as primary after human acceptance while preserving canonical separately', () => {
     const result = unresolvedPhrase();
     const request = buildPhraseResolverRequest(result);
     const validation = validatePhraseProviderResolution(
       {
         disposition: 'PROPOSED',
-        scholarlyCanonical: 'alpha beta',
+        scholarlyCanonical: syntheticCanonical(request),
         renderedOutput: 'Alpha Beta',
         confidence: 0.8,
         basis: 'MIXED',
@@ -252,20 +331,20 @@ describe('context-aware phrase assistance', () => {
     const decision = createAcceptedPhraseDecision(
       resolution,
       result,
-      'alpha beta',
+      syntheticCanonical(request),
       'Alpha Beta',
       '2026-10-05T00:00:00.000Z'
     );
 
     expect(decision.acceptance).toBe('HUMAN_ACCEPTED_AI_SUGGESTION');
-    expect(decision.scholarlyCanonical).toBe('alpha beta');
-    expect(decision.renderedOutput).toBe('Alpha Beta');
+    expect(decision.scholarlyCanonical).toBe(syntheticCanonical(request));
+    expect(decision.renderedOutput).toBe('Alpha1 Alpha2');
     expect(checkAcceptedPhraseApplicability(decision, result).applicable).toBe(true);
 
     const selected = resolveSelectedTransliteration(result, decision);
     expect(selected.activePhraseDecision).toEqual(decision);
-    expect(selected.primary).toBe('Alpha Beta');
-    expect(selected.profileRendering).toBe('Alpha Beta');
+    expect(selected.primary).toBe('Alpha1 Alpha2');
+    expect(selected.profileRendering).toBe('Alpha1 Alpha2');
     expect(selected.copyable).toBe(true);
     expect(selected.status).toBe('USER_OVERRIDE');
 
@@ -299,7 +378,7 @@ describe('context-aware phrase assistance', () => {
     const validation = validatePhraseProviderResolution(
       {
         disposition: 'PROPOSED',
-        scholarlyCanonical: 'alpha beta',
+        scholarlyCanonical: syntheticCanonical(request),
         renderedOutput: 'Alpha Beta',
         confidence: 0.8,
         basis: 'MODEL_INFERENCE',
@@ -322,5 +401,46 @@ describe('context-aware phrase assistance', () => {
     );
 
     expect(decision.acceptance).toBe('HUMAN_EDITED_AI_SUGGESTION');
+  });
+
+  it('verifies V2 acceptance by reading identity and never falls back to V1', () => {
+    const titleResult = unresolvedPhrase();
+    const titleRequest = buildPhraseResolverRequest(titleResult);
+    const validation = validatePhraseProviderResolution({
+      disposition: 'PROPOSED',
+      scholarlyCanonical: syntheticCanonical(titleRequest),
+      renderedOutput: 'ignored',
+      confidence: 0.8,
+      basis: 'MODEL_INFERENCE',
+      rationale: 'V2 compatibility fixture.',
+      assumptions: [],
+      tokenReadings: syntheticReadings(titleRequest),
+      warnings: []
+    }, titleRequest, 'fake-provider', 'fake-model');
+    const v2 = {
+      ...validation.resolution!,
+      readingIdentityVersion: '2' as const,
+      readingFingerprint: computePhraseReadingFingerprintV2(titleRequest, 'fake-provider', 'fake-model')
+    };
+    const renderingOnlyResult = transliterate(titleResult.originalInput, 'ijmes_full');
+    const accepted = createAcceptedPhraseDecision(
+      v2,
+      renderingOnlyResult,
+      v2.scholarlyCanonical!,
+      undefined,
+      '2026-10-08T00:00:00.000Z',
+      'BOOK_OR_ARTICLE_TITLE'
+    );
+    expect(accepted.readingIdentityVersion).toBe('2');
+    expect(accepted.scholarlyCanonical).toBe(v2.scholarlyCanonical);
+
+    expect(() => createAcceptedPhraseDecision(
+      { ...v2, readingFingerprint: undefined },
+      renderingOnlyResult,
+      v2.scholarlyCanonical!,
+      undefined,
+      '2026-10-08T00:00:00.000Z',
+      'BOOK_OR_ARTICLE_TITLE'
+    )).toThrow('stale');
   });
 });

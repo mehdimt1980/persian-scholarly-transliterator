@@ -16,14 +16,14 @@ describe('OpenAiPhraseResolverProvider', () => {
         return {
           tokenIndex: token.index,
           surface: token.surface,
-          canonical: token.canonicalTransliteration ?? `synthetic-${counter}`,
+          canonical: token.canonicalTransliteration ?? `alpha${counter}`,
           note: 'Synthetic provider-wiring token reading.'
         };
       });
 
     const raw = {
       disposition: 'PROPOSED',
-      scholarlyCanonical: 'alpha beta',
+      scholarlyCanonical: tokenReadings.map((reading) => reading.canonical).join(' '),
       renderedOutput: 'Alpha Beta',
       confidence: 0.74,
       basis: 'CONTEXTUAL_INFERENCE',
@@ -54,8 +54,8 @@ describe('OpenAiPhraseResolverProvider', () => {
 
     const resolution = await provider.resolve(request);
 
-    expect(resolution.scholarlyCanonical).toBe('alpha beta');
-    expect(resolution.renderedOutput).toBe('Alpha Beta');
+    expect(resolution.scholarlyCanonical).toBe('alpha1 alpha2');
+    expect(resolution.renderedOutput).toBe('Alpha1 Alpha2');
     expect(resolution.provider).toBe('openai');
     expect(resolution.model).toBe('test-model');
 

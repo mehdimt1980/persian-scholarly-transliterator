@@ -2,8 +2,8 @@
  * Phase 8A: request lifecycle for automatic AI phrase drafts.
  *
  * Identity model:
- *   - `cacheId` is a CLIENT-side dedupe/cache identity derived from the deterministic
- *     request (normalized input, profile, token evidence, issues, decisions).
+ *   - `cacheId` is a CLIENT-side V2 reading identity derived from source, semantic
+ *     context, deterministic evidence, issues, and decisions; rendering is excluded.
  *   - The server's `requestFingerprint` (includes provider + model) remains the sole
  *     authority for acceptance and is NOT used for client dedupe.
  *
@@ -20,6 +20,7 @@ import type { PhraseResolution } from '../../domain/assistance/phraseTypes';
 export interface DraftRequestPayload {
   input: string;
   profile: string;
+  contextKind: 'BOOK_OR_ARTICLE_TITLE' | 'GENERAL_SCHOLARLY_TEXT';
   reviewDecisions: unknown[];
 }
 

@@ -6,6 +6,7 @@ import type {
   TransliterationResult
 } from '../types';
 import type { ReviewActionType, ReviewIssueType } from '../review/types';
+import type { PresentationDiagnostic } from '../presentation/types';
 
 export type PhraseContextKind = 'BOOK_OR_ARTICLE_TITLE' | 'GENERAL_SCHOLARLY_TEXT';
 
@@ -104,6 +105,11 @@ export interface PhraseResolution extends RawPhraseResolutionPayload {
   model: string;
   promptVersion: string;
   requestFingerprint: string;
+  /** V2 semantic reading identity; independent of presentation rendering. */
+  readingFingerprint?: string;
+  readingIdentityVersion?: '2' | '3';
+  policyVersion?: 'ijmes-canonical-diagnostics-v1';
+  policyDiagnostics?: PresentationDiagnostic[];
 }
 
 export type PhraseAcceptanceKind =
@@ -122,6 +128,8 @@ export interface AcceptedPhraseDecision {
   model: string;
   promptVersion: string;
   requestFingerprint: string;
+  readingFingerprint?: string;
+  readingIdentityVersion?: '2' | '3';
   modelConfidence: number | null;
   acceptedAt: string;
 }
