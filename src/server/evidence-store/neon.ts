@@ -7,7 +7,7 @@ import { assertCandidateContentHash } from './publication';
 
 type SqlClient = ReturnType<typeof neon>;
 const rowsOf = (result: unknown): Record<string, unknown>[] => Array.isArray(result) ? result as Record<string, unknown>[] : [];
-export interface NeonPublicationBundle { mode: SnapshotUpdateMode; run: AcquisitionRun; raw: RawSourceObject; versions: RecordVersion[]; projections: CandidateProjection[]; snapshot: RetrievalSnapshot; }
+export interface NeonPublicationBundle { mode: SnapshotUpdateMode; run: AcquisitionRun; raw: RawSourceObject; versions: RecordVersion[]; projections: CandidateProjection[]; snapshot: RetrievalSnapshot; expectedBaseline?: { snapshotId: string; manifestChecksum: string }; }
 export interface PublicationResult { snapshotId: string; previousSnapshotId: string | null; activeSnapshotId: string; recordVersionCount: number; candidateCount: number; }
 
 function connectionHost(connectionString: string): string {
@@ -65,6 +65,8 @@ export class NeonSnapshotPublisher {
       this.sql`SELECT pg_advisory_xact_lock(hashtext('phase8g-evidence-publication'))`,
       this.sql.query('SELECT 1 / count(*)::int AS environment_guard FROM evidence_environment_binding WHERE singleton=true AND namespace=$1 AND runtime=$2 AND isolation=$3 AND database_fingerprint=$4 AND writes_enabled=true', [this.environment.namespace, this.environment.runtime, this.environment.isolation, identity.fingerprint]),
       this.sql`SELECT snapshot_id FROM evidence_active_snapshot WHERE singleton=true`,
+      ...(bundle.expectedBaseline ? [this.sql`SELECT 1 / count(*)::int AS pinned_baseline_guard FROM evidence_active_snapshot a JOIN evidence_snapshot s ON s.snapshot_id=a.snapshot_id WHERE a.singleton=true AND s.status='ACTIVE' AND s.snapshot_id=${bundle.expectedBaseline.snapshotId} AND s.manifest_checksum=${bundle.expectedBaseline.manifestChecksum}`] : []),
+
       this.sql`INSERT INTO evidence_acquisition_run(run_id,provider,query_plan,request_budget,record_budget,status,started_at,ended_at,error_details) VALUES (${bundle.run.runId},${bundle.run.provider},${JSON.stringify(bundle.run.queryPlan)}::jsonb,${bundle.run.requestBudget},${bundle.run.recordBudget},'RUNNING',${bundle.run.startedAt},NULL,NULL) ON CONFLICT (run_id) DO NOTHING`,
       this.sql`INSERT INTO evidence_raw_source(checksum,provider,blob_path,content_length,content_type,retrieved_at,license_url,run_id) VALUES (${bundle.raw.checksum},${bundle.raw.provider},${bundle.raw.blobPath},${bundle.raw.contentLength},${bundle.raw.contentType},${bundle.raw.retrievedAt},${bundle.raw.licenseUrl},${bundle.raw.runId}) ON CONFLICT (checksum) DO NOTHING`,
       ...bundle.versions.flatMap((version) => [this.sql`UPDATE evidence_record_version SET is_current=false,last_seen_at=${version.lastSeenAt} WHERE provider=${version.provider} AND source_record_id=${version.sourceRecordId} AND version_id<>${version.versionId}`, this.sql`INSERT INTO evidence_record_version(version_id,provider,source_record_id,record_checksum,raw_checksum,marc_json,language_evidence,first_seen_at,last_seen_at,is_current) VALUES (${version.versionId},${version.provider},${version.sourceRecordId},${version.recordChecksum},${version.rawChecksum},${JSON.stringify(version.marc)}::jsonb,${JSON.stringify(version.languageEvidence)}::jsonb,${version.firstSeenAt},${version.lastSeenAt},true) ON CONFLICT (version_id) DO UPDATE SET last_seen_at=excluded.last_seen_at,is_current=true`]),
