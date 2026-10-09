@@ -6,8 +6,9 @@
 2. Mark the case `REVIEW_PENDING`; do not enter a scored reference until a qualified independent reviewer has completed it.
 3. Record the primary scholarly canonical, every legitimate accepted alternative, token indexes/surfaces, and only the linguistic features actually reviewed.
 4. Document izafat source/target indexes and `-i` versus `-yi`, morphological boundaries, proper-name conventions, IJMES considerations, and citations.
-5. Set `INDEPENDENTLY_REVIEWED` with reviewer identity/date. If reviewers disagree, set `ADJUDICATION_REQUIRED`, preserve the disagreement, and exclude the case.
-6. After independent adjudication, set `ADJUDICATED`, record adjudicator identity/date and notes, and preserve accepted alternatives rather than forcing false unanimity.
+5. Annotate validator ground truth separately inside the reference, including layer-specific labels and independent reviewer/date/citation provenance. Use `null` for unknown labels; do not copy model warnings or self-assessments into truth.
+6. Set `INDEPENDENTLY_REVIEWED` with reviewer identity/date. If reviewers disagree, set `ADJUDICATION_REQUIRED`, preserve the disagreement, and exclude the case.
+7. After independent adjudication, set `ADJUDICATED`, record adjudicator identity/date and notes, and preserve accepted alternatives rather than forcing false unanimity.
 
 The evaluated model's draft may be inspected only after the reference is frozen. A reference must never be copied from or established solely by that draft. Suspected issues on an unreviewed diagnostic belong in `diagnosticObservation`; they are questions, not labels.
 

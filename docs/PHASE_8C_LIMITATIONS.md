@@ -10,3 +10,4 @@
 - Token correction distance is only a proxy; actual researcher effort and time require a separate human study.
 - Wilson intervals quantify binomial sampling uncertainty only. They cannot correct convenience-sample bias or annotation error.
 - Provider validation can establish structural/policy properties but not, by itself, the correctness of plausible vowel readings.
+- Validator precision/recall additionally requires independently reviewed layer-specific ground truth; missing or disputed labels remain `NOT_MEASURABLE`.

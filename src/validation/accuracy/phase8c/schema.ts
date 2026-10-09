@@ -7,13 +7,18 @@ const stratum = z.enum(['BOOK_OR_ARTICLE_TITLE', 'PERSONAL_OR_GEOGRAPHICAL_NAME'
 const category = z.enum(['BOOK_OR_ARTICLE_TITLE', 'PERSONAL_NAME', 'PLACE_NAME', 'TECHNICAL_TERM', 'GENERAL_SCHOLARLY_TEXT']);
 const featureKind = z.enum(['SHORT_VOWEL', 'LONG_VOWEL', 'CONSONANT', 'IZAFAT_PRESENCE', 'IZAFAT_REALIZATION', 'MORPHOLOGICAL_SUFFIX', 'COMPOUND_BOUNDARY', 'PROPER_NAME', 'HAMZA', 'AYN']);
 const errorCategory = z.enum(['LEXICAL_READING_ERROR', 'SHORT_VOWEL_ERROR', 'LONG_VOWEL_ERROR', 'CONSONANT_MAPPING_ERROR', 'IZAFAT_DETECTION_ERROR', 'IZAFAT_RENDERING_ERROR', 'MORPHOLOGY_ERROR', 'COMPOUND_BOUNDARY_ERROR', 'PROPER_NAME_ERROR', 'HAMZA_AYN_ERROR', 'IJMES_PRESENTATION_ERROR', 'TOKEN_ALIGNMENT_ERROR', 'MODEL_UNCERTAINTY', 'VALIDATOR_FALSE_NEGATIVE', 'VALIDATOR_FALSE_POSITIVE', 'REFERENCE_DISPUTE', 'OTHER']);
+const severity = z.enum(['BLOCK', 'REVIEW_REQUIRED', 'INFO']);
+const validatorTruth = z.object({
+  structuralError: z.boolean().nullable(), deterministicConsistencyError: z.boolean().nullable(), policySeverity: severity.or(z.literal('NONE')).nullable(), linguisticReviewRequired: z.boolean().nullable(),
+  status: z.enum(['INDEPENDENTLY_REVIEWED', 'ADJUDICATED']), reviewerId: z.string().min(1), reviewedAt: z.string().min(1), citation: z.string().min(1), adjudicationNotes: z.string().optional()
+}).strict();
 
 const reference = z.object({
   primaryCanonical: z.string().min(1), acceptedAlternatives: z.array(z.string().min(1)),
   tokens: z.array(z.object({ tokenIndex: z.number().int().nonnegative(), surface: z.string().min(1), canonical: z.string().min(1), morphology: z.array(z.string()).optional() }).strict()),
   features: z.array(z.object({ id: z.string().min(1), kind: featureKind, scope: z.enum(['PHRASE', 'TOKEN', 'RELATION']), tokenIndexes: z.array(z.number().int().nonnegative()), expected: z.string().min(1) }).strict()),
   izafatRelations: z.array(z.object({ sourceTokenIndex: z.number().int().nonnegative(), targetTokenIndex: z.number().int().nonnegative(), realization: z.enum(['-i', '-yi']) }).strict()),
-  properNameConventions: z.array(z.string()), ijmesConsiderations: z.array(z.string()), citations: z.array(z.string().min(1)), adjudicationNotes: z.string().optional()
+  properNameConventions: z.array(z.string()), ijmesConsiderations: z.array(z.string()), citations: z.array(z.string().min(1)), validatorGroundTruth: validatorTruth.nullable(), adjudicationNotes: z.string().optional()
 }).strict();
 
 export const accuracyCaseSchema = z.object({
@@ -32,3 +37,12 @@ export const accuracyCaseSchema = z.object({
 });
 
 export const accuracyCorpusSchema = z.object({ schemaVersion: z.literal('phase8c-corpus-schema-v1'), datasetVersion: z.literal(PHASE8C_DATASET_VERSION), cases: z.array(accuracyCaseSchema) }).strict();
+
+export const accuracyManifestSchema = z.object({
+  schemaVersion: z.literal('phase8c-manifest-schema-v1'), datasetVersion: z.literal(PHASE8C_DATASET_VERSION), selectionAlgorithm: z.literal('independent-curation-v1'), splitAlgorithm: z.literal('sha256-grouped-phase8c-v1'), canonicalization: z.literal('stable-key-order-json-v1'), corpusSha256: z.string().regex(/^[a-f0-9]{64}$/u), caseCount: z.number().int().nonnegative(), reviewedCaseCount: z.number().int().nonnegative(), splitCounts: z.object({ DEVELOPMENT_DIAGNOSTIC: z.number().int().nonnegative(), LOCKED_EVALUATION: z.number().int().nonnegative() }).strict(), sourceIds: z.array(z.string().min(1))
+}).strict();
+
+export const accuracyPredictionSchema = z.object({
+  caseId: z.string().min(1), provider: z.string().min(1), model: z.string().min(1), promptVersion: z.string().min(1), responseClassification: z.enum(['PROPOSED', 'REVIEW_REQUIRED', 'PROVIDER_FAILURE', 'TIMEOUT']), validationPassed: z.boolean(), validationErrors: z.array(z.string()), canonicalProposal: z.string().min(1).nullable(), renderedFull: z.string().min(1).nullable(), renderedIjmesPublication: z.string().min(1).nullable(),
+  tokenReadings: z.array(z.object({ tokenIndex: z.number().int().nonnegative(), surface: z.string().min(1), canonical: z.string().min(1) }).strict()), predictedFeatures: z.array(z.object({ referenceFeatureId: z.string().min(1), value: z.string().min(1) }).strict()), warnings: z.array(z.string()), assumptions: z.array(z.string()), errorCategories: z.array(errorCategory), validatorSignals: z.array(z.object({ layer: z.enum(['STRUCTURAL', 'DETERMINISTIC_CONSISTENCY', 'IJMES_POLICY', 'LINGUISTIC_REVIEW']), severity }).strict()), durationMs: z.number().nonnegative(), resolution: z.unknown().optional()
+}).strict();

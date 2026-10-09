@@ -14,7 +14,7 @@ Live OpenAI evaluation: **NOT RUN**. No paid model request was authorized or mad
 
 ## Offline framework validation
 
-The committed report at `src/validation/reports/phase8c-offline-framework-summary.json` uses three visibly synthetic cases: two scored test oracles and one pending reference. Its 1/2 exact, 2/2 accepted-alternative, 4/4 token, feature, presentation, and validator results demonstrate evaluator branches only. They are not evidence about Persian accuracy, a model, a population, or scholarly quality. Wilson intervals are emitted to verify statistical behavior; the tiny artificial sample has no inferential meaning.
+The committed report at `src/validation/reports/phase8c-offline-framework-summary.json` uses three visibly synthetic cases: two scored test oracles and one pending reference. Its 1/2 exact, 2/2 accepted-alternative, 4/4 conditional and end-to-end token results, feature checks, presentation checks, and independently reference-labeled validator matrices demonstrate evaluator branches only. Unreviewed exclusions and prediction failures are separate fields. They are not evidence about Persian accuracy, a model, a population, or scholarly quality. Wilson intervals are emitted to verify statistical behavior; the tiny artificial sample has no inferential meaning.
 
 ## Diagnostic case studies
 

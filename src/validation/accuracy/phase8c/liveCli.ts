@@ -8,10 +8,18 @@ import { renderScholarlyCanonical } from '../../../domain/presentation/render';
 import { OpenAiPhraseResolverProvider } from '../../../server/assistance/openaiPhraseProvider';
 import { containsSecretMaterial } from './evaluator';
 import { corpusSha256 } from './identity';
-import { accuracyCorpusSchema } from './schema';
-import type { AccuracyCorpus, AccuracyPrediction } from './types';
+import { validatePhase8cCorpus } from './offlineCli';
+import type { AccuracyCorpus, AccuracyManifest, AccuracyPrediction } from './types';
+import type { PhraseResolution, PhraseResolverRequest } from '../../../domain/assistance';
 
 interface LiveOptions { confirmed: boolean; limit: number; maxRequests: number; retries: number; output?: string; }
+interface LiveProvider { resolve(request: PhraseResolverRequest): Promise<PhraseResolution>; }
+export interface LiveDependencies {
+  environment?: { OPENAI_API_KEY?: string; ASSISTED_RESOLVER_MODEL?: string };
+  loadAssets?: () => { corpus: AccuracyCorpus; manifest: AccuracyManifest };
+  createProvider?: (apiKey: string, model: string) => LiveProvider;
+  writeArtifact?: (output: string, artifact: unknown) => void;
+}
 
 export function parseLiveOptions(args: string[]): LiveOptions {
   const readInt = (name: string, fallback: number): number => { const index = args.indexOf(name); const value = index < 0 ? fallback : Number(args[index + 1]); if (!Number.isInteger(value) || value < 0) throw new Error(`${name} must be a non-negative integer.`); return value; };
@@ -30,18 +38,27 @@ export function assertLiveBudget(options: LiveOptions, availableCases: number): 
 function classifyFailure(error: unknown): AccuracyPrediction['responseClassification'] { return error instanceof Error && /abort|timeout/iu.test(error.message) ? 'TIMEOUT' : 'PROVIDER_FAILURE'; }
 function safeGitSha(): string { try { return execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(); } catch { return 'unavailable'; } }
 
-export async function runLive(args: string[]): Promise<void> {
+export async function runLive(args: string[], dependencies: LiveDependencies = {}): Promise<void> {
   const options = parseLiveOptions(args);
-  const apiKey = process.env.OPENAI_API_KEY?.trim();
-  const model = process.env.ASSISTED_RESOLVER_MODEL?.trim();
+  const environment = dependencies.environment ?? process.env;
+  const apiKey = environment.OPENAI_API_KEY?.trim();
+  const model = environment.ASSISTED_RESOLVER_MODEL?.trim();
   if (!apiKey) throw new Error('OPENAI_API_KEY is required for live evaluation.');
   if (!model) throw new Error('ASSISTED_RESOLVER_MODEL is required for live evaluation.');
-  const corpusPath = path.join(process.cwd(), 'validation', 'accuracy', 'phase8c', 'corpus.v1.json');
-  const corpus = accuracyCorpusSchema.parse(JSON.parse(fs.readFileSync(corpusPath, 'utf8'))) as AccuracyCorpus;
+  const assets = dependencies.loadAssets?.() ?? (() => {
+    const directory = path.join(process.cwd(), 'validation', 'accuracy', 'phase8c');
+    return {
+      corpus: JSON.parse(fs.readFileSync(path.join(directory, 'corpus.v1.json'), 'utf8')) as AccuracyCorpus,
+      manifest: JSON.parse(fs.readFileSync(path.join(directory, 'manifest.v1.json'), 'utf8')) as AccuracyManifest
+    };
+  })();
+  const integrityErrors = validatePhase8cCorpus(assets.corpus, assets.manifest);
+  if (integrityErrors.length > 0) throw new Error(`Phase 8C live corpus integrity failed before provider construction:\n${integrityErrors.join('\n')}`);
+  const corpus = assets.corpus;
   const count = assertLiveBudget(options, corpus.cases.length);
   const selected = corpus.cases.slice(0, count);
   console.log(`LIVE OpenAI evaluation: model=${model}; cases=${count}; maximum requests=${options.maxRequests}; retries=${options.retries}`);
-  const provider = new OpenAiPhraseResolverProvider(apiKey, model);
+  const provider = dependencies.createProvider?.(apiKey, model) ?? new OpenAiPhraseResolverProvider(apiKey, model);
   const predictions: AccuracyPrediction[] = [];
   let attempts = 0;
   for (const item of selected) {
@@ -68,8 +85,11 @@ export async function runLive(args: string[]): Promise<void> {
   const artifact = { schemaVersion: 'phase8c-live-run-v1', runId: `phase8c-${timestamp.replace(/\W/gu, '')}`, timestamp, gitCommitSha: safeGitSha(), corpusVersion: corpus.datasetVersion, corpusSha256: corpusSha256(corpus), provider: 'openai', model, promptVersion: predictions[0]?.promptVersion ?? 'unavailable', requestIdentityVersion: '3', validationPolicyVersion: 'ijmes-canonical-diagnostics-v1', rendererPolicyVersion: 'phase8b-presentation-profiles-v1', inputCaseIds: selected.map((item) => item.id), attempts, requestBudget: options.maxRequests, usage: 'unavailable', costEstimate: 'unavailable', predictions };
   if (containsSecretMaterial(artifact)) throw new Error('Refusing to write an artifact containing secret-like material.');
   const output = options.output ? path.resolve(options.output) : path.join(process.cwd(), 'validation', 'accuracy', 'phase8c', 'runs', `${artifact.runId}.json`);
-  fs.mkdirSync(path.dirname(output), { recursive: true });
-  fs.writeFileSync(output, `${JSON.stringify(artifact, null, 2)}\n`, { encoding: 'utf8', flag: 'wx' });
+  if (dependencies.writeArtifact) dependencies.writeArtifact(output, artifact);
+  else {
+    fs.mkdirSync(path.dirname(output), { recursive: true });
+    fs.writeFileSync(output, `${JSON.stringify(artifact, null, 2)}\n`, { encoding: 'utf8', flag: 'wx' });
+  }
   console.log(`Wrote uncommitted live artifact: ${output}`);
 }
 

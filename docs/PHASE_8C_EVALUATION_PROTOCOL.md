@@ -12,7 +12,7 @@ The current authentic pilot contains two user-observed historical diagnostics. B
 
 ## Reference eligibility and leakage
 
-Only `INDEPENDENTLY_REVIEWED` and `ADJUDICATED` cases with a complete reference annotation enter primary metrics. `UNREVIEWED`, `REVIEW_PENDING`, `ADJUDICATION_REQUIRED`, missing predictions, and provider failures are reported explicitly. Failures on otherwise scorable cases remain in phrase-level denominators.
+Only `INDEPENDENTLY_REVIEWED` and `ADJUDICATED` cases with a complete reference annotation enter primary metrics. `UNREVIEWED`, `REVIEW_PENDING`, and `ADJUDICATION_REQUIRED` cases appear only in `exclusions`. Eligible cases with missing, failed, timed-out, or invalid predictions appear separately in `predictionFailures` and remain in end-to-end denominators. Successfully evaluated and unalignable predictions have distinct raw counts.
 
 Reference fields are never passed to the resolver. The live path constructs requests from `transliterate` and `buildPhraseResolverRequest` before comparing stored predictions with references.
 
@@ -22,7 +22,7 @@ Reference fields are never passed to the resolver. The live path constructs requ
 - Accepted-alternative match compares the prediction with the primary and every approved alternative.
 - Normalized match applies NFC, trims edges, and collapses whitespace only. It does not remove diacritics, fold vowel length, merge hamza/ʿayn, or erase morphology/izafat boundaries.
 - Case-only and Unicode-only differences are diagnostic counts, not exact matches.
-- Token accuracy uses explicit token indexes and matching Persian surfaces. Unalignable tokens remain visible and in the denominator.
+- Conditional token accuracy uses only validly aligned/scored token predictions. End-to-end token success uses every eligible reference token and counts missing, failed, timed-out, invalid, and unalignable predictions as unsuccessful. Both raw denominators are reported.
 - Features are scored only from explicit reference-feature observations; absent observations are unevaluable.
 - Full Scholarly and IJMES Publication outputs are rendered and scored independently from canonical correctness.
 - Correction distance reports tokens/phrases requiring reference changes and complete reanalysis. It is not human time or effort.
@@ -30,7 +30,7 @@ Reference fields are never passed to the resolver. The live path constructs requ
 
 ## Validator experiment
 
-Each layer—structural, deterministic consistency, IJMES policy, and linguistic review—has a separate confusion matrix. `BLOCK`, `REVIEW_REQUIRED`, and `INFO` remain distinct; INFO does not count as a detected error. Precision and recall are computed only when explicit ground-truth labels exist. Plausible but linguistically wrong readings can therefore be measured as false negatives without pretending character-level validity establishes correctness.
+Each layer—structural, deterministic consistency, IJMES policy, and linguistic review—has a separate confusion matrix. Ground truth is stored only in the independently reviewed reference annotation with reviewer/date/citation provenance; prediction records cannot carry it. `BLOCK`, `REVIEW_REQUIRED`, and `INFO` remain distinct; INFO does not count as a detected error. Precision and recall are computed only when explicit reviewed labels exist, otherwise the layer reports `NOT_MEASURABLE`. Unreviewed cases never enter validator metrics.
 
 ## Execution
 
@@ -42,4 +42,6 @@ Live runs are opt-in:
 npm run evaluate:phase8c:live -- --limit 2 --max-requests 4 --retries 1 --confirm-live
 ```
 
-Both `OPENAI_API_KEY` and `ASSISTED_RESOLVER_MODEL` are required. Retries are capped at two, the limit cannot exceed the request budget, and outputs are created with no-overwrite semantics under the ignored `runs/` directory unless `--output` is supplied. Live artifacts record identities, policy versions, failures, durations, and unavailable usage/cost honestly; they never store credentials.
+Both `OPENAI_API_KEY` and `ASSISTED_RESOLVER_MODEL` are required. Before provider construction, the live runner applies the same strict schema, manifest SHA-256, source identity, normalization, split, duplicate leakage, and review-state checks as offline mode. Retries are capped at two, the limit cannot exceed the request budget, and outputs are created with no-overwrite semantics under the ignored `runs/` directory unless `--output` is supplied. Live artifacts record identities, policy versions, failures, durations, and unavailable usage/cost honestly; they never store credentials.
+
+Evaluation input is rejected when prediction IDs are duplicated or unknown, prediction fields are not schema-valid, taxonomy values are unsupported, or predicted feature IDs do not belong to the corresponding reviewed reference. Invalid input cannot silently overwrite or inflate aggregates.

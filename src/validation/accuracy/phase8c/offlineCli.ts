@@ -3,7 +3,7 @@ import path from 'node:path';
 import { normalizePersian } from '../../../domain/normalization';
 import { evaluateAccuracy } from './evaluator';
 import { buildManifest, deterministicSplit, leakageViolations, stableJson } from './identity';
-import { accuracyCorpusSchema } from './schema';
+import { accuracyCorpusSchema, accuracyManifestSchema } from './schema';
 import type { AccuracyCorpus, AccuracyManifest, AccuracyPrediction } from './types';
 
 const root = process.cwd();
@@ -12,10 +12,15 @@ const reportPath = path.join(root, 'src', 'validation', 'reports', 'phase8c-offl
 
 function loadJson<T>(file: string): T { return JSON.parse(fs.readFileSync(file, 'utf8')) as T; }
 
-export function validatePhase8cCorpus(corpus: AccuracyCorpus, manifest: AccuracyManifest): string[] {
+export function validatePhase8cCorpus(corpusInput: unknown, manifestInput: unknown): string[] {
   const errors: string[] = [];
-  const parsed = accuracyCorpusSchema.safeParse(corpus);
+  const parsed = accuracyCorpusSchema.safeParse(corpusInput);
+  const parsedManifest = accuracyManifestSchema.safeParse(manifestInput);
   if (!parsed.success) errors.push(...parsed.error.errors.map((error) => `${error.path.join('.')}: ${error.message}`));
+  if (!parsedManifest.success) errors.push(...parsedManifest.error.errors.map((error) => `manifest.${error.path.join('.')}: ${error.message}`));
+  if (!parsed.success || !parsedManifest.success) return errors;
+  const corpus = parsed.data as AccuracyCorpus;
+  const manifest = parsedManifest.data as AccuracyManifest;
   const ids = corpus.cases.map((item) => item.id);
   if (new Set(ids).size !== ids.length) errors.push('Case IDs must be unique.');
   for (const item of corpus.cases) {

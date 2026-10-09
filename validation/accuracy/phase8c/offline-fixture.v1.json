@@ -20,7 +20,8 @@
           "primaryCanonical": "namūna-yi yak", "acceptedAlternatives": [],
           "tokens": [{ "tokenIndex": 0, "surface": "نمونه", "canonical": "namūna" }, { "tokenIndex": 2, "surface": "یک", "canonical": "yak" }],
           "features": [{ "id": "s1-izafat", "kind": "IZAFAT_REALIZATION", "scope": "RELATION", "tokenIndexes": [0, 2], "expected": "-yi" }],
-          "izafatRelations": [{ "sourceTokenIndex": 0, "targetTokenIndex": 2, "realization": "-yi" }], "properNameConventions": [], "ijmesConsiderations": [], "citations": ["Synthetic test oracle"]
+          "izafatRelations": [{ "sourceTokenIndex": 0, "targetTokenIndex": 2, "realization": "-yi" }], "properNameConventions": [], "ijmesConsiderations": [], "citations": ["Synthetic test oracle"],
+          "validatorGroundTruth": { "structuralError": false, "deterministicConsistencyError": false, "policySeverity": "NONE", "linguisticReviewRequired": false, "status": "INDEPENDENTLY_REVIEWED", "reviewerId": "synthetic-validator-reviewer", "reviewedAt": "2000-01-01T00:00:00.000Z", "citation": "Synthetic validator test oracle" }
         }
       },
       {
@@ -39,7 +40,9 @@
           "primaryCanonical": "namūna-yi du", "acceptedAlternatives": ["namūna-yi daw"],
           "tokens": [{ "tokenIndex": 0, "surface": "نمونه", "canonical": "namūna" }, { "tokenIndex": 2, "surface": "دو", "canonical": "daw" }],
           "features": [{ "id": "s2-vowel", "kind": "SHORT_VOWEL", "scope": "TOKEN", "tokenIndexes": [2], "expected": "aw" }],
-          "izafatRelations": [], "properNameConventions": [], "ijmesConsiderations": [], "citations": ["Synthetic test oracle"], "adjudicationNotes": "Two artificial alternatives exercise accepted-alternative matching."
+          "izafatRelations": [], "properNameConventions": [], "ijmesConsiderations": [], "citations": ["Synthetic test oracle"],
+          "validatorGroundTruth": { "structuralError": false, "deterministicConsistencyError": false, "policySeverity": "NONE", "linguisticReviewRequired": true, "status": "ADJUDICATED", "reviewerId": "synthetic-validator-adjudicator", "reviewedAt": "2000-01-02T00:00:00.000Z", "citation": "Synthetic validator test oracle", "adjudicationNotes": "Artificial reviewed label for evaluator regression." },
+          "adjudicationNotes": "Two artificial alternatives exercise accepted-alternative matching."
         }
       },
       {
@@ -64,14 +67,14 @@
       "canonicalProposal": "namūna-yi yak", "renderedFull": "namūna-yi yak", "renderedIjmesPublication": "Namuna-yi Yak",
       "tokenReadings": [{ "tokenIndex": 0, "surface": "نمونه", "canonical": "namūna" }, { "tokenIndex": 2, "surface": "یک", "canonical": "yak" }],
       "predictedFeatures": [{ "referenceFeatureId": "s1-izafat", "value": "-yi" }], "warnings": [], "assumptions": [], "errorCategories": [],
-      "validatorSignals": [], "validatorGroundTruth": { "structuralError": false, "deterministicConsistencyError": false, "policySeverity": "NONE", "linguisticReviewRequired": false }, "durationMs": 0
+      "validatorSignals": [], "durationMs": 0
     },
     {
       "caseId": "p8c-synthetic-alternative", "provider": "mock", "model": "deterministic-fixture", "promptVersion": "fixture-v1", "responseClassification": "PROPOSED", "validationPassed": true, "validationErrors": [],
       "canonicalProposal": "namūna-yi daw", "renderedFull": "namūna-yi daw", "renderedIjmesPublication": "namūna-yi daw",
       "tokenReadings": [{ "tokenIndex": 0, "surface": "نمونه", "canonical": "namūna" }, { "tokenIndex": 2, "surface": "دو", "canonical": "daw" }],
       "predictedFeatures": [{ "referenceFeatureId": "s2-vowel", "value": "aw" }], "warnings": [], "assumptions": [], "errorCategories": [],
-      "validatorSignals": [{ "layer": "LINGUISTIC_REVIEW", "severity": "REVIEW_REQUIRED" }], "validatorGroundTruth": { "structuralError": false, "deterministicConsistencyError": false, "policySeverity": "NONE", "linguisticReviewRequired": true }, "durationMs": 0
+      "validatorSignals": [{ "layer": "LINGUISTIC_REVIEW", "severity": "REVIEW_REQUIRED" }], "durationMs": 0
     }
   ]
 }

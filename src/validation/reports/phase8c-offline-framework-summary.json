@@ -1,12 +1,19 @@
 {
-  "schemaVersion": "phase8c-evaluation-report-v1",
+  "schemaVersion": "phase8c-evaluation-report-v2",
   "runKind": "OFFLINE_MOCKED",
   "datasetVersion": "phase8c-accuracy-pilot-v1",
   "totalCases": 3,
   "reviewedCases": 2,
-  "evaluatedCases": 2,
-  "excludedCases": 1,
-  "failureCases": 0,
+  "caseFlow": {
+    "unreviewedExcluded": 1,
+    "eligibleReferenceCases": 2,
+    "missingPredictions": 0,
+    "providerFailures": 0,
+    "timeouts": 0,
+    "invalidPredictions": 0,
+    "unalignablePredictions": 0,
+    "successfullyEvaluated": 2
+  },
   "phrase": {
     "exact": {
       "numerator": 1,
@@ -35,16 +42,35 @@
         "high": 100
       }
     },
+    "endToEndSuccess": {
+      "numerator": 2,
+      "denominator": 2,
+      "percent": 100,
+      "wilson95": {
+        "low": 34.2380227506653,
+        "high": 100
+      }
+    },
     "caseOnlyDifference": 0,
     "unicodeOnlyDifference": 0
   },
   "tokens": {
+    "eligibleReferenceTokens": 4,
     "correct": 4,
     "incorrect": 0,
     "unalignable": 0,
+    "unsuccessfulFromMissingOrFailedPredictions": 0,
     "alignmentAmbiguity": 0,
-    "evaluatedDenominator": 4,
-    "accuracy": {
+    "conditionalAccuracy": {
+      "numerator": 4,
+      "denominator": 4,
+      "percent": 100,
+      "wilson95": {
+        "low": 51.01091635454027,
+        "high": 100
+      }
+    },
+    "endToEndSuccess": {
       "numerator": 4,
       "denominator": 4,
       "percent": 100,
@@ -128,6 +154,7 @@
   },
   "validator": {
     "STRUCTURAL": {
+      "outcome": "MEASURABLE",
       "trueDetectedErrors": 0,
       "missedErrors": 0,
       "falseWarnings": 0,
@@ -152,6 +179,7 @@
       }
     },
     "DETERMINISTIC_CONSISTENCY": {
+      "outcome": "MEASURABLE",
       "trueDetectedErrors": 0,
       "missedErrors": 0,
       "falseWarnings": 0,
@@ -176,6 +204,7 @@
       }
     },
     "IJMES_POLICY": {
+      "outcome": "MEASURABLE",
       "trueDetectedErrors": 0,
       "missedErrors": 0,
       "falseWarnings": 0,
@@ -200,6 +229,7 @@
       }
     },
     "LINGUISTIC_REVIEW": {
+      "outcome": "MEASURABLE",
       "trueDetectedErrors": 1,
       "missedErrors": 0,
       "falseWarnings": 0,
@@ -258,7 +288,8 @@
   "exclusions": [
     {
       "caseId": "p8c-synthetic-unreviewed",
-      "reason": "Reference status REVIEW_PENDING is not eligible for primary accuracy."
+      "reason": "Reference status REVIEW_PENDING is not eligible for scholarly scoring."
     }
-  ]
+  ],
+  "predictionFailures": []
 }

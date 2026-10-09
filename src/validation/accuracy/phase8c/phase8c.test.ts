@@ -3,7 +3,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { evaluateAccuracy, canonicalNormalization, containsSecretMaterial } from './evaluator';
 import { buildManifest, deterministicSplit, leakageViolations, stableJson } from './identity';
-import { assertLiveBudget, parseLiveOptions } from './liveCli';
+import { assertLiveBudget, parseLiveOptions, runLive } from './liveCli';
 import { validatePhase8cCorpus } from './offlineCli';
 import { accuracyCaseSchema, accuracyCorpusSchema } from './schema';
 import { proportion } from './statistics';
@@ -44,10 +44,14 @@ describe('Phase 8C evaluator', () => {
     const report = evaluateAccuracy({ runKind: 'OFFLINE_MOCKED', corpus: fixture.corpus, predictions: fixture.predictions });
     expect(report.totalCases).toBe(3);
     expect(report.reviewedCases).toBe(2);
-    expect(report.excludedCases).toBe(1);
+    expect(report.caseFlow).toMatchObject({ unreviewedExcluded: 1, eligibleReferenceCases: 2, successfullyEvaluated: 2 });
+    expect(report.exclusions).toHaveLength(1);
+    expect(report.predictionFailures).toHaveLength(0);
     expect(report.phrase.exact).toMatchObject({ numerator: 1, denominator: 2, percent: 50 });
     expect(report.phrase.acceptedAlternative).toMatchObject({ numerator: 2, denominator: 2, percent: 100 });
-    expect(report.tokens).toMatchObject({ correct: 4, incorrect: 0, unalignable: 0, evaluatedDenominator: 4 });
+    expect(report.tokens).toMatchObject({ eligibleReferenceTokens: 4, correct: 4, incorrect: 0, unalignable: 0 });
+    expect(report.tokens.conditionalAccuracy).toMatchObject({ numerator: 4, denominator: 4 });
+    expect(report.tokens.endToEndSuccess).toMatchObject({ numerator: 4, denominator: 4 });
     expect(report.features.IZAFAT_REALIZATION.correct).toBe(1);
     expect(report.features.SHORT_VOWEL.correct).toBe(1);
   });
@@ -64,35 +68,78 @@ describe('Phase 8C evaluator', () => {
 
   it('retains missing predictions and unalignable tokens in denominators', () => {
     const report = evaluateAccuracy({ runKind: 'OFFLINE_MOCKED', corpus: fixture.corpus, predictions: [fixture.predictions[0]] });
-    expect(report.failureCases).toBe(1);
+    expect(report.caseFlow.missingPredictions).toBe(1);
+    expect(report.predictionFailures).toEqual([{ caseId: 'p8c-synthetic-alternative', kind: 'MISSING_PREDICTION', reason: 'No prediction was supplied.' }]);
+    expect(report.exclusions).toHaveLength(1);
     expect(report.phrase.exact.denominator).toBe(2);
+    expect(report.tokens.conditionalAccuracy).toMatchObject({ numerator: 2, denominator: 2, percent: 100 });
+    expect(report.tokens.endToEndSuccess).toMatchObject({ numerator: 2, denominator: 4, percent: 50 });
+    expect(report.tokens.unsuccessfulFromMissingOrFailedPredictions).toBe(2);
     const bad = structuredClone(fixture.predictions);
     bad[0].tokenReadings[0].surface = 'different';
     const tokenReport = evaluateAccuracy({ runKind: 'OFFLINE_MOCKED', corpus: fixture.corpus, predictions: bad });
     expect(tokenReport.tokens.unalignable).toBe(1);
-    expect(tokenReport.tokens.evaluatedDenominator).toBe(4);
+    expect(tokenReport.tokens.conditionalAccuracy.denominator).toBe(3);
+    expect(tokenReport.tokens.endToEndSuccess.denominator).toBe(4);
+    expect(tokenReport.caseFlow.unalignablePredictions).toBe(1);
   });
 
   it('accounts for provider failures and timeouts as scored-case failures', () => {
     const failed = structuredClone(fixture.predictions);
     failed[1] = { ...failed[1], responseClassification: 'TIMEOUT', validationPassed: false, validationErrors: ['timeout'], canonicalProposal: null, renderedFull: null, renderedIjmesPublication: null, tokenReadings: [] };
     const report = evaluateAccuracy({ runKind: 'OFFLINE_MOCKED', corpus: fixture.corpus, predictions: failed });
-    expect(report.failureCases).toBe(1);
-    expect(report.evaluatedCases).toBe(1);
+    expect(report.caseFlow).toMatchObject({ timeouts: 1, successfullyEvaluated: 1 });
     expect(report.phrase.acceptedAlternative.denominator).toBe(2);
     expect(report.correctionProxy.completeReanalysisCases).toBe(1);
   });
 
   it('classifies error taxonomy and validator precision/recall by layer', () => {
     const changed = structuredClone(fixture.predictions);
+    const changedCorpus = structuredClone(fixture.corpus);
     changed[0].errorCategories = ['SHORT_VOWEL_ERROR', 'VALIDATOR_FALSE_NEGATIVE'];
-    changed[0].validatorGroundTruth!.structuralError = true;
+    changedCorpus.cases[0].reference!.validatorGroundTruth!.structuralError = true;
     changed[1].validatorSignals.push({ layer: 'STRUCTURAL', severity: 'BLOCK' });
-    const report = evaluateAccuracy({ runKind: 'OFFLINE_MOCKED', corpus: fixture.corpus, predictions: changed });
+    const report = evaluateAccuracy({ runKind: 'OFFLINE_MOCKED', corpus: changedCorpus, predictions: changed });
     expect(report.errors.SHORT_VOWEL_ERROR).toBe(1);
     expect(report.validator.STRUCTURAL).toMatchObject({ missedErrors: 1, falseWarnings: 1 });
     expect(report.validator.STRUCTURAL.precision.denominator).toBe(1);
     expect(report.validator.STRUCTURAL.recall.denominator).toBe(1);
+  });
+
+  it('takes validator truth only from reviewed references and rejects fabricated prediction truth', () => {
+    const report = evaluateAccuracy({ runKind: 'OFFLINE_MOCKED', corpus: fixture.corpus, predictions: fixture.predictions });
+    expect(report.validator.LINGUISTIC_REVIEW).toMatchObject({ outcome: 'MEASURABLE', trueDetectedErrors: 1, correctUnflagged: 1 });
+    const fabricated = structuredClone(fixture.predictions) as unknown as Array<Record<string, unknown>>;
+    fabricated[0].validatorGroundTruth = { structuralError: true };
+    expect(() => evaluateAccuracy({ runKind: 'OFFLINE_MOCKED', corpus: fixture.corpus, predictions: fabricated as unknown as AccuracyPrediction[] })).toThrow();
+  });
+
+  it('reports missing or disputed validator truth as NOT_MEASURABLE', () => {
+    const changedCorpus = structuredClone(fixture.corpus);
+    changedCorpus.cases[0].reference!.validatorGroundTruth = null;
+    changedCorpus.cases[1].reference!.validatorGroundTruth = null;
+    const report = evaluateAccuracy({ runKind: 'OFFLINE_MOCKED', corpus: changedCorpus, predictions: fixture.predictions });
+    expect(report.validator.STRUCTURAL).toMatchObject({ outcome: 'NOT_MEASURABLE', uncertain: 2 });
+    expect(report.validator.STRUCTURAL.precision.percent).toBeNull();
+  });
+
+  it('rejects duplicate prediction IDs, unknown cases, and malformed feature labels', () => {
+    expect(() => evaluateAccuracy({ runKind: 'OFFLINE_MOCKED', corpus: fixture.corpus, predictions: [fixture.predictions[0], fixture.predictions[0]] })).toThrow('Duplicate prediction case ID');
+    expect(() => evaluateAccuracy({ runKind: 'OFFLINE_MOCKED', corpus: fixture.corpus, predictions: [{ ...fixture.predictions[0], caseId: 'unknown' }] })).toThrow('unknown case ID');
+    const malformed = structuredClone(fixture.predictions);
+    malformed[0].predictedFeatures[0].referenceFeatureId = 'nonexistent';
+    expect(() => evaluateAccuracy({ runKind: 'OFFLINE_MOCKED', corpus: fixture.corpus, predictions: malformed })).toThrow('Unknown reference feature ID');
+    const malformedTaxonomy = structuredClone(fixture.predictions) as unknown as Array<Record<string, unknown>>;
+    malformedTaxonomy[0].errorCategories = ['MADE_UP_ERROR'];
+    expect(() => evaluateAccuracy({ runKind: 'OFFLINE_MOCKED', corpus: fixture.corpus, predictions: malformedTaxonomy as unknown as AccuracyPrediction[] })).toThrow();
+  });
+
+  it('excludes unreviewed cases from all primary and validator denominators', () => {
+    const report = evaluateAccuracy({ runKind: 'OFFLINE_MOCKED', corpus, predictions: [] });
+    expect(report.caseFlow).toMatchObject({ unreviewedExcluded: 2, eligibleReferenceCases: 0 });
+    expect(report.phrase.endToEndSuccess.denominator).toBe(0);
+    expect(report.validator.STRUCTURAL).toMatchObject({ outcome: 'NOT_MEASURABLE', uncertain: 0 });
+    expect(report.exclusions).toHaveLength(2);
   });
 
   it('calculates known Wilson intervals and zero-denominator nulls', () => {
@@ -120,6 +167,18 @@ describe('live-run isolation and safety', () => {
     expect(() => parseLiveOptions(['--retries', 'x'])).toThrow('non-negative integer');
     expect(() => assertLiveBudget(parseLiveOptions(['--confirm-live', '--retries', '3']), 2)).toThrow('cannot exceed 2');
     expect(assertLiveBudget(parseLiveOptions(['--confirm-live', '--limit', '1', '--max-requests', '1']), 2)).toBe(1);
+  });
+
+  it('rejects a manifest mismatch before constructing or invoking a provider', async () => {
+    let providerInteractions = 0;
+    const invalidManifest = { ...manifest, corpusSha256: '0'.repeat(64) };
+    await expect(runLive(['--confirm-live', '--limit', '1', '--max-requests', '1'], {
+      environment: { OPENAI_API_KEY: 'test-key', ASSISTED_RESOLVER_MODEL: 'test-model' },
+      loadAssets: () => ({ corpus, manifest: invalidManifest }),
+      createProvider: () => { providerInteractions += 1; return { resolve: async () => { providerInteractions += 1; throw new Error('must not run'); } }; },
+      writeArtifact: () => { throw new Error('must not write'); }
+    })).rejects.toThrow('integrity failed before provider construction');
+    expect(providerInteractions).toBe(0);
   });
 
   it('rejects common API-key and authorization material from artifacts', () => {
