@@ -1,0 +1,37 @@
+name: Phase 8K verified BSB selected-fixture reconciliation (read only)
+on:
+  pull_request:
+    types: [labeled]
+permissions:
+  contents: read
+jobs:
+  fixture-reconciliation:
+    if: github.event.label.name == 'phase8k-run-fixture-reconciliation' && github.event.pull_request.number == 69 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'phase8k/bsb-fixture-semantic-reconciliation'
+    runs-on: ubuntu-latest
+    environment: phase8g-staging-readonly
+    timeout-minutes: 10
+    concurrency:
+      group: phase8k-staging-readonly-reconciliation
+      cancel-in-progress: false
+    env:
+      PHASE8G_STAGING_DATABASE_URL: ${{ secrets.PHASE8G_STAGING_DATABASE_URL }}
+      PHASE8G_STAGING_DATABASE_FINGERPRINT: ${{ vars.PHASE8G_STAGING_DATABASE_FINGERPRINT }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Read-only Neon snapshot and live BSB field/semantic reconciliation
+        run: npm run evidence:staging:bsb-diff
+      - name: Keep source proofs, candidate worklist and fixture reconciliation for 7 days
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase8k-bsb-fixture-reconciliation
+          path: artifacts/phase8j-bsb-staging-diff/
+          retention-days: 7
+          if-no-files-found: error
