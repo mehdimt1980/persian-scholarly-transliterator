@@ -52,6 +52,7 @@
     "evidence:staging:bsb-diff": "tsx src/server/evidence-store/bsbStagingDiffCli.ts",
     "evidence:bsb:freeze": "tsx src/server/evidence-store/bsbFreezeCli.ts",
     "evidence:bsb:verify-frozen": "tsx src/server/evidence-store/bsbVerifyFrozenCli.ts",
+    "evidence:staging:import-frozen": "tsx src/server/evidence-store/bsbFrozenStagingImportCli.ts",
     "evidence:staging:audit": "tsx src/server/evidence-store/stagingPersistenceAuditCli.ts",
     "evidence:staging:write-window": "tsx src/server/evidence-store/stagingWriteWindowCli.ts",
     "evidence:staging:import": "tsx src/server/evidence-store/stagingImportCli.ts",
