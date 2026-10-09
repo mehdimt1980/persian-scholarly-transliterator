@@ -61,7 +61,7 @@ function sourcePackage():Record<string,string>{
       latinVariants:c.observedLatinVariants.map(v=>({value:v.value,classification:v.classification})),
       state:PREVIOUS_RECORD_IDS.includes(c.sourceRecordIds[0] as typeof PREVIOUS_RECORD_IDS[number])?'ACTIVE_CHANGED':'NEW_CANDIDATE',
       incomingContentHash:c.contentHash,activeContentHash:null,reviewStatus:'UNREVIEWED',authorityStatus:'NON_AUTHORITATIVE_CANDIDATE'})),
-    blockers:['HUMAN_REVIEW_REQUIRED'],preservedSnapshot:true,persisted:false,
+    blockers:['HUMAN_REVIEW_REQUIRED'],
   };
   const reconcile={
     schemaVersion:'phase8k-bsb-fixture-reconciliation-v1',decision:'BLOCKED_PENDING_FIELD_REVIEW',
