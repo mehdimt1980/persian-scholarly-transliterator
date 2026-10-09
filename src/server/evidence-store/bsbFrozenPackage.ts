@@ -244,3 +244,25 @@ export function freezeBsbNewOnly(sourceFiles:Record<string,string>,sourceRunId=F
   outFiles['frozen-seal.json']=JSON.stringify(seal,null,2)+'\n';
   return {files:outFiles,seal};
 }
+
+/** Replay sealed source proofs and require byte-identical regenerated frozen files. */
+export function verifyFrozenReviewPackage(files:Record<string,string>):FrozenBundle['seal'] {
+  const source:Record<string,string>={};
+  for(const [name,content] of Object.entries(files)){
+    if(name.startsWith('source/'))source[name.slice('source/'.length)]=content;
+  }
+  const expected=freezeBsbNewOnly(source);
+  const wanted=Object.keys(expected.files).sort();
+  assert(JSON.stringify(Object.keys(files).sort())===JSON.stringify(wanted),
+    'frozen package file list changed');
+  for(const [name,content] of Object.entries(expected.files)){
+    assert(typeof files[name]==='string' && files[name]===content,
+      'frozen file/provenance differs from reconstructed seal: '+name);
+  }
+  const seal=parseJson<FrozenBundle['seal']>(requireFile(files,'frozen-seal.json'),'frozen-seal.json');
+  assert(seal.status==='REVIEW_REQUIRED_NO_WRITES'
+    && seal.published===false && seal.importAuthorized===false
+    && seal.sourceActionRun===FROZEN_INPUT_RUN,
+    'frozen seal accidentally claims publication or approval');
+  return expected.seal;
+}
