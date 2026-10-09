@@ -1,0 +1,23 @@
+name: BSB live bounded read-only acquisition
+on:
+  pull_request:
+    types: [labeled]
+permissions:
+  contents: read
+jobs:
+  live-bsb-preflight:
+    if: github.event.label.name == 'phase8h-run-live-bsb-preflight' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'phase8h/live-bsb-readonly-validation'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Read-only capped BSB SRU acquisition (2 pages x 10)
+        run: npm run acquire:bsb:preflight
