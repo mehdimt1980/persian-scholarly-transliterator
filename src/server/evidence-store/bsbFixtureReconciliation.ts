@@ -20,6 +20,22 @@ const fieldKey=(field:MarcDataField):string=>stringKey({
 const compareField=(field:MarcDataField, live:MarcDataField[]):'EXACT_SELECTED_FIELD'|'TAG_PRESENT_DIFFERENT_FIELD'|'TAG_ABSENT'=>
   live.some(item=>fieldKey(item)===fieldKey(field))?'EXACT_SELECTED_FIELD'
   :live.some(item=>item.tag===field.tag)?'TAG_PRESENT_DIFFERENT_FIELD':'TAG_ABSENT';
+const stableCore=(candidate:LexicalCandidate):string=>stringKey({
+  candidateId:candidate.candidateId,originalPersianForm:candidate.originalPersianForm,
+  normalizedSearchForm:candidate.normalizedSearchForm,category:candidate.category,
+  linguisticContext:candidate.linguisticContext,
+});
+const addedLatinVariantsOnly=(old:LexicalCandidate, newer:LexicalCandidate):boolean=>{
+  if(stableCore(old)!==stableCore(newer) || newer.observedLatinVariants.length<=old.observedLatinVariants.length)return false;
+  const remaining=newer.observedLatinVariants.map(v=>stringKey({value:v.value,classification:v.classification,sourceField:v.sourceField}));
+  for(const variant of old.observedLatinVariants){
+    const key=stringKey({value:variant.value,classification:variant.classification,sourceField:variant.sourceField});
+    const index=remaining.indexOf(key);
+    if(index<0)return false;
+    remaining.splice(index,1);
+  }
+  return remaining.length>0;
+};
 const semantic=(candidate:LexicalCandidate):string=>sha(stringKey({
   candidateId:candidate.candidateId,originalPersianForm:candidate.originalPersianForm,
   normalizedSearchForm:candidate.normalizedSearchForm,category:candidate.category,
@@ -40,14 +56,14 @@ export interface FixtureReconciliation {
     fixtureHasBlankLeader:boolean;liveAdditionalDatafields:number;
     selectedFields:Array<{tag:string;state:'EXACT_SELECTED_FIELD'|'TAG_PRESENT_DIFFERENT_FIELD'|'TAG_ABSENT';fixtureField:string;liveSameTagFields:string[]}>;
     exactSelectedFieldCount:number;selectedFieldDifferenceCount:number;
-    candidateDifferences:Array<{candidateId:string;state:'SEMANTICS_UNCHANGED_PROVENANCE_CHANGED'|'SEMANTIC_EVIDENCE_CHANGED'|'NO_CURRENT_LIVE_CANDIDATE'|'NEW_LIVE_CANDIDATE'|'EXACT_CONTENT_HASH';
+    candidateDifferences:Array<{candidateId:string;state:'SEMANTICS_UNCHANGED_PROVENANCE_CHANGED'|'SEMANTIC_EVIDENCE_CHANGED'|'ADDITIVE_LATIN_VARIANTS_REQUIRE_REVIEW'|'NO_CURRENT_LIVE_CANDIDATE'|'NEW_LIVE_CANDIDATE'|'EXACT_CONTENT_HASH';
       fixtureEvidenceFingerprint:string|null;liveEvidenceFingerprint:string|null;
       fixtureContentHash:string|null;liveContentHash:string|null;
       fixtureForm:string|null;liveForm:string|null;
       fixtureLatinVariants:Array<{value:string;classification:string}>;
       liveLatinVariants:Array<{value:string;classification:string}>}>;
   }>;
-  totals:{fixtureCandidates:number;liveCandidates:number;semanticMatches:number;semanticDifferences:number;missingCandidates:number;newCandidates:number;
+  totals:{fixtureCandidates:number;liveCandidates:number;semanticMatches:number;semanticDifferences:number;additiveLatinVariantCandidates:number;missingCandidates:number;newCandidates:number;
     exactSelectedFields:number;differentSelectedFields:number};
   blockers:string[];
   oldActiveSnapshotPreserved:true;
@@ -72,7 +88,7 @@ export function reconcileBsbSelectedFixture(input:{
     throw new Error('Persisted authority state unexpected');
   const fixtureById=index(fixtureRecords,recordId,'fixture MARC 001');
   const missingLiveRecordIds=fixtureRecords.filter(r=>!liveById.has(recordId(r))).map(recordId);
-  const totals={fixtureCandidates:0,liveCandidates:0,semanticMatches:0,semanticDifferences:0,
+  const totals={fixtureCandidates:0,liveCandidates:0,semanticMatches:0,semanticDifferences:0,additiveLatinVariantCandidates:0,
     missingCandidates:0,newCandidates:0,exactSelectedFields:0,differentSelectedFields:0};
   const reports:FixtureReconciliation['records']=[];
   for(const fixture of fixtureRecords){
@@ -102,6 +118,7 @@ export function reconcileBsbSelectedFixture(input:{
       if(!newer){state='NO_CURRENT_LIVE_CANDIDATE';totals.missingCandidates++;}
       else if(old.contentHash===newer.contentHash){state='EXACT_CONTENT_HASH';totals.semanticMatches++;}
       else if(semantic(old)===semantic(newer)){state='SEMANTICS_UNCHANGED_PROVENANCE_CHANGED';totals.semanticMatches++;}
+      else if(addedLatinVariantsOnly(old,newer)){state='ADDITIVE_LATIN_VARIANTS_REQUIRE_REVIEW';totals.additiveLatinVariantCandidates++;}
       else{state='SEMANTIC_EVIDENCE_CHANGED';totals.semanticDifferences++;}
       candidateDifferences.push({candidateId:old.candidateId,state,
         fixtureEvidenceFingerprint:semantic(old),liveEvidenceFingerprint:newer?semantic(newer):null,
@@ -127,6 +144,7 @@ export function reconcileBsbSelectedFixture(input:{
   if(missingLiveRecordIds.length)blockers.push('BASELINE_RECORD_MISSING_FROM_BOUNDED_LIVE_SAMPLE');
   if(totals.differentSelectedFields)blockers.push('SELECTED_FIXTURE_FIELD_MISMATCH');
   if(totals.semanticDifferences||totals.missingCandidates)blockers.push('CANDIDATE_SEMANTIC_MISMATCH');
+  if(totals.additiveLatinVariantCandidates)blockers.push('ADDITIVE_CATALOGUE_VARIANT_REQUIRES_REVIEW');
   if(totals.newCandidates)blockers.push('NEW_LIVE_CANDIDATES_REQUIRE_REVIEW');
   if(fixtureById.size!==2)throw new Error('Invalid fixture identity cardinality');
   return{schemaVersion:'phase8k-bsb-fixture-reconciliation-v1',
