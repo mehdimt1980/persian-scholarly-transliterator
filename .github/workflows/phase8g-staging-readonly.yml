@@ -1,0 +1,26 @@
+name: Staging evidence read-only verification
+on:
+  pull_request:
+    types: [labeled]
+permissions:
+  contents: read
+jobs:
+  preflight:
+    if: github.event.label.name == 'phase8g-run-staging-readonly' && github.event.pull_request.number == 59 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'phase8g/staging-readonly-preflight'
+    runs-on: ubuntu-latest
+    environment: phase8g-staging-readonly
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run evidence:staging:preflight
+        env:
+          PHASE8G_STAGING_DATABASE_URL: ${{ secrets.PHASE8G_STAGING_DATABASE_URL }}
+          PHASE8G_STAGING_DATABASE_FINGERPRINT: ${{ vars.PHASE8G_STAGING_DATABASE_FINGERPRINT }}
+          PHASE8G_STAGING_BLOB_STORE_ID: ${{ vars.PHASE8G_STAGING_BLOB_STORE_ID }}
