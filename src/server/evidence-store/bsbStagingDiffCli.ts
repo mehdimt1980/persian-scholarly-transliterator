@@ -168,8 +168,9 @@ async function main():Promise<void>{
         recordId:record.id,tag:field.tag,comparison:field.state,
         fixtureField:field.fixtureField,liveSameTagFields:field.liveSameTagFields,
       }))),
-    candidateSemanticDifferences:reconciliation.records.flatMap(record=>
-      record.candidateDifferences.filter(item=>item.state==='SEMANTIC_EVIDENCE_CHANGED').map(item=>({
+    candidateVariantReviewFindings:reconciliation.records.flatMap(record=>
+      record.candidateDifferences.filter(item=>['SEMANTIC_EVIDENCE_CHANGED','ADDITIVE_LATIN_VARIANTS_REQUIRE_REVIEW'].includes(item.state)).map(item=>({
+        classification:item.state,
         recordId:record.id,candidateId:item.candidateId,
         fixtureForm:item.fixtureForm,liveForm:item.liveForm,
         fixtureLatinVariants:item.fixtureLatinVariants,liveLatinVariants:item.liveLatinVariants,
@@ -187,6 +188,7 @@ async function main():Promise<void>{
       differentSelectedFields:reconciliation.totals.differentSelectedFields,
       semanticMatches:reconciliation.totals.semanticMatches,
       semanticDifferences:reconciliation.totals.semanticDifferences,
+      additiveLatinVariantCandidates:reconciliation.totals.additiveLatinVariantCandidates,
       missingCandidates:reconciliation.totals.missingCandidates,
       newCandidatesWithinTwoRecords:reconciliation.totals.newCandidates,
       blockers:reconciliation.blockers},
