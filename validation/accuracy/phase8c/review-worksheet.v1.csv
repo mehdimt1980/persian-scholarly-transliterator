@@ -1,0 +1,3 @@
+case_id,split,source_id,persian,reference_status,primary_canonical,accepted_alternatives,token_annotations,feature_annotations,reviewer_id,reviewed_at,adjudication_notes
+p8c-diagnostic-rain-tehran,DEVELOPMENT_DIAGNOSTIC,phase8c-user-observation-a,"صدای پای باران در کوچه های تهران",UNREVIEWED,,,,,,,
+p8c-diagnostic-water-thicket,DEVELOPMENT_DIAGNOSTIC,phase8c-user-observation-b,"صدای پای آب در بیشه‌زارهای تمنا",UNREVIEWED,,,,,,,

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "phase8c-manifest-schema-v1",
+  "datasetVersion": "phase8c-accuracy-pilot-v1",
+  "selectionAlgorithm": "independent-curation-v1",
+  "splitAlgorithm": "sha256-grouped-phase8c-v1",
+  "canonicalization": "stable-key-order-json-v1",
+  "corpusSha256": "76ee6a1773570176ccf60d0be6d08bb9b8a1b44c5a1f0cb09ce098693aafc264",
+  "caseCount": 2,
+  "reviewedCaseCount": 0,
+  "splitCounts": { "DEVELOPMENT_DIAGNOSTIC": 2, "LOCKED_EVALUATION": 0 },
+  "sourceIds": ["phase8c-user-observation-a", "phase8c-user-observation-b"]
+}

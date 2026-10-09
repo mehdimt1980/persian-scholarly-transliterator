@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "phase8c-corpus-schema-v1",
+  "datasetVersion": "phase8c-accuracy-pilot-v1",
+  "cases": [
+    {
+      "id": "p8c-diagnostic-rain-tehran",
+      "datasetVersion": "phase8c-accuracy-pilot-v1",
+      "originalPersian": "صدای پای باران در کوچه های تهران",
+      "normalizedInput": "صدای پای باران در کوچه های تهران",
+      "contextKind": "BOOK_OR_ARTICLE_TITLE",
+      "contentCategory": "BOOK_OR_ARTICLE_TITLE",
+      "stratum": "AMBIGUOUS_OR_DIFFICULT",
+      "split": "DEVELOPMENT_DIAGNOSTIC",
+      "duplicateGroupId": "user-observed-sedaye-pa",
+      "provenance": {
+        "sourceType": "USER_OBSERVED_DIAGNOSTIC",
+        "sourceId": "phase8c-user-observation-a",
+        "citation": "User-supplied historical diagnostic in the Phase 8C specification",
+        "licenseNote": "Included as a user-supplied diagnostic observation; no claim of bibliographic authority."
+      },
+      "review": {
+        "status": "UNREVIEWED",
+        "notes": "No independent scholar has supplied or approved a canonical reference."
+      },
+      "reference": null,
+      "diagnosticObservation": {
+        "observedDraft": "Ṣadā-yi Pā-yi Bārān Dar Kūchehā-yi Tihrān",
+        "questions": ["Persian short-vowel conventions", "Title capitalization", "Izafat", "Canonical correctness", "IJMES Publication rendering", "Proper-name convention"],
+        "suspectedErrors": ["SHORT_VOWEL_ERROR", "IZAFAT_RENDERING_ERROR", "IJMES_PRESENTATION_ERROR", "PROPER_NAME_ERROR"],
+        "disclaimer": "Historical observation only. Suspected errors are review questions, not adjudicated labels or approved gold."
+      }
+    },
+    {
+      "id": "p8c-diagnostic-water-thicket",
+      "datasetVersion": "phase8c-accuracy-pilot-v1",
+      "originalPersian": "صدای پای آب در بیشه‌زارهای تمنا",
+      "normalizedInput": "صدای پای آب در بیشه‌زارهای تمنا",
+      "contextKind": "BOOK_OR_ARTICLE_TITLE",
+      "contentCategory": "BOOK_OR_ARTICLE_TITLE",
+      "stratum": "AMBIGUOUS_OR_DIFFICULT",
+      "split": "DEVELOPMENT_DIAGNOSTIC",
+      "duplicateGroupId": "user-observed-sedaye-pa",
+      "provenance": {
+        "sourceType": "USER_OBSERVED_DIAGNOSTIC",
+        "sourceId": "phase8c-user-observation-b",
+        "citation": "User-supplied historical diagnostic in the Phase 8C specification",
+        "licenseNote": "Included as a user-supplied diagnostic observation; no claim of bibliographic authority."
+      },
+      "review": {
+        "status": "UNREVIEWED",
+        "notes": "No independent scholar has supplied or approved a canonical reference."
+      },
+      "reference": null,
+      "diagnosticObservation": {
+        "observedDraft": "ṣidā-yi pā-yi āb dar bīshe-zār-hā-yi tamannā",
+        "questions": ["Reading of صدا", "Short-vowel handling", "Compound morphology", "Plural suffix", "Izafat", "Policy warning behavior"],
+        "suspectedErrors": ["LEXICAL_READING_ERROR", "SHORT_VOWEL_ERROR", "COMPOUND_BOUNDARY_ERROR", "MORPHOLOGY_ERROR", "IZAFAT_RENDERING_ERROR"],
+        "disclaimer": "Historical observation only. Suspected errors are review questions, not adjudicated labels or approved gold."
+      }
+    }
+  ]
+}
