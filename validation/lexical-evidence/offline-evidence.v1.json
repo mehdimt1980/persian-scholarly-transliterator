@@ -1,0 +1,374 @@
+{
+  "schemaVersion": "phase8e-lexical-artifact-v1",
+  "datasetVersion": "phase8e-lexical-evidence-v1",
+  "generatedAt": "2026-10-09T00:00:00.000Z",
+  "sourceMode": "OFFLINE_PHASE8D_FIXTURE",
+  "liveStatus": "LIVE_NOT_RUN_MISSING_AUTHORIZATION",
+  "candidates": [
+    {
+      "schemaVersion": "phase8e-lexical-evidence-v1",
+      "candidateId": "lex-1b173def965a8a615932",
+      "originalPersianForm": "تاریخ ایران",
+      "normalizedSearchForm": "تاریخ ایران",
+      "category": "WORK_TITLE",
+      "contextualIdentity": "title:ncid:BA00000001",
+      "linguisticContext": {
+        "kind": "BIBLIOGRAPHIC_TITLE",
+        "fullText": "تاریخ ایران",
+        "uncertainEntityType": false
+      },
+      "sourceRecordIds": [
+        "100000000000001"
+      ],
+      "sourceUrls": [
+        "https://cir.nii.ac.jp/crid/100000000000001"
+      ],
+      "fieldProvenance": [
+        {
+          "sourceRecordId": "100000000000001",
+          "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000001",
+          "sourceField": "title",
+          "observedForm": "تاریخ ایران",
+          "evidenceStatus": "OBSERVED"
+        }
+      ],
+      "observedLatinVariants": [],
+      "bibliographicIdentities": [
+        {
+          "recordId": "cinii-23894853120ac808",
+          "identityStatus": "RELATED_EDITION",
+          "crid": "100000000000001",
+          "ncid": "BA00000001",
+          "isbns": [
+            "9780000000001"
+          ],
+          "oclcs": []
+        }
+      ],
+      "evidenceCount": 1,
+      "distinctSourceCount": 1,
+      "reviewStatus": "UNREVIEWED",
+      "authorityStatus": "NON_AUTHORITATIVE_CANDIDATE",
+      "evidenceStatus": "CANDIDATE",
+      "extractionMethod": "WHOLE_BIBLIOGRAPHIC_FIELD",
+      "extractionVersion": "phase8e-v1",
+      "contentHash": "eeaa384db4f1a3f834eff6ecd433460ce3c3042d76f46418f804adb57ab1cc68"
+    },
+    {
+      "schemaVersion": "phase8e-lexical-evidence-v1",
+      "candidateId": "lex-3a0311b21c9dd42731e2",
+      "originalPersianForm": "نمونه، علی",
+      "normalizedSearchForm": "نمونه، علی",
+      "category": "UNCLASSIFIED_CANDIDATE",
+      "contextualIdentity": "dc:creator:ncid:BA00000001",
+      "linguisticContext": {
+        "kind": "CREATOR_FIELD",
+        "fullText": "تاریخ ایران",
+        "uncertainEntityType": true
+      },
+      "sourceRecordIds": [
+        "100000000000001"
+      ],
+      "sourceUrls": [
+        "https://cir.nii.ac.jp/crid/100000000000001"
+      ],
+      "fieldProvenance": [
+        {
+          "sourceRecordId": "100000000000001",
+          "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000001",
+          "sourceField": "dc:creator",
+          "observedForm": "نمونه، علی",
+          "evidenceStatus": "OBSERVED"
+        }
+      ],
+      "observedLatinVariants": [],
+      "bibliographicIdentities": [
+        {
+          "recordId": "cinii-23894853120ac808",
+          "identityStatus": "RELATED_EDITION",
+          "crid": "100000000000001",
+          "ncid": "BA00000001",
+          "isbns": [
+            "9780000000001"
+          ],
+          "oclcs": []
+        }
+      ],
+      "evidenceCount": 1,
+      "distinctSourceCount": 1,
+      "reviewStatus": "UNREVIEWED",
+      "authorityStatus": "NON_AUTHORITATIVE_CANDIDATE",
+      "evidenceStatus": "CANDIDATE",
+      "extractionMethod": "WHOLE_BIBLIOGRAPHIC_FIELD",
+      "extractionVersion": "phase8e-v1",
+      "contentHash": "695110fd2ab2ebf504da1692ae0b13101a800e67fa783fdda654e6b855fb4e8c"
+    },
+    {
+      "schemaVersion": "phase8e-lexical-evidence-v1",
+      "candidateId": "lex-3e514a332c0f9b04534a",
+      "originalPersianForm": "نمونه، علی",
+      "normalizedSearchForm": "نمونه، علی",
+      "category": "UNCLASSIFIED_CANDIDATE",
+      "contextualIdentity": "dc:creator:ncid:BA00000007",
+      "linguisticContext": {
+        "kind": "CREATOR_FIELD",
+        "fullText": "تاریخ ایران",
+        "uncertainEntityType": true
+      },
+      "sourceRecordIds": [
+        "100000000000007"
+      ],
+      "sourceUrls": [
+        "https://cir.nii.ac.jp/crid/100000000000007"
+      ],
+      "fieldProvenance": [
+        {
+          "sourceRecordId": "100000000000007",
+          "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000007",
+          "sourceField": "dc:creator",
+          "observedForm": "نمونه، علی",
+          "evidenceStatus": "OBSERVED"
+        }
+      ],
+      "observedLatinVariants": [],
+      "bibliographicIdentities": [
+        {
+          "recordId": "cinii-f55de82bd4a0d9f4",
+          "identityStatus": "RELATED_EDITION",
+          "crid": "100000000000007",
+          "ncid": "BA00000007",
+          "isbns": [
+            "9780000000007"
+          ],
+          "oclcs": []
+        }
+      ],
+      "evidenceCount": 1,
+      "distinctSourceCount": 1,
+      "reviewStatus": "UNREVIEWED",
+      "authorityStatus": "NON_AUTHORITATIVE_CANDIDATE",
+      "evidenceStatus": "CANDIDATE",
+      "extractionMethod": "WHOLE_BIBLIOGRAPHIC_FIELD",
+      "extractionVersion": "phase8e-v1",
+      "contentHash": "eff39ae4c4f35ce0295a8cac14b95522d5dde8b511614daf5103b41dde827860"
+    },
+    {
+      "schemaVersion": "phase8e-lexical-evidence-v1",
+      "candidateId": "lex-40de302b0e1f108a07bd",
+      "originalPersianForm": "فرهنگ فارسی",
+      "normalizedSearchForm": "فرهنگ فارسی",
+      "category": "WORK_TITLE",
+      "contextualIdentity": "title:ncid:BA00000002",
+      "linguisticContext": {
+        "kind": "BIBLIOGRAPHIC_TITLE",
+        "fullText": "فرهنگ فارسی",
+        "uncertainEntityType": false
+      },
+      "sourceRecordIds": [
+        "100000000000002"
+      ],
+      "sourceUrls": [
+        "https://cir.nii.ac.jp/crid/100000000000002"
+      ],
+      "fieldProvenance": [
+        {
+          "sourceRecordId": "100000000000002",
+          "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000002",
+          "sourceField": "title",
+          "observedForm": "فرهنگ فارسی",
+          "evidenceStatus": "OBSERVED"
+        }
+      ],
+      "observedLatinVariants": [
+        {
+          "value": "Farhang-i Farsi",
+          "classification": "ROMANIZATION_CANDIDATE",
+          "sourceField": "title",
+          "sourceRecordId": "100000000000002"
+        }
+      ],
+      "bibliographicIdentities": [
+        {
+          "recordId": "cinii-65e8b1b25dd0d8ef",
+          "identityStatus": "UNIQUE_RECORD",
+          "crid": "100000000000002",
+          "ncid": "BA00000002",
+          "isbns": [],
+          "oclcs": []
+        }
+      ],
+      "evidenceCount": 1,
+      "distinctSourceCount": 1,
+      "reviewStatus": "UNREVIEWED",
+      "authorityStatus": "NON_AUTHORITATIVE_CANDIDATE",
+      "evidenceStatus": "CANDIDATE",
+      "extractionMethod": "WHOLE_BIBLIOGRAPHIC_FIELD",
+      "extractionVersion": "phase8e-v1",
+      "contentHash": "066c7e89385240466c168496195134f308aa972732ab0cdf2e434226349d2a97"
+    },
+    {
+      "schemaVersion": "phase8e-lexical-evidence-v1",
+      "candidateId": "lex-831ae09819eaed07335b",
+      "originalPersianForm": "آزمایشی، مریم",
+      "normalizedSearchForm": "آزمایشی، مریم",
+      "category": "UNCLASSIFIED_CANDIDATE",
+      "contextualIdentity": "dc:creator:ncid:BA00000002",
+      "linguisticContext": {
+        "kind": "CREATOR_FIELD",
+        "fullText": "فرهنگ فارسی",
+        "uncertainEntityType": true
+      },
+      "sourceRecordIds": [
+        "100000000000002"
+      ],
+      "sourceUrls": [
+        "https://cir.nii.ac.jp/crid/100000000000002"
+      ],
+      "fieldProvenance": [
+        {
+          "sourceRecordId": "100000000000002",
+          "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000002",
+          "sourceField": "dc:creator",
+          "observedForm": "آزمایشی، مریم",
+          "evidenceStatus": "OBSERVED"
+        }
+      ],
+      "observedLatinVariants": [],
+      "bibliographicIdentities": [
+        {
+          "recordId": "cinii-65e8b1b25dd0d8ef",
+          "identityStatus": "UNIQUE_RECORD",
+          "crid": "100000000000002",
+          "ncid": "BA00000002",
+          "isbns": [],
+          "oclcs": []
+        }
+      ],
+      "evidenceCount": 1,
+      "distinctSourceCount": 1,
+      "reviewStatus": "UNREVIEWED",
+      "authorityStatus": "NON_AUTHORITATIVE_CANDIDATE",
+      "evidenceStatus": "CANDIDATE",
+      "extractionMethod": "WHOLE_BIBLIOGRAPHIC_FIELD",
+      "extractionVersion": "phase8e-v1",
+      "contentHash": "31e89ae5d6557eb0f1cbe8fde0ee1e6902c3ddd659ca2af54ca6bc527c76a07b"
+    },
+    {
+      "schemaVersion": "phase8e-lexical-evidence-v1",
+      "candidateId": "lex-ab754d816ca819694368",
+      "originalPersianForm": "تاریخ ایران",
+      "normalizedSearchForm": "تاریخ ایران",
+      "category": "WORK_TITLE",
+      "contextualIdentity": "title:ncid:BA00000007",
+      "linguisticContext": {
+        "kind": "BIBLIOGRAPHIC_TITLE",
+        "fullText": "تاریخ ایران",
+        "uncertainEntityType": false
+      },
+      "sourceRecordIds": [
+        "100000000000007"
+      ],
+      "sourceUrls": [
+        "https://cir.nii.ac.jp/crid/100000000000007"
+      ],
+      "fieldProvenance": [
+        {
+          "sourceRecordId": "100000000000007",
+          "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000007",
+          "sourceField": "title",
+          "observedForm": "تاریخ ایران",
+          "evidenceStatus": "OBSERVED"
+        }
+      ],
+      "observedLatinVariants": [],
+      "bibliographicIdentities": [
+        {
+          "recordId": "cinii-f55de82bd4a0d9f4",
+          "identityStatus": "RELATED_EDITION",
+          "crid": "100000000000007",
+          "ncid": "BA00000007",
+          "isbns": [
+            "9780000000007"
+          ],
+          "oclcs": []
+        }
+      ],
+      "evidenceCount": 1,
+      "distinctSourceCount": 1,
+      "reviewStatus": "UNREVIEWED",
+      "authorityStatus": "NON_AUTHORITATIVE_CANDIDATE",
+      "evidenceStatus": "CANDIDATE",
+      "extractionMethod": "WHOLE_BIBLIOGRAPHIC_FIELD",
+      "extractionVersion": "phase8e-v1",
+      "contentHash": "8e1902bfb8a28c1d28c7fa9f22b83a2b9de62843a8bd75ee257508da483a0aa1"
+    },
+    {
+      "schemaVersion": "phase8e-lexical-evidence-v1",
+      "candidateId": "lex-b59c5e931900fc443497",
+      "originalPersianForm": "شاهنامه پژوهی",
+      "normalizedSearchForm": "شاهنامه پژوهی",
+      "category": "WORK_TITLE",
+      "contextualIdentity": "title:oclc:123456789",
+      "linguisticContext": {
+        "kind": "BIBLIOGRAPHIC_TITLE",
+        "fullText": "شاهنامه پژوهی",
+        "uncertainEntityType": false
+      },
+      "sourceRecordIds": [
+        "100000000000003"
+      ],
+      "sourceUrls": [
+        "https://cir.nii.ac.jp/crid/100000000000003"
+      ],
+      "fieldProvenance": [
+        {
+          "sourceRecordId": "100000000000003",
+          "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000003",
+          "sourceField": "title",
+          "observedForm": "شاهنامه پژوهی",
+          "evidenceStatus": "OBSERVED"
+        }
+      ],
+      "observedLatinVariants": [
+        {
+          "value": "Shahnamah-pazhuhī",
+          "classification": "ROMANIZATION_CANDIDATE",
+          "sourceField": "title",
+          "sourceRecordId": "100000000000003"
+        },
+        {
+          "value": "Shahnameh Studies",
+          "classification": "TRANSLATED_TITLE",
+          "sourceField": "title",
+          "sourceRecordId": "100000000000003"
+        },
+        {
+          "value": "Shahnamah pazhuhi",
+          "classification": "UNDETERMINED_LATIN_VARIANT",
+          "sourceField": "title",
+          "sourceRecordId": "100000000000003"
+        }
+      ],
+      "bibliographicIdentities": [
+        {
+          "recordId": "cinii-c2a11958333c0d97",
+          "identityStatus": "UNIQUE_RECORD",
+          "crid": "100000000000003",
+          "ncid": null,
+          "isbns": [],
+          "oclcs": [
+            "123456789"
+          ]
+        }
+      ],
+      "evidenceCount": 1,
+      "distinctSourceCount": 1,
+      "reviewStatus": "UNREVIEWED",
+      "authorityStatus": "NON_AUTHORITATIVE_CANDIDATE",
+      "evidenceStatus": "CANDIDATE",
+      "extractionMethod": "WHOLE_BIBLIOGRAPHIC_FIELD",
+      "extractionVersion": "phase8e-v1",
+      "contentHash": "826ca665b7ea7d17968e704a837e610162a7f2e463992879a1d4590a4630c6f0"
+    }
+  ]
+}

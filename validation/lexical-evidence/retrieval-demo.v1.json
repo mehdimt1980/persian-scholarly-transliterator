@@ -1,0 +1,217 @@
+{
+  "schemaVersion": "phase8e-retrieval-demo-v1",
+  "examples": [
+    {
+      "query": "تاریخ ایران",
+      "normalizedQuery": "تاریخ ایران",
+      "status": "CANDIDATE",
+      "matches": [
+        {
+          "schemaVersion": "phase8e-lexical-evidence-v1",
+          "candidateId": "lex-1b173def965a8a615932",
+          "originalPersianForm": "تاریخ ایران",
+          "normalizedSearchForm": "تاریخ ایران",
+          "category": "WORK_TITLE",
+          "contextualIdentity": "title:ncid:BA00000001",
+          "linguisticContext": {
+            "kind": "BIBLIOGRAPHIC_TITLE",
+            "fullText": "تاریخ ایران",
+            "uncertainEntityType": false
+          },
+          "sourceRecordIds": [
+            "100000000000001"
+          ],
+          "sourceUrls": [
+            "https://cir.nii.ac.jp/crid/100000000000001"
+          ],
+          "fieldProvenance": [
+            {
+              "sourceRecordId": "100000000000001",
+              "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000001",
+              "sourceField": "title",
+              "observedForm": "تاریخ ایران",
+              "evidenceStatus": "OBSERVED"
+            }
+          ],
+          "observedLatinVariants": [],
+          "bibliographicIdentities": [
+            {
+              "recordId": "cinii-23894853120ac808",
+              "identityStatus": "RELATED_EDITION",
+              "crid": "100000000000001",
+              "ncid": "BA00000001",
+              "isbns": [
+                "9780000000001"
+              ],
+              "oclcs": []
+            }
+          ],
+          "evidenceCount": 1,
+          "distinctSourceCount": 1,
+          "reviewStatus": "UNREVIEWED",
+          "authorityStatus": "NON_AUTHORITATIVE_CANDIDATE",
+          "evidenceStatus": "CANDIDATE",
+          "extractionMethod": "WHOLE_BIBLIOGRAPHIC_FIELD",
+          "extractionVersion": "phase8e-v1",
+          "contentHash": "eeaa384db4f1a3f834eff6ecd433460ce3c3042d76f46418f804adb57ab1cc68"
+        },
+        {
+          "schemaVersion": "phase8e-lexical-evidence-v1",
+          "candidateId": "lex-ab754d816ca819694368",
+          "originalPersianForm": "تاریخ ایران",
+          "normalizedSearchForm": "تاریخ ایران",
+          "category": "WORK_TITLE",
+          "contextualIdentity": "title:ncid:BA00000007",
+          "linguisticContext": {
+            "kind": "BIBLIOGRAPHIC_TITLE",
+            "fullText": "تاریخ ایران",
+            "uncertainEntityType": false
+          },
+          "sourceRecordIds": [
+            "100000000000007"
+          ],
+          "sourceUrls": [
+            "https://cir.nii.ac.jp/crid/100000000000007"
+          ],
+          "fieldProvenance": [
+            {
+              "sourceRecordId": "100000000000007",
+              "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000007",
+              "sourceField": "title",
+              "observedForm": "تاریخ ایران",
+              "evidenceStatus": "OBSERVED"
+            }
+          ],
+          "observedLatinVariants": [],
+          "bibliographicIdentities": [
+            {
+              "recordId": "cinii-f55de82bd4a0d9f4",
+              "identityStatus": "RELATED_EDITION",
+              "crid": "100000000000007",
+              "ncid": "BA00000007",
+              "isbns": [
+                "9780000000007"
+              ],
+              "oclcs": []
+            }
+          ],
+          "evidenceCount": 1,
+          "distinctSourceCount": 1,
+          "reviewStatus": "UNREVIEWED",
+          "authorityStatus": "NON_AUTHORITATIVE_CANDIDATE",
+          "evidenceStatus": "CANDIDATE",
+          "extractionMethod": "WHOLE_BIBLIOGRAPHIC_FIELD",
+          "extractionVersion": "phase8e-v1",
+          "contentHash": "8e1902bfb8a28c1d28c7fa9f22b83a2b9de62843a8bd75ee257508da483a0aa1"
+        }
+      ],
+      "citations": [
+        {
+          "sourceRecordId": "100000000000001",
+          "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000001",
+          "sourceField": "title",
+          "observedForm": "تاریخ ایران",
+          "evidenceStatus": "OBSERVED"
+        },
+        {
+          "sourceRecordId": "100000000000007",
+          "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000007",
+          "sourceField": "title",
+          "observedForm": "تاریخ ایران",
+          "evidenceStatus": "OBSERVED"
+        }
+      ]
+    },
+    {
+      "query": "شاهنامه پژوهی",
+      "normalizedQuery": "شاهنامه پژوهی",
+      "status": "CANDIDATE",
+      "matches": [
+        {
+          "schemaVersion": "phase8e-lexical-evidence-v1",
+          "candidateId": "lex-b59c5e931900fc443497",
+          "originalPersianForm": "شاهنامه پژوهی",
+          "normalizedSearchForm": "شاهنامه پژوهی",
+          "category": "WORK_TITLE",
+          "contextualIdentity": "title:oclc:123456789",
+          "linguisticContext": {
+            "kind": "BIBLIOGRAPHIC_TITLE",
+            "fullText": "شاهنامه پژوهی",
+            "uncertainEntityType": false
+          },
+          "sourceRecordIds": [
+            "100000000000003"
+          ],
+          "sourceUrls": [
+            "https://cir.nii.ac.jp/crid/100000000000003"
+          ],
+          "fieldProvenance": [
+            {
+              "sourceRecordId": "100000000000003",
+              "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000003",
+              "sourceField": "title",
+              "observedForm": "شاهنامه پژوهی",
+              "evidenceStatus": "OBSERVED"
+            }
+          ],
+          "observedLatinVariants": [
+            {
+              "value": "Shahnamah-pazhuhī",
+              "classification": "ROMANIZATION_CANDIDATE",
+              "sourceField": "title",
+              "sourceRecordId": "100000000000003"
+            },
+            {
+              "value": "Shahnameh Studies",
+              "classification": "TRANSLATED_TITLE",
+              "sourceField": "title",
+              "sourceRecordId": "100000000000003"
+            },
+            {
+              "value": "Shahnamah pazhuhi",
+              "classification": "UNDETERMINED_LATIN_VARIANT",
+              "sourceField": "title",
+              "sourceRecordId": "100000000000003"
+            }
+          ],
+          "bibliographicIdentities": [
+            {
+              "recordId": "cinii-c2a11958333c0d97",
+              "identityStatus": "UNIQUE_RECORD",
+              "crid": "100000000000003",
+              "ncid": null,
+              "isbns": [],
+              "oclcs": [
+                "123456789"
+              ]
+            }
+          ],
+          "evidenceCount": 1,
+          "distinctSourceCount": 1,
+          "reviewStatus": "UNREVIEWED",
+          "authorityStatus": "NON_AUTHORITATIVE_CANDIDATE",
+          "evidenceStatus": "CANDIDATE",
+          "extractionMethod": "WHOLE_BIBLIOGRAPHIC_FIELD",
+          "extractionVersion": "phase8e-v1",
+          "contentHash": "826ca665b7ea7d17968e704a837e610162a7f2e463992879a1d4590a4630c6f0"
+        }
+      ],
+      "citations": [
+        {
+          "sourceRecordId": "100000000000003",
+          "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000003",
+          "sourceField": "title",
+          "observedForm": "شاهنامه پژوهی",
+          "evidenceStatus": "OBSERVED"
+        }
+      ]
+    },
+    {
+      "query": "اندیشه ترقی و حکومت قانون",
+      "normalizedQuery": "اندیشه ترقی و حکومت قانون",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "matches": [],
+      "citations": []
+    }
+  ]
+}

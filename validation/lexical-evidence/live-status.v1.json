@@ -1,0 +1,5 @@
+{
+  "status": "LIVE_NOT_RUN_MISSING_AUTHORIZATION",
+  "reason": "No explicit authorized credential was available; no network request was made.",
+  "generatedAt": "2026-10-09T00:00:00.000Z"
+}
