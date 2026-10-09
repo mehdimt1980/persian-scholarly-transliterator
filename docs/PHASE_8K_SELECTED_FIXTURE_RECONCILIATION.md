@@ -22,3 +22,15 @@ A changed SHA-256 is **not** by itself proof of a substantive catalogue edit. Co
 
 ## Workflow
 PR label `phase8k-run-fixture-reconciliation` triggers `phase8g-staging-readonly`, with no Blob credentials. The read-only CLI rechecks the active snapshot and disabled write binding after all source calls. The artifact is not a database migration and expires in seven days.
+
+## Verified findings (live BSB vs frozen active Staging, 2026-10-09)
+
+The bounded live comparison found **both** original MARC 001 identifiers (same as the two active Staging source IDs). Among nine deliberately selected datafields, **seven** match the live record exactly; **two `041` fields** differ:
+- `991071006889707356`: fixture `041` indicator 1 is blank, live indicator 1 is `0`. The recorded `per` language value agrees.
+- `991144600686807356`: fixture `041` indicator 1 is blank, live indicator 1 is `0`, and live has an additional `eng` language code alongside `per`.
+
+For the three persisted candidates, **two** have the same extracted Persian/Latin evidence despite changed overall source content hashes. The third, work-title candidate `lex-74e5d7358e373dcf3900`, preserves its Persian title `ادب فارسى : علمى، پژوهشى.` and its previously observed romanization `Adab-i Fārsī ʻilmī, pizhūhishī`, but the full live MARC adds the alternate Latin title `Persian literature` classified **UNDETERMINED_LATIN_VARIANT**. This is **additive bibliographic evidence**, not proof that the old transliteration was replaced or that the extra English title is IJMES-compliant.
+
+The importer remains blocked. A conservative operator may decide to retain old evidence while admitting genuinely new records later; any replacement of the two old source versions or reinterpretation of the added Latin title requires explicit review. A source reuse/licensing assessment is also still mandatory.
+
+Live reference: https://github.com/mehdimt1980/persian-scholarly-transliterator/actions/runs/37980563343
