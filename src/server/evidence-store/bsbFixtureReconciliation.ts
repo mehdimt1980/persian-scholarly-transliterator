@@ -38,11 +38,14 @@ export interface FixtureReconciliation {
   records:Array<{
     id:string;fixtureRecordSha256:string;liveRecordSha256:string;
     fixtureHasBlankLeader:boolean;liveAdditionalDatafields:number;
-    selectedFields:Array<{tag:string;state:'EXACT_SELECTED_FIELD'|'TAG_PRESENT_DIFFERENT_FIELD'|'TAG_ABSENT'}>;
+    selectedFields:Array<{tag:string;state:'EXACT_SELECTED_FIELD'|'TAG_PRESENT_DIFFERENT_FIELD'|'TAG_ABSENT';fixtureField:string;liveSameTagFields:string[]}>;
     exactSelectedFieldCount:number;selectedFieldDifferenceCount:number;
     candidateDifferences:Array<{candidateId:string;state:'SEMANTICS_UNCHANGED_PROVENANCE_CHANGED'|'SEMANTIC_EVIDENCE_CHANGED'|'NO_CURRENT_LIVE_CANDIDATE'|'NEW_LIVE_CANDIDATE'|'EXACT_CONTENT_HASH';
       fixtureEvidenceFingerprint:string|null;liveEvidenceFingerprint:string|null;
-      fixtureContentHash:string|null;liveContentHash:string|null}>;
+      fixtureContentHash:string|null;liveContentHash:string|null;
+      fixtureForm:string|null;liveForm:string|null;
+      fixtureLatinVariants:Array<{value:string;classification:string}>;
+      liveLatinVariants:Array<{value:string;classification:string}>}>;
   }>;
   totals:{fixtureCandidates:number;liveCandidates:number;semanticMatches:number;semanticDifferences:number;missingCandidates:number;newCandidates:number;
     exactSelectedFields:number;differentSelectedFields:number};
@@ -83,7 +86,11 @@ export function reconcileBsbSelectedFixture(input:{
     const newCandidates=index(adaptBsbRecord(live),c=>c.candidateId,'live candidate');
     totals.fixtureCandidates+=oldCandidates.size;
     totals.liveCandidates+=newCandidates.size;
-    const selectedFields=fixture.datafields.map(field=>({tag:field.tag,state:compareField(field,live.datafields)}));
+    const selectedFields=fixture.datafields.map(field=>({
+      tag:field.tag,state:compareField(field,live.datafields),
+      fixtureField:fieldKey(field),
+      liveSameTagFields:live.datafields.filter(candidate=>candidate.tag===field.tag).map(fieldKey),
+    }));
     const exactSelectedFieldCount=selectedFields.filter(f=>f.state==='EXACT_SELECTED_FIELD').length;
     const selectedFieldDifferenceCount=selectedFields.length-exactSelectedFieldCount;
     totals.exactSelectedFields+=exactSelectedFieldCount;
@@ -98,13 +105,18 @@ export function reconcileBsbSelectedFixture(input:{
       else{state='SEMANTIC_EVIDENCE_CHANGED';totals.semanticDifferences++;}
       candidateDifferences.push({candidateId:old.candidateId,state,
         fixtureEvidenceFingerprint:semantic(old),liveEvidenceFingerprint:newer?semantic(newer):null,
-        fixtureContentHash:old.contentHash,liveContentHash:newer?.contentHash??null});
+        fixtureContentHash:old.contentHash,liveContentHash:newer?.contentHash??null,
+        fixtureForm:old.originalPersianForm,liveForm:newer?.originalPersianForm??null,
+        fixtureLatinVariants:old.observedLatinVariants.map(v=>({value:v.value,classification:v.classification})),
+        liveLatinVariants:newer?.observedLatinVariants.map(v=>({value:v.value,classification:v.classification}))??[]});
     }
     for(const candidate of newCandidates.values())if(!oldCandidates.has(candidate.candidateId)){
       totals.newCandidates++;
       candidateDifferences.push({candidateId:candidate.candidateId,state:'NEW_LIVE_CANDIDATE',
         fixtureEvidenceFingerprint:null,liveEvidenceFingerprint:semantic(candidate),
-        fixtureContentHash:null,liveContentHash:candidate.contentHash});
+        fixtureContentHash:null,liveContentHash:candidate.contentHash,
+        fixtureForm:null,liveForm:candidate.originalPersianForm,fixtureLatinVariants:[],
+        liveLatinVariants:candidate.observedLatinVariants.map(v=>({value:v.value,classification:v.classification}))});
     }
     reports.push({id,fixtureRecordSha256:sha(fixture.rawXml),liveRecordSha256:sha(live.rawXml),
       fixtureHasBlankLeader:!fixture.leader,
