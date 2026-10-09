@@ -1,4 +1,12 @@
 BEGIN;
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE OR REPLACE FUNCTION evidence_manifest_checksum(schema_version text, extraction_version text, source_version_ids jsonb, candidates jsonb)
+RETURNS char(64) LANGUAGE sql IMMUTABLE STRICT AS $$
+  SELECT encode(digest(convert_to(concat_ws(E'\n', schema_version, extraction_version,
+    COALESCE((SELECT string_agg(value, E'\n' ORDER BY value) FROM jsonb_array_elements_text(source_version_ids)), ''),
+    COALESCE((SELECT string_agg(concat(candidate.value->>'candidateId', E'\t', candidate.value->>'contentHash', E'\t', candidate.value->>'sourceVersionId'), E'\n' ORDER BY candidate.value->>'candidateId', candidate.value->>'sourceVersionId') FROM jsonb_array_elements(candidates) AS candidate(value)), '')
+  ), 'UTF8'), 'sha256'), 'hex');
+$$;
 CREATE TABLE IF NOT EXISTS evidence_environment_binding (
   singleton boolean PRIMARY KEY DEFAULT true CHECK(singleton), namespace text NOT NULL,
   runtime text NOT NULL CHECK(runtime IN ('test','development','preview','production')),

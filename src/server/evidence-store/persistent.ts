@@ -1,13 +1,13 @@
 import { assertSafeEvidenceWrite, type WriteEnvironment } from './guard';
 import type { NeonSnapshotPublisher, PublicationResult } from './neon';
 import { prepareBsbPublication } from './publication';
-import type { RawArchive } from './types';
+import type { RawArchive, SnapshotUpdateMode } from './types';
 
 export interface PersistentImportResult extends PublicationResult { rawCreated: boolean; rawChecksum: string; recordsObserved: number; }
 
 type PersistentPublisher = Pick<NeonSnapshotPublisher, 'preflight' | 'publish'>;
 
-export async function importBsbEvidencePersistent(options: { xml: string; archive: RawArchive; publisher: PersistentPublisher; environment: WriteEnvironment; now: string; queryPlan?: unknown; requestBudget?: number; recordBudget?: number }): Promise<PersistentImportResult> {
+export async function importBsbEvidencePersistent(options: { xml: string; archive: RawArchive; publisher: PersistentPublisher; environment: WriteEnvironment; now: string; queryPlan?: unknown; requestBudget?: number; recordBudget?: number; mode?: SnapshotUpdateMode }): Promise<PersistentImportResult> {
   assertSafeEvidenceWrite(options.environment);
   await options.publisher.preflight();
   const prepared = prepareBsbPublication(options);

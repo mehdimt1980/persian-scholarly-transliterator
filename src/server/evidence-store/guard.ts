@@ -38,9 +38,9 @@ export function assertAdministrator(environment: WriteEnvironment): void {
   if (!environment.administrator) throw new Error('Evidence administration requires explicit administrator mode');
 }
 
-export function assertBlobStoreIdentity(environment: WriteEnvironment, actualStoreId: string | undefined): void {
+export function assertConfiguredBlobStoreIdentity(environment: WriteEnvironment, configuredStoreId: string | undefined): void {
   assertSafeEvidenceWrite(environment);
-  if (!actualStoreId || actualStoreId !== environment.expectedBlobStoreId) throw new Error('Private Blob store identity does not match the approved target');
+  if (!configuredStoreId || configuredStoreId !== environment.expectedBlobStoreId) throw new Error('Configured private Blob store identity does not match the approved target');
 }
 
 export function environmentFromProcess(env: Readonly<Record<string, string | undefined>>): WriteEnvironment {

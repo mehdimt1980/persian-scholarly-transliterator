@@ -1,8 +1,8 @@
 import { assertAdministrator, assertSafeEvidenceWrite, type WriteEnvironment } from './guard';
-import { prepareBsbPublication } from './publication';
-import type { EvidenceRepository, ImportReport, RawArchive, RetrievalSnapshot } from './types';
+import { buildSnapshot, prepareBsbPublication, retainActiveEvidence } from './publication';
+import type { EvidenceRepository, ImportReport, RawArchive, RetrievalSnapshot, SnapshotUpdateMode } from './types';
 
-export async function importBsbEvidence(options: { xml: string; repository: EvidenceRepository; archive: RawArchive; environment: WriteEnvironment; now: string; queryPlan?: unknown; requestBudget?: number; recordBudget?: number; beforePublish?: () => void }): Promise<ImportReport> {
+export async function importBsbEvidence(options: { xml: string; repository: EvidenceRepository; archive: RawArchive; environment: WriteEnvironment; now: string; queryPlan?: unknown; requestBudget?: number; recordBudget?: number; mode?: SnapshotUpdateMode; beforePublish?: () => void }): Promise<ImportReport> {
   assertSafeEvidenceWrite(options.environment);
   const prepared = prepareBsbPublication(options);
   const { bundle } = prepared;
@@ -21,17 +21,18 @@ export async function importBsbEvidence(options: { xml: string; repository: Evid
       versionsCreated += 1;
     }
     const previousSnapshotId = state.activeSnapshotId;
-    const snapshot: RetrievalSnapshot = { ...bundle.snapshot, status: 'DRAFT', activatedAt: null };
-    state.snapshots.set(snapshot.snapshotId, snapshot);
-    for (const [key, value] of state.candidates) if (value.snapshotId === snapshot.snapshotId) state.candidates.delete(key);
-    for (const projection of bundle.projections) state.candidates.set(`${snapshot.snapshotId}:${projection.candidate.candidateId}:${projection.sourceVersionId}`, projection);
-    if (snapshot.candidateCount !== bundle.projections.length || !snapshot.manifest) throw new Error('Snapshot validation failed');
+    const retained = retainActiveEvidence(state, bundle.versions, bundle.mode);
+    const composed = buildSnapshot([...retained.projections, ...bundle.projections], bundle.snapshot.schemaVersion, bundle.snapshot.extractionVersion, options.now, [...retained.sourceVersionIds, ...bundle.versions.map((version) => version.versionId)]);
+    const existingSnapshot = state.snapshots.get(composed.snapshot.snapshotId);
+    const snapshot: RetrievalSnapshot = existingSnapshot ?? { ...composed.snapshot, status: 'DRAFT', activatedAt: null };
+    if (!existingSnapshot) { state.snapshots.set(snapshot.snapshotId, snapshot); for (const projection of composed.projections) state.candidates.set(`${snapshot.snapshotId}:${projection.candidate.candidateId}:${projection.sourceVersionId}`, projection); }
+    if (snapshot.candidateCount !== composed.projections.length || !snapshot.manifest) throw new Error('Snapshot validation failed');
     snapshot.status = 'VERIFIED';
     options.beforePublish?.();
     if (previousSnapshotId && previousSnapshotId !== snapshot.snapshotId) { const previous = state.snapshots.get(previousSnapshotId); if (previous) previous.status = 'RETIRED'; }
-    snapshot.status = 'ACTIVE'; snapshot.activatedAt = options.now; state.activeSnapshotId = snapshot.snapshotId;
+    snapshot.status = 'ACTIVE'; snapshot.activatedAt ??= options.now; state.activeSnapshotId = snapshot.snapshotId;
     const run = state.runs.get(bundle.run.runId)!; run.status = 'COMPLETE'; run.endedAt = options.now;
-    return { runId: bundle.run.runId, rawChecksum: bundle.raw.checksum, rawCreated: archived.created, recordsObserved: prepared.recordsObserved, versionsCreated, versionsReused, candidatesProjected: bundle.projections.length, snapshotId: snapshot.snapshotId, previousSnapshotId, activeSnapshotId: snapshot.snapshotId };
+    return { runId: bundle.run.runId, rawChecksum: bundle.raw.checksum, rawCreated: archived.created, recordsObserved: prepared.recordsObserved, versionsCreated, versionsReused, candidatesProjected: composed.projections.length, snapshotId: snapshot.snapshotId, previousSnapshotId, activeSnapshotId: snapshot.snapshotId };
   });
 }
 

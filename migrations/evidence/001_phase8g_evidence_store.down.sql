@@ -1,4 +1,5 @@
 BEGIN;
+DROP FUNCTION IF EXISTS evidence_manifest_checksum(text,text,jsonb,jsonb);
 DROP TABLE IF EXISTS evidence_active_snapshot;
 DROP TABLE IF EXISTS evidence_candidate_projection;
 DROP TABLE IF EXISTS evidence_snapshot;

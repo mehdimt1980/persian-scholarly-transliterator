@@ -1,13 +1,13 @@
 import { createHash } from 'node:crypto';
 import { BlobNotFoundError, BlobPreconditionFailedError, get, head, put } from '@vercel/blob';
-import { assertBlobStoreIdentity, type WriteEnvironment } from './guard';
+import { assertConfiguredBlobStoreIdentity, type WriteEnvironment } from './guard';
 import type { ArchivePut, RawArchive } from './types';
 
 export class VercelPrivateBlobArchive implements RawArchive {
   constructor(private readonly environment: WriteEnvironment, private readonly actualStoreId: string | undefined) {}
 
   private assertWriteTarget(): void {
-    assertBlobStoreIdentity(this.environment, this.actualStoreId);
+    assertConfiguredBlobStoreIdentity(this.environment, this.actualStoreId);
   }
 
   async putImmutable(path: string, body: Uint8Array, checksum: string): Promise<ArchivePut> {

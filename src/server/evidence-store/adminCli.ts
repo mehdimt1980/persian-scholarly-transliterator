@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { assertAdministrator, assertBlobStoreIdentity, environmentFromProcess } from './guard';
+import { assertAdministrator, assertConfiguredBlobStoreIdentity, environmentFromProcess } from './guard';
 import { NeonEvidenceReader, NeonSnapshotPublisher } from './neon';
 import { importBsbEvidencePersistent } from './persistent';
 import { searchPersistedEvidence } from './retrieval';
@@ -15,7 +15,7 @@ async function main(): Promise<void> {
   const publisher = new NeonSnapshotPublisher(connectionString, environment);
   if (command === 'preflight') {
     const { identity, binding } = await publisher.preflight();
-    assertBlobStoreIdentity(environment, process.env.BLOB_STORE_ID);
+    assertConfiguredBlobStoreIdentity(environment, process.env.BLOB_STORE_ID);
     console.log(JSON.stringify({ status: 'SAFE', databaseFingerprint: identity.fingerprint, namespace: binding.namespace, runtime: binding.runtime, isolation: binding.isolation }));
     return;
   }
@@ -23,7 +23,8 @@ async function main(): Promise<void> {
   if (command === 'fixture-import') {
     const xml = fs.readFileSync(path.resolve('validation/acquisition/bsb/authentic-selected-records.v1.xml'), 'utf8');
     const archive = new VercelPrivateBlobArchive(environment, process.env.BLOB_STORE_ID);
-    const result = await importBsbEvidencePersistent({ xml, archive, publisher, environment, now: new Date().toISOString() });
+    const mode = process.argv.includes('--full-rebuild') ? 'FULL_REBUILD' as const : 'INCREMENTAL' as const;
+    const result = await importBsbEvidencePersistent({ xml, archive, publisher, environment, now: new Date().toISOString(), mode });
     console.log(JSON.stringify(result));
     return;
   }

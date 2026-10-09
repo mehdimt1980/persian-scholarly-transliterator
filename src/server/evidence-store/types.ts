@@ -1,5 +1,6 @@
 import type { LexicalCandidate } from '../../validation/lexical-evidence/types';
 
+export type SnapshotUpdateMode = 'INCREMENTAL' | 'FULL_REBUILD';
 export type RunStatus = 'RUNNING' | 'COMPLETE' | 'FAILED';
 export interface AcquisitionRun { runId: string; provider: 'BSB_SRU_MARCXML'; queryPlan: unknown; requestBudget: number; recordBudget: number; status: RunStatus; startedAt: string; endedAt: string | null; error: string | null; }
 export interface RawSourceObject { checksum: string; provider: 'BSB_SRU_MARCXML'; blobPath: string; contentLength: number; contentType: 'application/marcxml+xml'; retrievedAt: string; licenseUrl: string; runId: string; }

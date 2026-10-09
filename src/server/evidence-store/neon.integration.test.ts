@@ -13,7 +13,8 @@ const authorized = process.env.PHASE8G_INTEGRATION_AUTHORIZED === 'true'
   && Boolean(process.env.PHASE8G_INTEGRATION_DATABASE_URL)
   && Boolean(process.env.PHASE8G_INTEGRATION_DATABASE_FINGERPRINT)
   && Boolean(process.env.PHASE8G_INTEGRATION_BLOB_STORE_ID)
-  && Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+  && Boolean(process.env.BLOB_READ_WRITE_TOKEN)
+  && process.env.PHASE8G_INTEGRATION_DISPOSABLE_CONFIRMATION === 'DROP_PHASE8G_TEST_SCHEMA';
 
 const connectionString = process.env.PHASE8G_INTEGRATION_DATABASE_URL ?? '';
 const namespace = process.env.PHASE8G_INTEGRATION_NAMESPACE ?? 'phase8g_integration';
@@ -24,13 +25,20 @@ const environment: WriteEnvironment = {
 };
 const root = path.resolve(__dirname, '../../..');
 const fixture = fs.readFileSync(path.join(root, 'validation/acquisition/bsb/authentic-selected-records.v1.xml'), 'utf8');
+const marcRecords = [...fixture.matchAll(/<record>[\s\S]*?<\/record>/gu)].map((match) => match[0]);
+const collection = (...records: string[]) => `<?xml version="1.0" encoding="UTF-8"?><collection xmlns="http://www.loc.gov/MARC21/slim">${records.join('')}</collection>`;
+const importA = collection(...marcRecords);
+const importB = collection(marcRecords[0].replace('991071006889707356', 'phase8g-b-001').replace('ادب فارسی', 'تاریخ ایران'), marcRecords[1].replace('991144600686807356', 'phase8g-b-002').replace('ادب فارسى :', 'فرهنگ ایران :'));
 const migration = fs.readFileSync(path.join(root, 'migrations/evidence/001_phase8g_evidence_store.sql'), 'utf8');
 const down = fs.readFileSync(path.join(root, 'migrations/evidence/001_phase8g_evidence_store.down.sql'), 'utf8');
 const rowsOf = (result: unknown): Record<string, unknown>[] => Array.isArray(result) ? result as Record<string, unknown>[] : [];
 
 async function executeScript(script: string): Promise<void> {
   const sql = neon(connectionString);
-  for (const statement of script.split(';').map((part) => part.trim()).filter((part) => part && part !== 'BEGIN' && part !== 'COMMIT')) await sql.query(statement);
+  const statements: string[] = []; let current = ''; let inDollarBlock = false;
+  for (let index = 0; index < script.length; index += 1) { if (script.slice(index, index + 2) === '$$') { inDollarBlock = !inDollarBlock; current += '$$'; index += 1; continue; } const character = script[index]; if (character === ';' && !inDollarBlock) { if (current.trim()) statements.push(current.trim()); current = ''; } else current += character; }
+  if (current.trim()) statements.push(current.trim());
+  for (const statement of statements.filter((part) => part !== 'BEGIN' && part !== 'COMMIT')) await sql.query(statement);
 }
 
 it.skipIf(authorized)('BLOCKED: real Neon/Private Blob integration requires an explicitly authorized isolated target', () => {});
@@ -39,8 +47,9 @@ describe.runIf(authorized)('Phase 8G real Neon and Private Blob integration', ()
   let sql: ReturnType<typeof neon>;
   let publisher: NeonSnapshotPublisher;
   let archive: VercelPrivateBlobArchive;
-  let firstSnapshot = '';
-  let secondSnapshot = '';
+  let combinedSnapshot = '';
+  let changedSnapshot = '';
+  let disposableIdentityFingerprint = '';
 
   beforeAll(async () => {
     sql = neon(connectionString);
@@ -48,46 +57,56 @@ describe.runIf(authorized)('Phase 8G real Neon and Private Blob integration', ()
     archive = new VercelPrivateBlobArchive(environment, process.env.PHASE8G_INTEGRATION_BLOB_STORE_ID);
     const identity = await publisher.inspectIdentity();
     expect(identity.fingerprint).toBe(environment.expectedDatabaseFingerprint);
+    disposableIdentityFingerprint = identity.fingerprint;
     assertSafeEvidenceWrite(environment);
     await executeScript(migration);
     await sql.query('INSERT INTO evidence_environment_binding(singleton,namespace,runtime,isolation,database_fingerprint,writes_enabled) VALUES(true,$1,$2,$3,$4,true) ON CONFLICT(singleton) DO UPDATE SET namespace=excluded.namespace,runtime=excluded.runtime,isolation=excluded.isolation,database_fingerprint=excluded.database_fingerprint,writes_enabled=true', [namespace, environment.runtime, environment.isolation, identity.fingerprint]);
   }, 60_000);
 
-  afterAll(async () => { await executeScript(down); }, 60_000);
+  afterAll(async () => { const identity = await publisher.inspectIdentity(); const binding = await publisher.preflight(); if (process.env.PHASE8G_INTEGRATION_DISPOSABLE_CONFIRMATION !== 'DROP_PHASE8G_TEST_SCHEMA' || identity.fingerprint !== disposableIdentityFingerprint || binding.binding.runtime !== 'test' || binding.binding.namespace !== namespace || binding.binding.databaseFingerprint !== disposableIdentityFingerprint) throw new Error('Refusing integration teardown: disposable target identity changed'); await executeScript(down); }, 60_000);
 
-  it('migrates, imports, reimports idempotently, reloads, and retrieves through LexicalEvidenceIndex', async () => {
+  it('migrates and incrementally retains disjoint imports without duplicate projections', async () => {
     await publisher.verifyMigration();
-    const first = await importBsbEvidencePersistent({ xml: fixture, archive, publisher, environment, now: '2026-10-09T12:00:00.000Z' });
-    firstSnapshot = first.snapshotId;
-    const repeated = await importBsbEvidencePersistent({ xml: fixture, archive, publisher, environment, now: '2026-10-09T12:05:00.000Z' });
-    expect(repeated.snapshotId).toBe(first.snapshotId);
+    await importBsbEvidencePersistent({ xml: importA, archive, publisher, environment, now: '2026-10-09T12:00:00.000Z' });
+    const combined = await importBsbEvidencePersistent({ xml: importB, archive, publisher, environment, now: '2026-10-09T12:05:00.000Z' });
+    combinedSnapshot = combined.snapshotId;
+    const repeated = await importBsbEvidencePersistent({ xml: importB, archive, publisher, environment, now: '2026-10-09T12:10:00.000Z' });
+    expect(repeated.snapshotId).toBe(combined.snapshotId);
     const counts = rowsOf(await sql.query('SELECT (SELECT count(*) FROM evidence_record_version) AS versions, (SELECT count(*) FROM evidence_candidate_projection) AS candidates, (SELECT count(*) FROM evidence_snapshot) AS snapshots'));
-    expect(counts[0]).toMatchObject({ versions: '2', candidates: '3', snapshots: '1' });
-    const result = await searchPersistedEvidence(new NeonEvidenceReader(connectionString), 'ادب فارسی', { provider: 'BSB_SRU_MARCXML' });
-    expect(result.matches).toHaveLength(1);
-    expect(result.status).toBe('CANDIDATE');
+    expect(counts[0]).toMatchObject({ versions: '4', candidates: '9', snapshots: '2' });
+    const reader = new NeonEvidenceReader(connectionString);
+    expect((await searchPersistedEvidence(reader, 'ادب فارسی', { provider: 'BSB_SRU_MARCXML' })).matches).toHaveLength(1);
+    expect((await searchPersistedEvidence(reader, 'تاریخ ایران', { provider: 'BSB_SRU_MARCXML' })).matches).toHaveLength(1);
   }, 60_000);
 
-  it('keeps the previous active snapshot after a failed transaction', async () => {
-    const prepared = prepareBsbPublication({ xml: fixture.replace('ادب فارسی</subfield>', 'ادب فارسی نو</subfield>'), environment, now: '2026-10-10T12:00:00.000Z' });
-    prepared.bundle.snapshot.manifest = { invalid: true };
-    await expect(publisher.publish(prepared.bundle)).rejects.toThrow();
+  it('replaces a changed source version, keeps history, and preserves active state after failure', async () => {
+    const changedA = collection(marcRecords[0].replace('ادب فارسی', 'ادب فارسی نو'));
+    const changed = await importBsbEvidencePersistent({ xml: changedA, archive, publisher, environment, now: '2026-10-10T12:00:00.000Z' });
+    changedSnapshot = changed.snapshotId;
+    const history = rowsOf(await sql.query('SELECT count(*) AS count FROM evidence_record_version WHERE provider=$1 AND source_record_id=$2', ['BSB_SRU_MARCXML', '991071006889707356']));
+    expect(history[0]?.count).toBe('2');
+    const prepared = prepareBsbPublication({ xml: collection(marcRecords[1].replace('991144600686807356', 'phase8g-failure')), environment, now: '2026-10-10T12:10:00.000Z' });
+    prepared.bundle.projections[0].candidate.contentHash = '0'.repeat(64);
+    await expect(publisher.publish(prepared.bundle)).rejects.toThrow(/content hash/);
     const active = rowsOf(await sql.query('SELECT snapshot_id FROM evidence_active_snapshot WHERE singleton=true'));
-    expect(active[0]?.snapshot_id).toBe(firstSnapshot);
+    expect(active[0]?.snapshot_id).toBe(changedSnapshot);
   }, 60_000);
 
-  it('serializes concurrent publication, preserves history, activates, and restores', async () => {
-    const changed = fixture.replace('ادب فارسی</subfield>', 'ادب فارسی نو</subfield>');
-    const prepared = prepareBsbPublication({ xml: changed, environment, now: '2026-10-10T12:00:00.000Z' });
-    await archive.putImmutable(prepared.blobPath, prepared.body, prepared.bundle.raw.checksum);
-    const results = await Promise.allSettled([publisher.publish(prepared.bundle), publisher.publish(prepared.bundle)]);
+  it('serializes different concurrent imports and rolls back to the previous complete corpus', async () => {
+    const importC = collection(marcRecords[0].replace('991071006889707356', 'phase8g-c-001').replace('ادب فارسی', 'جامعه ایران'));
+    const importD = collection(marcRecords[1].replace('991144600686807356', 'phase8g-d-001').replace('ادب فارسى :', 'زبان ایران :'));
+    const results = await Promise.allSettled([importBsbEvidencePersistent({ xml: importC, archive, publisher, environment, now: '2026-10-11T12:00:00.000Z' }), importBsbEvidencePersistent({ xml: importD, archive, publisher, environment, now: '2026-10-11T12:00:01.000Z' })]);
     expect(results.every((result) => result.status === 'fulfilled')).toBe(true);
-    secondSnapshot = prepared.bundle.snapshot.snapshotId;
-    expect((await publisher.verifySnapshot(secondSnapshot)).activeSnapshotId).toBe(secondSnapshot);
-    const versions = rowsOf(await sql.query('SELECT count(*) AS count FROM evidence_record_version'));
-    expect(versions[0]?.count).toBe('3');
-    await publisher.restore(firstSnapshot, '2026-10-11T12:00:00.000Z');
-    expect((await publisher.verifySnapshot(firstSnapshot)).activeSnapshotId).toBe(firstSnapshot);
+    const reader = new NeonEvidenceReader(connectionString);
+    expect((await searchPersistedEvidence(reader, 'جامعه ایران')).matches).toHaveLength(1);
+    const dRows = rowsOf(await sql.query("SELECT candidate_json FROM evidence_active_snapshot active JOIN evidence_candidate_projection projection ON projection.snapshot_id=active.snapshot_id WHERE projection.candidate_json->'sourceRecordIds' ? $1 LIMIT 1", ['phase8g-d-001']));
+    const dForm = (dRows[0]?.candidate_json as { originalPersianForm?: unknown } | undefined)?.originalPersianForm;
+    expect(typeof dForm).toBe('string');
+    expect((await searchPersistedEvidence(reader, String(dForm))).matches).toHaveLength(1);
+    await publisher.restore(combinedSnapshot, '2026-10-12T12:00:00.000Z');
+    expect((await publisher.verifySnapshot(combinedSnapshot)).activeSnapshotId).toBe(combinedSnapshot);
+    expect((await searchPersistedEvidence(reader, 'ادب فارسی')).matches).toHaveLength(1);
+    expect((await searchPersistedEvidence(reader, 'تاریخ ایران')).matches).toHaveLength(1);
   }, 60_000);
 
   it('fails closed for mismatched, shared Preview, and unapproved Production targets', async () => {
