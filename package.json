@@ -47,6 +47,7 @@
     "validate:phase8g": "tsx src/server/evidence-store/demoCli.ts",
     "evidence:admin": "tsx src/server/evidence-store/adminCli.ts",
     "acquire:bsb:preflight": "tsx src/validation/bsbBoundedPreflightCli.ts",
+    "acquire:bsb:targeted": "tsx src/validation/bsbTargetedDiscoveryCli.ts",
     "evidence:staging:audit": "tsx src/server/evidence-store/stagingPersistenceAuditCli.ts",
     "evidence:staging:write-window": "tsx src/server/evidence-store/stagingWriteWindowCli.ts",
     "evidence:staging:import": "tsx src/server/evidence-store/stagingImportCli.ts",
