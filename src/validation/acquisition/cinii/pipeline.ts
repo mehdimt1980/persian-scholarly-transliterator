@@ -1,0 +1,30 @@
+import { sha256 } from './identity';
+import type { BibliographicIdentityStatus, CiniiEvidenceRecord, CiniiPilotArtifact, CiniiQualitySummary, CiniiQueryConfig } from './types';
+
+export function assignBibliographicRelationships(records: CiniiEvidenceRecord[]): CiniiEvidenceRecord[] {
+  return records.map((record, index) => {
+    const statuses = new Set<BibliographicIdentityStatus>(); const related = new Set<string>();
+    for (let otherIndex = 0; otherIndex < records.length; otherIndex += 1) {
+      if (otherIndex === index) continue; const other = records[otherIndex];
+      if (record.sourceRecordId === other.sourceRecordId) { statuses.add('EXACT_DUPLICATE_RECORD'); related.add(other.recordId); continue; }
+      const sharedStable = (record.identifiers.ncid && record.identifiers.ncid === other.identifiers.ncid) || record.identifiers.isbns.some((isbn) => other.identifiers.isbns.includes(isbn)) || record.identifiers.oclcs.some((oclc) => other.identifiers.oclcs.includes(oclc));
+      if (sharedStable) { statuses.add('DUPLICATE_MANIFESTATION'); related.add(other.recordId); continue; }
+      if (record.normalizedPersianTitle && record.normalizedPersianTitle === other.normalizedPersianTitle) {
+        const sharedAuthors = record.authors.length > 0 && other.authors.length > 0 && record.authors.some((author) => other.authors.includes(author));
+        const completeYearDifference = record.publicationMetadata.publicationYear !== null && other.publicationMetadata.publicationYear !== null && record.publicationMetadata.publicationYear !== other.publicationMetadata.publicationYear;
+        const completePublisherDifference = record.publicationMetadata.publisher !== null && other.publicationMetadata.publisher !== null && record.publicationMetadata.publisher !== other.publicationMetadata.publisher;
+        statuses.add(sharedAuthors && (completeYearDifference || completePublisherDifference) ? 'RELATED_EDITION' : record.authors.length > 0 && other.authors.length > 0 && !sharedAuthors ? 'SIMILAR_TITLE_ONLY' : 'UNCERTAIN_RELATIONSHIP'); related.add(other.recordId);
+      }
+    }
+    const status: BibliographicIdentityStatus = statuses.has('EXACT_DUPLICATE_RECORD') ? 'EXACT_DUPLICATE_RECORD' : statuses.has('DUPLICATE_MANIFESTATION') ? 'DUPLICATE_MANIFESTATION' : statuses.has('RELATED_EDITION') ? 'RELATED_EDITION' : statuses.has('SIMILAR_TITLE_ONLY') ? 'SIMILAR_TITLE_ONLY' : statuses.has('UNCERTAIN_RELATIONSHIP') ? 'UNCERTAIN_RELATIONSHIP' : 'UNIQUE_RECORD';
+    const updated = { ...record, bibliographicIdentityStatus: status, relatedRecordIds: [...related].sort() };
+    return { ...updated, contentHash: sha256({ ...updated, contentHash: undefined }) };
+  });
+}
+
+export function summarize(records: CiniiEvidenceRecord[], attemptedRecords = records.length, apiErrors = 0): CiniiQualitySummary {
+  const pairedVariants = records.flatMap((record) => record.persianTitle ? record.latinTitleVariants : []);
+  return { attemptedRecords, receivedRecords: records.length, uniqueBibliographicIdentities: records.filter((record) => record.bibliographicIdentityStatus !== 'EXACT_DUPLICATE_RECORD' && record.bibliographicIdentityStatus !== 'DUPLICATE_MANIFESTATION').length, persianScriptTitles: records.filter((record) => record.persianTitle && record.scriptClassification === 'PERSIAN_SCRIPT').length, persianCandidatesFromLanguageEvidence: records.filter((record) => record.persianTitle && record.scriptClassification === 'ARABIC_SCRIPT_UNCERTAIN_LANGUAGE').length, cooccurringLatinVariants: pairedVariants.length, romanizationCandidates: pairedVariants.filter((variant) => variant.classification === 'ROMANIZATION_CANDIDATE').length, translatedTitles: pairedVariants.filter((variant) => variant.classification === 'TRANSLATED_TITLE').length, undeterminedLatinVariants: pairedVariants.filter((variant) => variant.classification === 'UNDETERMINED_LATIN_VARIANT').length, verifiedRomanizationPairs: 0, uncertainPairings: records.filter((record) => record.pairingStatus === 'UNCERTAIN_LANGUAGE_OR_PAIRING' || record.latinTitleVariants.some((variant) => variant.classification === 'UNDETERMINED_LATIN_VARIANT')).length, scriptLanguageMismatches: records.filter((record) => record.languageEvidence.catalogLanguages.includes('fa') && !record.persianTitle).length, contradictoryLanguageEvidence: records.filter((record) => record.languageEvidence.assessment === 'CONTRADICTORY').length, exactDuplicates: records.filter((record) => record.bibliographicIdentityStatus === 'EXACT_DUPLICATE_RECORD').length, duplicateManifestations: records.filter((record) => record.bibliographicIdentityStatus === 'DUPLICATE_MANIFESTATION').length, relatedEditions: records.filter((record) => record.bibliographicIdentityStatus === 'RELATED_EDITION').length, similarTitles: records.filter((record) => record.bibliographicIdentityStatus === 'SIMILAR_TITLE_ONLY').length, uncertainRelationships: records.filter((record) => record.bibliographicIdentityStatus === 'UNCERTAIN_RELATIONSHIP').length, worldcatCrossReferences: records.reduce((count, record) => count + record.crossCatalogReferences.length, 0), recordsMissingPublisher: records.filter((record) => !record.publicationMetadata.publisher).length, recordsMissingYear: records.filter((record) => !record.publicationMetadata.publicationYear).length, recordsMissingStableIdentifier: records.filter((record) => !record.identifiers.crid && !record.identifiers.ncid && record.identifiers.isbns.length === 0 && record.identifiers.oclcs.length === 0).length, reviewReadyCandidates: records.filter((record) => record.persianTitle && record.languageEvidence.assessment === 'POSITIVE_PERSIAN_EVIDENCE').length, apiErrors };
+}
+
+export function buildArtifact(records: CiniiEvidenceRecord[], query: CiniiQueryConfig, retrievedAt: string, mode: CiniiPilotArtifact['mode']): CiniiPilotArtifact { const related = assignBibliographicRelationships(records); return { schemaVersion: 'phase8d-cinii-pilot-artifact-v1', datasetVersion: 'phase8d-cinii-pilot-v1', mode, retrievedAt, query, records: related, quality: summarize(related) }; }

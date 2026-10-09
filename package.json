@@ -39,7 +39,9 @@
     "evaluate:phase7g-safe-routing": "tsx src/domain/coverage/phase7gRunner.ts",
     "experiment:loc-feasibility": "tsx src/domain/evidence/loc/pilot/pilotCli.ts",
     "validate:phase8c": "tsx src/validation/accuracy/phase8c/offlineCli.ts",
-    "evaluate:phase8c:live": "tsx src/validation/accuracy/phase8c/liveCli.ts"
+    "evaluate:phase8c:live": "tsx src/validation/accuracy/phase8c/liveCli.ts",
+    "validate:phase8d-cinii": "tsx src/validation/acquisition/cinii/cli.ts",
+    "acquire:phase8d-cinii:live": "tsx src/validation/acquisition/cinii/cli.ts --live"
   },
   "dependencies": {
     "next": "16.3.8",

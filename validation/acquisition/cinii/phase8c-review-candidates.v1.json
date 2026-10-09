@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "phase8d-phase8c-candidate-export-v1",
+  "generatedAt": "2026-10-09T00:00:00.000Z",
+  "authority": "REVIEW_ONLY_NO_GOLD_PROMOTION",
+  "candidates": [
+    {
+      "candidateId": "phase8c-candidate-cinii-23894853120ac808",
+      "sourceText": "تاریخ ایران",
+      "normalizedInput": "تاریخ ایران",
+      "reviewStatus": "REVIEW_PENDING",
+      "authority": "NON_AUTHORITATIVE_BIBLIOGRAPHIC_EVIDENCE",
+      "sourceProvider": "CINII_RESEARCH_OPENSEARCH_V2",
+      "sourceRecordId": "100000000000001",
+      "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000001",
+      "observedRomanizations": [],
+      "provenanceHash": "21dcdb6dc775751618d9a03cd6964cfda85b6f30f448a5452bf6c55f1767756d"
+    },
+    {
+      "candidateId": "phase8c-candidate-cinii-65e8b1b25dd0d8ef",
+      "sourceText": "فرهنگ فارسی",
+      "normalizedInput": "فرهنگ فارسی",
+      "reviewStatus": "REVIEW_PENDING",
+      "authority": "NON_AUTHORITATIVE_BIBLIOGRAPHIC_EVIDENCE",
+      "sourceProvider": "CINII_RESEARCH_OPENSEARCH_V2",
+      "sourceRecordId": "100000000000002",
+      "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000002",
+      "observedRomanizations": [
+        {
+          "value": "Farhang-i Farsi",
+          "role": "BIBLIOGRAPHIC_EVIDENCE_NOT_REFERENCE",
+          "probableScheme": "UNKNOWN"
+        }
+      ],
+      "provenanceHash": "deed4d551d54b826e5a290482f4c033aee8aa7b83b4ffaa5613d2e872141e6e6"
+    },
+    {
+      "candidateId": "phase8c-candidate-cinii-c2a11958333c0d97",
+      "sourceText": "شاهنامه پژوهی",
+      "normalizedInput": "شاهنامه پژوهی",
+      "reviewStatus": "REVIEW_PENDING",
+      "authority": "NON_AUTHORITATIVE_BIBLIOGRAPHIC_EVIDENCE",
+      "sourceProvider": "CINII_RESEARCH_OPENSEARCH_V2",
+      "sourceRecordId": "100000000000003",
+      "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000003",
+      "observedRomanizations": [
+        {
+          "value": "Shahnamah-pazhuhī",
+          "role": "BIBLIOGRAPHIC_EVIDENCE_NOT_REFERENCE",
+          "probableScheme": "UNKNOWN"
+        }
+      ],
+      "provenanceHash": "d0a2445126a631de6a977eb82c775bd5d7d45a0f96d39673f1f63e530cd23f68"
+    },
+    {
+      "candidateId": "phase8c-candidate-cinii-f55de82bd4a0d9f4",
+      "sourceText": "تاریخ ایران",
+      "normalizedInput": "تاریخ ایران",
+      "reviewStatus": "REVIEW_PENDING",
+      "authority": "NON_AUTHORITATIVE_BIBLIOGRAPHIC_EVIDENCE",
+      "sourceProvider": "CINII_RESEARCH_OPENSEARCH_V2",
+      "sourceRecordId": "100000000000007",
+      "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000007",
+      "observedRomanizations": [],
+      "provenanceHash": "de22fb84ad5be8965e3619fe19a22aee498ea047503382833aeae8c7f9097d1c"
+    }
+  ]
+}

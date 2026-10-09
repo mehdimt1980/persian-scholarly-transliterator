@@ -1,0 +1,653 @@
+{
+  "schemaVersion": "phase8d-cinii-pilot-artifact-v1",
+  "datasetVersion": "phase8d-cinii-pilot-v1",
+  "mode": "OFFLINE_MOCKED",
+  "retrievedAt": "2026-10-09T00:00:00.000Z",
+  "query": {
+    "queryId": "phase8d-offline-fixture-v1",
+    "q": "fixture",
+    "sortorder": 0,
+    "count": 100
+  },
+  "records": [
+    {
+      "schemaVersion": "phase8d-cinii-evidence-v1",
+      "datasetVersion": "phase8d-cinii-pilot-v1",
+      "recordId": "cinii-23894853120ac808",
+      "sourceProvider": "CINII_RESEARCH_OPENSEARCH_V2",
+      "sourceRecordId": "100000000000001",
+      "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000001",
+      "retrievedAt": "2026-10-09T00:00:00.000Z",
+      "queryId": "phase8d-offline-fixture-v1",
+      "recordType": "Book",
+      "rawTitles": [
+        {
+          "value": "تاریخ ایران",
+          "language": "fa",
+          "sourceField": "title"
+        }
+      ],
+      "persianTitle": "تاریخ ایران",
+      "normalizedPersianTitle": "تاریخ ایران",
+      "observedRomanizations": [],
+      "latinTitleVariants": [],
+      "languageEvidence": {
+        "catalogLanguages": [
+          "fa"
+        ],
+        "titleLanguages": [
+          "fa"
+        ],
+        "unicodeEvidence": [
+          "PERSIAN_SCRIPT"
+        ],
+        "assessment": "POSITIVE_PERSIAN_EVIDENCE",
+        "linguisticIdentity": "PERSIAN_SUPPORTED"
+      },
+      "scriptClassification": "PERSIAN_SCRIPT",
+      "authors": [
+        "نمونه، علی"
+      ],
+      "publicationMetadata": {
+        "publisher": "انتشارات نمونه",
+        "publicationYear": 1999
+      },
+      "identifiers": {
+        "crid": "100000000000001",
+        "ncid": "BA00000001",
+        "isbns": [
+          "9780000000001"
+        ],
+        "oclcs": []
+      },
+      "crossCatalogReferences": [],
+      "pairingStatus": "PERSIAN_ONLY",
+      "pairingEvidence": [
+        "Persian-specific Unicode characters provide positive script evidence.",
+        "One Persian candidate; no explicit Latin title variant in the record."
+      ],
+      "bibliographicIdentityStatus": "RELATED_EDITION",
+      "relatedRecordIds": [
+        "cinii-f55de82bd4a0d9f4"
+      ],
+      "reviewStatus": "UNREVIEWED",
+      "provenance": {
+        "endpoint": "https://cir.nii.ac.jp/opensearch/v2/books",
+        "officialDocumentation": "https://support.nii.ac.jp/en/cir/r_opensearch",
+        "attribution": "CiNii Research, National Institute of Informatics (NII)",
+        "licenseNote": "Bibliographic evidence subject to NII usage regulations and third-party rights; not asserted as open-license scholarly gold.",
+        "originalSourceFields": [
+          "@id",
+          "@type",
+          "dc:creator",
+          "dc:language",
+          "dc:publisher",
+          "dcterms:hasPart",
+          "ncid",
+          "prism:publicationDate",
+          "title"
+        ]
+      },
+      "rawRecordChecksum": "307dc9cd480f090320e1d2894343714a04d2b796e4141acc8607adfb2785d69e",
+      "contentHash": "21dcdb6dc775751618d9a03cd6964cfda85b6f30f448a5452bf6c55f1767756d"
+    },
+    {
+      "schemaVersion": "phase8d-cinii-evidence-v1",
+      "datasetVersion": "phase8d-cinii-pilot-v1",
+      "recordId": "cinii-65e8b1b25dd0d8ef",
+      "sourceProvider": "CINII_RESEARCH_OPENSEARCH_V2",
+      "sourceRecordId": "100000000000002",
+      "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000002",
+      "retrievedAt": "2026-10-09T00:00:00.000Z",
+      "queryId": "phase8d-offline-fixture-v1",
+      "recordType": "Book",
+      "rawTitles": [
+        {
+          "value": "فرهنگ فارسی",
+          "language": "fa",
+          "sourceField": "title"
+        },
+        {
+          "value": "Farhang-i Farsi",
+          "language": "en",
+          "sourceField": "title",
+          "explicitRelationship": "ROMANIZATION"
+        }
+      ],
+      "persianTitle": "فرهنگ فارسی",
+      "normalizedPersianTitle": "فرهنگ فارسی",
+      "observedRomanizations": [
+        {
+          "value": "Farhang-i Farsi",
+          "probableScheme": "UNKNOWN",
+          "sourceField": "title"
+        }
+      ],
+      "latinTitleVariants": [
+        {
+          "value": "Farhang-i Farsi",
+          "classification": "ROMANIZATION_CANDIDATE",
+          "probableScheme": "UNKNOWN",
+          "sourceField": "title"
+        }
+      ],
+      "languageEvidence": {
+        "catalogLanguages": [
+          "fa"
+        ],
+        "titleLanguages": [
+          "fa",
+          "en"
+        ],
+        "unicodeEvidence": [
+          "PERSIAN_SCRIPT",
+          "LATIN_ONLY"
+        ],
+        "assessment": "POSITIVE_PERSIAN_EVIDENCE",
+        "linguisticIdentity": "PERSIAN_SUPPORTED"
+      },
+      "scriptClassification": "PERSIAN_SCRIPT",
+      "authors": [
+        "آزمایشی، مریم"
+      ],
+      "publicationMetadata": {
+        "publisher": "کتابخانه آزمایشی",
+        "publicationYear": 2005
+      },
+      "identifiers": {
+        "crid": "100000000000002",
+        "ncid": "BA00000002",
+        "isbns": [],
+        "oclcs": []
+      },
+      "crossCatalogReferences": [],
+      "pairingStatus": "PERSIAN_WITH_OBSERVED_ROMANIZATION",
+      "pairingEvidence": [
+        "Persian-specific Unicode characters provide positive script evidence.",
+        "Latin variants coexist in the same record; co-occurrence is evidence, not proof of romanization.",
+        "Source metadata explicitly marks 1 variant(s) as romanization candidates; scholarly verification remains required."
+      ],
+      "bibliographicIdentityStatus": "UNIQUE_RECORD",
+      "relatedRecordIds": [],
+      "reviewStatus": "UNREVIEWED",
+      "provenance": {
+        "endpoint": "https://cir.nii.ac.jp/opensearch/v2/books",
+        "officialDocumentation": "https://support.nii.ac.jp/en/cir/r_opensearch",
+        "attribution": "CiNii Research, National Institute of Informatics (NII)",
+        "licenseNote": "Bibliographic evidence subject to NII usage regulations and third-party rights; not asserted as open-license scholarly gold.",
+        "originalSourceFields": [
+          "@id",
+          "@type",
+          "dc:creator",
+          "dc:language",
+          "dc:publisher",
+          "ncid",
+          "prism:publicationDate",
+          "title"
+        ]
+      },
+      "rawRecordChecksum": "ba22bdbeaaa48469a230e7b7e45628f4f59a5d236a3cf2d2befc382fc1e85efc",
+      "contentHash": "deed4d551d54b826e5a290482f4c033aee8aa7b83b4ffaa5613d2e872141e6e6"
+    },
+    {
+      "schemaVersion": "phase8d-cinii-evidence-v1",
+      "datasetVersion": "phase8d-cinii-pilot-v1",
+      "recordId": "cinii-c2a11958333c0d97",
+      "sourceProvider": "CINII_RESEARCH_OPENSEARCH_V2",
+      "sourceRecordId": "100000000000003",
+      "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000003",
+      "retrievedAt": "2026-10-09T00:00:00.000Z",
+      "queryId": "phase8d-offline-fixture-v1",
+      "recordType": "Book",
+      "rawTitles": [
+        {
+          "value": "شاهنامه پژوهی",
+          "language": "fa",
+          "sourceField": "title"
+        },
+        {
+          "value": "Shahnamah-pazhuhī",
+          "language": "en",
+          "sourceField": "title",
+          "explicitRelationship": "ROMANIZATION"
+        },
+        {
+          "value": "Shahnameh Studies",
+          "language": "en",
+          "sourceField": "title",
+          "explicitRelationship": "TRANSLATION"
+        },
+        {
+          "value": "Shahnamah pazhuhi",
+          "language": "en",
+          "sourceField": "title"
+        }
+      ],
+      "persianTitle": "شاهنامه پژوهی",
+      "normalizedPersianTitle": "شاهنامه پژوهی",
+      "observedRomanizations": [
+        {
+          "value": "Shahnamah-pazhuhī",
+          "probableScheme": "UNKNOWN",
+          "sourceField": "title"
+        }
+      ],
+      "latinTitleVariants": [
+        {
+          "value": "Shahnamah-pazhuhī",
+          "classification": "ROMANIZATION_CANDIDATE",
+          "probableScheme": "UNKNOWN",
+          "sourceField": "title"
+        },
+        {
+          "value": "Shahnameh Studies",
+          "classification": "TRANSLATED_TITLE",
+          "probableScheme": "UNKNOWN",
+          "sourceField": "title"
+        },
+        {
+          "value": "Shahnamah pazhuhi",
+          "classification": "UNDETERMINED_LATIN_VARIANT",
+          "probableScheme": "UNKNOWN",
+          "sourceField": "title"
+        }
+      ],
+      "languageEvidence": {
+        "catalogLanguages": [
+          "fa"
+        ],
+        "titleLanguages": [
+          "fa",
+          "en",
+          "en",
+          "en"
+        ],
+        "unicodeEvidence": [
+          "PERSIAN_SCRIPT",
+          "LATIN_ONLY"
+        ],
+        "assessment": "POSITIVE_PERSIAN_EVIDENCE",
+        "linguisticIdentity": "PERSIAN_SUPPORTED"
+      },
+      "scriptClassification": "PERSIAN_SCRIPT",
+      "authors": [],
+      "publicationMetadata": {
+        "publisher": "مرکز پژوهش",
+        "publicationYear": 2010
+      },
+      "identifiers": {
+        "crid": "100000000000003",
+        "ncid": null,
+        "isbns": [],
+        "oclcs": [
+          "123456789"
+        ]
+      },
+      "crossCatalogReferences": [
+        {
+          "catalog": "WORLDCAT",
+          "oclc": "123456789",
+          "url": "https://www.worldcat.org/oclc/123456789",
+          "sourceField": "rdfs:seeAlso",
+          "relationship": "CROSS_CATALOG_LINK_UNVERIFIED"
+        }
+      ],
+      "pairingStatus": "PERSIAN_WITH_OBSERVED_ROMANIZATION",
+      "pairingEvidence": [
+        "Persian-specific Unicode characters provide positive script evidence.",
+        "Latin variants coexist in the same record; co-occurrence is evidence, not proof of romanization.",
+        "Source metadata explicitly marks 1 variant(s) as romanization candidates; scholarly verification remains required."
+      ],
+      "bibliographicIdentityStatus": "UNIQUE_RECORD",
+      "relatedRecordIds": [],
+      "reviewStatus": "UNREVIEWED",
+      "provenance": {
+        "endpoint": "https://cir.nii.ac.jp/opensearch/v2/books",
+        "officialDocumentation": "https://support.nii.ac.jp/en/cir/r_opensearch",
+        "attribution": "CiNii Research, National Institute of Informatics (NII)",
+        "licenseNote": "Bibliographic evidence subject to NII usage regulations and third-party rights; not asserted as open-license scholarly gold.",
+        "originalSourceFields": [
+          "@id",
+          "@type",
+          "dc:language",
+          "dc:publisher",
+          "prism:publicationDate",
+          "rdfs:seeAlso",
+          "title"
+        ]
+      },
+      "rawRecordChecksum": "4cb37e0dcccc038c6d25cb21bf121c19cabb6c301476407212eb7cf0c4eca44d",
+      "contentHash": "d0a2445126a631de6a977eb82c775bd5d7d45a0f96d39673f1f63e530cd23f68"
+    },
+    {
+      "schemaVersion": "phase8d-cinii-evidence-v1",
+      "datasetVersion": "phase8d-cinii-pilot-v1",
+      "recordId": "cinii-cbed91e4dc312d7c",
+      "sourceProvider": "CINII_RESEARCH_OPENSEARCH_V2",
+      "sourceRecordId": "100000000000004",
+      "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000004",
+      "retrievedAt": "2026-10-09T00:00:00.000Z",
+      "queryId": "phase8d-offline-fixture-v1",
+      "recordType": "Book",
+      "rawTitles": [
+        {
+          "value": "كتاب التاريخ",
+          "language": "ar",
+          "sourceField": "title"
+        }
+      ],
+      "persianTitle": null,
+      "normalizedPersianTitle": null,
+      "observedRomanizations": [],
+      "latinTitleVariants": [],
+      "languageEvidence": {
+        "catalogLanguages": [
+          "ar"
+        ],
+        "titleLanguages": [
+          "ar"
+        ],
+        "unicodeEvidence": [
+          "ARABIC_SCRIPT_UNCERTAIN_LANGUAGE"
+        ],
+        "assessment": "AMBIGUOUS",
+        "linguisticIdentity": "UNCERTAIN"
+      },
+      "scriptClassification": "ARABIC_SCRIPT_UNCERTAIN_LANGUAGE",
+      "authors": [],
+      "publicationMetadata": {
+        "publisher": "دار المثال",
+        "publicationYear": 2001
+      },
+      "identifiers": {
+        "crid": "100000000000004",
+        "ncid": null,
+        "isbns": [],
+        "oclcs": []
+      },
+      "crossCatalogReferences": [],
+      "pairingStatus": "UNCERTAIN_LANGUAGE_OR_PAIRING",
+      "pairingEvidence": [
+        "Arabic script is present without supporting Persian language metadata.",
+        "Arabic-script title remains preserved for audit."
+      ],
+      "bibliographicIdentityStatus": "UNIQUE_RECORD",
+      "relatedRecordIds": [],
+      "reviewStatus": "UNREVIEWED",
+      "provenance": {
+        "endpoint": "https://cir.nii.ac.jp/opensearch/v2/books",
+        "officialDocumentation": "https://support.nii.ac.jp/en/cir/r_opensearch",
+        "attribution": "CiNii Research, National Institute of Informatics (NII)",
+        "licenseNote": "Bibliographic evidence subject to NII usage regulations and third-party rights; not asserted as open-license scholarly gold.",
+        "originalSourceFields": [
+          "@id",
+          "@type",
+          "dc:language",
+          "dc:publisher",
+          "prism:publicationDate",
+          "title"
+        ]
+      },
+      "rawRecordChecksum": "69de1b0d6f41cf39c744fe978f0dbe91fc648bd7cc7342ac2dd85d4f7d79890b",
+      "contentHash": "41468fc5d4d1b7a573fe4f71e59856aabdc3958ee743af4cb2df21813af8d888"
+    },
+    {
+      "schemaVersion": "phase8d-cinii-evidence-v1",
+      "datasetVersion": "phase8d-cinii-pilot-v1",
+      "recordId": "cinii-80ae08cd1604fe1c",
+      "sourceProvider": "CINII_RESEARCH_OPENSEARCH_V2",
+      "sourceRecordId": "100000000000005",
+      "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000005",
+      "retrievedAt": "2026-10-09T00:00:00.000Z",
+      "queryId": "phase8d-offline-fixture-v1",
+      "recordType": "Book",
+      "rawTitles": [
+        {
+          "value": "Persian ایران studies",
+          "language": "en",
+          "sourceField": "title"
+        }
+      ],
+      "persianTitle": null,
+      "normalizedPersianTitle": null,
+      "observedRomanizations": [],
+      "latinTitleVariants": [],
+      "languageEvidence": {
+        "catalogLanguages": [
+          "fa"
+        ],
+        "titleLanguages": [
+          "en"
+        ],
+        "unicodeEvidence": [
+          "MIXED_ARABIC_LATIN"
+        ],
+        "assessment": "AMBIGUOUS",
+        "linguisticIdentity": "UNCERTAIN"
+      },
+      "scriptClassification": "MIXED_ARABIC_LATIN",
+      "authors": [],
+      "publicationMetadata": {
+        "publisher": null,
+        "publicationYear": 2015
+      },
+      "identifiers": {
+        "crid": "100000000000005",
+        "ncid": null,
+        "isbns": [],
+        "oclcs": []
+      },
+      "crossCatalogReferences": [],
+      "pairingStatus": "UNCERTAIN_LANGUAGE_OR_PAIRING",
+      "pairingEvidence": [
+        "No Persian language evidence is present."
+      ],
+      "bibliographicIdentityStatus": "UNIQUE_RECORD",
+      "relatedRecordIds": [],
+      "reviewStatus": "UNREVIEWED",
+      "provenance": {
+        "endpoint": "https://cir.nii.ac.jp/opensearch/v2/books",
+        "officialDocumentation": "https://support.nii.ac.jp/en/cir/r_opensearch",
+        "attribution": "CiNii Research, National Institute of Informatics (NII)",
+        "licenseNote": "Bibliographic evidence subject to NII usage regulations and third-party rights; not asserted as open-license scholarly gold.",
+        "originalSourceFields": [
+          "@id",
+          "@type",
+          "dc:language",
+          "prism:publicationDate",
+          "title"
+        ]
+      },
+      "rawRecordChecksum": "478c10c0ee207a320e1ca8304b6907b0e2d6bed5488dec2084c8eda77fcb13bc",
+      "contentHash": "4a829179e739ceef9b300baa1422d0ab13c0c1f2d05ef3261700b514b11eb206"
+    },
+    {
+      "schemaVersion": "phase8d-cinii-evidence-v1",
+      "datasetVersion": "phase8d-cinii-pilot-v1",
+      "recordId": "cinii-ac7ce8fb99a7a44c",
+      "sourceProvider": "CINII_RESEARCH_OPENSEARCH_V2",
+      "sourceRecordId": "100000000000006",
+      "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000006",
+      "retrievedAt": "2026-10-09T00:00:00.000Z",
+      "queryId": "phase8d-offline-fixture-v1",
+      "recordType": "Book",
+      "rawTitles": [
+        {
+          "value": "A catalogue of Persian manuscripts",
+          "language": "en",
+          "sourceField": "title"
+        }
+      ],
+      "persianTitle": null,
+      "normalizedPersianTitle": null,
+      "observedRomanizations": [],
+      "latinTitleVariants": [
+        {
+          "value": "A catalogue of Persian manuscripts",
+          "classification": "UNDETERMINED_LATIN_VARIANT",
+          "probableScheme": "UNKNOWN",
+          "sourceField": "title"
+        }
+      ],
+      "languageEvidence": {
+        "catalogLanguages": [
+          "fa"
+        ],
+        "titleLanguages": [
+          "en"
+        ],
+        "unicodeEvidence": [
+          "LATIN_ONLY"
+        ],
+        "assessment": "AMBIGUOUS",
+        "linguisticIdentity": "UNCERTAIN"
+      },
+      "scriptClassification": "LATIN_ONLY",
+      "authors": [],
+      "publicationMetadata": {
+        "publisher": "Example University Press",
+        "publicationYear": 2020
+      },
+      "identifiers": {
+        "crid": "100000000000006",
+        "ncid": null,
+        "isbns": [
+          "9780000000006"
+        ],
+        "oclcs": []
+      },
+      "crossCatalogReferences": [],
+      "pairingStatus": "LATIN_ONLY",
+      "pairingEvidence": [
+        "No Persian language evidence is present."
+      ],
+      "bibliographicIdentityStatus": "UNIQUE_RECORD",
+      "relatedRecordIds": [],
+      "reviewStatus": "UNREVIEWED",
+      "provenance": {
+        "endpoint": "https://cir.nii.ac.jp/opensearch/v2/books",
+        "officialDocumentation": "https://support.nii.ac.jp/en/cir/r_opensearch",
+        "attribution": "CiNii Research, National Institute of Informatics (NII)",
+        "licenseNote": "Bibliographic evidence subject to NII usage regulations and third-party rights; not asserted as open-license scholarly gold.",
+        "originalSourceFields": [
+          "@id",
+          "@type",
+          "dc:language",
+          "dc:publisher",
+          "dcterms:hasPart",
+          "prism:publicationDate",
+          "title"
+        ]
+      },
+      "rawRecordChecksum": "9c895e2ac11669481b93b31c25e2a8fb744fc19c47392825a28154417e30b1a3",
+      "contentHash": "a0da86df091835edb8c7383361abc9948dacf41ae6b5f48d53eeda0512668a45"
+    },
+    {
+      "schemaVersion": "phase8d-cinii-evidence-v1",
+      "datasetVersion": "phase8d-cinii-pilot-v1",
+      "recordId": "cinii-f55de82bd4a0d9f4",
+      "sourceProvider": "CINII_RESEARCH_OPENSEARCH_V2",
+      "sourceRecordId": "100000000000007",
+      "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000007",
+      "retrievedAt": "2026-10-09T00:00:00.000Z",
+      "queryId": "phase8d-offline-fixture-v1",
+      "recordType": "Book",
+      "rawTitles": [
+        {
+          "value": "تاریخ ایران",
+          "language": "fa",
+          "sourceField": "title"
+        }
+      ],
+      "persianTitle": "تاریخ ایران",
+      "normalizedPersianTitle": "تاریخ ایران",
+      "observedRomanizations": [],
+      "latinTitleVariants": [],
+      "languageEvidence": {
+        "catalogLanguages": [
+          "fa"
+        ],
+        "titleLanguages": [
+          "fa"
+        ],
+        "unicodeEvidence": [
+          "PERSIAN_SCRIPT"
+        ],
+        "assessment": "POSITIVE_PERSIAN_EVIDENCE",
+        "linguisticIdentity": "PERSIAN_SUPPORTED"
+      },
+      "scriptClassification": "PERSIAN_SCRIPT",
+      "authors": [
+        "نمونه، علی"
+      ],
+      "publicationMetadata": {
+        "publisher": "انتشارات دیگر",
+        "publicationYear": 2008
+      },
+      "identifiers": {
+        "crid": "100000000000007",
+        "ncid": "BA00000007",
+        "isbns": [
+          "9780000000007"
+        ],
+        "oclcs": []
+      },
+      "crossCatalogReferences": [],
+      "pairingStatus": "PERSIAN_ONLY",
+      "pairingEvidence": [
+        "Persian-specific Unicode characters provide positive script evidence.",
+        "One Persian candidate; no explicit Latin title variant in the record."
+      ],
+      "bibliographicIdentityStatus": "RELATED_EDITION",
+      "relatedRecordIds": [
+        "cinii-23894853120ac808"
+      ],
+      "reviewStatus": "UNREVIEWED",
+      "provenance": {
+        "endpoint": "https://cir.nii.ac.jp/opensearch/v2/books",
+        "officialDocumentation": "https://support.nii.ac.jp/en/cir/r_opensearch",
+        "attribution": "CiNii Research, National Institute of Informatics (NII)",
+        "licenseNote": "Bibliographic evidence subject to NII usage regulations and third-party rights; not asserted as open-license scholarly gold.",
+        "originalSourceFields": [
+          "@id",
+          "@type",
+          "dc:creator",
+          "dc:language",
+          "dc:publisher",
+          "dcterms:hasPart",
+          "ncid",
+          "prism:publicationDate",
+          "title"
+        ]
+      },
+      "rawRecordChecksum": "a951563b12d8e829b6e7878c7e759835fbe8728f150773981f04a6360bfd3f70",
+      "contentHash": "de22fb84ad5be8965e3619fe19a22aee498ea047503382833aeae8c7f9097d1c"
+    }
+  ],
+  "quality": {
+    "attemptedRecords": 7,
+    "receivedRecords": 7,
+    "uniqueBibliographicIdentities": 7,
+    "persianScriptTitles": 4,
+    "persianCandidatesFromLanguageEvidence": 0,
+    "cooccurringLatinVariants": 4,
+    "romanizationCandidates": 2,
+    "translatedTitles": 1,
+    "undeterminedLatinVariants": 1,
+    "verifiedRomanizationPairs": 0,
+    "uncertainPairings": 4,
+    "scriptLanguageMismatches": 2,
+    "contradictoryLanguageEvidence": 0,
+    "exactDuplicates": 0,
+    "duplicateManifestations": 0,
+    "relatedEditions": 2,
+    "similarTitles": 0,
+    "uncertainRelationships": 0,
+    "worldcatCrossReferences": 1,
+    "recordsMissingPublisher": 1,
+    "recordsMissingYear": 0,
+    "recordsMissingStableIdentifier": 0,
+    "reviewReadyCandidates": 4,
+    "apiErrors": 0
+  }
+}
