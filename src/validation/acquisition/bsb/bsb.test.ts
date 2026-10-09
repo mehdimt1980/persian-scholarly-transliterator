@@ -14,6 +14,19 @@ const wrappedRecord = (record: string, position = 1) => `<record><recordSchema>m
 
 describe('Phase 8F BSB acquisition', () => {
   it('builds allowlisted CQL and bounded 1-based pagination', () => { const url = buildSruUrl({ index: 'language', relation: '==', term: 'per' }, 1, 50); expect(url.searchParams.get('query')).toBe('language=="per"'); expect(url.searchParams.get('recordSchema')).toBe('marcxml'); expect(() => buildSruUrl({ index: 'evil', relation: '=', term: 'x' }, 1, 1)).toThrow(); expect(() => buildSruUrl({ index: 'language', relation: '=', term: 'per' }, 0, 51)).toThrow(); });
+  it('generates valid space-delimited CQL for the all relation', () => {
+    expect(buildSruUrl({ index: 'dc_title', relation: 'all', term: 'فارسی' }, 1, 10).searchParams.get('query')).toBe('dc_title all "فارسی"');
+    expect(buildSruUrl({ index: 'all_for_ui', relation: 'all', term: 'فارسی' }, 1, 10).searchParams.get('query')).toBe('all_for_ui all "فارسی"');
+  });
+  it('surfaces SRU diagnostics without success count or version', async () => {
+    const diagnostic = '<searchRetrieveResponse xmlns="http://www.loc.gov/zing/srw/" xmlns:d="http://www.loc.gov/zing/srw/diagnostic/"><d:diagnostics><d:diagnostic><d:uri>info:srw/diagnostic/1/16</d:uri><d:message>Unsupported index</d:message></d:diagnostic></d:diagnostics></searchRetrieveResponse>';
+    expect(parseSruMarcXml(diagnostic).diagnostics[0]?.message).toBe('Unsupported index');
+    const url = buildSruUrl({index:'dc_title',relation:'all',term:'فارسی'},1,10);
+    await expect(fetchSruPage(url, vi.fn(async () => new Response(diagnostic)))).rejects.toMatchObject({
+      diagnostics: [{ message: 'Unsupported index' }],
+      log: { outcome:'SRU_DIAGNOSTIC' }
+    });
+  });
   it('parses authentic default-namespace MARC while preserving order, namespaces, indicators, subfields, and entities', () => { expect(records).toHaveLength(2); expect(records[0].namespaceUri).toBe('http://www.loc.gov/MARC21/slim'); expect(records[0].datafields.map((field) => field.tag)).toEqual(['041', '245', '880', '246']); expect(records[0].datafields.find((field) => field.tag === '245')).toMatchObject({ ind1: '1', ind2: '0' }); expect(records[0].datafields.find((field) => field.tag === '245')?.subfields.map((field) => field.code)).toEqual(['6', 'a', 'b']); });
   it('parses namespace-prefixed MARC records', () => { const prefixed = records[0].rawXml.replace('<record xmlns=', '<marc:record xmlns:marc=').replace('</record>', '</marc:record>').replaceAll('<leader>', '<marc:leader>').replaceAll('</leader>', '</marc:leader>').replaceAll('<controlfield', '<marc:controlfield').replaceAll('</controlfield>', '</marc:controlfield>').replaceAll('<datafield', '<marc:datafield').replaceAll('</datafield>', '</marc:datafield>').replaceAll('<subfield', '<marc:subfield').replaceAll('</subfield>', '</marc:subfield>'); expect(parseMarcRecord(prefixed).datafields.length).toBe(4); });
   it.each(['<!DOCTYPE record SYSTEM "x">', '<!ENTITY xxe SYSTEM "file:///etc/passwd">', '<?xml-stylesheet href="x"?>'])('rejects active XML declarations: %s', (declaration) => expect(() => parseMarcRecord(`${declaration}<record/>`)).toThrow());
