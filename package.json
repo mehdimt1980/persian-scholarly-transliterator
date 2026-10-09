@@ -49,6 +49,7 @@
     "acquire:bsb:preflight": "tsx src/validation/bsbBoundedPreflightCli.ts",
     "acquire:bsb:targeted": "tsx src/validation/bsbTargetedDiscoveryCli.ts",
     "acquire:bsb:paged": "tsx src/validation/bsbPagedAcquisitionCli.ts",
+    "evidence:staging:bsb-diff": "tsx src/server/evidence-store/bsbStagingDiffCli.ts",
     "evidence:staging:audit": "tsx src/server/evidence-store/stagingPersistenceAuditCli.ts",
     "evidence:staging:write-window": "tsx src/server/evidence-store/stagingWriteWindowCli.ts",
     "evidence:staging:import": "tsx src/server/evidence-store/stagingImportCli.ts",
