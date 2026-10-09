@@ -32,6 +32,20 @@ describe('Phase 8K legacy fixture and current BSB semantic reconciliation',()=>{
     expect(result.persisted).toBe(false);
     expect(result.ijmesAuthorityPromoted).toBe(false);
   });
+  it('identifies a newly added untranslated Latin title separately from changed transliteration',()=>{
+    const input=baseline();
+    const record=input.liveRecords[1];
+    record.datafields.push({namespaceUri:record.namespaceUri,tag:'246',ind1:'1',ind2:'1',
+      subfields:[{namespaceUri:record.namespaceUri,code:'a',value:'Persian literature'}]});
+    record.rawXml += '<!-- live record contains an additional parallel title -->';
+    const result=reconcileBsbSelectedFixture(input);
+    expect(result.totals.additiveLatinVariantCandidates).toBe(1);
+    expect(result.totals.semanticDifferences).toBe(0);
+    expect(result.totals.semanticMatches).toBe(2);
+    expect(result.records[1].candidateDifferences.some(c=>c.state==='ADDITIVE_LATIN_VARIANTS_REQUIRE_REVIEW')).toBe(true);
+    expect(result.blockers).toContain('ADDITIVE_CATALOGUE_VARIANT_REQUIRES_REVIEW');
+    expect(result.decision).toBe('BLOCKED_PENDING_FIELD_REVIEW');
+  });
   it('detects a change to the actual linked Latin romanization and does not silently approve it',()=>{
     const input=baseline();
     const field=input.liveRecords[0].datafields.find(f=>f.tag==='245')!;
