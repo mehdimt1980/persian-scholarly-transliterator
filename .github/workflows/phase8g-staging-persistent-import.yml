@@ -1,0 +1,47 @@
+name: Phase 8G persistent staging BSB import (manual)
+on:
+  pull_request:
+    types: [labeled]
+permissions:
+  contents: read
+jobs:
+  import:
+    if: github.event.label.name == 'phase8g-authorize-staging-import' && github.event.pull_request.number == 62 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'phase8g/staging-import-write-window'
+    runs-on: ubuntu-latest
+    environment: phase8g-staging-import
+    concurrency:
+      group: phase8g-persistent-staging-writes
+      cancel-in-progress: false
+    timeout-minutes: 15
+    env:
+      PHASE8G_STAGING_DATABASE_URL: ${{ secrets.PHASE8G_STAGING_DATABASE_URL }}
+      PHASE8G_STAGING_DATABASE_FINGERPRINT: ${{ vars.PHASE8G_STAGING_DATABASE_FINGERPRINT }}
+      PHASE8G_STAGING_BLOB_STORE_ID: ${{ vars.PHASE8G_STAGING_BLOB_STORE_ID }}
+      BLOB_READ_WRITE_TOKEN: ${{ secrets.PHASE8G_STAGING_BLOB_READ_WRITE_TOKEN }}
+      PHASE8G_STAGING_IMPORT_APPROVED: IMPORT_AUTHENTIC_BSB_STAGING
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Verify staging target and fixture without writes
+        run: npm run evidence:staging:import -- verify
+      - name: Verify required dedicated Blob token present
+        run: test -n "$BLOB_READ_WRITE_TOKEN"
+      - name: Enable narrowly scoped Staging writes
+        id: enable
+        run: npm run evidence:staging:write-window -- enable
+      - name: Import BSB and verify persistent readback
+        run: npm run evidence:staging:import -- import
+      - name: Disable Staging writes even when import fails
+        if: ${{ always() && steps.enable.outcome == 'success' }}
+        run: npm run evidence:staging:write-window -- disable
+      - name: Verify Staging writes are disabled
+        if: ${{ always() && steps.enable.outcome == 'success' }}
+        run: |
+          npm run evidence:staging:write-window -- status | grep '"writesEnabled":false'
