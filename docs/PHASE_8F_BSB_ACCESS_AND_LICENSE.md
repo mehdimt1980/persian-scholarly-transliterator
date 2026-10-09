@@ -8,7 +8,7 @@ The provider is the official BSB Alma SRU endpoint, `https://bsb.alma.exlibrisgr
 
 The [official BSB SRU documentation](https://www.bsb-muenchen.de/bsblab/datenschnittstellen/bsb-sru/) states that BSB title data are available free for reuse under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). BSB also disclaims uninterrupted, timely, error-free, complete delivery and possible third-party rights. Phase 8F therefore treats only returned bibliographic/title metadata as CC0 catalog data. It makes no rights claim for digitized books, manuscripts, images, scans, OCR, or full text.
 
-Provider attribution is retained as `BSB_SRU_MARCXML`, with endpoint URL, source record ID, source URL, exact field/subfields, source checksum, and retrieval timestamps in the pilot log. No credentials or sensitive values were used.
+Provider attribution is retained as `BSB_SRU_MARCXML`, with endpoint URL, source record ID, exact field/subfields, source checksum, and retrieval timestamps in the pilot log. A validated BSB/MDZ 856 URL is retained when the record supplies one. Otherwise the official SRU endpoint is cited only as the source interface; Phase 8F does not construct or claim an unverified record permalink. No credentials or sensitive values were used.
 
 ## Reused and extended boundaries
 
