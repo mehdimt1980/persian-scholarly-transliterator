@@ -1,0 +1,9 @@
+# Phase 8G — Neon schema
+
+Migration `migrations/evidence/001_phase8g_evidence_store.sql` defines a database-resident environment binding, acquisition runs, raw source references, provider-scoped record versions, snapshots with persisted manifests, candidate projections, and a singleton active-snapshot pointer. Constraints cap budgets and raw sizes, enforce non-authoritative BSB status, prevent provider/version collisions, permit one current version per provider record, and permit one active Phase 8G snapshot. Exact and normalized candidate indexes support bounded retrieval.
+
+The down migration removes only Phase 8G tables in dependency order. Migrations are never automatic. They require an isolated Neon branch/schema, review of the resolved target, and explicit administrator execution. No migration has been applied to the connected database.
+
+`NeonSnapshotPublisher` obtains a transaction-scoped advisory lock before mutation. It rechecks the database binding inside the transaction, inserts versions/projections idempotently, compares persisted candidate IDs/content hashes/source-version relationships with `manifest_json`, verifies every manifest source version exists, and only then marks and activates the snapshot. Waiting publishers use `READ COMMITTED` after the advisory lock so an identical concurrent retry observes the preceding commit. Historical versions are retained; existing evidence outside the Phase 8G snapshot schema is not retired or rewritten.
+
+Incremental composition is performed from the active snapshot in transaction-local PostgreSQL tables only after the advisory lock is held. It excludes retained rows solely when the delta has the same provider/source-record identity, unions the incoming versions and projections, computes a canonical SHA-256 manifest with `evidence_manifest_checksum`, and validates the complete persisted projection set before pointer replacement. No preflight snapshot read participates in composition.

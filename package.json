@@ -43,9 +43,14 @@
     "validate:phase8d-cinii": "tsx src/validation/acquisition/cinii/cli.ts",
     "acquire:phase8d-cinii:live": "tsx src/validation/acquisition/cinii/cli.ts --live",
     "validate:phase8e": "tsx src/validation/lexical-evidence/cli.ts",
-    "acquire:phase8e:live": "tsx src/validation/lexical-evidence/cli.ts --live"
+    "acquire:phase8e:live": "tsx src/validation/lexical-evidence/cli.ts --live",
+    "validate:phase8g": "tsx src/server/evidence-store/demoCli.ts",
+    "evidence:admin": "tsx src/server/evidence-store/adminCli.ts",
+    "test:phase8g:integration": "vitest run src/server/evidence-store/neon.integration.test.ts"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
+    "@vercel/blob": "^2.8.1",
     "next": "16.3.8",
     "openai": "^4.104.0",
     "react": "19.3.0",
