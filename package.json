@@ -46,6 +46,7 @@
     "acquire:phase8e:live": "tsx src/validation/lexical-evidence/cli.ts --live",
     "validate:phase8g": "tsx src/server/evidence-store/demoCli.ts",
     "evidence:admin": "tsx src/server/evidence-store/adminCli.ts",
+    "evidence:staging:import": "tsx src/server/evidence-store/stagingImportCli.ts",
     "evidence:staging:blob-check": "tsx src/server/evidence-store/stagingBlobPreflightCli.ts",
     "evidence:staging:preflight": "tsx src/server/evidence-store/stagingPreflightCli.ts",
     "test:phase8g:integration": "vitest run src/server/evidence-store/neon.integration.test.ts"
