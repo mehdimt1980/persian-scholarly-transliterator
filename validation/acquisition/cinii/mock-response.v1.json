@@ -1,0 +1,80 @@
+{
+  "@context": "https://cir.nii.ac.jp/.well-known/context.jsonld",
+  "@id": "https://cir.nii.ac.jp/opensearch/v2/books?q=fixture",
+  "opensearch:totalResults": 7,
+  "opensearch:startIndex": 1,
+  "opensearch:itemsPerPage": 7,
+  "items": [
+    {
+      "@id": "https://cir.nii.ac.jp/crid/100000000000001",
+      "@type": "Book",
+      "title": [{ "@value": "تاریخ ایران", "@language": "fa" }],
+      "dc:creator": ["نمونه، علی"],
+      "dc:publisher": "انتشارات نمونه",
+      "dc:language": ["fa"],
+      "prism:publicationDate": "1999",
+      "dcterms:hasPart": ["urn:isbn:9780000000001"],
+      "ncid": "BA00000001"
+    },
+    {
+      "@id": "https://cir.nii.ac.jp/crid/100000000000002",
+      "@type": "Book",
+      "title": [
+        { "@value": "فرهنگ فارسی", "@language": "fa" },
+        { "@value": "Farhang-i Farsi", "@language": "en" }
+      ],
+      "dc:creator": ["آزمایشی، مریم"],
+      "dc:publisher": "کتابخانه آزمایشی",
+      "dc:language": ["fa"],
+      "prism:publicationDate": "2005",
+      "ncid": "BA00000002"
+    },
+    {
+      "@id": "https://cir.nii.ac.jp/crid/100000000000003",
+      "@type": "Book",
+      "title": [
+        { "@value": "شاهنامه پژوهی", "@language": "fa" },
+        { "@value": "Shahnamah-pazhuhī", "@language": "en" },
+        { "@value": "Šāhnāme-pažūhī", "@language": "en" }
+      ],
+      "dc:publisher": "مرکز پژوهش",
+      "dc:language": ["fa"],
+      "prism:publicationDate": "2010"
+    },
+    {
+      "@id": "https://cir.nii.ac.jp/crid/100000000000004",
+      "@type": "Book",
+      "title": [{ "@value": "كتاب التاريخ", "@language": "ar" }],
+      "dc:publisher": "دار المثال",
+      "dc:language": ["ar"],
+      "prism:publicationDate": "2001"
+    },
+    {
+      "@id": "https://cir.nii.ac.jp/crid/100000000000005",
+      "@type": "Book",
+      "title": [{ "@value": "Persian ایران studies", "@language": "en" }],
+      "dc:language": ["fa"],
+      "prism:publicationDate": "2015"
+    },
+    {
+      "@id": "https://cir.nii.ac.jp/crid/100000000000006",
+      "@type": "Book",
+      "title": [{ "@value": "A catalogue of Persian manuscripts", "@language": "en" }],
+      "dc:publisher": "Example University Press",
+      "dc:language": ["fa"],
+      "prism:publicationDate": "2020",
+      "dcterms:hasPart": ["urn:isbn:9780000000006"]
+    },
+    {
+      "@id": "https://cir.nii.ac.jp/crid/100000000000007",
+      "@type": "Book",
+      "title": [{ "@value": "تاریخ ایران", "@language": "fa" }],
+      "dc:creator": ["نمونه، علی"],
+      "dc:publisher": "انتشارات دیگر",
+      "dc:language": ["fa"],
+      "prism:publicationDate": "2008",
+      "dcterms:hasPart": ["urn:isbn:9780000000007"],
+      "ncid": "BA00000007"
+    }
+  ]
+}
