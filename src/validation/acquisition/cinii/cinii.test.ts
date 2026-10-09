@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { classifyScript, pairTitles } from './classification';
+import { assessLanguageEvidence, classifyScript, pairTitles } from './classification';
 import { CiniiResearchClient, buildCiniiQueryUrl, retryAfterMs, safeRequestUrl } from './client';
 import { runCiniiCli } from './cli';
 import { toPhase8cReviewCandidates } from './converter';
@@ -64,6 +64,15 @@ describe('CiNii query and client controls', () => {
     const result = await client.fetchPilot(QUERY);
     expect(result.requests).toBe(2); expect(sleep).toHaveBeenCalledWith(2000);
   });
+
+  it('rejects invalid and stalled pagination metadata', async () => {
+    expect(() => ciniiResponseSchema.parse({ 'opensearch:totalResults': 'NaN', 'opensearch:startIndex': 1, 'opensearch:itemsPerPage': 0, items: [] })).toThrow();
+    expect(() => ciniiResponseSchema.parse({ 'opensearch:totalResults': -1, 'opensearch:startIndex': 1, 'opensearch:itemsPerPage': 0, items: [] })).toThrow();
+    const item = (fixture() as { items: unknown[] }).items[0];
+    const fetchImpl = vi.fn(async () => new Response(JSON.stringify({ 'opensearch:totalResults': 1, 'opensearch:startIndex': 1, 'opensearch:itemsPerPage': 0, items: [item] }), { status: 200 }));
+    const client = new CiniiResearchClient({ appId: 'secret', maxRecords: 1, maxRequests: 1, delayMs: 250, fetchImpl });
+    await expect(client.fetchPilot(QUERY)).rejects.toThrow(/itemsPerPage is zero/u);
+  });
 });
 
 describe('CiNii parsing and evidence classification', () => {
@@ -79,12 +88,27 @@ describe('CiNii parsing and evidence classification', () => {
     expect(classifyScript('كتاب التاريخ')).toBe('ARABIC_SCRIPT_UNCERTAIN_LANGUAGE');
     expect(classifyScript('Persian ایران')).toBe('MIXED_ARABIC_LATIN');
     expect(classifyScript('Persian studies')).toBe('LATIN_ONLY');
+    expect(assessLanguageEvidence([{ value: 'علم و دین', language: 'fa', sourceField: 'title' }], ['fa']).assessment).toBe('POSITIVE_PERSIAN_EVIDENCE');
+    expect(assessLanguageEvidence([{ value: 'كتاب التاريخ', language: 'ar', sourceField: 'title' }], ['ar']).assessment).toBe('AMBIGUOUS');
+    expect(assessLanguageEvidence([{ value: 'كتاب التاريخ', language: 'ar', sourceField: 'title' }], ['fa']).assessment).toBe('CONTRADICTORY');
   });
 
-  it('pairs only explicit same-record title variants', () => {
-    expect(pairTitles([{ value: 'فرهنگ فارسی', sourceField: 'title' }, { value: 'Farhang-i Farsi', sourceField: 'title' }]).status).toBe('PERSIAN_WITH_OBSERVED_ROMANIZATION');
-    expect(pairTitles([{ value: 'شاهنامه پژوهی', sourceField: 'title' }, { value: 'Shahnamah', sourceField: 'title' }, { value: 'Šāhnāme', sourceField: 'title' }]).status).toBe('MULTIPLE_ROMANIZATION_VARIANTS');
+  it('separates romanizations, translations, and undetermined Latin variants', () => {
+    const romanized = pairTitles([{ value: 'فرهنگ فارسی', sourceField: 'title' }, { value: 'Farhang-i Farsi', sourceField: 'title', explicitRelationship: 'ROMANIZATION' }]);
+    expect(romanized.status).toBe('PERSIAN_WITH_OBSERVED_ROMANIZATION'); expect(romanized.latinVariants[0].classification).toBe('ROMANIZATION_CANDIDATE');
+    const translated = pairTitles([{ value: 'تاریخ ایران', sourceField: 'title' }, { value: 'History of Iran', sourceField: 'title', explicitRelationship: 'TRANSLATION' }]);
+    expect(translated.status).toBe('UNCERTAIN_LANGUAGE_OR_PAIRING'); expect(translated.latinVariants[0].classification).toBe('TRANSLATED_TITLE');
+    const ambiguous = pairTitles([{ value: 'تاریخ ایران', sourceField: 'title' }, { value: 'Tarikh-i Iran', sourceField: 'title' }]);
+    expect(ambiguous.latinVariants[0].classification).toBe('UNDETERMINED_LATIN_VARIANT');
+    const multiple = pairTitles([{ value: 'شاهنامه پژوهی', sourceField: 'title' }, { value: 'Shahnamah', sourceField: 'title', explicitRelationship: 'ROMANIZATION' }, { value: 'Shahnameh Studies', sourceField: 'title', explicitRelationship: 'TRANSLATION' }]);
+    expect(multiple.status).toBe('MULTIPLE_ROMANIZATION_VARIANTS'); expect(multiple.latinVariants.map((item) => item.classification)).toEqual(['ROMANIZATION_CANDIDATE', 'TRANSLATED_TITLE']);
     expect(pairTitles([{ value: 'كتاب التاريخ', sourceField: 'title' }]).status).toBe('UNCERTAIN_LANGUAGE_OR_PAIRING');
+  });
+
+  it('extracts metadata-supported Persian titles without distinctive letters', () => {
+    const response = { 'opensearch:totalResults': 1, 'opensearch:startIndex': 1, 'opensearch:itemsPerPage': 1, items: [{ '@id': 'https://cir.nii.ac.jp/crid/100000000000099', title: [{ '@value': 'علم و ادب', '@language': 'fa' }], 'dc:language': ['fa'] }] };
+    const [record] = parseCiniiItems(response, QUERY, TIME);
+    expect(record.scriptClassification).toBe('ARABIC_SCRIPT_UNCERTAIN_LANGUAGE'); expect(record.persianTitle).toBe('علم و ادب'); expect(record.languageEvidence.assessment).toBe('POSITIVE_PERSIAN_EVIDENCE');
   });
 
   it('normalizes NFC/NFD-equivalent Persian text to stable content', () => {
@@ -100,16 +124,31 @@ describe('CiNii parsing and evidence classification', () => {
     const first = parseCiniiItems(fixture(), QUERY, TIME); const second = parseCiniiItems(fixture(), QUERY, TIME);
     expect(first.map((record) => record.contentHash)).toEqual(second.map((record) => record.contentHash));
     expect(first[0].provenance.officialDocumentation).toContain('support.nii.ac.jp');
-    expect(first[2].identifiers).toEqual({ crid: '100000000000003', ncid: null, isbns: [] });
+    expect(first[2].identifiers).toEqual({ crid: '100000000000003', ncid: null, isbns: [], oclcs: ['123456789'] });
     first.forEach((record) => expect(ciniiEvidenceRecordSchema.parse(record)).toEqual(record));
+  });
+
+  it('preserves explicit WorldCat links without constructing identities', () => {
+    const records = parseCiniiItems(fixture(), QUERY, TIME); expect(records[2].crossCatalogReferences).toEqual([{ catalog: 'WORLDCAT', oclc: '123456789', url: 'https://www.worldcat.org/oclc/123456789', sourceField: 'rdfs:seeAlso', relationship: 'CROSS_CATALOG_LINK_UNVERIFIED' }]);
+    const malformed = fixture() as { items: Array<Record<string, unknown>> }; malformed.items[2]['rdfs:seeAlso'] = ['not-a-url', 'https://example.org/oclc/99999', 'https://worldcat.org/title/no-oclc'];
+    const [,, record] = parseCiniiItems(malformed, QUERY, TIME); expect(record.identifiers.oclcs).toEqual([]); expect(record.crossCatalogReferences).toHaveLength(1); expect(record.crossCatalogReferences[0].oclc).toBeNull();
   });
 
   it('distinguishes shared identifiers from related editions', () => {
     const records = parseCiniiItems(fixture(), QUERY, TIME);
     const shared = structuredClone(records[1]); shared.sourceRecordId = 'another'; shared.recordId = 'another'; shared.identifiers.ncid = records[1].identifiers.ncid;
     expect(assignBibliographicRelationships([records[1], shared]).every((record) => record.bibliographicIdentityStatus === 'DUPLICATE_MANIFESTATION')).toBe(true);
+    const worldcatShared = structuredClone(records[2]); worldcatShared.sourceRecordId = 'worldcat-shared'; worldcatShared.recordId = 'worldcat-shared'; worldcatShared.identifiers.crid = 'worldcat-shared';
+    expect(assignBibliographicRelationships([records[2], worldcatShared]).every((record) => record.bibliographicIdentityStatus === 'DUPLICATE_MANIFESTATION')).toBe(true);
     const related = assignBibliographicRelationships(records);
     expect(related[0].bibliographicIdentityStatus).toBe('RELATED_EDITION'); expect(related[6].bibliographicIdentityStatus).toBe('RELATED_EDITION');
+  });
+
+  it('does not promote same-title evidence without a shared work basis', () => {
+    const [base] = parseCiniiItems(fixture(), QUERY, TIME); const differentAuthor = structuredClone(base); differentAuthor.recordId = 'different-author'; differentAuthor.sourceRecordId = 'different-author'; differentAuthor.identifiers = { crid: 'different-author', ncid: null, isbns: [], oclcs: [] }; differentAuthor.authors = ['دیگری'];
+    expect(assignBibliographicRelationships([base, differentAuthor]).every((record) => record.bibliographicIdentityStatus === 'SIMILAR_TITLE_ONLY')).toBe(true);
+    const missing = structuredClone(base); missing.recordId = 'missing'; missing.sourceRecordId = 'missing'; missing.identifiers = { crid: 'missing', ncid: null, isbns: [], oclcs: [] }; missing.publicationMetadata = { publisher: null, publicationYear: null };
+    expect(assignBibliographicRelationships([base, missing]).every((record) => record.bibliographicIdentityStatus === 'UNCERTAIN_RELATIONSHIP')).toBe(true);
   });
 });
 

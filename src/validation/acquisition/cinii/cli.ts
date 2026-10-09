@@ -32,7 +32,8 @@ export async function runCiniiCli(dependencies: CliDependencies = {}): Promise<{
   const q = option(args, '--query'); const title = option(args, '--title'); const queryId = option(args, '--query-id');
   if (!queryId || (!q && !title)) throw new Error('Live acquisition requires --query-id and either --query or --title.');
   const maxRecords = positiveInteger(option(args, '--max-records'), 100, 'max-records'); const maxRequests = positiveInteger(option(args, '--max-requests'), 3, 'max-requests'); const delayMs = positiveInteger(option(args, '--delay-ms'), 1000, 'delay-ms');
-  const query: CiniiQueryConfig = { queryId, q, title, sortorder: 0, count: Math.min(maxRecords, 100) };
+  const languageType = option(args, '--language');
+  const query: CiniiQueryConfig = { queryId, q, title, ...(languageType ? { languageType: [languageType] } : {}), sortorder: 0, count: Math.min(maxRecords, 100) };
   const client = new CiniiResearchClient({ appId, maxRecords, maxRequests, delayMs, fetchImpl: dependencies.fetchImpl });
   const response = await client.fetchPilot(query); const retrievedAt = (dependencies.now ?? (() => new Date()))().toISOString();
   const records = parseCiniiItems({ 'opensearch:totalResults': response.totalResults, 'opensearch:startIndex': 1, 'opensearch:itemsPerPage': response.items.length, items: response.items }, query, retrievedAt);

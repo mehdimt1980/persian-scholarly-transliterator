@@ -13,7 +13,7 @@
       "sourceRecordId": "100000000000001",
       "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000001",
       "observedRomanizations": [],
-      "provenanceHash": "04f7f992aafd6a54a1d0743ac5b3c5ff52167ee00cad8f313f86b41354db8914"
+      "provenanceHash": "21dcdb6dc775751618d9a03cd6964cfda85b6f30f448a5452bf6c55f1767756d"
     },
     {
       "candidateId": "phase8c-candidate-cinii-65e8b1b25dd0d8ef",
@@ -31,7 +31,7 @@
           "probableScheme": "UNKNOWN"
         }
       ],
-      "provenanceHash": "8c743ff9a6d8528f391737cc7ee5ddaa442bc70126d4fb7b91ef292cc5b350ec"
+      "provenanceHash": "b4684a601c067fe996c6d2bd54c256f24c8b9e4a46c4f57d9f2589c148911141"
     },
     {
       "candidateId": "phase8c-candidate-cinii-c2a11958333c0d97",
@@ -47,14 +47,9 @@
           "value": "Shahnamah-pazhuhī",
           "role": "BIBLIOGRAPHIC_EVIDENCE_NOT_REFERENCE",
           "probableScheme": "UNKNOWN"
-        },
-        {
-          "value": "Šāhnāme-pažūhī",
-          "role": "BIBLIOGRAPHIC_EVIDENCE_NOT_REFERENCE",
-          "probableScheme": "UNKNOWN"
         }
       ],
-      "provenanceHash": "5764696863c9371305e426ae19ad9a3603c07c364b45961f98eb96c27badd62f"
+      "provenanceHash": "925968f621ae7c0546c1d421dbaf50de09f5b05cd44f02bd67c405042f1058d3"
     },
     {
       "candidateId": "phase8c-candidate-cinii-f55de82bd4a0d9f4",
@@ -66,7 +61,7 @@
       "sourceRecordId": "100000000000007",
       "sourceUrl": "https://cir.nii.ac.jp/crid/100000000000007",
       "observedRomanizations": [],
-      "provenanceHash": "512f89e184ba0f5b24e19e1a25b8b36da594421bc871a0337710f8bb62418167"
+      "provenanceHash": "de22fb84ad5be8965e3619fe19a22aee498ea047503382833aeae8c7f9097d1c"
     }
   ]
 }

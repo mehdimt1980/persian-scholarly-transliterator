@@ -20,4 +20,8 @@ No private material, authentication bypass, CAPTCHA bypass, robots circumvention
 
 `CINII_APP_ID` is read only from the process environment in live mode. It is never committed, serialized, or included in safe request logs. Raw-record checksums prove what parser input produced an evidence record without claiming that the repository stores an authoritative mirror of CiNii.
 
+## WorldCat cross-references
+
+WorldCat URLs and OCLC numbers are preserved only when an HTTP(S) WorldCat URL is explicitly present in `link`, `rdfs:seeAlso`, or `dc:identifier`. The original field and URL are retained. An OCLC number is extracted only from an explicit `/oclc/<digits>` path; no URL or identity is constructed from inference. Each reference is labeled `CROSS_CATALOG_LINK_UNVERIFIED`. Phase 8D neither scrapes WorldCat nor uses WorldCat credentials, and a cross-catalog link is not treated as independent scholarly confirmation.
+
 Live pilot status for this delivery: **NOT RUN**.

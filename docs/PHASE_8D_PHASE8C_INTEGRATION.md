@@ -2,12 +2,12 @@
 
 Phase 8D exports annotation candidates through an explicit one-way conversion. It does not edit Phase 8C corpora, manifests, frozen hashes, or reference answers.
 
-The converter accepts only evidence records with a verified Persian-script title and a pairing status other than `UNCERTAIN_LANGUAGE_OR_PAIRING`. It emits:
+The converter accepts only records with positive Persian linguistic evidence. The script classification remains separately visible, so an Arabic-script title supported by explicit `fa` metadata can be reviewed without being mislabeled at the script layer. It emits:
 
 - the original Persian source text and its existing project normalization;
 - CiNii provider, source record ID, and source URL;
 - the evidence record's provenance hash;
-- any observed Latin variants marked `BIBLIOGRAPHIC_EVIDENCE_NOT_REFERENCE`;
+- only explicitly identified romanization candidates, marked `BIBLIOGRAPHIC_EVIDENCE_NOT_REFERENCE`;
 - `REVIEW_PENDING` and `NON_AUTHORITATIVE_BIBLIOGRAPHIC_EVIDENCE` authority markers.
 
 The export contains no IJMES expected value, gold status, adjudication decision, or automatic promotion operation. Observed catalog romanizations may use unknown or incompatible conventions and must not be scored as reference truth.

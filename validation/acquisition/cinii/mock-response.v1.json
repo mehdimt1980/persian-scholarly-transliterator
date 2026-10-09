@@ -21,7 +21,7 @@
       "@type": "Book",
       "title": [
         { "@value": "فرهنگ فارسی", "@language": "fa" },
-        { "@value": "Farhang-i Farsi", "@language": "en" }
+        { "@value": "Farhang-i Farsi", "@language": "en", "relationship": "ROMANIZATION" }
       ],
       "dc:creator": ["آزمایشی، مریم"],
       "dc:publisher": "کتابخانه آزمایشی",
@@ -34,12 +34,14 @@
       "@type": "Book",
       "title": [
         { "@value": "شاهنامه پژوهی", "@language": "fa" },
-        { "@value": "Shahnamah-pazhuhī", "@language": "en" },
-        { "@value": "Šāhnāme-pažūhī", "@language": "en" }
+        { "@value": "Shahnamah-pazhuhī", "@language": "en", "relationship": "ROMANIZATION" },
+        { "@value": "Shahnameh Studies", "@language": "en", "relationship": "TRANSLATION" },
+        { "@value": "Shahnamah pazhuhi", "@language": "en" }
       ],
       "dc:publisher": "مرکز پژوهش",
       "dc:language": ["fa"],
-      "prism:publicationDate": "2010"
+      "prism:publicationDate": "2010",
+      "rdfs:seeAlso": [{ "@id": "https://www.worldcat.org/oclc/123456789" }]
     },
     {
       "@id": "https://cir.nii.ac.jp/crid/100000000000004",

@@ -30,13 +30,18 @@
       "persianTitle": "تاریخ ایران",
       "normalizedPersianTitle": "تاریخ ایران",
       "observedRomanizations": [],
+      "latinTitleVariants": [],
       "languageEvidence": {
         "catalogLanguages": [
+          "fa"
+        ],
+        "titleLanguages": [
           "fa"
         ],
         "unicodeEvidence": [
           "PERSIAN_SCRIPT"
         ],
+        "assessment": "POSITIVE_PERSIAN_EVIDENCE",
         "linguisticIdentity": "PERSIAN_SUPPORTED"
       },
       "scriptClassification": "PERSIAN_SCRIPT",
@@ -52,11 +57,14 @@
         "ncid": "BA00000001",
         "isbns": [
           "9780000000001"
-        ]
+        ],
+        "oclcs": []
       },
+      "crossCatalogReferences": [],
       "pairingStatus": "PERSIAN_ONLY",
       "pairingEvidence": [
-        "One Persian-script title; no explicit Latin title variant in the record."
+        "Persian-specific Unicode characters provide positive script evidence.",
+        "One Persian candidate; no explicit Latin title variant in the record."
       ],
       "bibliographicIdentityStatus": "RELATED_EDITION",
       "relatedRecordIds": [
@@ -81,7 +89,7 @@
         ]
       },
       "rawRecordChecksum": "307dc9cd480f090320e1d2894343714a04d2b796e4141acc8607adfb2785d69e",
-      "contentHash": "04f7f992aafd6a54a1d0743ac5b3c5ff52167ee00cad8f313f86b41354db8914"
+      "contentHash": "21dcdb6dc775751618d9a03cd6964cfda85b6f30f448a5452bf6c55f1767756d"
     },
     {
       "schemaVersion": "phase8d-cinii-evidence-v1",
@@ -102,7 +110,8 @@
         {
           "value": "Farhang-i Farsi",
           "language": "en",
-          "sourceField": "title"
+          "sourceField": "title",
+          "explicitRelationship": "ROMANIZATION"
         }
       ],
       "persianTitle": "فرهنگ فارسی",
@@ -114,14 +123,27 @@
           "sourceField": "title"
         }
       ],
+      "latinTitleVariants": [
+        {
+          "value": "Farhang-i Farsi",
+          "classification": "ROMANIZATION_CANDIDATE",
+          "probableScheme": "UNKNOWN",
+          "sourceField": "title"
+        }
+      ],
       "languageEvidence": {
         "catalogLanguages": [
           "fa"
+        ],
+        "titleLanguages": [
+          "fa",
+          "en"
         ],
         "unicodeEvidence": [
           "PERSIAN_SCRIPT",
           "LATIN_ONLY"
         ],
+        "assessment": "POSITIVE_PERSIAN_EVIDENCE",
         "linguisticIdentity": "PERSIAN_SUPPORTED"
       },
       "scriptClassification": "PERSIAN_SCRIPT",
@@ -135,11 +157,15 @@
       "identifiers": {
         "crid": "100000000000002",
         "ncid": "BA00000002",
-        "isbns": []
+        "isbns": [],
+        "oclcs": []
       },
+      "crossCatalogReferences": [],
       "pairingStatus": "PERSIAN_WITH_OBSERVED_ROMANIZATION",
       "pairingEvidence": [
-        "Persian and Latin variants coexist in the same source title field structure."
+        "Persian-specific Unicode characters provide positive script evidence.",
+        "Latin variants coexist in the same record; co-occurrence is evidence, not proof of romanization.",
+        "Source metadata explicitly marks at least one variant as a romanization candidate; scholarly verification remains required."
       ],
       "bibliographicIdentityStatus": "UNIQUE_RECORD",
       "relatedRecordIds": [],
@@ -160,8 +186,8 @@
           "title"
         ]
       },
-      "rawRecordChecksum": "de42490e8dd27362238491a7dd6764c051762570f3c2de2a103c87ddb6fde4ff",
-      "contentHash": "8c743ff9a6d8528f391737cc7ee5ddaa442bc70126d4fb7b91ef292cc5b350ec"
+      "rawRecordChecksum": "ba22bdbeaaa48469a230e7b7e45628f4f59a5d236a3cf2d2befc382fc1e85efc",
+      "contentHash": "b4684a601c067fe996c6d2bd54c256f24c8b9e4a46c4f57d9f2589c148911141"
     },
     {
       "schemaVersion": "phase8d-cinii-evidence-v1",
@@ -182,10 +208,17 @@
         {
           "value": "Shahnamah-pazhuhī",
           "language": "en",
-          "sourceField": "title"
+          "sourceField": "title",
+          "explicitRelationship": "ROMANIZATION"
         },
         {
-          "value": "Šāhnāme-pažūhī",
+          "value": "Shahnameh Studies",
+          "language": "en",
+          "sourceField": "title",
+          "explicitRelationship": "TRANSLATION"
+        },
+        {
+          "value": "Shahnamah pazhuhi",
           "language": "en",
           "sourceField": "title"
         }
@@ -197,9 +230,24 @@
           "value": "Shahnamah-pazhuhī",
           "probableScheme": "UNKNOWN",
           "sourceField": "title"
+        }
+      ],
+      "latinTitleVariants": [
+        {
+          "value": "Shahnamah-pazhuhī",
+          "classification": "ROMANIZATION_CANDIDATE",
+          "probableScheme": "UNKNOWN",
+          "sourceField": "title"
         },
         {
-          "value": "Šāhnāme-pažūhī",
+          "value": "Shahnameh Studies",
+          "classification": "TRANSLATED_TITLE",
+          "probableScheme": "UNKNOWN",
+          "sourceField": "title"
+        },
+        {
+          "value": "Shahnamah pazhuhi",
+          "classification": "UNDETERMINED_LATIN_VARIANT",
           "probableScheme": "UNKNOWN",
           "sourceField": "title"
         }
@@ -208,10 +256,17 @@
         "catalogLanguages": [
           "fa"
         ],
+        "titleLanguages": [
+          "fa",
+          "en",
+          "en",
+          "en"
+        ],
         "unicodeEvidence": [
           "PERSIAN_SCRIPT",
           "LATIN_ONLY"
         ],
+        "assessment": "POSITIVE_PERSIAN_EVIDENCE",
         "linguisticIdentity": "PERSIAN_SUPPORTED"
       },
       "scriptClassification": "PERSIAN_SCRIPT",
@@ -223,11 +278,25 @@
       "identifiers": {
         "crid": "100000000000003",
         "ncid": null,
-        "isbns": []
+        "isbns": [],
+        "oclcs": [
+          "123456789"
+        ]
       },
+      "crossCatalogReferences": [
+        {
+          "catalog": "WORLDCAT",
+          "oclc": "123456789",
+          "url": "https://www.worldcat.org/oclc/123456789",
+          "sourceField": "rdfs:seeAlso",
+          "relationship": "CROSS_CATALOG_LINK_UNVERIFIED"
+        }
+      ],
       "pairingStatus": "MULTIPLE_ROMANIZATION_VARIANTS",
       "pairingEvidence": [
-        "Multiple Latin variants coexist with one Persian title in the same source record."
+        "Persian-specific Unicode characters provide positive script evidence.",
+        "Latin variants coexist in the same record; co-occurrence is evidence, not proof of romanization.",
+        "Source metadata explicitly marks at least one variant as a romanization candidate; scholarly verification remains required."
       ],
       "bibliographicIdentityStatus": "UNIQUE_RECORD",
       "relatedRecordIds": [],
@@ -243,11 +312,12 @@
           "dc:language",
           "dc:publisher",
           "prism:publicationDate",
+          "rdfs:seeAlso",
           "title"
         ]
       },
-      "rawRecordChecksum": "371f13a667da4e377926fab2161ef95a44bef43fda9b7f99374095cb8fbadf60",
-      "contentHash": "5764696863c9371305e426ae19ad9a3603c07c364b45961f98eb96c27badd62f"
+      "rawRecordChecksum": "4cb37e0dcccc038c6d25cb21bf121c19cabb6c301476407212eb7cf0c4eca44d",
+      "contentHash": "925968f621ae7c0546c1d421dbaf50de09f5b05cd44f02bd67c405042f1058d3"
     },
     {
       "schemaVersion": "phase8d-cinii-evidence-v1",
@@ -269,13 +339,18 @@
       "persianTitle": null,
       "normalizedPersianTitle": null,
       "observedRomanizations": [],
+      "latinTitleVariants": [],
       "languageEvidence": {
         "catalogLanguages": [
+          "ar"
+        ],
+        "titleLanguages": [
           "ar"
         ],
         "unicodeEvidence": [
           "ARABIC_SCRIPT_UNCERTAIN_LANGUAGE"
         ],
+        "assessment": "AMBIGUOUS",
         "linguisticIdentity": "UNCERTAIN"
       },
       "scriptClassification": "ARABIC_SCRIPT_UNCERTAIN_LANGUAGE",
@@ -287,11 +362,14 @@
       "identifiers": {
         "crid": "100000000000004",
         "ncid": null,
-        "isbns": []
+        "isbns": [],
+        "oclcs": []
       },
+      "crossCatalogReferences": [],
       "pairingStatus": "UNCERTAIN_LANGUAGE_OR_PAIRING",
       "pairingEvidence": [
-        "Arabic-script title lacks Persian-specific Unicode evidence."
+        "Arabic script is present without supporting Persian language metadata.",
+        "Arabic-script title remains preserved for audit."
       ],
       "bibliographicIdentityStatus": "UNIQUE_RECORD",
       "relatedRecordIds": [],
@@ -311,7 +389,7 @@
         ]
       },
       "rawRecordChecksum": "69de1b0d6f41cf39c744fe978f0dbe91fc648bd7cc7342ac2dd85d4f7d79890b",
-      "contentHash": "7943ce1b02166c498512cbb8b404fa665a4982dd389b4d7f77547bb9c0edec41"
+      "contentHash": "41468fc5d4d1b7a573fe4f71e59856aabdc3958ee743af4cb2df21813af8d888"
     },
     {
       "schemaVersion": "phase8d-cinii-evidence-v1",
@@ -333,13 +411,18 @@
       "persianTitle": null,
       "normalizedPersianTitle": null,
       "observedRomanizations": [],
+      "latinTitleVariants": [],
       "languageEvidence": {
         "catalogLanguages": [
           "fa"
         ],
+        "titleLanguages": [
+          "en"
+        ],
         "unicodeEvidence": [
           "MIXED_ARABIC_LATIN"
         ],
+        "assessment": "AMBIGUOUS",
         "linguisticIdentity": "UNCERTAIN"
       },
       "scriptClassification": "MIXED_ARABIC_LATIN",
@@ -351,10 +434,14 @@
       "identifiers": {
         "crid": "100000000000005",
         "ncid": null,
-        "isbns": []
+        "isbns": [],
+        "oclcs": []
       },
+      "crossCatalogReferences": [],
       "pairingStatus": "UNCERTAIN_LANGUAGE_OR_PAIRING",
-      "pairingEvidence": [],
+      "pairingEvidence": [
+        "No Persian language evidence is present."
+      ],
       "bibliographicIdentityStatus": "UNIQUE_RECORD",
       "relatedRecordIds": [],
       "reviewStatus": "UNREVIEWED",
@@ -372,7 +459,7 @@
         ]
       },
       "rawRecordChecksum": "478c10c0ee207a320e1ca8304b6907b0e2d6bed5488dec2084c8eda77fcb13bc",
-      "contentHash": "555d70dd5c45e4e15f74f13993c1fd92f49f8d0dc02e83053272d3d3386fb9ed"
+      "contentHash": "4a829179e739ceef9b300baa1422d0ab13c0c1f2d05ef3261700b514b11eb206"
     },
     {
       "schemaVersion": "phase8d-cinii-evidence-v1",
@@ -394,13 +481,25 @@
       "persianTitle": null,
       "normalizedPersianTitle": null,
       "observedRomanizations": [],
+      "latinTitleVariants": [
+        {
+          "value": "A catalogue of Persian manuscripts",
+          "classification": "UNDETERMINED_LATIN_VARIANT",
+          "probableScheme": "UNKNOWN",
+          "sourceField": "title"
+        }
+      ],
       "languageEvidence": {
         "catalogLanguages": [
           "fa"
         ],
+        "titleLanguages": [
+          "en"
+        ],
         "unicodeEvidence": [
           "LATIN_ONLY"
         ],
+        "assessment": "AMBIGUOUS",
         "linguisticIdentity": "UNCERTAIN"
       },
       "scriptClassification": "LATIN_ONLY",
@@ -414,10 +513,14 @@
         "ncid": null,
         "isbns": [
           "9780000000006"
-        ]
+        ],
+        "oclcs": []
       },
+      "crossCatalogReferences": [],
       "pairingStatus": "LATIN_ONLY",
-      "pairingEvidence": [],
+      "pairingEvidence": [
+        "No Persian language evidence is present."
+      ],
       "bibliographicIdentityStatus": "UNIQUE_RECORD",
       "relatedRecordIds": [],
       "reviewStatus": "UNREVIEWED",
@@ -437,7 +540,7 @@
         ]
       },
       "rawRecordChecksum": "9c895e2ac11669481b93b31c25e2a8fb744fc19c47392825a28154417e30b1a3",
-      "contentHash": "0079f5e959194481f18219113acfc4bcf924e89d79728826de1d0f96adbfeef9"
+      "contentHash": "a0da86df091835edb8c7383361abc9948dacf41ae6b5f48d53eeda0512668a45"
     },
     {
       "schemaVersion": "phase8d-cinii-evidence-v1",
@@ -459,13 +562,18 @@
       "persianTitle": "تاریخ ایران",
       "normalizedPersianTitle": "تاریخ ایران",
       "observedRomanizations": [],
+      "latinTitleVariants": [],
       "languageEvidence": {
         "catalogLanguages": [
+          "fa"
+        ],
+        "titleLanguages": [
           "fa"
         ],
         "unicodeEvidence": [
           "PERSIAN_SCRIPT"
         ],
+        "assessment": "POSITIVE_PERSIAN_EVIDENCE",
         "linguisticIdentity": "PERSIAN_SUPPORTED"
       },
       "scriptClassification": "PERSIAN_SCRIPT",
@@ -481,11 +589,14 @@
         "ncid": "BA00000007",
         "isbns": [
           "9780000000007"
-        ]
+        ],
+        "oclcs": []
       },
+      "crossCatalogReferences": [],
       "pairingStatus": "PERSIAN_ONLY",
       "pairingEvidence": [
-        "One Persian-script title; no explicit Latin title variant in the record."
+        "Persian-specific Unicode characters provide positive script evidence.",
+        "One Persian candidate; no explicit Latin title variant in the record."
       ],
       "bibliographicIdentityStatus": "RELATED_EDITION",
       "relatedRecordIds": [
@@ -510,7 +621,7 @@
         ]
       },
       "rawRecordChecksum": "a951563b12d8e829b6e7878c7e759835fbe8728f150773981f04a6360bfd3f70",
-      "contentHash": "512f89e184ba0f5b24e19e1a25b8b36da594421bc871a0337710f8bb62418167"
+      "contentHash": "de22fb84ad5be8965e3619fe19a22aee498ea047503382833aeae8c7f9097d1c"
     }
   ],
   "quality": {
@@ -518,12 +629,21 @@
     "receivedRecords": 7,
     "uniqueBibliographicIdentities": 7,
     "persianScriptTitles": 4,
-    "observedRomanizationPairs": 2,
-    "uncertainPairings": 2,
+    "persianCandidatesFromLanguageEvidence": 0,
+    "cooccurringLatinVariants": 4,
+    "romanizationCandidates": 2,
+    "translatedTitles": 1,
+    "undeterminedLatinVariants": 1,
+    "verifiedRomanizationPairs": 0,
+    "uncertainPairings": 4,
     "scriptLanguageMismatches": 2,
+    "contradictoryLanguageEvidence": 0,
     "exactDuplicates": 0,
     "duplicateManifestations": 0,
     "relatedEditions": 2,
+    "similarTitles": 0,
+    "uncertainRelationships": 0,
+    "worldcatCrossReferences": 1,
     "recordsMissingPublisher": 1,
     "recordsMissingYear": 0,
     "recordsMissingStableIdentifier": 0,

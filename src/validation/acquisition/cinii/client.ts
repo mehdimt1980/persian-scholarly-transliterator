@@ -50,9 +50,13 @@ export class CiniiResearchClient {
       }
       if (!response?.ok) throw new Error(`CiNii request failed after bounded retries: ${lastError instanceof Error ? lastError.message : response?.statusText ?? 'unknown error'}`);
       const parsed = ciniiResponseSchema.parse(await response.json());
-      totalResults = Number(parsed['opensearch:totalResults']);
+      totalResults = parsed['opensearch:totalResults'];
+      const responseStart = parsed['opensearch:startIndex']; const pageItems = parsed['opensearch:itemsPerPage'];
+      if (responseStart !== start) throw new Error(`CiNii pagination inconsistency: requested start ${start}, received ${responseStart}.`);
+      if (parsed.items.length > 0 && pageItems === 0) throw new Error('CiNii pagination inconsistency: itemsPerPage is zero while items are present.');
+      if (pageItems !== parsed.items.length) throw new Error(`CiNii pagination inconsistency: itemsPerPage ${pageItems} does not match ${parsed.items.length} returned items.`);
+      if (totalResults < responseStart - 1 + parsed.items.length) throw new Error('CiNii pagination inconsistency: returned items exceed totalResults.');
       items.push(...parsed.items.slice(0, this.options.maxRecords - items.length));
-      const pageItems = Number(parsed['opensearch:itemsPerPage']);
       if (parsed.items.length === 0 || start + pageItems > totalResults) break;
       start += pageItems;
       if (items.length < this.options.maxRecords && requests < this.options.maxRequests) await sleep(this.options.delayMs);
