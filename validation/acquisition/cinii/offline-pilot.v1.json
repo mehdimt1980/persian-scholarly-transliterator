@@ -165,7 +165,7 @@
       "pairingEvidence": [
         "Persian-specific Unicode characters provide positive script evidence.",
         "Latin variants coexist in the same record; co-occurrence is evidence, not proof of romanization.",
-        "Source metadata explicitly marks at least one variant as a romanization candidate; scholarly verification remains required."
+        "Source metadata explicitly marks 1 variant(s) as romanization candidates; scholarly verification remains required."
       ],
       "bibliographicIdentityStatus": "UNIQUE_RECORD",
       "relatedRecordIds": [],
@@ -187,7 +187,7 @@
         ]
       },
       "rawRecordChecksum": "ba22bdbeaaa48469a230e7b7e45628f4f59a5d236a3cf2d2befc382fc1e85efc",
-      "contentHash": "b4684a601c067fe996c6d2bd54c256f24c8b9e4a46c4f57d9f2589c148911141"
+      "contentHash": "deed4d551d54b826e5a290482f4c033aee8aa7b83b4ffaa5613d2e872141e6e6"
     },
     {
       "schemaVersion": "phase8d-cinii-evidence-v1",
@@ -292,11 +292,11 @@
           "relationship": "CROSS_CATALOG_LINK_UNVERIFIED"
         }
       ],
-      "pairingStatus": "MULTIPLE_ROMANIZATION_VARIANTS",
+      "pairingStatus": "PERSIAN_WITH_OBSERVED_ROMANIZATION",
       "pairingEvidence": [
         "Persian-specific Unicode characters provide positive script evidence.",
         "Latin variants coexist in the same record; co-occurrence is evidence, not proof of romanization.",
-        "Source metadata explicitly marks at least one variant as a romanization candidate; scholarly verification remains required."
+        "Source metadata explicitly marks 1 variant(s) as romanization candidates; scholarly verification remains required."
       ],
       "bibliographicIdentityStatus": "UNIQUE_RECORD",
       "relatedRecordIds": [],
@@ -317,7 +317,7 @@
         ]
       },
       "rawRecordChecksum": "4cb37e0dcccc038c6d25cb21bf121c19cabb6c301476407212eb7cf0c4eca44d",
-      "contentHash": "925968f621ae7c0546c1d421dbaf50de09f5b05cd44f02bd67c405042f1058d3"
+      "contentHash": "d0a2445126a631de6a977eb82c775bd5d7d45a0f96d39673f1f63e530cd23f68"
     },
     {
       "schemaVersion": "phase8d-cinii-evidence-v1",

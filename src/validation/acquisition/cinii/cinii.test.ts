@@ -93,15 +93,19 @@ describe('CiNii parsing and evidence classification', () => {
     expect(assessLanguageEvidence([{ value: 'كتاب التاريخ', language: 'ar', sourceField: 'title' }], ['fa']).assessment).toBe('CONTRADICTORY');
   });
 
-  it('separates romanizations, translations, and undetermined Latin variants', () => {
+  it('derives aggregate pairing status only from romanization candidates', () => {
     const romanized = pairTitles([{ value: 'فرهنگ فارسی', sourceField: 'title' }, { value: 'Farhang-i Farsi', sourceField: 'title', explicitRelationship: 'ROMANIZATION' }]);
     expect(romanized.status).toBe('PERSIAN_WITH_OBSERVED_ROMANIZATION'); expect(romanized.latinVariants[0].classification).toBe('ROMANIZATION_CANDIDATE');
-    const translated = pairTitles([{ value: 'تاریخ ایران', sourceField: 'title' }, { value: 'History of Iran', sourceField: 'title', explicitRelationship: 'TRANSLATION' }]);
-    expect(translated.status).toBe('UNCERTAIN_LANGUAGE_OR_PAIRING'); expect(translated.latinVariants[0].classification).toBe('TRANSLATED_TITLE');
-    const ambiguous = pairTitles([{ value: 'تاریخ ایران', sourceField: 'title' }, { value: 'Tarikh-i Iran', sourceField: 'title' }]);
-    expect(ambiguous.latinVariants[0].classification).toBe('UNDETERMINED_LATIN_VARIANT');
-    const multiple = pairTitles([{ value: 'شاهنامه پژوهی', sourceField: 'title' }, { value: 'Shahnamah', sourceField: 'title', explicitRelationship: 'ROMANIZATION' }, { value: 'Shahnameh Studies', sourceField: 'title', explicitRelationship: 'TRANSLATION' }]);
-    expect(multiple.status).toBe('MULTIPLE_ROMANIZATION_VARIANTS'); expect(multiple.latinVariants.map((item) => item.classification)).toEqual(['ROMANIZATION_CANDIDATE', 'TRANSLATED_TITLE']);
+    const translated = pairTitles([{ value: 'تاریخ ایران', sourceField: 'title' }, { value: 'History of Iran', sourceField: 'title', explicitRelationship: 'TRANSLATION' }, { value: 'A History of Iran', sourceField: 'title', explicitRelationship: 'TRANSLATION' }]);
+    expect(translated.status).toBe('UNCERTAIN_LANGUAGE_OR_PAIRING'); expect(translated.latinVariants.map((item) => item.classification)).toEqual(['TRANSLATED_TITLE', 'TRANSLATED_TITLE']);
+    const oneRomanization = pairTitles([{ value: 'شاهنامه پژوهی', sourceField: 'title' }, { value: 'Shahnamah-pazhuhī', sourceField: 'title', explicitRelationship: 'ROMANIZATION' }, { value: 'Shahnameh Studies', sourceField: 'title', explicitRelationship: 'TRANSLATION' }]);
+    expect(oneRomanization.status).toBe('PERSIAN_WITH_OBSERVED_ROMANIZATION');
+    const twoRomanizations = pairTitles([{ value: 'شاهنامه پژوهی', sourceField: 'title' }, { value: 'Shahnamah-pazhuhī', sourceField: 'title', explicitRelationship: 'ROMANIZATION' }, { value: 'Šāhnāme-pažūhī', sourceField: 'title', explicitRelationship: 'ROMANIZATION' }]);
+    expect(twoRomanizations.status).toBe('MULTIPLE_ROMANIZATION_VARIANTS');
+    const ambiguous = pairTitles([{ value: 'تاریخ ایران', sourceField: 'title' }, { value: 'Tarikh-i Iran', sourceField: 'title' }, { value: 'Tarikh Iran', sourceField: 'title' }]);
+    expect(ambiguous.status).toBe('UNCERTAIN_LANGUAGE_OR_PAIRING'); expect(ambiguous.latinVariants.every((item) => item.classification === 'UNDETERMINED_LATIN_VARIANT')).toBe(true);
+    const mixed = pairTitles([{ value: 'شاهنامه پژوهی', sourceField: 'title' }, { value: 'Shahnamah-pazhuhī', sourceField: 'title', explicitRelationship: 'ROMANIZATION' }, { value: 'Shahnameh Studies', sourceField: 'title', explicitRelationship: 'TRANSLATION' }, { value: 'Shahnamah pazhuhi', sourceField: 'title' }]);
+    expect(mixed.status).toBe('PERSIAN_WITH_OBSERVED_ROMANIZATION'); expect(mixed.latinVariants.map((item) => item.classification)).toEqual(['ROMANIZATION_CANDIDATE', 'TRANSLATED_TITLE', 'UNDETERMINED_LATIN_VARIANT']);
     expect(pairTitles([{ value: 'كتاب التاريخ', sourceField: 'title' }]).status).toBe('UNCERTAIN_LANGUAGE_OR_PAIRING');
   });
 
