@@ -111,12 +111,29 @@ async function main():Promise<void>{
   const directory=path.join(process.cwd(),'artifacts','phase8j-bsb-staging-diff');
   fs.mkdirSync(directory,{recursive:true});
   for(const page of rawPages)fs.writeFileSync(path.join(directory,page.file),page.xml,{flag:'wx'});
-  fs.writeFileSync(path.join(directory,'source-manifest.json'),JSON.stringify(manifest,null,2)+'\n',{flag:'wx'});
-  fs.writeFileSync(path.join(directory,'comparison.json'),JSON.stringify(comparison,null,2)+'\n',{flag:'wx'});
+  const manifestFileContent=JSON.stringify(manifest,null,2)+'\n';
+  const comparisonFileContent=JSON.stringify(comparison,null,2)+'\n';
+  fs.writeFileSync(path.join(directory,'source-manifest.json'),manifestFileContent,{flag:'wx'});
+  fs.writeFileSync(path.join(directory,'comparison.json'),comparisonFileContent,{flag:'wx'});
+  const reviewCsvCell=(value:string):string=>{
+    const normalized=value.replace(/\r\n?/gu,'\n');
+    // Prevent spreadsheet formula execution in exported, untrusted catalogue fields.
+    const safe=/^[\s]*[=+@-]/u.test(normalized) ? "'"+normalized : normalized;
+    return '"'+safe.replaceAll('"','""')+'"';
+  };
+  const header=['sourceRecordId','candidateId','category','persianForm','observedLatinVariants','stagingStatus','reviewDecision','reviewNotes'];
+  const rows=comparison.candidateDiff.map((item)=>[
+    item.sourceRecordId,item.candidateId,item.category,item.persianForm,
+    item.latinVariants.map((v)=>v.value+' ['+v.classification+']').join(' | '),
+    item.state,'',''
+  ]);
+  const csv=[header,...rows].map((values)=>values.map(reviewCsvCell).join(',')).join('\r\n')+'\r\n';
+  fs.writeFileSync(path.join(directory,'human-review-worklist.csv'),csv,{flag:'wx'});
   const aggregateManifest={
     schemaVersion:'phase8j-bsb-review-package-v1',activeSnapshotId,baselineManifestChecksum,
-    sourceManifestSha256:sha(JSON.stringify(manifest)),
-    comparisonSha256:sha(JSON.stringify(comparison)),
+    sourceManifestSha256:sha(manifestFileContent),
+    comparisonSha256:sha(comparisonFileContent),
+    reviewWorklistSha256:sha(csv),
     rawPages:manifest.pages.map(p=>({file:p.file,checksum:p.rawSha256})),
     reviewRequired:true,importAuthorized:false,writesPerformed:false,
   };
