@@ -13,10 +13,19 @@ const authorized = process.env.PHASE8G_INTEGRATION_AUTHORIZED === 'true'
   && Boolean(process.env.PHASE8G_INTEGRATION_DATABASE_URL)
   && Boolean(process.env.PHASE8G_INTEGRATION_DATABASE_FINGERPRINT)
   && Boolean(process.env.PHASE8G_INTEGRATION_BLOB_STORE_ID)
+  && /^br-[a-z0-9-]+$/.test(process.env.PHASE8G_INTEGRATION_NEON_BRANCH_ID ?? '')
   && Boolean(process.env.BLOB_READ_WRITE_TOKEN)
   && process.env.PHASE8G_INTEGRATION_DISPOSABLE_CONFIRMATION === 'DROP_PHASE8G_TEST_SCHEMA';
 
 const connectionString = process.env.PHASE8G_INTEGRATION_DATABASE_URL ?? '';
+const expectedBranchId = process.env.PHASE8G_INTEGRATION_NEON_BRANCH_ID ?? '';
+const isDisposableTarget = async (sql: ReturnType<typeof neon>): Promise<void> => {
+  const rows = await sql.query("SELECT current_setting('neon.branch_id', true) AS branch_id");
+  const actualBranchId = rows[0]?.branch_id;
+  if (!actualBranchId || actualBranchId !== expectedBranchId) {
+    throw new Error('Refusing destructive integration operations: Neon branch identity mismatch');
+  }
+};
 const namespace = process.env.PHASE8G_INTEGRATION_NAMESPACE ?? 'phase8g_integration';
 const environment: WriteEnvironment = {
   runtime: 'test', allowWrites: true, namespace, isolation: 'ISOLATED_NEON_BRANCH', productionApproval: false, administrator: true,
@@ -53,6 +62,7 @@ describe.runIf(authorized)('Phase 8G real Neon and Private Blob integration', ()
 
   beforeAll(async () => {
     sql = neon(connectionString);
+    await isDisposableTarget(sql);
     publisher = new NeonSnapshotPublisher(connectionString, environment);
     archive = new VercelPrivateBlobArchive(environment, process.env.PHASE8G_INTEGRATION_BLOB_STORE_ID);
     const identity = await publisher.inspectIdentity();
@@ -63,7 +73,7 @@ describe.runIf(authorized)('Phase 8G real Neon and Private Blob integration', ()
     await sql.query('INSERT INTO evidence_environment_binding(singleton,namespace,runtime,isolation,database_fingerprint,writes_enabled) VALUES(true,$1,$2,$3,$4,true) ON CONFLICT(singleton) DO UPDATE SET namespace=excluded.namespace,runtime=excluded.runtime,isolation=excluded.isolation,database_fingerprint=excluded.database_fingerprint,writes_enabled=true', [namespace, environment.runtime, environment.isolation, identity.fingerprint]);
   }, 60_000);
 
-  afterAll(async () => { const identity = await publisher.inspectIdentity(); const binding = await publisher.preflight(); if (process.env.PHASE8G_INTEGRATION_DISPOSABLE_CONFIRMATION !== 'DROP_PHASE8G_TEST_SCHEMA' || identity.fingerprint !== disposableIdentityFingerprint || binding.binding.runtime !== 'test' || binding.binding.namespace !== namespace || binding.binding.databaseFingerprint !== disposableIdentityFingerprint) throw new Error('Refusing integration teardown: disposable target identity changed'); await executeScript(down); }, 60_000);
+  afterAll(async () => { if (!publisher || !sql || !disposableIdentityFingerprint) return; await isDisposableTarget(sql); const identity = await publisher.inspectIdentity(); const binding = await publisher.preflight(); if (process.env.PHASE8G_INTEGRATION_DISPOSABLE_CONFIRMATION !== 'DROP_PHASE8G_TEST_SCHEMA' || identity.fingerprint !== disposableIdentityFingerprint || binding.binding.runtime !== 'test' || binding.binding.namespace !== namespace || binding.binding.databaseFingerprint !== disposableIdentityFingerprint) throw new Error('Refusing integration teardown: disposable target identity changed'); await executeScript(down); }, 60_000);
 
   it('migrates and incrementally retains disjoint imports without duplicate projections', async () => {
     await publisher.verifyMigration();
