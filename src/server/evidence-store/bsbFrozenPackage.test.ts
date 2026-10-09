@@ -4,7 +4,7 @@ import { describe,expect,it } from 'vitest';
 import { buildSruUrl } from '../../validation/acquisition/bsb/client';
 import { parseMarcCollection,parseMarcRecord } from '../../validation/acquisition/bsb/marcxml';
 import { adaptBsbRecord } from '../../validation/acquisition/bsb/adapter';
-import { freezeBsbNewOnly,FROZEN_INPUT_RUN,PREVIOUS_RECORD_IDS } from './bsbFrozenPackage';
+import { freezeBsbNewOnly,verifyFrozenReviewPackage,FROZEN_INPUT_RUN,PREVIOUS_RECORD_IDS } from './bsbFrozenPackage';
 
 const sha=(value:string)=>createHash('sha256').update(value,'utf8').digest('hex');
 const fixture=parseMarcCollection(fs.readFileSync('validation/acquisition/bsb/authentic-selected-records.v1.xml','utf8'));
@@ -101,6 +101,14 @@ describe('Phase 8L frozen BSB import proposal',()=>{
     expect(Object.keys(seal.filesSha256)).toContain('source/page-005.xml');
     expect(sha(files['frozen-new-records.marcxml'])).toBe(seal.filesSha256['frozen-new-records.marcxml']);
     expect(parseMarcCollection(files['frozen-new-records.marcxml'])).toHaveLength(48);
+  });
+  it('can verify a frozen artifact independently and rejects post-freeze tampering',()=>{
+    const created=freezeBsbNewOnly(sourcePackage());
+    expect(verifyFrozenReviewPackage(created.files).frozenCandidateCount).toBe(72);
+    const mutated={...created.files,'frozen-new-records.marcxml':created.files['frozen-new-records.marcxml']+' '};
+    expect(()=>verifyFrozenReviewPackage(mutated)).toThrow(/frozen file\/provenance differs/);
+    const fakeSeal={...created.files,'frozen-seal.json':created.files['frozen-seal.json'].replace('"importAuthorized": false','"importAuthorized": true')};
+    expect(()=>verifyFrozenReviewPackage(fakeSeal)).toThrow(/frozen file\/provenance differs/);
   });
   it('rejects even a one-character change to a pinned source SRU XML page',()=>{
     const files=sourcePackage();
