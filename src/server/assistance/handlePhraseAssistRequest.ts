@@ -117,6 +117,15 @@ export async function handlePhraseAssistRequest(
   } catch (error: unknown) {
     const name = error instanceof Error ? error.name : '';
     const message = error instanceof Error ? error.message : '';
+    // Never log user text, prompt content, credentials, headers, or provider error messages.
+    const details = error && typeof error === 'object' ? error as { status?: unknown; code?: unknown; type?: unknown } : {};
+    const status = typeof details.status === 'number' && Number.isInteger(details.status) && details.status >= 100 && details.status <= 599 ? details.status : null;
+    const safeCode = (value: unknown): string | null => typeof value === 'string' && /^[A-Za-z0-9_-]{1,80}$/.test(value) ? value : null;
+    console.error('PHRASE_ASSIST_PROVIDER_FAILURE', JSON.stringify({
+      errorName: /^[A-Za-z0-9_]{1,80}$/.test(name) ? name : 'UnknownError',
+      providerStatus: status, providerCode: safeCode(details.code), providerType: safeCode(details.type),
+      timeoutLike: name === 'AbortError' || /timeout|abort/i.test(message)
+    }));
 
     if (
       name === 'AbortError' ||
