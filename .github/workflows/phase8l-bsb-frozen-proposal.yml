@@ -1,0 +1,49 @@
+name: Phase 8L sealed BSB new-only import proposal (read only)
+on:
+  pull_request:
+    types: [labeled]
+permissions:
+  actions: read
+  contents: read
+jobs:
+  freeze-reviewed-source:
+    if: github.event.label.name == 'phase8l-freeze-bsb-proposal' && github.event.pull_request.number == 70 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'phase8l/frozen-bsb-import-proposal'
+    runs-on: ubuntu-latest
+    environment: phase8g-staging-readonly
+    timeout-minutes: 8
+    concurrency:
+      group: phase8l-bsb-frozen-proposal
+      cancel-in-progress: false
+    env:
+      PHASE8G_STAGING_DATABASE_URL: ${{ secrets.PHASE8G_STAGING_DATABASE_URL }}
+      PHASE8G_STAGING_DATABASE_FINGERPRINT: ${{ vars.PHASE8G_STAGING_DATABASE_FINGERPRINT }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Verify Staging identity, active snapshot and disabled writes
+        run: npm run evidence:staging:audit
+      - name: Download the exact previously-audited Phase 8K source artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: phase8k-bsb-fixture-reconciliation
+          run-id: 37980848653
+          github-token: ${{ github.token }}
+          path: artifacts/phase8l-source
+      - name: Freeze strictly 48 new BSB records and 72 review candidates, no import
+        run: npm run evidence:bsb:freeze
+      - name: Re-verify the original permanent Staging snapshot remains intact
+        run: npm run evidence:staging:audit
+      - name: Upload immutable hash-sealed frozen BSB review proposal
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase8l-frozen-bsb-48-records-review-only
+          path: artifacts/phase8l-frozen/
+          retention-days: 30
+          if-no-files-found: error
