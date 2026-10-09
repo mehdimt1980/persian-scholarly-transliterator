@@ -38,6 +38,8 @@ jobs:
           path: artifacts/phase8l-source
       - name: Freeze strictly 48 new BSB records and 72 review candidates, no import
         run: npm run evidence:bsb:freeze
+      - name: Independently replay sealed frozen bundle without network or database access
+        run: npm run evidence:bsb:verify-frozen
       - name: Re-verify the original permanent Staging snapshot remains intact
         run: npm run evidence:staging:audit
       - name: Upload immutable hash-sealed frozen BSB review proposal
