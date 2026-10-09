@@ -4,6 +4,8 @@
   "generatedAt": "2026-10-09T00:00:00.000Z",
   "sourceMode": "OFFLINE_PHASE8D_FIXTURE",
   "liveStatus": "LIVE_NOT_RUN_MISSING_AUTHORIZATION",
+  "liveAuthorizationStatus": "NOT_AUTHORIZED",
+  "liveExecutionStatus": "NOT_RUN",
   "candidates": [
     {
       "schemaVersion": "phase8e-lexical-evidence-v1",

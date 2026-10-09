@@ -56,12 +56,26 @@ describe('Phase 8E lexical evidence extraction', () => {
     const serialized = JSON.stringify(extractLexicalCandidates(artifact().records));
     expect(serialized).not.toContain('HUMAN_REVIEWED'); expect(serialized).not.toContain('expectedIJMES'); expect(serialized).not.toContain('GOLD');
   });
+
+  it('rejects fabricated review labels and incomplete review metadata', () => {
+    const candidate = extractLexicalCandidates(artifact().records)[0]; const fabricated = { ...candidate, reviewStatus: 'REVIEWED' as const, authorityStatus: 'HUMAN_REVIEWED' as const, evidenceStatus: 'REVIEWED' as const };
+    expect(lexicalCandidateSchema.safeParse(fabricated).success).toBe(false);
+    const index = new LexicalEvidenceIndex([fabricated]); expect(index.search(candidate.originalPersianForm).status).toBe('CANDIDATE'); expect(index.search(candidate.originalPersianForm, { reviewedOnly: true }).status).toBe('INSUFFICIENT_EVIDENCE');
+  });
+
+  it('requires complete review attestation plus an external trust decision', () => {
+    const candidate = extractLexicalCandidates(artifact().records)[0]; const reviewed = { ...candidate, reviewStatus: 'REVIEWED' as const, authorityStatus: 'HUMAN_REVIEWED' as const, evidenceStatus: 'REVIEWED' as const, reviewEvidence: { schemaVersion: 'phase8e-review-attestation-v1' as const, attestedCandidateId: candidate.candidateId, reviewerId: 'scholar-1', reviewedAt: '2026-10-09T00:00:00.000Z', decisionId: 'decision-1', decisionProvenance: 'independent scholarly review record', reviewVersion: '1.0.0', scope: 'CANDIDATE_IDENTITY_AND_EVIDENCE' as const, reviewBasisHash: candidate.contentHash } };
+    expect(lexicalCandidateSchema.safeParse(reviewed).success).toBe(true);
+    expect(lexicalCandidateSchema.safeParse({ ...reviewed, reviewEvidence: { ...reviewed.reviewEvidence, attestedCandidateId: 'lex-00000000000000000000' } }).success).toBe(false);
+    expect(new LexicalEvidenceIndex([reviewed]).search(candidate.originalPersianForm, { reviewedOnly: true }).status).toBe('INSUFFICIENT_EVIDENCE');
+    expect(new LexicalEvidenceIndex([reviewed], new Set([reviewed.candidateId])).search(candidate.originalPersianForm, { reviewedOnly: true }).status).toBe('REVIEWED');
+  });
 });
 
 describe('Phase 8E bounded live workflow', () => {
   it('returns missing authorization without a provider call', async () => {
     const fetchImpl = vi.fn(); const result = await runLivePilot({ authorized: false, plans: defaultLivePlans('Persian'), maxRecords: 75, maxRequests: 4, delayMs: 1000, retrievedAt: '2026-10-09T00:00:00.000Z', fetchImpl });
-    expect(result.status).toBe('LIVE_NOT_RUN_MISSING_AUTHORIZATION'); expect(fetchImpl).not.toHaveBeenCalled();
+    expect(result.authorizationStatus).toBe('NOT_AUTHORIZED'); expect(result.executionStatus).toBe('NOT_RUN'); expect(result.queryResults.every((query) => !query.complete)).toBe(true); expect(fetchImpl).not.toHaveBeenCalled();
   });
 
   it('enforces a shared record allocation budget', async () => {
@@ -72,8 +86,20 @@ describe('Phase 8E bounded live workflow', () => {
     const raw = JSON.parse(fs.readFileSync(path.join(ROOT, 'validation/acquisition/cinii/mock-response.v1.json'), 'utf8')) as { items: unknown[] };
     const fetchImpl = vi.fn(async (_url: URL | RequestInfo) => new Response(JSON.stringify({ 'opensearch:totalResults': 1, 'opensearch:startIndex': 1, 'opensearch:itemsPerPage': 1, items: [raw.items[0]] }), { status: 200 }));
     const plans = defaultLivePlans('Persian').map((plan) => ({ ...plan, maxRecords: 1, query: { ...plan.query, count: 1 } }));
-    const result = await runLivePilot({ authorized: true, appId: 'test', plans, maxRecords: 2, maxRequests: 2, delayMs: 250, retrievedAt: '2026-10-09T00:00:00.000Z', fetchImpl, sleep: async () => undefined });
-    expect(result.status).toBe('LIVE_RUN_AUTHORIZED'); expect(result.requestsAttempted).toBe(2); expect(result.queryResults.map((item) => item.purpose)).toEqual(['PERSIAN_LANGUAGE_FILTER', 'UNFILTERED_COMPARISON']); expect(fetchImpl).toHaveBeenCalledTimes(2);
+    const sleep = vi.fn(async () => undefined); const result = await runLivePilot({ authorized: true, appId: 'test', plans, maxRecords: 2, maxRequests: 2, delayMs: 250, retrievedAt: '2026-10-09T00:00:00.000Z', fetchImpl, sleep });
+    expect(result.authorizationStatus).toBe('AUTHORIZED'); expect(result.executionStatus).toBe('COMPLETE'); expect(result.comparisonStatus).toBe('COMPLETE'); expect(result.requestsAttempted).toBe(2); expect(result.queryResults.map((item) => item.purpose)).toEqual(['PERSIAN_LANGUAGE_FILTER', 'UNFILTERED_COMPARISON']); expect(result.queryResults.every((item) => item.complete)).toBe(true); expect(fetchImpl).toHaveBeenCalledTimes(2); expect(sleep).toHaveBeenCalledWith(250);
+  });
+
+  it('reports partial execution when the shared request budget prevents comparison', async () => {
+    const raw = JSON.parse(fs.readFileSync(path.join(ROOT, 'validation/acquisition/cinii/mock-response.v1.json'), 'utf8')) as { items: unknown[] }; const fetchImpl = vi.fn(async () => new Response(JSON.stringify({ 'opensearch:totalResults': 2, 'opensearch:startIndex': 1, 'opensearch:itemsPerPage': 1, items: [raw.items[0]] }), { status: 200 }));
+    const plans = defaultLivePlans('Persian').map((plan, index) => ({ ...plan, maxRecords: index === 0 ? 2 : 1, query: { ...plan.query, count: index === 0 ? 2 : 1 } })); const result = await runLivePilot({ authorized: true, appId: 'test', plans, maxRecords: 3, maxRequests: 1, delayMs: 250, retrievedAt: '2026-10-09T00:00:00.000Z', fetchImpl });
+    expect(result.executionStatus).toBe('PARTIAL_BUDGET_EXHAUSTED'); expect(result.comparisonStatus).toBe('NOT_AVAILABLE'); expect(result.records).toHaveLength(1); expect(result.queryResults.map((item) => item.executionStatus)).toEqual(['PARTIAL_BUDGET_EXHAUSTED', 'NOT_RUN_BUDGET_EXHAUSTED']);
+  });
+
+  it('preserves earlier records and reports an interrupted later query', async () => {
+    const raw = JSON.parse(fs.readFileSync(path.join(ROOT, 'validation/acquisition/cinii/mock-response.v1.json'), 'utf8')) as { items: unknown[] }; const fetchImpl = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({ 'opensearch:totalResults': 1, 'opensearch:startIndex': 1, 'opensearch:itemsPerPage': 1, items: [raw.items[0]] }), { status: 200 })).mockResolvedValueOnce(new Response('', { status: 400, statusText: 'Bad Request' }));
+    const plans = defaultLivePlans('Persian').map((plan) => ({ ...plan, maxRecords: 1, query: { ...plan.query, count: 1 } })); const result = await runLivePilot({ authorized: true, appId: 'test', plans, maxRecords: 2, maxRequests: 2, delayMs: 250, retrievedAt: '2026-10-09T00:00:00.000Z', fetchImpl, sleep: async () => undefined });
+    expect(result.executionStatus).toBe('FAILED'); expect(result.comparisonStatus).toBe('NOT_AVAILABLE'); expect(result.records).toHaveLength(1); expect(result.quality?.apiErrors).toBe(1); expect(result.queryResults.map((item) => item.executionStatus)).toEqual(['COMPLETE', 'FAILED']);
   });
 
   it('produces deterministic offline artifacts without network access', async () => {

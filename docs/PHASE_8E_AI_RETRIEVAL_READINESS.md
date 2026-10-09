@@ -12,6 +12,12 @@ Retrieval states are explicit:
 - `CONFLICTING` exposes incompatible observations without suppressing them.
 - `INSUFFICIENT_EVIDENCE` is returned when nothing matches.
 
+## Reviewed-evidence contract
+
+A mutable `reviewStatus` is never sufficient for scholarly authority. Future reviewed evidence must carry a versioned `phase8e-review-attestation-v1` record containing the attested candidate ID, reviewer identity, review timestamp, decision ID and provenance, review-process version, explicit `CANDIDATE_IDENTITY_AND_EVIDENCE` scope, and the hash of the reviewed candidate basis. Review, authority, evidence-status, and candidate-identity fields must be internally consistent with that attestation.
+
+Retrieval additionally requires the candidate ID to be present in an externally supplied trusted-review set. The default index has no trusted reviews. Thus a fabricated `REVIEWED` label, incomplete metadata, or even a structurally complete but untrusted attestation cannot satisfy `reviewedOnly` and cannot produce `REVIEWED` retrieval status. Phase 8E provides no promotion function; establishing and loading trusted review decisions belongs to a separate human-controlled workflow.
+
 ## Offline demonstration
 
 The committed demonstration contains three deterministic queries:

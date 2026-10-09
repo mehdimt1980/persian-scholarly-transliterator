@@ -2,7 +2,7 @@
 
 ## Authority boundary
 
-This pipeline produces non-authoritative hypotheses from accepted bibliographic evidence. It does not modify the reviewed production lexicon, production resolver, or frozen Phase 8C data. Every generated candidate is `UNREVIEWED`, `NON_AUTHORITATIVE_CANDIDATE`, and extracted by `WHOLE_BIBLIOGRAPHIC_FIELD` version `phase8e-v1`.
+This pipeline produces non-authoritative hypotheses from accepted bibliographic evidence. It does not modify the reviewed production lexicon, production resolver, or frozen Phase 8C data. Every acquisition-generated candidate is `UNREVIEWED`, `NON_AUTHORITATIVE_CANDIDATE`, has no review attestation, and is extracted by `WHOLE_BIBLIOGRAPHIC_FIELD` version `phase8e-v1`.
 
 ## Schema and extraction policy
 
