@@ -18,8 +18,27 @@ Preview and Production share the connected Neon target and Blob store. Treat bot
 
 ## Real integration test prerequisites
 
-Use only a disposable isolated Neon branch/database and a dedicated private Blob store whose credential cannot access Preview or Production stores. Set `PHASE8G_INTEGRATION_AUTHORIZED=true`, `PHASE8G_INTEGRATION_DATABASE_URL`, `PHASE8G_INTEGRATION_DATABASE_FINGERPRINT`, `PHASE8G_INTEGRATION_BLOB_STORE_ID`, `PHASE8G_INTEGRATION_NAMESPACE`, the dedicated credential expected by `@vercel/blob`, and the exact teardown acknowledgement `PHASE8G_INTEGRATION_DISPOSABLE_CONFIRMATION=DROP_PHASE8G_TEST_SCHEMA`. Then run `npm run test:phase8g:integration`.
+Use only a disposable isolated Neon branch/database and a dedicated private Blob store whose credential cannot access Preview or Production stores. Verify the actual Neon branch using `SELECT current_setting('neon.branch_id', true)`; the dedicated expected branch ID must be supplied as `PHASE8G_INTEGRATION_NEON_BRANCH_ID`, and the suite refuses migration and teardown if the IDs differ. **This protects against accidental wrong-branch connection, but does not replace verifying that the expected ID itself belongs to the disposable branch.** Set `PHASE8G_INTEGRATION_AUTHORIZED=true`, `PHASE8G_INTEGRATION_DATABASE_URL`, `PHASE8G_INTEGRATION_DATABASE_FINGERPRINT`, `PHASE8G_INTEGRATION_BLOB_STORE_ID`, `PHASE8G_INTEGRATION_NAMESPACE`, the dedicated credential expected by `@vercel/blob`, and the exact teardown acknowledgement `PHASE8G_INTEGRATION_DISPOSABLE_CONFIRMATION=DROP_PHASE8G_TEST_SCHEMA`. Then run `npm run test:phase8g:integration`.
 
 The suite records the live database identity before migration. Before teardown it re-reads that identity and the database-resident binding and refuses cleanup unless the fingerprint, `test` runtime, namespace, isolation binding, and explicit disposable acknowledgement still match. Without every prerequisite, the four real cases remain skipped and are reported as **BLOCKED**, not passed.
 
 Production activation separately requires owner approval for the exact migration target, migration SHA, Blob namespace, fixture checksum, budgets, and activation/rollback snapshot IDs. A Production import has not occurred.
+
+
+## Vercel Preview variables are not GitHub Actions secrets
+
+Vercel project Sensitive variables are not automatically available to GitHub Actions. The dedicated Phase 8G test must run in a trusted, manually controlled execution environment with explicit variables; do not copy secrets into code, PR text, workflow logs, or an untrusted PR runner.
+
+Required environment values:
+- `PHASE8G_INTEGRATION_NEON_BRANCH_ID`: verified ID of disposable Neon branch (for this pilot: `br-bitter-surf-b2n11vor`)
+- `PHASE8G_INTEGRATION_DATABASE_URL`: isolated Neon branch URL (never Production)
+- `PHASE8G_INTEGRATION_DATABASE_FINGERPRINT`: fingerprint computed from the exact test URL host/database/user/schema
+- `PHASE8G_INTEGRATION_BLOB_STORE_ID`: dedicated test Blob store ID
+- `PHASE8G_INTEGRATION_NAMESPACE`: `phase8g_integration`
+- `BLOB_READ_WRITE_TOKEN`: **test Blob store token only**, isolated in the test process; do not overwrite the project's Production Blob token
+- `PHASE8G_INTEGRATION_AUTHORIZED`: `true`
+- `PHASE8G_INTEGRATION_DISPOSABLE_CONFIRMATION`: `DROP_PHASE8G_TEST_SCHEMA`
+
+The Vercel-created `PHASE8G_TEST_BLOB_READ_WRITE_TOKEN` does **not** automatically bind to the SDK's `BLOB_READ_WRITE_TOKEN` name. Alias it only in the isolated test process. GitHub Actions requires independently configured protected GitHub environment secrets or a carefully managed temporary local test environment.
+
+**Destructive lifecycle:** the integration test executes the Phase 8G down migration in `afterAll`, deleting its evidence tables and binding on the disposable branch; it does **not** delete the Blob objects it created. Never run with a Production database or Blob token. Any manually seeded pre-existing evidence tables on the disposable branch are also deleted at teardown. Run only after explicitly approving this outcome. Do not run automatically on push/PR.
