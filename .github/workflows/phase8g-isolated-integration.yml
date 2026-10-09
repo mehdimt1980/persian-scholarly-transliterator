@@ -1,0 +1,61 @@
+name: Phase 8G isolated integration (manual label)
+
+on:
+  pull_request:
+    types: [labeled]
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    if: >-
+      github.event.label.name == 'phase8g-run-isolated-integration' &&
+      github.event.pull_request.number == 58 &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'phase8g/vercel-persistent-evidence-store'
+    runs-on: ubuntu-latest
+    environment: phase8g-integration-test
+    timeout-minutes: 15
+    steps:
+      - name: Verify explicitly approved PR head
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          test "$PR_HEAD_REF" = "phase8g/vercel-persistent-evidence-store"
+          test -n "$HEAD_SHA"
+      - name: Check out exact PR commit
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Verify isolated inputs are available
+        env:
+          TEST_DATABASE_URL: ${{ secrets.PHASE8G_INTEGRATION_DATABASE_URL }}
+          TEST_BLOB_TOKEN: ${{ secrets.PHASE8G_TEST_BLOB_READ_WRITE_TOKEN }}
+          TEST_BLOB_STORE_ID: ${{ vars.PHASE8G_INTEGRATION_BLOB_STORE_ID }}
+          TEST_FINGERPRINT: ${{ vars.PHASE8G_INTEGRATION_DATABASE_FINGERPRINT }}
+        run: |
+          test -n "$TEST_DATABASE_URL" || { echo "Missing isolated Neon secret"; exit 1; }
+          test -n "$TEST_BLOB_TOKEN" || { echo "Missing isolated Blob token"; exit 1; }
+          test -n "$TEST_BLOB_STORE_ID" || { echo "Missing dedicated Blob store ID"; exit 1; }
+          test -n "$TEST_FINGERPRINT" || { echo "Missing database fingerprint"; exit 1; }
+      - name: Run disposable Neon + Private Blob tests
+        env:
+          PHASE8G_INTEGRATION_AUTHORIZED: 'true'
+          PHASE8G_INTEGRATION_DATABASE_URL: ${{ secrets.PHASE8G_INTEGRATION_DATABASE_URL }}
+          PHASE8G_INTEGRATION_DATABASE_FINGERPRINT: ${{ vars.PHASE8G_INTEGRATION_DATABASE_FINGERPRINT }}
+          PHASE8G_INTEGRATION_NEON_BRANCH_ID: br-bitter-surf-b2n11vor
+          PHASE8G_INTEGRATION_NAMESPACE: phase8g_integration
+          PHASE8G_INTEGRATION_BLOB_STORE_ID: ${{ vars.PHASE8G_INTEGRATION_BLOB_STORE_ID }}
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.PHASE8G_TEST_BLOB_READ_WRITE_TOKEN }}
+          PHASE8G_INTEGRATION_DISPOSABLE_CONFIRMATION: DROP_PHASE8G_TEST_SCHEMA
+        run: npm run test:phase8g:integration
