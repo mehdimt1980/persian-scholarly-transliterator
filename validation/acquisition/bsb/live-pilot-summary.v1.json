@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "phase8f-bsb-live-pilot-v1",
+  "executedAt": "2026-10-09",
+  "endpoint": "https://bsb.alma.exlibrisgroup.com/view/sru/49BVB_BSB",
+  "authorization": "OWNER_REQUESTED",
+  "executionStatus": "COMPLETE",
+  "requestsAttempted": 4,
+  "requestRecordLimits": [5, 5, 50, 40],
+  "recordsReceived": 50,
+  "searchRetrieveBudget": 4,
+  "recordBudget": 100,
+  "successfulResponses": 4,
+  "queries": [
+    {"query":"language==per","maximumRecords":5,"records":5,"fields880":0,"startedAt":"2026-10-09T10:10:59.8179501Z","endedAt":"2026-10-09T10:11:02.4852841Z","httpStatus":200},
+    {"query":"all_for_ui all \"ایران\"","maximumRecords":5,"records":5,"fields880":0,"startedAt":"2026-10-09T10:12:55.8396817Z","endedAt":"2026-10-09T10:12:58.0507530Z","httpStatus":200},
+    {"query":"dc_title all \"ایران\"","maximumRecords":50,"records":0,"fields880":0,"startedAt":"2026-10-09T10:13:06.9875527Z","endedAt":"2026-10-09T10:13:07.1635056Z","httpStatus":200},
+    {"query":"all_for_ui all \"فارسی\"","maximumRecords":40,"records":40,"fields880":136,"arabicScriptSubfields":187,"totalMatches":440,"startedAt":"2026-10-09T10:13:21.8513100Z","endedAt":"2026-10-09T10:13:25.1167712Z","httpStatus":200}
+  ],
+  "notes": "Counts are genuine response observations. The selected-record XML is an authentic, explicitly reduced fixture rather than a complete raw response."
+}
