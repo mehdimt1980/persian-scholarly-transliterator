@@ -5,4 +5,5 @@ DROP TABLE IF EXISTS evidence_snapshot;
 DROP TABLE IF EXISTS evidence_record_version;
 DROP TABLE IF EXISTS evidence_raw_source;
 DROP TABLE IF EXISTS evidence_acquisition_run;
+DROP TABLE IF EXISTS evidence_environment_binding;
 COMMIT;

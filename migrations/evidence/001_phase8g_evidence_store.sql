@@ -1,4 +1,11 @@
 BEGIN;
+CREATE TABLE IF NOT EXISTS evidence_environment_binding (
+  singleton boolean PRIMARY KEY DEFAULT true CHECK(singleton), namespace text NOT NULL,
+  runtime text NOT NULL CHECK(runtime IN ('test','development','preview','production')),
+  isolation text NOT NULL CHECK(isolation IN ('ISOLATED_NEON_BRANCH','ISOLATED_SCHEMA')),
+  database_fingerprint char(64) NOT NULL CHECK(database_fingerprint ~ '^[0-9a-f]{64}$'),
+  writes_enabled boolean NOT NULL DEFAULT false, bound_at timestamptz NOT NULL DEFAULT now()
+);
 CREATE TABLE IF NOT EXISTS evidence_acquisition_run (
   run_id text PRIMARY KEY, provider text NOT NULL CHECK (provider = 'BSB_SRU_MARCXML'), query_plan jsonb NOT NULL,
   request_budget integer NOT NULL CHECK (request_budget >= 0), record_budget integer NOT NULL CHECK (record_budget BETWEEN 0 AND 100),
@@ -18,9 +25,10 @@ CREATE TABLE IF NOT EXISTS evidence_record_version (
 CREATE UNIQUE INDEX IF NOT EXISTS evidence_one_current_record ON evidence_record_version(provider, source_record_id) WHERE is_current;
 CREATE TABLE IF NOT EXISTS evidence_snapshot (
   snapshot_id text PRIMARY KEY, schema_version text NOT NULL, extraction_version text NOT NULL, source_version_ids jsonb NOT NULL,
-  candidate_count integer NOT NULL CHECK(candidate_count >= 0), manifest_checksum char(64) UNIQUE NOT NULL,
+  candidate_count integer NOT NULL CHECK(candidate_count >= 0), manifest_checksum char(64) UNIQUE NOT NULL, manifest_json jsonb NOT NULL,
   status text NOT NULL CHECK(status IN ('DRAFT','VERIFIED','ACTIVE','RETIRED')), created_at timestamptz NOT NULL, activated_at timestamptz
 );
+CREATE UNIQUE INDEX IF NOT EXISTS evidence_one_active_phase8g_snapshot ON evidence_snapshot((status)) WHERE status='ACTIVE' AND schema_version='phase8g-snapshot-v1';
 CREATE TABLE IF NOT EXISTS evidence_candidate_projection (
   snapshot_id text NOT NULL REFERENCES evidence_snapshot(snapshot_id) ON DELETE RESTRICT, candidate_id text NOT NULL,
   source_version_id text NOT NULL REFERENCES evidence_record_version(version_id), provider text NOT NULL, persian_form text NOT NULL,

@@ -44,7 +44,9 @@
     "acquire:phase8d-cinii:live": "tsx src/validation/acquisition/cinii/cli.ts --live",
     "validate:phase8e": "tsx src/validation/lexical-evidence/cli.ts",
     "acquire:phase8e:live": "tsx src/validation/lexical-evidence/cli.ts --live",
-    "validate:phase8g": "tsx src/server/evidence-store/demoCli.ts"
+    "validate:phase8g": "tsx src/server/evidence-store/demoCli.ts",
+    "evidence:admin": "tsx src/server/evidence-store/adminCli.ts",
+    "test:phase8g:integration": "vitest run src/server/evidence-store/neon.integration.test.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
