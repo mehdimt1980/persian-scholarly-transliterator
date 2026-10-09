@@ -27,3 +27,27 @@ Design and review a separate one-time, bounded Staging importer which consumes *
 
 ## Trigger
 Manual PR label `phase8j-run-staging-diff` starts the isolated `phase8g-staging-readonly` workflow. Credentials must never appear in logs or uploaded artifact. No Staging Blob credential is needed.
+
+## Verified live audit — 9 October 2026
+
+The successful read-only job inspected the permanent Neon Staging snapshot and queried BSB live (5 requests, 50 source records and 75 non-authoritative candidates):
+
+| Check | Result |
+| --- | ---: |
+| Active snapshot | `snapshot-7946161b2af2652b776a6bd4` |
+| Snapshot manifest integrity | verified |
+| New MARC record identities vs active snapshot | **48** |
+| Existing MARC record identities with same checksum | **0** |
+| Existing MARC record identities with different canonical checksum | **2** |
+| Incoming candidate identities not in active snapshot | **72** |
+| Incoming candidate identities with same content hash | **0** |
+| Incoming candidate identities with different content hash | **3** |
+| New persistence writes | **0** |
+
+Source job: https://github.com/mehdimt1980/persian-scholarly-transliterator/actions/runs/37976520126
+
+**Crucial interpretation:** `ACTIVE_CHANGED` in the diagnostic output means **checksum differs**, not evidence the BSB catalogue changed. The prior active records came from the committed `authentic-selected-records.v1.xml` fixture, which explicitly states that irrelevant MARC fields were omitted. The current source is a complete live SRU response. Therefore the two checksum mismatches may be **fixture projection differences** rather than newly edited BSB catalogue records. Likewise, the three candidate content hashes may differ through source checksums/provenance alone. Neither difference is grounds for overwriting the baseline.
+
+The next reconciliation must compare the selected MARC field subset from each original fixture against its live version and the candidate **linguistic content** separately from the `sourceChecksum` provenance fingerprint. It must preserve the exact old snapshot as a rollback target and require a signed, explicit review/authorization manifest before any future staged publish.
+
+`human-review-worklist.csv` is a **review aid only**, with no authority to approve IJMES entries and no automatic importer. JSON, CSV and XML artifact hashes refer to the actual serialized on-disk bytes in `package-checksums.json`.
