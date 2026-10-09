@@ -21,7 +21,7 @@ const connectionString = process.env.PHASE8G_INTEGRATION_DATABASE_URL ?? '';
 const expectedBranchId = process.env.PHASE8G_INTEGRATION_NEON_BRANCH_ID ?? '';
 const isDisposableTarget = async (sql: ReturnType<typeof neon>): Promise<void> => {
   const rows = await sql.query("SELECT current_setting('neon.branch_id', true) AS branch_id");
-  const actualBranchId = rows[0]?.branch_id;
+  const actualBranchId = rowsOf(rows)[0]?.branch_id;
   if (!actualBranchId || actualBranchId !== expectedBranchId) {
     throw new Error('Refusing destructive integration operations: Neon branch identity mismatch');
   }
