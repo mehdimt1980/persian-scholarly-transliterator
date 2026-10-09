@@ -21,7 +21,7 @@ function syntheticReadings(request: PhraseResolverRequest) {
       return {
         tokenIndex: token.index,
         surface: token.surface,
-        canonical: token.canonicalTransliteration ?? `synthetic-${counter}`,
+        canonical: token.canonicalTransliteration ?? `alpha${counter}`,
         note: 'Synthetic server-boundary token reading.'
       };
     });
@@ -34,7 +34,7 @@ describe('phrase assistance server boundary', () => {
       seen = request;
       return {
         disposition: 'PROPOSED',
-        scholarlyCanonical: 'alpha beta',
+        scholarlyCanonical: syntheticReadings(request).map((reading) => reading.canonical).join(' '),
         renderedOutput: 'Alpha Beta',
         confidence: 0.77,
         basis: 'CONTEXTUAL_INFERENCE',
@@ -56,7 +56,7 @@ describe('phrase assistance server boundary', () => {
 
     expect(response.status).toBe(200);
     const payload = await response.json();
-    expect(payload.resolution.scholarlyCanonical).toBe('alpha beta');
+    expect(payload.resolution.scholarlyCanonical).toBe('alpha1 alpha2');
     expect(seen).not.toBeNull();
     expect(seen!.originalInput).toBe('واژه دیگر');
     expect(seen!.reviewIssues.length).toBeGreaterThan(0);

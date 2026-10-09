@@ -1,4 +1,3 @@
-import type { PhraseTokenEvidence } from '../assistance/phraseTypes';
 import type { PresentationContentCategory, PresentationDiagnostic } from './types';
 
 const GUIDE = 'IJMES Translation and Transliteration Guide, Detailed Guidelines';
@@ -6,8 +5,6 @@ const GUIDE = 'IJMES Translation and Transliteration Guide, Detailed Guidelines'
 export interface CanonicalPolicyDiagnosticInput {
   canonical: string;
   contentCategory: PresentationContentCategory;
-  tokenEvidence?: PhraseTokenEvidence[];
-  expectedCanonicalByToken?: Readonly<Record<number, string>>;
   verifiedWordListIdentity?: boolean;
 }
 
@@ -32,13 +29,6 @@ export function diagnoseScholarlyCanonical(input: CanonicalPolicyDiagnosticInput
     if (word.startsWith('ʾ')) diagnostics.push(item('IJMES_CANONICAL_INITIAL_HAMZA', 'REVIEW_REQUIRED', `Initial hamza in “${word}” conflicts with the IJMES initial-hamza rule.`, 'IJMES-HAMZA-01'));
     if (/[eo]/iu.test(word) && !input.verifiedWordListIdentity) {
       diagnostics.push(item('IJMES_PERSIAN_SHORT_VOWEL_SUSPECTED', 'REVIEW_REQUIRED', `The reading “${word}” contains e/o; lexical evidence is required before asserting or correcting a Persian short-vowel violation.`, 'IJMES-PERSIAN-VOWELS-01'));
-    }
-  }
-  for (const [indexText, expected] of Object.entries(input.expectedCanonicalByToken ?? {})) {
-    const index = Number(indexText);
-    const observed = input.tokenEvidence?.find((token) => token.index === index)?.canonicalTransliteration;
-    if (observed && observed !== expected) {
-      diagnostics.push(item('IJMES_CANONICAL_DETERMINISTIC_CONFLICT', 'BLOCK', `Token ${index} conflicts with deterministic canonical evidence.`, 'PROJECT-DETERMINISTIC-EVIDENCE-01', 'Project deterministic evidence contract'));
     }
   }
   if ((input.contentCategory === 'PERSONAL_NAME' || input.contentCategory === 'PLACE_NAME') && !input.verifiedWordListIdentity) {

@@ -18,6 +18,12 @@ import {
 import { useResearchWorkspace } from '../client/workspace';
 import WorkspaceSaveStatus from './components/WorkspaceSaveStatus';
 import { useUnifiedTransliteration } from './hooks/useUnifiedTransliteration';
+import type { PhraseContextKind } from '../domain/assistance';
+import type {
+  CustomScholarlyV1Options,
+  PresentationProfile,
+  PresentationProfileId
+} from '../domain/presentation';
 
 function actionForAlternative(issue: ReviewIssue, altId: string): ReviewActionType {
   if (issue.type === 'EVIDENCE_DERIVED_READING') {
@@ -44,6 +50,22 @@ export default function Home() {
 
   const [verifiedCopied, setVerifiedCopied] = useState(false);
   const [draftCopied, setDraftCopied] = useState(false);
+  const [semanticContext, setSemanticContext] = useState<PhraseContextKind>(
+    profile === 'ijmes_citation_title' ? 'BOOK_OR_ARTICLE_TITLE' : 'GENERAL_SCHOLARLY_TEXT'
+  );
+  const [presentationProfileId, setPresentationProfileId] = useState<PresentationProfileId>('full_scholarly_v1');
+  const [customDiacritics, setCustomDiacritics] = useState<CustomScholarlyV1Options['diacritics']>('FULL');
+  const [customCapitalization, setCustomCapitalization] = useState<CustomScholarlyV1Options['capitalization']>('PRESERVE');
+  const presentationProfile: PresentationProfile = presentationProfileId === 'custom_scholarly_v1'
+    ? {
+        id: 'custom_scholarly_v1',
+        options: {
+          diacritics: customDiacritics,
+          capitalization: customCapitalization,
+          contentCategory: semanticContext
+        }
+      }
+    : { id: presentationProfileId };
 
   function setAcceptedPhraseDecision(decision: AcceptedPhraseDecision | null) {
     updateTransliteration({ acceptedPhraseDecision: decision });
@@ -53,6 +75,8 @@ export default function Home() {
   const translitState = useUnifiedTransliteration({
     input,
     profile,
+    semanticContext,
+    presentationProfile,
     reviewDecisions: decisions,
     acceptedPhraseDecision,
     onAcceptedDecision: setAcceptedPhraseDecision
@@ -96,6 +120,12 @@ export default function Home() {
 
   function setProfile(newProfile: ProfileId) {
     updateTransliteration({ profile: newProfile });
+  }
+
+  function changeSemanticContext(context: PhraseContextKind) {
+    setSemanticContext(context);
+    if (context !== 'BOOK_OR_ARTICLE_TITLE') setCustomCapitalization('PRESERVE');
+    setProfile(context === 'BOOK_OR_ARTICLE_TITLE' ? 'ijmes_citation_title' : 'ijmes_full');
   }
 
   function applyDecision(newDecision: ReviewDecision) {
@@ -227,16 +257,54 @@ export default function Home() {
 
           <div className="panel-controls">
             <label className="context-selector-label">
-              Context Profile
+              Semantic Reading Context
               <select
                 className="context-select"
-                value={profile}
-                onChange={(event) => setProfile(event.target.value as ProfileId)}
+                value={semanticContext}
+                onChange={(event) => changeSemanticContext(event.target.value as PhraseContextKind)}
               >
-                <option value="ijmes_citation_title">Book / article title (fully diacritized citation)</option>
-                <option value="ijmes_full">Full scholarly / technical term</option>
+                <option value="BOOK_OR_ARTICLE_TITLE">Book / article title</option>
+                <option value="GENERAL_SCHOLARLY_TEXT">General scholarly text</option>
               </select>
             </label>
+            <label className="context-selector-label">
+              Presentation
+              <select
+                className="context-select"
+                value={presentationProfileId}
+                onChange={(event) => setPresentationProfileId(event.target.value as PresentationProfileId)}
+              >
+                <option value="full_scholarly_v1">Full Scholarly</option>
+                <option value="ijmes_publication_v1">IJMES Publication</option>
+                <option value="custom_scholarly_v1">Custom Scholarly v1</option>
+              </select>
+            </label>
+            {presentationProfileId === 'custom_scholarly_v1' && (
+              <>
+                <label className="context-selector-label">
+                  Custom diacritics
+                  <select
+                    className="context-select"
+                    value={customDiacritics}
+                    onChange={(event) => setCustomDiacritics(event.target.value as CustomScholarlyV1Options['diacritics'])}
+                  >
+                    <option value="FULL">Full</option>
+                    <option value="PUBLICATION">Publication style</option>
+                  </select>
+                </label>
+                <label className="context-selector-label">
+                  Custom capitalization
+                  <select
+                    className="context-select"
+                    value={customCapitalization}
+                    onChange={(event) => setCustomCapitalization(event.target.value as CustomScholarlyV1Options['capitalization'])}
+                  >
+                    <option value="PRESERVE">Preserve canonical case</option>
+                    <option value="ENGLISH_TITLE" disabled={semanticContext !== 'BOOK_OR_ARTICLE_TITLE'}>English title</option>
+                  </select>
+                </label>
+              </>
+            )}
           </div>
         </div>
 
@@ -300,7 +368,11 @@ export default function Home() {
           <div className="output-footer">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
               <span className="profile-tag">
-                {profile === 'ijmes_citation_title' ? 'IJMES · Scholarly citation title' : 'IJMES · Scholarly'}
+                {presentationProfileId === 'full_scholarly_v1'
+                  ? 'Full Scholarly'
+                  : presentationProfileId === 'ijmes_publication_v1'
+                    ? 'IJMES Publication v1'
+                    : 'Custom Scholarly v1'}
               </span>
               <button
                 type="button"

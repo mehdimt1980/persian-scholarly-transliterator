@@ -26,5 +26,6 @@ Authority classes: **IJMES** = explicit journal rule; **LINGUISTIC** = Persian a
 - `scholarlyCanonical` and `renderedOutput` already exist, but phrase validation currently derives the latter through the selected legacy profile and the legacy fingerprint includes that profile and rendered evidence.
 - Phase 8A acceptance is provenance-preserving and non-authoritative, but accepted decisions are profile-bound under the legacy fingerprint.
 - Documentation described a desired publication distinction before a separate renderer existed. Phase 8B implements an additive presentation contract and retains the diagnostic note as historical rationale.
+- Independent-review remediation connects the renderer to the workspace, separates explicit semantic context from presentation, and replaces the ineffective deterministic self-comparison with fail-closed phrase/token alignment.
 
 Unsupported Word List substitutions, uncertain Persian vocalization, unverified proper-name identities, and disputed post-vocalic izafat remain human-review cases.

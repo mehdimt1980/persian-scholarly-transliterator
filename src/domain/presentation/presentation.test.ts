@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { buildPhraseResolverRequest, computePhraseReadingFingerprintV2 } from '../assistance';
+import {
+  buildPhraseResolverRequest,
+  computePhraseReadingFingerprintV2,
+  computePhraseReadingFingerprintV3
+} from '../assistance';
 import { transliterate } from '../engine';
 import {
   diagnoseScholarlyCanonical,
@@ -70,6 +74,15 @@ describe('Phase 8B deterministic presentation renderer', () => {
       options: { diacritics: 'FULL', capitalization: 'ENGLISH_TITLE', contentCategory: 'BOOK_OR_ARTICLE_TITLE' }
     });
     expect(custom.output).toBe('Kitāb-i Buzurg');
+
+    const malformed = renderScholarlyCanonical('kitāb', {
+      id: 'custom_scholarly_v1',
+      options: { diacritics: 'UNKNOWN', capitalization: 'PRESERVE', contentCategory: 'TECHNICAL_TERM', extra: true }
+    } as unknown as Parameters<typeof renderScholarlyCanonical>[1]);
+    expect(malformed).toMatchObject({ ok: false, output: null });
+    expect(malformed.diagnostics).toContainEqual(expect.objectContaining({ id: 'CUSTOM_V1_INVALID_OPTIONS' }));
+    const unsupported = renderScholarlyCanonical('kitāb', { id: 'future_profile' } as unknown as Parameters<typeof renderScholarlyCanonical>[1]);
+    expect(unsupported).toMatchObject({ ok: false, output: null, profileId: 'unsupported' });
   });
 });
 
@@ -84,30 +97,9 @@ describe('Phase 8B scholarly canonical diagnostics', () => {
     ]));
   });
 
-  it('distinguishes initial from medial hamza and blocks deterministic conflicts', () => {
+  it('distinguishes initial from medial hamza', () => {
     const medial = diagnoseScholarlyCanonical({ canonical: 'masʾala', contentCategory: 'GENERAL_SCHOLARLY_TEXT' });
     expect(medial.diagnostics).not.toContainEqual(expect.objectContaining({ id: 'IJMES_CANONICAL_INITIAL_HAMZA' }));
-
-    const conflict = diagnoseScholarlyCanonical({
-      canonical: 'kitāb',
-      contentCategory: 'GENERAL_SCHOLARLY_TEXT',
-      tokenEvidence: [{
-        index: 0,
-        surface: 'کتاب',
-        tokenType: 'persian-word',
-        status: 'LEXICON_RESOLVED',
-        canonicalTransliteration: 'kitāb',
-        rendered: 'kitāb',
-        alternatives: [],
-        lexicalSources: [],
-        appliedRuleIds: []
-      }],
-      expectedCanonicalByToken: { 0: 'kutub' }
-    });
-    expect(conflict.diagnostics).toContainEqual(expect.objectContaining({
-      id: 'IJMES_CANONICAL_DETERMINISTIC_CONFLICT',
-      severity: 'BLOCK'
-    }));
   });
 
   it('treats e/o as suspected review, not an automatic replacement', () => {
@@ -137,6 +129,47 @@ describe('Phase 8B reading identity', () => {
     };
     expect(computePhraseReadingFingerprintV2(request, 'mock', 'model'))
       .toBe(computePhraseReadingFingerprintV2(renderingOnly, 'mock', 'model'));
+  });
+
+  it('V3 includes interpretation-relevant review evidence but normalizes set ordering', () => {
+    const request = buildPhraseResolverRequest(transliterate('واژه دیگر', 'ijmes_citation_title'));
+    const issue = request.reviewIssues[0];
+    const reordered = {
+      ...request,
+      reviewIssues: request.reviewIssues.map((item) => ({
+        ...item,
+        tokenIndexes: [...item.tokenIndexes].reverse(),
+        allowedActions: [...item.allowedActions].reverse(),
+        alternatives: [...item.alternatives].reverse()
+      }))
+    };
+    expect(computePhraseReadingFingerprintV3(request, 'mock', 'model'))
+      .toBe(computePhraseReadingFingerprintV3(reordered, 'mock', 'model'));
+
+    const changedEvidence = {
+      ...request,
+      reviewIssues: request.reviewIssues.map((item, index) => index === 0
+        ? { ...item, evidenceSummary: `${item.evidenceSummary ?? ''} changed` }
+        : item)
+    };
+    const changedSource = {
+      ...request,
+      reviewIssues: request.reviewIssues.map((item, index) => index === 0
+        ? {
+            ...item,
+            alternatives: item.alternatives.length > 0
+              ? item.alternatives.map((alternative, alternativeIndex) => alternativeIndex === 0
+                  ? { ...alternative, source: `${alternative.source ?? ''} changed` }
+                  : alternative)
+              : [{ id: 'synthetic', label: 'Synthetic', canonical: 'x', source: 'changed-source' }]
+          }
+        : item)
+    };
+    expect(issue).toBeDefined();
+    expect(computePhraseReadingFingerprintV3(request, 'mock', 'model'))
+      .not.toBe(computePhraseReadingFingerprintV3(changedEvidence, 'mock', 'model'));
+    expect(computePhraseReadingFingerprintV3(request, 'mock', 'model'))
+      .not.toBe(computePhraseReadingFingerprintV3(changedSource, 'mock', 'model'));
   });
 
   it('invalidates material semantic context and source changes', () => {

@@ -20,6 +20,7 @@ import type { PhraseResolution } from '../../domain/assistance/phraseTypes';
 export interface DraftRequestPayload {
   input: string;
   profile: string;
+  contextKind: 'BOOK_OR_ARTICLE_TITLE' | 'GENERAL_SCHOLARLY_TEXT';
   reviewDecisions: unknown[];
 }
 

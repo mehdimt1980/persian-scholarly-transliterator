@@ -78,7 +78,7 @@ export function toPersistedAcceptedPhraseDecision(
     model,
     promptVersion,
     requestFingerprint,
-    ...(readingFingerprint && readingIdentityVersion === '2'
+    ...(readingFingerprint && (readingIdentityVersion === '2' || readingIdentityVersion === '3')
       ? { readingFingerprint, readingIdentityVersion }
       : {}),
     modelConfidence: typeof modelConfidence === 'number' && Number.isFinite(modelConfidence) ? modelConfidence : null,
@@ -229,11 +229,11 @@ function validatePersistedAcceptedPhraseDecision(
     if (
       typeof data.readingFingerprint !== 'string' ||
       data.readingFingerprint.trim().length === 0 ||
-      data.readingIdentityVersion !== '2'
+      (data.readingIdentityVersion !== '2' && data.readingIdentityVersion !== '3')
     ) return null;
     readingIdentity = {
       readingFingerprint: data.readingFingerprint,
-      readingIdentityVersion: '2'
+      readingIdentityVersion: data.readingIdentityVersion
     };
   }
 

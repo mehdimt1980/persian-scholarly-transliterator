@@ -12,7 +12,8 @@ export function phraseContextKindForProfile(profile: ProfileId): PhraseContextKi
 
 export function buildPhraseResolverRequest(
   result: TransliterationResult,
-  promptVersion: string = CURRENT_PHRASE_RESOLVER_PROMPT_VERSION
+  promptVersion: string = CURRENT_PHRASE_RESOLVER_PROMPT_VERSION,
+  contextKind: PhraseContextKind = phraseContextKindForProfile(result.profile)
 ): PhraseResolverRequest {
   const meaningfulTokens = result.tokens
     .map((token, index) => ({ token, index }))
@@ -22,7 +23,7 @@ export function buildPhraseResolverRequest(
     originalInput: result.originalInput,
     normalizedInput: result.normalizedInput,
     profile: result.profile,
-    contextKind: phraseContextKindForProfile(result.profile),
+    contextKind,
     deterministicStatus: result.status,
     deterministicCopyable: result.copyable,
     deterministicOutput: result.output,

@@ -12,12 +12,14 @@ import {
   buildPhraseResolverRequest,
   checkAcceptedPhraseApplicability,
   computeEditedCanonical,
-  computePhraseReadingFingerprintV2,
+  computePhraseReadingFingerprintV3,
   createAcceptedPhraseDecision,
   resolveUnifiedOutput,
   tokenEditorReducer
 } from '../../domain/assistance';
-import { renderCanonicalForProfile } from '../../domain/profiles';
+import { renderScholarlyCanonical } from '../../domain/presentation';
+import type { PresentationProfile, ScholarlyRenderingResult } from '../../domain/presentation';
+import type { PhraseContextKind } from '../../domain/assistance';
 import type { ProfileId, ReviewDecision, TransliterationResult } from '../../domain/types';
 import {
   DraftStatus,
@@ -30,6 +32,8 @@ export type PhraseAssistStatus = DraftStatus;
 export interface UseUnifiedTransliterationProps {
   input: string;
   profile: ProfileId;
+  semanticContext: PhraseContextKind;
+  presentationProfile: PresentationProfile;
   reviewDecisions: ReviewDecision[];
   acceptedPhraseDecision: AcceptedPhraseDecision | null;
   onAcceptedDecision: (decision: AcceptedPhraseDecision | null) => void;
@@ -55,6 +59,7 @@ export interface UseUnifiedTransliterationReturn {
   alignmentWarning: string | null;
   canAcceptEditedDraft: boolean;
   actionError: string | null;
+  presentationRendering: ScholarlyRenderingResult | null;
 
   toggleAutoAssist: () => void;
   regenerate: () => void;
@@ -74,6 +79,8 @@ const DEFAULT_DEBOUNCE_MS = 900;
 export function useUnifiedTransliteration({
   input,
   profile,
+  semanticContext,
+  presentationProfile,
   reviewDecisions,
   acceptedPhraseDecision,
   onAcceptedDecision,
@@ -107,16 +114,17 @@ export function useUnifiedTransliteration({
     [result]
   );
 
-  // Client-side V2 reading identity excludes rendering-only profile/output fields.
+  // Client-side V3 reading identity excludes rendering-only profile/output fields.
   const cacheId = useMemo(
-    () => computePhraseReadingFingerprintV2(buildPhraseResolverRequest(result), 'client-draft-cache', 'v2'),
-    [result]
+    () => computePhraseReadingFingerprintV3(buildPhraseResolverRequest(result, undefined, semanticContext), 'client-draft-cache', 'v3'),
+    [result, semanticContext]
   );
 
   const payload = useMemo(
     () => ({
       input: result.originalInput,
       profile: result.profile,
+      contextKind: semanticContext,
       reviewDecisions: reviewDecisions.map((d) => ({
         issueId: d.issueId,
         action: d.action,
@@ -125,7 +133,7 @@ export function useUnifiedTransliteration({
         note: d.note
       }))
     }),
-    [result.originalInput, result.profile, reviewDecisions]
+    [result.originalInput, result.profile, semanticContext, reviewDecisions]
   );
 
   // Feed context to the controller.
@@ -161,29 +169,52 @@ export function useUnifiedTransliteration({
 
   // Stale accepted-decision invalidation (existing fingerprint rules).
   useEffect(() => {
-    if (acceptedPhraseDecision && !checkAcceptedPhraseApplicability(acceptedPhraseDecision, result).applicable) {
+    if (acceptedPhraseDecision && !checkAcceptedPhraseApplicability(acceptedPhraseDecision, result, semanticContext).applicable) {
       onAcceptedDecision(null);
     }
-  }, [acceptedPhraseDecision, result, onAcceptedDecision]);
+  }, [acceptedPhraseDecision, result, semanticContext, onAcceptedDecision]);
 
   const aiDraft = view.draft;
-  const unifiedOutput = useMemo(
-    () => resolveUnifiedOutput(result, acceptedPhraseDecision, aiDraft),
-    [result, acceptedPhraseDecision, aiDraft]
+  const selectedOutput = useMemo(
+    () => resolveUnifiedOutput(result, acceptedPhraseDecision, aiDraft, semanticContext),
+    [result, acceptedPhraseDecision, aiDraft, semanticContext]
   );
+  const presentationRendering = useMemo(() => selectedOutput.scholarlyCanonical
+    ? renderScholarlyCanonical(selectedOutput.scholarlyCanonical, presentationProfile, { contentCategory: semanticContext })
+    : null, [selectedOutput.scholarlyCanonical, presentationProfile, semanticContext]);
+  const unifiedOutput = useMemo<UnifiedOutputViewModel>(() => {
+    if (!presentationRendering) return selectedOutput;
+    if (presentationRendering.ok && presentationRendering.output !== null) {
+      return { ...selectedOutput, primary: presentationRendering.output, profileRendering: presentationRendering.output };
+    }
+    return {
+      ...selectedOutput,
+      primary: '',
+      profileRendering: null,
+      isCopyableDraft: false,
+      isVerifiedCopyable: false,
+      isHumanAcceptedCopyable: false,
+      badgeLabel: 'Rendering blocked',
+      badgeTone: 'blocked',
+      noticeText: presentationRendering.diagnostics.map((item) => item.message).join(' ')
+    };
+  }, [selectedOutput, presentationRendering]);
   const explanation = useMemo(() => buildAiExplanation(result, aiDraft), [result, aiDraft]);
 
   const edited = useMemo(() => computeEditedCanonical(aiDraft, editor), [aiDraft, editor]);
   const editedRendered = useMemo(
-    () => (edited.canonical.trim() ? renderCanonicalForProfile(edited.canonical, profile) : ''),
-    [edited.canonical, profile]
+    () => {
+      if (!edited.canonical.trim()) return '';
+      return renderScholarlyCanonical(edited.canonical, presentationProfile, { contentCategory: semanticContext }).output ?? '';
+    },
+    [edited.canonical, presentationProfile, semanticContext]
   );
 
   const accept = useCallback(
     (canonical: string) => {
       if (!aiDraft) return;
       try {
-        const decision = createAcceptedPhraseDecision(aiDraft, result, canonical);
+        const decision = createAcceptedPhraseDecision(aiDraft, result, canonical, undefined, undefined, semanticContext);
         onAcceptedDecision(decision);
         dispatch({ type: 'CLOSE' });
         setActionError(null);
@@ -191,7 +222,7 @@ export function useUnifiedTransliteration({
         setActionError(err instanceof Error ? err.message : 'Unable to accept this phrase resolution.');
       }
     },
-    [aiDraft, result, onAcceptedDecision, setActionError]
+    [aiDraft, result, semanticContext, onAcceptedDecision, setActionError]
   );
 
   return {
@@ -212,6 +243,7 @@ export function useUnifiedTransliteration({
     alignmentWarning: edited.alignment.warning,
     canAcceptEditedDraft: edited.unlocated.length === 0,
     actionError,
+    presentationRendering,
 
     toggleAutoAssist: () => controller.setAutoEnabled(!snapshot.autoEnabled),
     regenerate: () => controller.regenerate(),

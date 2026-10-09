@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { transliterate } from '../../domain/engine';
-import { buildPhraseResolverRequest } from '../../domain/assistance';
+import { buildPhraseResolverRequest, phraseContextKindForProfile } from '../../domain/assistance';
 import { getAssistedResolverConfig, isOpenAiConfigured } from './configuration';
 import { OpenAiPhraseResolverProvider } from './openaiPhraseProvider';
 import type { PhraseResolverProvider } from './phraseProvider';
@@ -27,6 +27,7 @@ const reviewDecisionSchema = z.object({
 const phraseRequestSchema = z.object({
   input: z.string().min(1).max(MAX_PHRASE_INPUT_CHARACTERS),
   profile: z.enum(['ijmes_full', 'ijmes_citation_title']).default('ijmes_full'),
+  contextKind: z.enum(['BOOK_OR_ARTICLE_TITLE', 'GENERAL_SCHOLARLY_TEXT']).optional(),
   reviewDecisions: z.array(reviewDecisionSchema).max(128).default([])
 }).strict();
 
@@ -58,7 +59,7 @@ export async function handlePhraseAssistRequest(
     );
   }
 
-  const { input, profile, reviewDecisions } = parsed.data;
+  const { input, profile, contextKind, reviewDecisions } = parsed.data;
 
   // The server always recomputes deterministic state. The client cannot inject
   // token status, review issues, morphology, relations, or evidence into the AI prompt.
@@ -89,7 +90,11 @@ export async function handlePhraseAssistRequest(
     );
   }
 
-  const resolverRequest = buildPhraseResolverRequest(transliteration);
+  const resolverRequest = buildPhraseResolverRequest(
+    transliteration,
+    undefined,
+    contextKind ?? phraseContextKindForProfile(profile)
+  );
 
   if (!customProvider && !isOpenAiConfigured()) {
     return NextResponse.json(

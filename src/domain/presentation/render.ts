@@ -63,6 +63,23 @@ export function renderPublicationTitle(value: string): string {
 
 function validateCustom(options: CustomScholarlyV1Options): PresentationDiagnostic[] {
   const diagnostics: PresentationDiagnostic[] = [];
+  const candidate = options as unknown as Record<string, unknown>;
+  const keys = Object.keys(candidate).sort();
+  if (
+    keys.join(',') !== 'capitalization,contentCategory,diacritics' ||
+    !['FULL', 'PUBLICATION'].includes(String(candidate.diacritics)) ||
+    !['PRESERVE', 'ENGLISH_TITLE'].includes(String(candidate.capitalization)) ||
+    !['BOOK_OR_ARTICLE_TITLE', 'PERSONAL_NAME', 'PLACE_NAME', 'TECHNICAL_TERM', 'GENERAL_SCHOLARLY_TEXT']
+      .includes(String(candidate.contentCategory))
+  ) {
+    diagnostics.push(diagnostic(
+      'CUSTOM_V1_INVALID_OPTIONS',
+      'BLOCK',
+      'Custom Scholarly v1 options are missing, malformed, unknown, or outside the bounded policy.',
+      'PROJECT-CUSTOM-V1-01'
+    ));
+    return diagnostics;
+  }
   if (options.capitalization === 'ENGLISH_TITLE' && options.contentCategory !== 'BOOK_OR_ARTICLE_TITLE') {
     diagnostics.push(diagnostic(
       'CUSTOM_V1_TITLE_CONTEXT_REQUIRED',
@@ -86,20 +103,35 @@ export function renderScholarlyCanonical(
   const canonical = canonicalInput.normalize('NFC');
   const diagnostics: PresentationDiagnostic[] = [];
   const appliedRuleIds: string[] = [];
+  const runtimeProfile = profile as unknown as Record<string, unknown>;
+  if (
+    !runtimeProfile ||
+    typeof runtimeProfile !== 'object' ||
+    !['full_scholarly_v1', 'ijmes_publication_v1', 'custom_scholarly_v1'].includes(String(runtimeProfile.id))
+  ) {
+    diagnostics.push(diagnostic('PRESENTATION_PROFILE_UNSUPPORTED', 'BLOCK', 'The requested presentation profile is unsupported.', 'PROJECT-CONTEXT-01'));
+    return { ok: false, profileId: 'unsupported', canonical, output: null, appliedRuleIds, diagnostics };
+  }
 
   if (profile.id === 'full_scholarly_v1') {
     return { ok: true, profileId: profile.id, canonical, output: canonical, appliedRuleIds: ['FULL-SCHOLARLY-PRESERVE-01'], diagnostics };
   }
 
   const category = profile.id === 'custom_scholarly_v1'
-    ? profile.options.contentCategory
+    ? (profile.options as CustomScholarlyV1Options | undefined)?.contentCategory
     : context.contentCategory;
   if (!category) {
     diagnostics.push(diagnostic('PRESENTATION_CONTEXT_REQUIRED', 'BLOCK', 'A content category is required for this presentation policy.', 'PROJECT-CONTEXT-01'));
     return { ok: false, profileId: profile.id, canonical, output: null, appliedRuleIds, diagnostics };
   }
 
-  if (profile.id === 'custom_scholarly_v1') diagnostics.push(...validateCustom(profile.options));
+  if (profile.id === 'custom_scholarly_v1') {
+    if (!profile.options || typeof profile.options !== 'object' || Array.isArray(profile.options)) {
+      diagnostics.push(diagnostic('CUSTOM_V1_INVALID_OPTIONS', 'BLOCK', 'Custom Scholarly v1 requires a bounded options object.', 'PROJECT-CUSTOM-V1-01'));
+    } else {
+      diagnostics.push(...validateCustom(profile.options));
+    }
+  }
   if (diagnostics.some((item) => item.severity === 'BLOCK')) {
     return { ok: false, profileId: profile.id, canonical, output: null, appliedRuleIds, diagnostics };
   }

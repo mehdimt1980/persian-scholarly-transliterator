@@ -20,10 +20,11 @@ import { renderCanonicalForProfile } from '../profiles';
 import {
   checkAcceptedPhraseApplicability,
   computePhraseReadingFingerprintV2,
+  computePhraseReadingFingerprintV3,
   computePhraseRequestFingerprint
 } from './phraseIdentity';
 import { buildPhraseResolverRequest } from './buildPhraseResolverRequest';
-import type { AcceptedPhraseDecision, PhraseResolution } from './phraseTypes';
+import type { AcceptedPhraseDecision, PhraseContextKind, PhraseResolution } from './phraseTypes';
 
 export type OutputPresentation =
   | 'DETERMINISTIC_VERIFIED'
@@ -89,17 +90,19 @@ export interface UnifiedOutputViewModel {
 export function resolveUnifiedOutput(
   result: TransliterationResult,
   acceptedPhraseDecision: AcceptedPhraseDecision | null,
-  aiDraft: PhraseResolution | null
+  aiDraft: PhraseResolution | null,
+  contextKind?: PhraseContextKind
 ): UnifiedOutputViewModel {
   // 1. Applicable human-accepted result (highest precedence)
   if (acceptedPhraseDecision) {
-    const applicability = checkAcceptedPhraseApplicability(acceptedPhraseDecision, result);
+    const applicability = checkAcceptedPhraseApplicability(acceptedPhraseDecision, result, contextKind);
     if (applicability.applicable) {
+      const currentRenderedOutput = renderCanonicalForProfile(acceptedPhraseDecision.scholarlyCanonical, result.profile);
       return {
         presentation: 'HUMAN_ACCEPTED',
-        primary: acceptedPhraseDecision.renderedOutput,
+        primary: currentRenderedOutput,
         scholarlyCanonical: acceptedPhraseDecision.scholarlyCanonical,
-        profileRendering: acceptedPhraseDecision.renderedOutput,
+        profileRendering: currentRenderedOutput,
         isDraft: false,
         isCopyableDraft: false,
         isVerifiedCopyable: false,
@@ -144,11 +147,13 @@ export function resolveUnifiedOutput(
 
   // 3. Current validated AI draft (matching current request fingerprint)
   if (aiDraft && aiDraft.scholarlyCanonical && aiDraft.renderedOutput) {
-    const currentRequest = buildPhraseResolverRequest(result, aiDraft.promptVersion);
-    const expectedFingerprint = aiDraft.readingIdentityVersion === '2'
-      ? computePhraseReadingFingerprintV2(currentRequest, aiDraft.provider, aiDraft.model)
-      : computePhraseRequestFingerprint(currentRequest, aiDraft.provider, aiDraft.model);
-    const storedFingerprint = aiDraft.readingIdentityVersion === '2'
+    const currentRequest = buildPhraseResolverRequest(result, aiDraft.promptVersion, contextKind);
+    const expectedFingerprint = aiDraft.readingIdentityVersion === '3'
+      ? computePhraseReadingFingerprintV3(currentRequest, aiDraft.provider, aiDraft.model)
+      : aiDraft.readingIdentityVersion === '2'
+        ? computePhraseReadingFingerprintV2(currentRequest, aiDraft.provider, aiDraft.model)
+        : computePhraseRequestFingerprint(currentRequest, aiDraft.provider, aiDraft.model);
+    const storedFingerprint = aiDraft.readingIdentityVersion
       ? aiDraft.readingFingerprint
       : aiDraft.requestFingerprint;
     const currentRenderedOutput = renderCanonicalForProfile(aiDraft.scholarlyCanonical, result.profile);

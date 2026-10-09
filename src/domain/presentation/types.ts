@@ -37,7 +37,7 @@ export interface PresentationContext {
 
 export interface ScholarlyRenderingResult {
   ok: boolean;
-  profileId: PresentationProfileId;
+  profileId: PresentationProfileId | 'unsupported';
   canonical: string;
   output: string | null;
   appliedRuleIds: string[];

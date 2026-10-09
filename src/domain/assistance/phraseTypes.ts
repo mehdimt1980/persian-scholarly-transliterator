@@ -107,7 +107,7 @@ export interface PhraseResolution extends RawPhraseResolutionPayload {
   requestFingerprint: string;
   /** V2 semantic reading identity; independent of presentation rendering. */
   readingFingerprint?: string;
-  readingIdentityVersion?: '2';
+  readingIdentityVersion?: '2' | '3';
   policyVersion?: 'ijmes-canonical-diagnostics-v1';
   policyDiagnostics?: PresentationDiagnostic[];
 }
@@ -129,7 +129,7 @@ export interface AcceptedPhraseDecision {
   promptVersion: string;
   requestFingerprint: string;
   readingFingerprint?: string;
-  readingIdentityVersion?: '2';
+  readingIdentityVersion?: '2' | '3';
   modelConfidence: number | null;
   acceptedAt: string;
 }

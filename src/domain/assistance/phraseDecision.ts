@@ -5,10 +5,12 @@ import { buildPhraseResolverRequest } from './buildPhraseResolverRequest';
 import {
   checkAcceptedPhraseApplicability,
   computePhraseReadingFingerprintV2,
+  computePhraseReadingFingerprintV3,
   computePhraseRequestFingerprint
 } from './phraseIdentity';
 import type {
   AcceptedPhraseDecision,
+  PhraseContextKind,
   PhraseResolution
 } from './phraseTypes';
 
@@ -17,7 +19,8 @@ export function createAcceptedPhraseDecision(
   result: TransliterationResult,
   scholarlyCanonical: string,
   renderedOutput?: string,
-  acceptedAt: string = new Date().toISOString()
+  acceptedAt: string = new Date().toISOString(),
+  contextKind?: PhraseContextKind
 ): AcceptedPhraseDecision {
   if (!resolution.scholarlyCanonical) {
     throw new Error('Only a phrase resolution with a valid scholarly canonical transliteration can be accepted.');
@@ -33,14 +36,19 @@ export function createAcceptedPhraseDecision(
     result.profile
   );
 
-  const currentRequest = buildPhraseResolverRequest(result, resolution.promptVersion);
-  const currentFingerprint = computePhraseRequestFingerprint(
-    currentRequest,
-    resolution.provider,
-    resolution.model
-  );
+  const currentRequest = resolution.readingIdentityVersion
+    ? buildPhraseResolverRequest(result, resolution.promptVersion, contextKind)
+    : buildPhraseResolverRequest(result, resolution.promptVersion);
+  const currentFingerprint = resolution.readingIdentityVersion === '3'
+    ? computePhraseReadingFingerprintV3(currentRequest, resolution.provider, resolution.model)
+    : resolution.readingIdentityVersion === '2'
+      ? computePhraseReadingFingerprintV2(currentRequest, resolution.provider, resolution.model)
+      : computePhraseRequestFingerprint(currentRequest, resolution.provider, resolution.model);
+  const storedFingerprint = resolution.readingIdentityVersion
+    ? resolution.readingFingerprint
+    : resolution.requestFingerprint;
 
-  if (currentFingerprint !== resolution.requestFingerprint) {
+  if (!storedFingerprint || currentFingerprint !== storedFingerprint) {
     throw new Error('The phrase suggestion is stale. Request a fresh phrase analysis before accepting it.');
   }
 
@@ -60,12 +68,12 @@ export function createAcceptedPhraseDecision(
     model: resolution.model,
     promptVersion: resolution.promptVersion,
     requestFingerprint: resolution.requestFingerprint,
-    readingFingerprint: resolution.readingFingerprint ?? computePhraseReadingFingerprintV2(
+    readingFingerprint: resolution.readingFingerprint ?? computePhraseReadingFingerprintV3(
       currentRequest,
       resolution.provider,
       resolution.model
     ),
-    readingIdentityVersion: '2',
+    readingIdentityVersion: resolution.readingIdentityVersion ?? '3',
     modelConfidence: resolution.confidence,
     acceptedAt
   };

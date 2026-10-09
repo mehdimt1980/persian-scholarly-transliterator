@@ -1,8 +1,9 @@
 import { z } from 'zod';
 import { renderCanonicalForProfile } from '../profiles';
 import { validateManualTransliteration } from '../review/validation';
-import { computePhraseReadingFingerprintV2, computePhraseRequestFingerprint } from './phraseIdentity';
+import { computePhraseReadingFingerprintV3, computePhraseRequestFingerprint } from './phraseIdentity';
 import { diagnoseScholarlyCanonical } from '../presentation/policyDiagnostics';
+import { alignTokenReadings } from './tokenEdits';
 import type {
   PhraseResolution,
   PhraseResolverRequest,
@@ -161,16 +162,20 @@ export function validatePhraseProviderResolution(
     };
   }
 
+  if (scholarlyCanonical) {
+    const alignment = alignTokenReadings(scholarlyCanonical, tokenReadings);
+    if (alignment.status !== 'ALIGNED') {
+      return {
+        valid: false,
+        errors: [`PHRASE_CANONICAL_TOKEN_ALIGNMENT_${alignment.status}: ${alignment.warning ?? 'Phrase canonical cannot be verified against token readings.'}`]
+      };
+    }
+  }
+
   const policy = scholarlyCanonical
     ? diagnoseScholarlyCanonical({
         canonical: scholarlyCanonical,
-        contentCategory: request.contextKind,
-        tokenEvidence: request.tokenEvidence,
-        expectedCanonicalByToken: Object.fromEntries(
-          request.tokenEvidence
-            .filter((token) => token.canonicalTransliteration)
-            .map((token) => [token.index, token.canonicalTransliteration as string])
-        )
+        contentCategory: request.contextKind
       })
     : null;
   const blockingPolicy = policy?.diagnostics.filter((item) => item.severity === 'BLOCK') ?? [];
@@ -204,8 +209,8 @@ export function validatePhraseProviderResolution(
       model,
       promptVersion: request.promptVersion,
       requestFingerprint: computePhraseRequestFingerprint(request, provider, model),
-      readingFingerprint: computePhraseReadingFingerprintV2(request, provider, model),
-      readingIdentityVersion: '2',
+      readingFingerprint: computePhraseReadingFingerprintV3(request, provider, model),
+      readingIdentityVersion: '3',
       ...(policy ? { policyVersion: policy.policyVersion, policyDiagnostics: policy.diagnostics } : {})
     },
     errors: []
