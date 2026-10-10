@@ -4,3 +4,11 @@
 .pagination{display:flex;flex-direction:column;gap:7px;border-top:1px solid var(--border-rule);padding-top:9px;}
 .pagination>div{display:flex;gap:6px;}
 .pagination button{flex:1;padding:8px 10px;font-size:11px;}
+
+/* Phase 8Q: primary reviewer and scholarly assistance controls */
+.rationaleHeader{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:18px;margin-bottom:8px;}
+.rationaleHeader .label{margin:0;}
+.rationaleHeader .secondary{font-size:11px;padding:8px 11px;}
+.rationaleNotice{font-size:11px;line-height:1.65;color:var(--text-muted);border-left:2px solid #bda776;padding:8px 12px;background:#faf8f2;margin:10px 0 14px;}
+.reviewForm input[readonly]{background:#f4f6f7;color:#345067;cursor:default;}
+@media(max-width:580px){.rationaleHeader{align-items:flex-start;flex-direction:column;}.rationaleHeader .secondary{width:100%;}}

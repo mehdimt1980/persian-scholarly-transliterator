@@ -36,3 +36,19 @@ ACCEPT does **not** update candidate `reviewStatus`, `authorityStatus`, `reviewE
 - If database identity or snapshot changes, data and writes fail closed.
 - If ledger migration has not run, authenticated queue returns a service-unavailable message, rather than pretending it saved a decision.
 - Saving a draft leaves the candidate unapproved. Historical events remain in the append-only table; latest event is displayed.
+
+## Phase 8Q — Single-primary-reviewer convenience (2026-10-10)
+
+The project currently has **one primary scholarly reviewer**. After entering the existing review passphrase, the Review UI shows `primary-reviewer` in a read-only field. The **server**, not the browser, always assigns that ID to submitted draft/accept/defer/reject events; forged different `reviewerRef` payloads are rejected. No new reviewer credential or Vercel variable is necessary.
+
+The default transliteration profile is now selected by type:
+- `ijmes_title`: work titles, personal names, place names, organization names (proper names); 
+- `ijmes_full`: lexical terms, multiword expressions and unclassified candidates.
+
+These are **editable defaults** and may require adjustment for exceptional contexts. The source-linked rationale textarea begins with an evidence-grounded **EDITORIAL DRAFT**, explicitly stating that the BSB catalogue spelling has not been independently verified. Selecting a different candidate loads its own draft or the last recorded rationale; nothing is submitted automatically.
+
+The optional `Suggest rationale with AI` button makes an **authenticated, same-origin POST** to `/api/scholarly-review/rationale`. It independently retrieves and verifies the candidate's exact active Staging review-basis SHA-256 before sending limited public BSB bibliographic fields to the model. It uses existing `OPENAI_API_KEY` plus `ASSISTED_RESOLVER_MODEL`, if both exist; an optional server-only `PHASE8Q_REVIEW_RATIONALE_MODEL` overrides the model for this feature. Without those credentials, or after provider failure, the endpoint transparently returns a deterministic **source-grounded checklist**, not counterfeit AI prose. No new secret is mandatory to use the Review form.
+
+**AI rationale suggestions are unverified, can be wrong and are not proof of source consultation.** They must be checked/edited by the reviewer. Changing a canonical spelling, IJMES profile or rationale clears the human-verification checkbox. No AI process writes decisions, checks that box, promotes IJMES authority, opens Staging evidence writes or changes the Gold corpus. `Accept review` still requires a non-empty valid manual canonical, an IJMES profile, a scholarly rationale, explicit checkbox attestation and a valid signed review session.
+
+**Identity limitation:** the current credential is a *shared passphrase*, not individual OIDC identity. `primary-reviewer` is a server-assigned audit label for the holder of that passphrase, **not cryptographic proof of the particular individual's identity**. Keep the passphrase private, and migrate to per-user authentication before onboarding other human reviewers.
