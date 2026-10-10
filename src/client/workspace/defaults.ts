@@ -1,6 +1,6 @@
 import type { TransliterationWorkspaceV1, BibliographyWorkspaceV1 } from './types';
 
-export const DEFAULT_TRANSLITERATION_INPUT = 'تأملی درباره ایران: مکتب تبریز و مبانی تجددخواهی';
+export const DEFAULT_TRANSLITERATION_INPUT = '';
 export const DEFAULT_TRANSLITERATION_PROFILE = 'ijmes_citation_title';
 
 export const DEFAULT_BIBLIOGRAPHY_CSV = `id,type,title,container_title,authors,year,publisher,place,doi

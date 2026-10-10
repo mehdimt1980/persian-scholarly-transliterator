@@ -44,18 +44,19 @@ export default function Home() {
   const { transliteration, updateTransliteration } = useResearchWorkspace();
 
   const input = transliteration.input;
-  const profile = transliteration.profile;
   const decisions = transliteration.reviewDecisions;
   const acceptedPhraseDecision = transliteration.acceptedPhraseDecision;
 
   const [verifiedCopied, setVerifiedCopied] = useState(false);
   const [draftCopied, setDraftCopied] = useState(false);
-  const [semanticContext, setSemanticContext] = useState<PhraseContextKind>(
-    profile === 'ijmes_citation_title' ? 'BOOK_OR_ARTICLE_TITLE' : 'GENERAL_SCHOLARLY_TEXT'
-  );
   const [presentationProfileId, setPresentationProfileId] = useState<PresentationProfileId>('full_scholarly_v1');
   const [customDiacritics, setCustomDiacritics] = useState<CustomScholarlyV1Options['diacritics']>('FULL');
   const [customCapitalization, setCustomCapitalization] = useState<CustomScholarlyV1Options['capitalization']>('PRESERVE');
+  // Presentation remains the sole visible control; semantic context remains an internal engine input.
+  const semanticContext: PhraseContextKind = presentationProfileId === 'ijmes_publication_v1' ||
+    (presentationProfileId === 'custom_scholarly_v1' && customCapitalization === 'ENGLISH_TITLE')
+    ? 'BOOK_OR_ARTICLE_TITLE' : 'GENERAL_SCHOLARLY_TEXT';
+  const profile: ProfileId = semanticContext === 'BOOK_OR_ARTICLE_TITLE' ? 'ijmes_citation_title' : 'ijmes_full';
   const presentationProfile: PresentationProfile = presentationProfileId === 'custom_scholarly_v1'
     ? {
         id: 'custom_scholarly_v1',
@@ -88,7 +89,6 @@ export default function Home() {
     requestInFlight,
     assistError: phraseAssistError,
     isAiConfigured,
-    autoAssistEnabled,
     aiDraft,
     explanation,
     editorOpen,
@@ -99,7 +99,6 @@ export default function Home() {
     alignmentWarning,
     canAcceptEditedDraft,
     actionError,
-    toggleAutoAssist,
     regenerate,
     openEditor,
     closeEditor,
@@ -116,16 +115,6 @@ export default function Home() {
 
   function setInput(newInput: string) {
     updateTransliteration({ input: newInput });
-  }
-
-  function setProfile(newProfile: ProfileId) {
-    updateTransliteration({ profile: newProfile });
-  }
-
-  function changeSemanticContext(context: PhraseContextKind) {
-    setSemanticContext(context);
-    if (context !== 'BOOK_OR_ARTICLE_TITLE') setCustomCapitalization('PRESERVE');
-    setProfile(context === 'BOOK_OR_ARTICLE_TITLE' ? 'ijmes_citation_title' : 'ijmes_full');
   }
 
   function applyDecision(newDecision: ReviewDecision) {
@@ -230,7 +219,7 @@ export default function Home() {
           Evidence-aware transliteration for Persian scholarship.
         </p>
         <p className="page-subtag">
-          Deterministic IJMES · explicit ambiguity · AI draft-first workflow · human-reviewed authority
+          Deterministic IJMES · explicit ambiguity · AI on demand · human-reviewed authority
         </p>
       </section>
 
@@ -250,23 +239,12 @@ export default function Home() {
             id="source-input"
             dir="rtl"
             className="source-textarea"
-            placeholder="متن فارسی را وارد کنید..."
+            placeholder="Enter a Persian title…"
             value={input}
             onChange={(event) => setInput(event.target.value)}
           />
 
           <div className="panel-controls">
-            <label className="context-selector-label">
-              Semantic Reading Context
-              <select
-                className="context-select"
-                value={semanticContext}
-                onChange={(event) => changeSemanticContext(event.target.value as PhraseContextKind)}
-              >
-                <option value="BOOK_OR_ARTICLE_TITLE">Book / article title</option>
-                <option value="GENERAL_SCHOLARLY_TEXT">General scholarly text</option>
-              </select>
-            </label>
             <label className="context-selector-label">
               Presentation
               <select
@@ -300,7 +278,7 @@ export default function Home() {
                     onChange={(event) => setCustomCapitalization(event.target.value as CustomScholarlyV1Options['capitalization'])}
                   >
                     <option value="PRESERVE">Preserve canonical case</option>
-                    <option value="ENGLISH_TITLE" disabled={semanticContext !== 'BOOK_OR_ARTICLE_TITLE'}>English title</option>
+                    <option value="ENGLISH_TITLE" >English title</option>
                   </select>
                 </label>
               </>
@@ -348,7 +326,7 @@ export default function Home() {
           {/* Request lifecycle line: never claims 'analyzing' when a current draft exists */}
           {requestInFlight && (
             <p className="panel-hint" role="status" style={{ color: '#6366f1', fontStyle: 'italic' }}>
-              {draftPresent ? 'Regenerating suggestion… current draft shown below remains available.' : 'Analyzing phrase…'}
+              {draftPresent ? 'Regenerating AI suggestion by request…' : 'Generating AI suggestion by request…'}
             </p>
           )}
           {!requestInFlight && phraseAssistError && !draftPresent && (
@@ -374,21 +352,6 @@ export default function Home() {
                     ? 'IJMES Publication v1'
                     : 'Custom Scholarly v1'}
               </span>
-              <button
-                type="button"
-                className="btn-secondary"
-                style={{
-                  fontSize: '0.75rem',
-                  padding: '0.2rem 0.5rem',
-                  background: autoAssistEnabled ? '#f0fdf4' : '#f9fafb',
-                  borderColor: autoAssistEnabled ? '#86efac' : '#d1d5db',
-                  color: autoAssistEnabled ? '#166534' : '#6b7280'
-                }}
-                onClick={toggleAutoAssist}
-                title="Toggle automatic AI draft assistance"
-              >
-                AI Draft: {autoAssistEnabled ? 'ON' : 'OFF'}
-              </button>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -411,7 +374,7 @@ export default function Home() {
 
               {canRegenerate && (
                 <button type="button" className="btn-secondary" onClick={regenerate} disabled={requestInFlight}>
-                  Regenerate suggestion
+                  {requestInFlight ? 'Generating…' : draftPresent ? 'Regenerate with AI' : 'Generate with AI'}
                 </button>
               )}
 
@@ -427,10 +390,8 @@ export default function Home() {
                 </button>
               )}
 
-              {unifiedOutput.presentation === 'UNRESOLVED_NO_DRAFT' && (
-                <button type="button" className="btn-primary" disabled>
-                  {requestInFlight ? 'Generating draft…' : 'Review needed'}
-                </button>
+              {unifiedOutput.presentation === 'UNRESOLVED_NO_DRAFT' && !canRegenerate && (
+                <span className="panel-hint">Review needed</span>
               )}
             </div>
           </div>

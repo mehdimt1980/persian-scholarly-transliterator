@@ -90,8 +90,11 @@ export function useUnifiedTransliteration({
   if (controllerRef.current === null) {
     controllerRef.current = new PhraseDraftController({
       debounceMs,
+      manualOnly: true,
       fetchImpl: (url, init) => fetch(url, init)
     });
+    // Main workspace is strictly user-triggered: no AI call on mount, typing or profile changes.
+    controllerRef.current.setAutoEnabled(false);
   }
   const controller = controllerRef.current;
 
