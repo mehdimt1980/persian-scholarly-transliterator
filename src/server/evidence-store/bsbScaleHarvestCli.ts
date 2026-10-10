@@ -4,6 +4,7 @@ import path from 'node:path';
 import {neon} from '@neondatabase/serverless';
 import {databaseIdentityFingerprint} from './guard';
 import {buildSruUrl,fetchSruPage} from '../../validation/acquisition/bsb/client';
+import {parseMarcCollection} from '../../validation/acquisition/bsb/marcxml';
 import {
   BASELINE_SNAPSHOT,MAX_PAGES,PAGE_SIZE,TARGET_TOTAL_CANDIDATES,
   freshScaleSelection,selectBsbScaleRecords,renderSelectedBsbBatches,validateScaleSeals,sha,
@@ -84,7 +85,7 @@ async function main(){
   if(new Set(selection.seal.map(x=>x.id)).size!==selection.selected.length)
     throw new Error('Duplicate selected MARC identities');
   const packages=renderSelectedBsbBatches(selection.selected);
-  const replay=packages.flatMap(p=>parseFreezeBatch(p.xml));
+  const replay=packages.flatMap(p=>parseMarcCollection(p.xml));
   if(validateScaleSeals(replay,selection.seal)!==selection.candidatesAdded)
     throw new Error('Source/candidate freeze replay differs from live BSB');
   const after=SQL_ROWS(await sql.query(`SELECT a.snapshot_id,s.manifest_checksum,b.writes_enabled
@@ -126,13 +127,5 @@ async function main(){
     fetchedPages:pages.length,existingSkipped:selection.skippedExisting,
     sourceComplete:completedSource,persisted:false,approvedForGold:false,output}));
 }
-function parseFreezeBatch(xml:string){
-  // The MARC parser enforces <=50 records per independently verifiable batch.
-  const {parseMarcCollection}=requireMarcParser();
-  return parseMarcCollection(xml);
-}
-function requireMarcParser(){
-  return {parseMarcCollection};
-}
-import {parseMarcCollection} from '../../validation/acquisition/bsb/marcxml';
+
 main().catch(e=>{console.error(e instanceof Error?e.message:'BSB scale-out failed');process.exitCode=1;});
