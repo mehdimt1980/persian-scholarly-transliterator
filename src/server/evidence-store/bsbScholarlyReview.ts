@@ -7,7 +7,8 @@ import { validateManualTransliteration } from '../../domain/review/validation';
 
 const sha=(text:string):string=>createHash('sha256').update(text,'utf8').digest('hex');
 const HASH=/^[0-9a-f]{64}$/u;
-const SNAPSHOT='snapshot-f76feb36ca85541c8faafb42';
+const SNAPSHOT_PATTERN=/^snapshot-[0-9a-f]{24}$/u;
+const MAX_REVIEW_PACKET_CANDIDATES=10000;
 function invariant(condition:unknown,message:string):asserts condition{
   if(!condition)throw new Error('BSB scholarly review rejected: '+message);
 }
@@ -22,7 +23,7 @@ export interface ScholarlyReviewPacket{
   activeSnapshotId:string;
   manifestChecksum:string;
   sourceProvider:'BSB_SRU_MARCXML';
-  candidateCount:75;
+  candidateCount:number;
   items:ScholarlyReviewItem[];
   packetSha256:string;
   reviewStatus:'AWAITING_EXPLICIT_HUMAN_DECISIONS';
@@ -56,7 +57,7 @@ export interface DecisionValidation{
   evidenceSnapshotModified:false;
 }
 
-function basis(snapshotId:string,manifestChecksum:string,sourceVersionId:string,candidate:LexicalCandidate):string{
+export function computeBsbReviewBasis(snapshotId:string,manifestChecksum:string,sourceVersionId:string,candidate:LexicalCandidate):string{
   return sha(JSON.stringify({snapshotId,manifestChecksum,sourceVersionId,candidateId:candidate.candidateId,contentHash:candidate.contentHash,
     persian:candidate.originalPersianForm,normalized:candidate.normalizedSearchForm,category:candidate.category,
     context:candidate.linguisticContext,providerEvidence:candidate.providerEvidence??[],observedLatinVariants:candidate.observedLatinVariants}));
@@ -70,8 +71,8 @@ export function buildBsbScholarlyReviewPacket(input:{
   snapshotId:string;manifestChecksum:string;rows:Array<{sourceVersionId:string;candidate:LexicalCandidate}>;
 }):ScholarlyReviewPacket {
   const {snapshotId,manifestChecksum,rows}=input;
-  invariant(snapshotId===SNAPSHOT && HASH.test(manifestChecksum),'unexpected active snapshot or checksum');
-  invariant(rows.length===75,'expected exactly 75 active candidate projections');
+  invariant(SNAPSHOT_PATTERN.test(snapshotId) && HASH.test(manifestChecksum),'invalid snapshot identity or manifest checksum');
+  invariant(rows.length>=1&&rows.length<=MAX_REVIEW_PACKET_CANDIDATES,'invalid candidate review packet size');
   const seen=new Set<string>();
   const items:ScholarlyReviewItem[]=rows.map(row=>{
     const c=lexicalCandidateSchema.parse(row.candidate);
@@ -87,11 +88,11 @@ export function buildBsbScholarlyReviewPacket(input:{
       &&c.providerEvidence!.every(e=>e.provider==='BSB_SRU_MARCXML'&&e.sourceRecordId===c.sourceRecordIds[0]),
       'missing or mixed source provenance');
     return {candidateId:c.candidateId,sourceVersionId:row.sourceVersionId,
-      reviewBasisSha256:basis(snapshotId,manifestChecksum,row.sourceVersionId,c),candidateSnapshot:c};
+      reviewBasisSha256:computeBsbReviewBasis(snapshotId,manifestChecksum,row.sourceVersionId,c),candidateSnapshot:c};
   }).sort((a,b)=>a.candidateId.localeCompare(b.candidateId,'en'));
   const packet:ScholarlyReviewPacket={
     schemaVersion:'phase8n-bsb-scholarly-review-v1',activeSnapshotId:snapshotId,manifestChecksum,
-    sourceProvider:'BSB_SRU_MARCXML',candidateCount:75,items,packetSha256:'',
+    sourceProvider:'BSB_SRU_MARCXML',candidateCount:items.length,items,packetSha256:'',
     reviewStatus:'AWAITING_EXPLICIT_HUMAN_DECISIONS',publicationAuthorized:false,
   };
   packet.packetSha256=sha(JSON.stringify(packetBody(packet)));
@@ -102,7 +103,9 @@ export function verifyBsbScholarlyReviewPacket(packet:ScholarlyReviewPacket):voi
     &&packet.sourceProvider==='BSB_SRU_MARCXML'
     &&packet.reviewStatus==='AWAITING_EXPLICIT_HUMAN_DECISIONS'
     &&packet.publicationAuthorized===false
-    &&packet.candidateCount===75 &&packet.items?.length===75,
+    &&Number.isInteger(packet.candidateCount)&&packet.candidateCount>=1
+    &&packet.candidateCount<=MAX_REVIEW_PACKET_CANDIDATES
+    &&packet.items?.length===packet.candidateCount,
     'unexpected packet policy or size');
   const rebuilt=buildBsbScholarlyReviewPacket({
     snapshotId:packet.activeSnapshotId,manifestChecksum:packet.manifestChecksum,
@@ -131,7 +134,7 @@ export function validateBsbHumanReviewDecisions(packet:ScholarlyReviewPacket,sou
   invariant(source?.schemaVersion==='phase8n-bsb-human-decisions-v1'
     &&source.packetSha256===packet.packetSha256
     &&source.activeSnapshotId===packet.activeSnapshotId
-    &&Array.isArray(source.decisions)&&source.decisions.length===75,
+    &&Array.isArray(source.decisions)&&source.decisions.length===packet.candidateCount,
     'decisions do not match pinned review basis');
   const byId=new Map(packet.items.map(item=>[item.candidateId,item]));
   const seen=new Set<string>();
