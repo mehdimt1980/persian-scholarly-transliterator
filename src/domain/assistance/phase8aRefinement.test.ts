@@ -117,6 +117,22 @@ describe('Phase 8A refinement: request lifecycle controller', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
+  it('manual-only workspace never calls AI on mount, typing, status, or profile changes, but generates on click', async () => {
+    const { fetchImpl, calls } = mockFetch();
+    const c = new PhraseDraftController({ fetchImpl, manualOnly: true });
+    c.setConfigured(true);
+    c.setContext(ctxFor(SINGLE).ctx);
+    vi.advanceTimersByTime(5000);
+    c.setAutoEnabled(true); // A future UI regression cannot override manual-only mode.
+    c.setContext(ctxFor(MULTI).ctx);
+    vi.advanceTimersByTime(5000);
+    expect(calls).toHaveLength(0);
+    c.regenerate();
+    await flush();
+    expect(calls).toEqual([MULTI]);
+    c.destroy();
+  });
+
   it('does not request while the user is still typing; one request after 900 ms stable input', async () => {
     const { fetchImpl, calls } = mockFetch();
     const c = new PhraseDraftController({ fetchImpl });
