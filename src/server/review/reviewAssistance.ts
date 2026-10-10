@@ -62,14 +62,14 @@ export function parseAIScholarlyDraft(raw:string,profile:ReviewProfile):AISchola
   try{object=JSON.parse(raw);}catch{return null;}
   if(!object||typeof object!=='object'||Array.isArray(object))return null;
   const data=object as Record<string,unknown>;
-  if(!['proposedCanonical','rationale','uncertainties'].every(k=>Object.hasOwn(data,k)))return null;
+  if(Object.keys(data).length!==3||!['proposedCanonical','rationale','uncertainties'].every(k=>Object.hasOwn(data,k)))return null;
   if(!Array.isArray(data.uncertainties)||data.uncertainties.length>5
     ||!data.uncertainties.every(v=>typeof v==='string'&&v.length<=240))return null;
   if(typeof data.rationale!=='string'||data.rationale.trim().length<30
     ||data.rationale.length>1200)return null;
   const rationale=data.rationale.trim();
   // AI must never claim to be a human reviewer or certify an uninspected source.
-  if(/\b(I (personally )?(verified|checked|consulted|approve|approved|certify|certified)|human[- ]approved|verified by the reviewer)\b/iu.test(rationale))return null;
+  if(/\b(I (personally )?(verified|checked|consulted|approve|approved|certify|certified)|human[- ]approved|the reviewer (has )?approved|verified by the reviewer)\b/iu.test(rationale))return null;
   let proposedCanonical:string|null=null;
   if(data.proposedCanonical!==null){
     if(typeof data.proposedCanonical!=='string')return null;
