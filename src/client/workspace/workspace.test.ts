@@ -8,6 +8,7 @@ import {
   fromPersistedAcceptedPhraseDecision
 } from './validation';
 import { OperationQueue } from './operationQueue';
+import { createDefaultTransliterationWorkspace, DEFAULT_TRANSLITERATION_INPUT } from './defaults';
 import {
   transliterationQueue,
   bibliographyQueue
@@ -17,6 +18,12 @@ import type { AcceptedPhraseDecision } from '../../domain/assistance/phraseTypes
 import type { BibliographyRecord } from '../../domain/bibliography/types';
 
 describe('Local Research Workspace Persistence', () => {
+  it('starts new workspaces empty but does not discard previously saved titles', () => {
+    expect(DEFAULT_TRANSLITERATION_INPUT).toBe('');
+    expect(createDefaultTransliterationWorkspace().input).toBe('');
+    const previous = {...createDefaultTransliterationWorkspace(), input: 'تأملی درباره ایران: مکتب تبریز و مبانی تجددخواهی'};
+    expect(validateAndMigrateTransliterationWorkspace(previous).input).toBe(previous.input);
+  });
   describe('Schema Validation, Versioning, and Strict Boundaries', () => {
     it('validates and round-trips a valid TransliterationWorkspaceV1', () => {
       const original = {
