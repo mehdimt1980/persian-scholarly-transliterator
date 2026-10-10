@@ -10,6 +10,7 @@ export default function SiteHeader() {
   const navItems = [
     { href: '/', label: 'Transliterate' },
     { href: '/bibliography', label: 'Bibliography' },
+    { href: '/review', label: 'Scholarly Review' },
     { href: '/method', label: 'Method' },
     { href: '/about', label: 'About' }
   ];
