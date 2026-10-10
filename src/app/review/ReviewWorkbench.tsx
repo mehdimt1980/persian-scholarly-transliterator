@@ -88,6 +88,19 @@ export default function ReviewWorkbench(){
     setAttest(false);
     setNotice(null);
   },[selected]);
+  function changedProposal(nextCanonical:string,nextProfile:'ijmes_full'|'ijmes_title'){
+    setCanonical(nextCanonical);setProfile(nextProfile);setAttest(false);
+    rationaleVersionRef.current++;
+    // A rationale generated for another spelling/profile is stale; never leave it as current AI advice.
+    if(selected&&(rationaleSource==='TEMPLATE'||rationaleSource==='AI')){
+      setRationale(proposeEvidenceRationale({
+        candidateId:selected.candidateId,persian:selected.persian,
+        category:selected.category as LexicalCandidateCategory,
+        sourceRecordId:selected.sourceRecordId,variants:selected.variants,
+      },nextCanonical,nextProfile));
+      setRationaleSource('TEMPLATE');
+    }
+  }
   const filtered=queue?.items??[];
   function goPage(nextPage:number){
     setError(null);void reload(nextPage,group,status,query).catch(e=>setError(e instanceof Error?e.message:'Unable to load page'));
@@ -255,11 +268,11 @@ export default function ReviewWorkbench(){
               {selected.draft&&<p className={styles.draftHint}>AI editorial proposal — <strong>unreviewed</strong>; editing or saving a draft does not approve it.</p>}
               <label className={styles.label} htmlFor="review-canonical">Proposed IJMES canonical</label>
               <textarea className={styles.textarea} id="review-canonical" rows={2} spellCheck={false} value={canonical}
-                onChange={e=>{setCanonical(e.target.value);setAttest(false);rationaleVersionRef.current++;}}
+                onChange={e=>changedProposal(e.target.value,profile)}
                 placeholder="Enter or correct the scholarly transliteration after consulting IJMES rules" />
               <div className={styles.twoFields}>
                 <div><label className={styles.label} htmlFor="review-profile">Transliteration profile</label>
-                  <select className={styles.select} value={profile} id="review-profile" onChange={e=>{setProfile(e.target.value as typeof profile);setAttest(false);rationaleVersionRef.current++;}}>
+                  <select className={styles.select} value={profile} id="review-profile" onChange={e=>changedProposal(canonical,e.target.value as typeof profile)}>
                     <option value="ijmes_title">IJMES titles and proper names</option><option value="ijmes_full">IJMES full scholarly</option>
                   </select></div>
                 <div><label className={styles.label} htmlFor="reviewer-id">Reviewer reference · automatic</label>
