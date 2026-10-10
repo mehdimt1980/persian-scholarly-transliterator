@@ -11,6 +11,7 @@ import {
   type ScholarlyReviewDecision, type Disposition,
 } from '../evidence-store/bsbScholarlyReview';
 import {triageFor, BSB_EDITORIAL_TRIAGE} from './bsbEditorialTriage';
+import {reviewerRefForSession} from './reviewAssistance';
 import type {LexicalCandidate} from '../../validation/lexical-evidence/types';
 
 const BRANCH='br-noisy-field-b2m5q1zb';
@@ -171,11 +172,14 @@ export async function saveReviewDecision(input:SaveReviewInput):Promise<ReviewEv
   const sourceVersionId=s(found[0].source_version_id);
   const basis=computeBsbReviewBasis(meta.snapshotId,meta.manifestChecksum,sourceVersionId,c);
   if(input.basisSha256!==basis)throw new Error('Stale review basis');
-  if(typeof input.reviewerRef==='string'&&input.reviewerRef.length>200)throw new Error('Reviewer ID too long');
+  // The browser cannot impersonate arbitrary reviewer IDs. This is a single shared-passphrase account,
+  // not independently verified user identity; future multi-reviewer support requires individual sign-in.
+  if(input.reviewerRef!=null&&input.reviewerRef!==reviewerRefForSession())
+    throw new Error('Reviewer reference is server-assigned; do not submit a different identity');
   const reviewedAt=new Date().toISOString();
   const event:ReviewEvent={
     eventId:randomUUID(),candidateId:c.candidateId,basisSha256:basis,kind:input.kind,
-    reviewerRef:input.reviewerRef?.trim()||null,canonical:input.canonical?.trim()||null,
+    reviewerRef:reviewerRefForSession(),canonical:input.canonical?.trim()||null,
     profile:input.profile??null,rationale:input.rationale?.trim()||null,
     reviewedAt:input.kind==='DRAFT'?null:reviewedAt,
     humanAttestation:input.kind==='ACCEPT'?input.humanAttestation??null:null,
