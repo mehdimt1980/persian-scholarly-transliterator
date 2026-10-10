@@ -3,11 +3,11 @@ import {useCallback,useEffect,useMemo,useState,type FormEvent} from 'react';
 import type {ReviewCard,ReviewQueueData} from '../../server/review/reviewStore';
 import styles from './review.module.css';
 
-type Filter='ALL'|'EDITORIAL'|'SPECIALIST'|'FAST';
+type Filter='ALL'|'EDITORIAL'|'SPECIALIST'|'FAST'|'NEW';
 type StatusFilter='ALL'|'PENDING'|'DRAFT'|'ACCEPT'|'REJECT'|'DEFER';
 type Submission='DRAFT'|'ACCEPT'|'REJECT'|'DEFER';
 const groupLabels:Record<Filter,string>={
-  ALL:'All candidates',EDITORIAL:'Editorial drafts',SPECIALIST:'Specialist review',FAST:'Quick checks',
+  ALL:'All candidates',EDITORIAL:'Editorial drafts',SPECIALIST:'Specialist review',FAST:'Quick checks',NEW:'New BSB evidence',
 };
 const statusLabels:Record<StatusFilter,string>={
   ALL:'All decisions',PENDING:'Pending',DRAFT:'Draft saved',ACCEPT:'Approved review',REJECT:'Rejected',DEFER:'Deferred',
@@ -35,6 +35,7 @@ export default function ReviewWorkbench(){
   const [notice,setNotice]=useState<string|null>(null);
   const [query,setQuery]=useState('');
   const [group,setGroup]=useState<Filter>('ALL');
+  const [page,setPage]=useState(1);
   const [status,setStatus]=useState<StatusFilter>('ALL');
   const [selectedId,setSelectedId]=useState<string|null>(null);
   const [canonical,setCanonical]=useState('');
@@ -43,10 +44,12 @@ export default function ReviewWorkbench(){
   const [rationale,setRationale]=useState('');
   const [attest,setAttest]=useState(false);
 
-  const reload=useCallback(async()=>{
-    const data=await jsonFetch('/api/scholarly-review/queue') as ReviewQueueData;
+  const reload=useCallback(async(nextPage=1,nextGroup:Filter='ALL',nextStatus:StatusFilter='ALL',nextSearch='')=>{
+    const qp=new URLSearchParams({page:String(nextPage),pageSize:'25',group:nextGroup,status:nextStatus,search:nextSearch});
+    const data=await jsonFetch('/api/scholarly-review/queue?'+qp.toString()) as ReviewQueueData;
     if(!data||!Array.isArray(data.items))throw new Error('Malformed review queue');
     setQueue(data);
+    setPage(nextPage);
     setSelectedId(current=>data.items.some(x=>x.candidateId===current)?current:data.items[0]?.candidateId??null);
   },[]);
   useEffect(()=>{
@@ -72,16 +75,16 @@ export default function ReviewWorkbench(){
     setAttest(false);
     setNotice(null);
   },[selected]);
-  const filtered=useMemo(()=>{
-    const needle=query.trim().toLocaleLowerCase();
-    return (queue?.items??[]).filter(item=>{
-      if(group!=='ALL'&&item.queue!==group)return false;
-      if(status!=='ALL'&&(item.lastEvent?.kind??'PENDING')!==status)return false;
-      if(!needle)return true;
-      return [item.persian,item.candidateId,item.category,item.sourceRecordId,item.draft,
-        ...item.variants.map(v=>v.value)].some(s=>s.toLocaleLowerCase().includes(needle));
-    });
-  },[queue,query,group,status]);
+  const filtered=queue?.items??[];
+  function goPage(nextPage:number){
+    setError(null);void reload(nextPage,group,status,query).catch(e=>setError(e instanceof Error?e.message:'Unable to load page'));
+  }
+  function chooseGroup(value:Filter){setGroup(value);setError(null);
+    void reload(1,value,status,query).catch(e=>setError(e instanceof Error?e.message:'Unable to filter queue'));}
+  function chooseStatus(value:StatusFilter){setStatus(value);setError(null);
+    void reload(1,group,value,query).catch(e=>setError(e instanceof Error?e.message:'Unable to filter queue'));}
+  function searchQueue(event:FormEvent<HTMLFormElement>){event.preventDefault();setError(null);
+    void reload(1,group,status,query).catch(e=>setError(e instanceof Error?e.message:'Search failed'));}
 
   async function signIn(event:FormEvent<HTMLFormElement>){
     event.preventDefault();setBusy(true);setError(null);
@@ -114,7 +117,7 @@ export default function ReviewWorkbench(){
           humanAttestation:kind==='ACCEPT'?'I_PERSONALLY_VERIFIED_THIS_IJMES_FORM':null,
         }),
       });
-      await reload();
+      await reload(page,group,status,query);
       setNotice(kind==='DRAFT'?'Draft saved to independent Staging review ledger.':
         'Human review decision recorded. No IJMES authority was published.');
     }catch(e){setError(e instanceof Error?e.message:'Review submission failed');}
@@ -127,7 +130,7 @@ export default function ReviewWorkbench(){
       <p className={styles.kicker}>PERSIAN SCHOLARLY TRANSLITERATOR</p>
       <h1>Scholarly Review</h1>
       <p>Evidence first. Judgement second. Publication only with explicit scholarly approval.</p>
-      <div className={styles.loginStats}><span>75 source-linked candidates</span><span>47 editorial · 23 specialist · 5 quick</span></div>
+      <div className={styles.loginStats}><span>Source-linked BSB evidence · scalable review</span><span>47 editorial · 23 specialist · 5 quick · new arrivals</span></div>
     </div>
     <form onSubmit={signIn} className={styles.loginCard}>
       <span className={styles.eyebrow}>PRIVATE REVIEW WORKSPACE</span>
@@ -156,7 +159,7 @@ export default function ReviewWorkbench(){
       <button className={styles.secondary} onClick={()=>void reload().catch(e=>setError(String(e)))}>Retry</button></div>:
     <>
       <div className={styles.metrics}>
-        <div><strong>{queue.items.length}</strong><span>Source candidates</span></div>
+        <div><strong>{queue.total}</strong><span>Source candidates</span></div>
         <div><strong>{queue.counts.PENDING}</strong><span>Pending</span></div>
         <div><strong>{queue.counts.DRAFT}</strong><span>Draft saved</span></div>
         <div><strong>{queue.counts.ACCEPT}</strong><span>Human review accepted</span></div>
@@ -166,16 +169,17 @@ export default function ReviewWorkbench(){
         <span>Snapshot {queue.snapshotId}</span></div>
       <div className={styles.columns}>
         <aside className={styles.sidebar} aria-label="Candidate queue">
-          <div className={styles.searchBox}><label htmlFor="review-search" className={styles.label}>Search candidates</label>
+          <form onSubmit={searchQueue} className={styles.searchBox}><label htmlFor="review-search" className={styles.label}>Search candidates</label>
             <input className={styles.input} id="review-search" type="search" value={query}
-              onChange={e=>setQuery(e.target.value)} placeholder="Persian, Latin, source ID…" /></div>
+              onChange={e=>setQuery(e.target.value)} placeholder="Persian, Latin, source ID…" />
+            <button type="submit" className={styles.secondary}>Search all records</button></form>
           <div className={styles.groupFilters} role="group" aria-label="Review queue">
-            {(['ALL','FAST','EDITORIAL','SPECIALIST'] as Filter[]).map(value=><button key={value}
+            {(['ALL','FAST','EDITORIAL','SPECIALIST','NEW'] as Filter[]).map(value=><button key={value}
               className={group===value?styles.filterActive:styles.filter}
-              onClick={()=>setGroup(value)}>{groupLabels[value]} <span>{value==='ALL'?75:queue.items.filter(i=>i.queue===value).length}</span></button>)}
+              onClick={()=>chooseGroup(value)}>{groupLabels[value]} <span>{queue.groupTotals[value]}</span></button>)}
           </div>
           <select className={styles.select} aria-label="Filter decisions" value={status}
-            onChange={e=>setStatus(e.target.value as StatusFilter)}>
+            onChange={e=>chooseStatus(e.target.value as StatusFilter)}>
             {(['ALL','PENDING','DRAFT','ACCEPT','REJECT','DEFER'] as StatusFilter[]).map(s=><option key={s} value={s}>{statusLabels[s]}</option>)}
           </select>
           <div className={styles.queueList}>
@@ -186,12 +190,15 @@ export default function ReviewWorkbench(){
               <span className={styles.queueMeta}>{item.category.replaceAll('_',' ').toLowerCase()} · {item.lastEvent?.kind??'PENDING'}</span>
             </button>)}
           </div>
-          <p className={styles.small}>{filtered.length} of 75 cases shown · No bulk scholarly approval</p>
+          <div className={styles.pagination}><p className={styles.small}>Page {page} / {Math.max(1,queue.pageCount)} · {queue.filteredTotal} matches</p>
+            <div><button className={styles.secondary} disabled={page<=1} onClick={()=>goPage(page-1)}>← Previous</button>
+            <button className={styles.secondary} disabled={page>=queue.pageCount} onClick={()=>goPage(page+1)}>Next →</button></div></div>
+          <p className={styles.small}>No bulk scholarly approval · {queue.total} evidence items</p>
         </aside>
         <article className={styles.editor}>
           {selected?<div>
             <div className={styles.caseHeader}><div>
-              <span className={styles.eyebrow}>CURRENT RECORD / {selected.queue==='FAST'?'QUICK CHECK':selected.queue==='EDITORIAL'?'EDITORIAL DRAFT':'SPECIALIST REVIEW'}</span>
+              <span className={styles.eyebrow}>CURRENT RECORD / {selected.queue==='FAST'?'QUICK CHECK':selected.queue==='EDITORIAL'?'EDITORIAL DRAFT':selected.queue==='NEW'?'NEW EVIDENCE':'SPECIALIST REVIEW'}</span>
               <h2 lang="fa" dir="rtl" className={styles.persianTitle}>{selected.persian}</h2>
               <p className={styles.caseId}>{selected.candidateId}</p>
               </div><span className={styles.statusBadge}>{selected.lastEvent?.kind??'PENDING'}</span></div>
@@ -213,7 +220,7 @@ export default function ReviewWorkbench(){
             <section className={styles.reviewForm}>
               <div className={styles.formHeading}><div><span className={styles.eyebrow}>SCHOLARLY ADJUDICATION</span>
                 <h3>Make a review decision</h3></div><span className={styles.small}>Review is not lexicon promotion.</span></div>
-              {selected.queue==='SPECIALIST'&&<div className={styles.warning}>Identity, language or Persian–Latin alignment requires source-level specialist verification. Do not accept solely from the catalogue spelling.</div>}
+              {(selected.queue==='SPECIALIST'||selected.queue==='NEW')&&<div className={styles.warning}>Identity, language or Persian–Latin alignment requires source-level specialist verification. Do not accept solely from the catalogue spelling.</div>}
               {selected.draft&&<p className={styles.draftHint}>AI editorial proposal — <strong>unreviewed</strong>; editing or saving a draft does not approve it.</p>}
               <label className={styles.label} htmlFor="review-canonical">Proposed IJMES canonical</label>
               <textarea className={styles.textarea} id="review-canonical" rows={2} spellCheck={false} value={canonical}
