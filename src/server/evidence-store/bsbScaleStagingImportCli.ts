@@ -224,10 +224,13 @@ async function main(){
      newRecords:311,newCandidates:675,totalCandidateCount:750,totalRecords:361,
      authorityPromoted:false}));
  }catch(e){
-   if(expected.snapshotId!==BASELINE_SNAPSHOT){
+   // Even if a publisher throws AFTER committing an intermediate batch, discover
+   // the live active snapshot rather than trusting the last locally saved ID.
+   const live=rows(await sql.query('SELECT snapshot_id FROM evidence_active_snapshot WHERE singleton=true'))[0];
+   if(live&&live.snapshot_id!==BASELINE_SNAPSHOT){
      await publisher.restore(BASELINE_SNAPSHOT,new Date().toISOString());
      await publisher.verifySnapshot(BASELINE_SNAPSHOT);
-     console.error('Phase 8P import failed: previous 75-candidate snapshot restored');
+     console.error('Phase 8P import failed: original 75-candidate snapshot restored');
    }
    throw e;
  }
