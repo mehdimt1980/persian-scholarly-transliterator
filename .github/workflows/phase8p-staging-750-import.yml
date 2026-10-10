@@ -1,0 +1,66 @@
+name: Phase 8P import frozen 675 BSB candidates into Staging (guarded)
+on:
+  pull_request:
+    types: [labeled]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  import-750:
+    if: github.event.label.name == 'phase8p-authorize-frozen-750-import' && github.event.pull_request.number == 76 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'phase8p/import-frozen-bsb-750-staging'
+    runs-on: ubuntu-latest
+    environment: phase8g-staging-import
+    timeout-minutes: 25
+    concurrency:
+      group: phase8g-persistent-staging-writes
+      cancel-in-progress: false
+    env:
+      PHASE8G_STAGING_DATABASE_URL: ${{ secrets.PHASE8G_STAGING_DATABASE_URL }}
+      PHASE8G_STAGING_DATABASE_FINGERPRINT: ${{ vars.PHASE8G_STAGING_DATABASE_FINGERPRINT }}
+      PHASE8G_STAGING_BLOB_STORE_ID: ${{ vars.PHASE8G_STAGING_BLOB_STORE_ID }}
+      BLOB_READ_WRITE_TOKEN: ${{ secrets.PHASE8G_STAGING_BLOB_READ_WRITE_TOKEN }}
+      PHASE8G_STAGING_IMPORT_APPROVED: IMPORT_AUTHENTIC_BSB_STAGING
+      PHASE8P_IMPORT_APPROVED: IMPORT_FROZEN_BSB_750_STAGING
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Retrieve EXACT prior successful authentic BSB SRU freeze
+        uses: actions/download-artifact@v4
+        with:
+          name: phase8p-bsb-750-source-frozen
+          run-id: 38039056666
+          github-token: ${{ github.token }}
+          path: artifacts/phase8p-bsb-750-freeze
+      - name: Verify baseline 75-candidate integrity and closed source writes
+        run: npm run evidence:staging:audit
+      - name: Replay source pages and independently verify 311 source records and 675 candidate hashes
+        run: npm run evidence:staging:scale750-import -- verify
+      - name: Require explicit review-only Staging import authorization and private Blob credentials
+        run: |
+          test "$PHASE8P_IMPORT_APPROVED" = "IMPORT_FROZEN_BSB_750_STAGING"
+          test -n "$BLOB_READ_WRITE_TOKEN"
+      - name: Open guarded Staging evidence write gate
+        id: enable
+        run: npm run evidence:staging:write-window -- enable
+      - name: Archive original source XML, import 8 frozen MARC batches, verify each snapshot
+        id: import
+        run: npm run evidence:staging:scale750-import -- import
+      - name: Close Staging evidence write gate on all paths after enabling
+        if: ${{ always() && steps.enable.outcome != 'skipped' }}
+        run: npm run evidence:staging:write-window -- disable
+      - name: Independently audit 750 active candidates and preserved 75 candidate rollback
+        if: ${{ steps.import.outcome == 'success' }}
+        run: npm run evidence:staging:scale750-import -- audit
+      - name: Verify final non-authoritative Staging snapshot and disabled writes
+        if: ${{ steps.import.outcome == 'success' }}
+        run: npm run evidence:staging:audit
+      - name: Emergency proof the evidence write gate remains closed
+        if: ${{ always() && steps.enable.outcome != 'skipped' }}
+        run: npm run evidence:staging:write-window -- status | grep '"writesEnabled":false'
