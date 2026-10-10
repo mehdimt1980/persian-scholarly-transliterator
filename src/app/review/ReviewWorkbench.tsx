@@ -43,6 +43,9 @@ export default function ReviewWorkbench(){
   const [canonical,setCanonical]=useState('');
   const [profile,setProfile]=useState<'ijmes_full'|'ijmes_title'>('ijmes_title');
   const [assisting,setAssisting]=useState(false);
+  const [aiCanonical,setAiCanonical]=useState<string|null>(null);
+  const [aiWarnings,setAiWarnings]=useState<string[]>([]);
+  const [aiRationale,setAiRationale]=useState('');
   const [rationaleSource,setRationaleSource]=useState<'TEMPLATE'|'AI'|'HUMAN'|'SAVED'>('TEMPLATE');
   const activeCandidateRef=useRef<string|null>(null);
   const rationaleVersionRef=useRef(0);
@@ -83,6 +86,7 @@ export default function ReviewWorkbench(){
       variants:selected.variants,
     },selected.lastEvent?.canonical??selected.draft??'',defaultProfile));
     setRationaleSource(selected.lastEvent?.rationale?'SAVED':'TEMPLATE');
+    setAiCanonical(null);setAiWarnings([]);setAiRationale('');
     activeCandidateRef.current=selected.candidateId;
     rationaleVersionRef.current++;
     setAttest(false);
@@ -90,6 +94,7 @@ export default function ReviewWorkbench(){
   },[selected]);
   function changedProposal(nextCanonical:string,nextProfile:'ijmes_full'|'ijmes_title'){
     setCanonical(nextCanonical);setProfile(nextProfile);setAttest(false);
+    setAiCanonical(null);setAiWarnings([]);
     rationaleVersionRef.current++;
     // A rationale generated for another spelling/profile is stale; never leave it as current AI advice.
     if(selected&&(rationaleSource==='TEMPLATE'||rationaleSource==='AI')){
@@ -121,10 +126,16 @@ export default function ReviewWorkbench(){
       const response=await jsonFetch('/api/scholarly-review/rationale',{
         method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({candidateId,basisSha256:selected.basisSha256,canonical,profile}),
-      }) as {rationale:string;mode:'SOURCE_GROUNDED_TEMPLATE'|'AI_SUGGESTION_UNVERIFIED'};
+      }) as {rationale:string;canonicalSuggestion:string|null;uncertainties:string[];
+        mode:'SOURCE_GROUNDED_TEMPLATE'|'AI_SUGGESTION_UNVERIFIED'};
       if(activeCandidateRef.current!==candidateId||rationaleVersionRef.current!==revision)return;
       setRationale(response.rationale);
+      setAiRationale(response.mode==='AI_SUGGESTION_UNVERIFIED'?response.rationale:'');
+      setAiCanonical(response.mode==='AI_SUGGESTION_UNVERIFIED'?response.canonicalSuggestion:null);
+      setAiWarnings(response.mode==='AI_SUGGESTION_UNVERIFIED'?response.uncertainties:[]);
       setRationaleSource(response.mode==='AI_SUGGESTION_UNVERIFIED'?'AI':'TEMPLATE');
+      if(response.mode==='SOURCE_GROUNDED_TEMPLATE')setNotice('AI was not available. A source-grounded checklist was prepared instead; no model-generated transliteration was invented.');
+      else setNotice('Unverified AI draft received. Review and correct its IJMES spelling and scholarly reasoning before any decision.');
       setAttest(false);
       rationaleVersionRef.current++;
     }catch(e){if(activeCandidateRef.current===candidateId)setError(e instanceof Error?e.message:'Review assistance unavailable');}
@@ -192,7 +203,7 @@ export default function ReviewWorkbench(){
 
   return <section className={styles.workbench}>
     <div className={styles.heading}>
-      <div><span className={styles.eyebrow}>PHASE 8O / HUMAN-GOVERNED EDITORIAL WORKFLOW</span>
+      <div><span className={styles.eyebrow}>PHASE 8Q / HUMAN-GOVERNED EDITORIAL WORKFLOW</span>
       <h1>Scholarly Review</h1>
       <p>Review BSB evidence against IJMES. Drafts remain drafts until you explicitly verify them.</p></div>
       <button onClick={logout} className={styles.signout}>Sign out</button>
@@ -270,6 +281,16 @@ export default function ReviewWorkbench(){
               <textarea className={styles.textarea} id="review-canonical" rows={2} spellCheck={false} value={canonical}
                 onChange={e=>changedProposal(e.target.value,profile)}
                 placeholder="Enter or correct the scholarly transliteration after consulting IJMES rules" />
+              {selected.lastEvent?.kind==='ACCEPT'&&<p className={styles.draftHint}>Previously recorded human review canonical: <strong>{selected.lastEvent.canonical}</strong> (review decision only; not published authority).</p>}
+              {aiCanonical&&<div className={styles.notice} role="status">
+                <p><strong>AI-proposed IJMES canonical · UNVERIFIED:</strong> <span lang="en">{aiCanonical}</span></p>
+                <p className={styles.small}>This is separate from the BSB catalogue variants and any human-approved review form.</p>
+                <button type="button" className={styles.secondary} disabled={busy||assisting}
+                  onClick={()=>{changedProposal(aiCanonical,profile);setRationale(aiRationale);setRationaleSource('AI');}}>
+                  Use this suggestion as an editable draft
+                </button>
+              </div>}
+              {aiWarnings.length>0&&<div className={styles.warning}><strong>AI uncertainties (not checked):</strong> {aiWarnings.join(' · ')}</div>}
               <div className={styles.twoFields}>
                 <div><label className={styles.label} htmlFor="review-profile">Transliteration profile</label>
                   <select className={styles.select} value={profile} id="review-profile" onChange={e=>changedProposal(canonical,e.target.value as typeof profile)}>
@@ -282,7 +303,7 @@ export default function ReviewWorkbench(){
               <div className={styles.rationaleHeader}>
                 <label className={styles.label} htmlFor="review-rationale">Scholarly rationale</label>
                 <button className={styles.secondary} type="button" disabled={busy||assisting}
-                  onClick={()=>void generateRationale()}>{assisting?'Generating…':'Suggest rationale with AI'}</button>
+                  onClick={()=>void generateRationale()}>{assisting?'Generating…':'Suggest IJMES & rationale with AI'}</button>
               </div>
               <textarea className={styles.textarea} id="review-rationale" rows={4} value={rationale}
                 onChange={e=>{setRationale(e.target.value);setRationaleSource('HUMAN');setAttest(false);rationaleVersionRef.current++;}}

@@ -46,3 +46,42 @@ export function proposeEvidenceRationale(
 export function reviewerRefForSession():typeof PRIMARY_REVIEWER_REF{
   return PRIMARY_REVIEWER_REF;
 }
+
+
+/**
+ * Model output remains an untrusted, unverified editorial proposal.
+ * Invalid/ambiguous model responses fail closed rather than becoming review authority.
+ */
+export type AIScholarlyDraft={
+  proposedCanonical:string|null;
+  rationale:string;
+  uncertainties:string[];
+};
+export function parseAIScholarlyDraft(raw:string,profile:ReviewProfile):AIScholarlyDraft|null{
+  let object:unknown;
+  try{object=JSON.parse(raw);}catch{return null;}
+  if(!object||typeof object!=='object'||Array.isArray(object))return null;
+  const data=object as Record<string,unknown>;
+  if(Object.keys(data).length!==3||!['proposedCanonical','rationale','uncertainties'].every(k=>Object.hasOwn(data,k)))return null;
+  if(!Array.isArray(data.uncertainties)||data.uncertainties.length>5
+    ||!data.uncertainties.every(v=>typeof v==='string'&&v.length<=240))return null;
+  if(typeof data.rationale!=='string'||data.rationale.trim().length<30
+    ||data.rationale.length>1200)return null;
+  const rationale=data.rationale.trim();
+  // AI must never claim to be a human reviewer or certify an uninspected source.
+  if(/\b(I (personally )?(verified|checked|consulted|approve|approved|certify|certified)|human[- ]approved|the reviewer (has )?approved|verified by the reviewer)\b/iu.test(rationale))return null;
+  let proposedCanonical:string|null=null;
+  if(data.proposedCanonical!==null){
+    if(typeof data.proposedCanonical!=='string')return null;
+    const candidate=data.proposedCanonical.trim();
+    if(candidate){
+      if(candidate.length>1000||candidate!==candidate.normalize('NFC')
+        ||/[\r\n\p{Script=Arabic}]/u.test(candidate)
+        ||/^[\W_]+$/u.test(candidate))return null;
+      // IJMES proper names and titles have no macrons/dots, but preserve ʿayn and hamza.
+      if(profile==='ijmes_title'&&/[\u0300-\u036fāīūĀĪŪḥḤṣṢṭṬẓẒḍḌẕẔṯṮḏḎġĠ]/u.test(candidate))return null;
+      proposedCanonical=candidate;
+    }
+  }
+  return {proposedCanonical,rationale,uncertainties:data.uncertainties.map(x=>(x as string).trim())};
+}
