@@ -1,7 +1,9 @@
 'use client';
-import {useCallback,useEffect,useMemo,useState,type FormEvent} from 'react';
+import {useCallback,useEffect,useMemo,useRef,useState,type FormEvent} from 'react';
 import type {ReviewCard,ReviewQueueData} from '../../server/review/reviewStore';
 import styles from './review.module.css';
+import {PRIMARY_REVIEWER_REF,proposeEvidenceRationale,suggestedIjmesProfile} from '../../server/review/reviewAssistance';
+import type {LexicalCandidateCategory} from '../../validation/lexical-evidence/types';
 
 type Filter='ALL'|'EDITORIAL'|'SPECIALIST'|'FAST'|'NEW';
 type StatusFilter='ALL'|'PENDING'|'DRAFT'|'ACCEPT'|'REJECT'|'DEFER';
@@ -40,7 +42,10 @@ export default function ReviewWorkbench(){
   const [selectedId,setSelectedId]=useState<string|null>(null);
   const [canonical,setCanonical]=useState('');
   const [profile,setProfile]=useState<'ijmes_full'|'ijmes_title'>('ijmes_title');
-  const [reviewer,setReviewer]=useState('');
+  const [assisting,setAssisting]=useState(false);
+  const [rationaleSource,setRationaleSource]=useState<'TEMPLATE'|'AI'|'HUMAN'|'SAVED'>('TEMPLATE');
+  const activeCandidateRef=useRef<string|null>(null);
+  const rationaleVersionRef=useRef(0);
   const [rationale,setRationale]=useState('');
   const [attest,setAttest]=useState(false);
 
@@ -70,8 +75,16 @@ export default function ReviewWorkbench(){
   useEffect(()=>{
     if(!selected)return;
     setCanonical(selected.lastEvent?.canonical??selected.draft??'');
-    setProfile(selected.lastEvent?.profile??(selected.category==='WORK_TITLE'?'ijmes_title':'ijmes_full'));
-    setRationale(selected.lastEvent?.rationale??'');
+    const defaultProfile=selected.lastEvent?.profile??suggestedIjmesProfile(selected.category as LexicalCandidateCategory);
+    setProfile(defaultProfile);
+    setRationale(selected.lastEvent?.rationale??proposeEvidenceRationale({
+      candidateId:selected.candidateId,persian:selected.persian,
+      category:selected.category as LexicalCandidateCategory,sourceRecordId:selected.sourceRecordId,
+      variants:selected.variants,
+    },selected.lastEvent?.canonical??selected.draft??'',defaultProfile));
+    setRationaleSource(selected.lastEvent?.rationale?'SAVED':'TEMPLATE');
+    activeCandidateRef.current=selected.candidateId;
+    rationaleVersionRef.current++;
     setAttest(false);
     setNotice(null);
   },[selected]);
@@ -86,6 +99,24 @@ export default function ReviewWorkbench(){
   function searchQueue(event:FormEvent<HTMLFormElement>){event.preventDefault();setError(null);
     void reload(1,group,status,query).catch(e=>setError(e instanceof Error?e.message:'Search failed'));}
 
+  async function generateRationale(){
+    if(!selected||busy||assisting)return;
+    const candidateId=selected.candidateId;
+    const revision=rationaleVersionRef.current;
+    setAssisting(true);setError(null);
+    try{
+      const response=await jsonFetch('/api/scholarly-review/rationale',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({candidateId,basisSha256:selected.basisSha256,canonical,profile}),
+      }) as {rationale:string;mode:'SOURCE_GROUNDED_TEMPLATE'|'AI_SUGGESTION_UNVERIFIED'};
+      if(activeCandidateRef.current!==candidateId||rationaleVersionRef.current!==revision)return;
+      setRationale(response.rationale);
+      setRationaleSource(response.mode==='AI_SUGGESTION_UNVERIFIED'?'AI':'TEMPLATE');
+      setAttest(false);
+      rationaleVersionRef.current++;
+    }catch(e){if(activeCandidateRef.current===candidateId)setError(e instanceof Error?e.message:'Review assistance unavailable');}
+    finally{setAssisting(false);}
+  }
   async function signIn(event:FormEvent<HTMLFormElement>){
     event.preventDefault();setBusy(true);setError(null);
     try{
@@ -110,7 +141,7 @@ export default function ReviewWorkbench(){
         method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({
           candidateId:selected.candidateId,basisSha256:selected.basisSha256,kind,
-          reviewerRef:reviewer||null,
+          // Sole reviewer ID is set by the authenticated server; client cannot impersonate it.
           canonical:kind==='REJECT'||kind==='DEFER'?null:canonical||null,
           profile:kind==='ACCEPT'?profile:null,
           rationale:rationale||null,
@@ -224,21 +255,26 @@ export default function ReviewWorkbench(){
               {selected.draft&&<p className={styles.draftHint}>AI editorial proposal — <strong>unreviewed</strong>; editing or saving a draft does not approve it.</p>}
               <label className={styles.label} htmlFor="review-canonical">Proposed IJMES canonical</label>
               <textarea className={styles.textarea} id="review-canonical" rows={2} spellCheck={false} value={canonical}
-                onChange={e=>{setCanonical(e.target.value);setAttest(false);}}
+                onChange={e=>{setCanonical(e.target.value);setAttest(false);rationaleVersionRef.current++;}}
                 placeholder="Enter or correct the scholarly transliteration after consulting IJMES rules" />
               <div className={styles.twoFields}>
                 <div><label className={styles.label} htmlFor="review-profile">Transliteration profile</label>
-                  <select className={styles.select} value={profile} id="review-profile" onChange={e=>setProfile(e.target.value as typeof profile)}>
+                  <select className={styles.select} value={profile} id="review-profile" onChange={e=>{setProfile(e.target.value as typeof profile);setAttest(false);rationaleVersionRef.current++;}}>
                     <option value="ijmes_title">IJMES titles and proper names</option><option value="ijmes_full">IJMES full scholarly</option>
                   </select></div>
-                <div><label className={styles.label} htmlFor="reviewer-id">Reviewer reference</label>
-                  <input className={styles.input} id="reviewer-id" value={reviewer}
-                    onChange={e=>setReviewer(e.target.value)} placeholder="Your reviewer ID" maxLength={200}/></div>
+                <div><label className={styles.label} htmlFor="reviewer-id">Reviewer reference · automatic</label>
+                  <input className={styles.input} id="reviewer-id" value={PRIMARY_REVIEWER_REF}
+                    readOnly aria-readonly="true" title="Assigned by the authenticated server, not an independently verified identity"/></div>
               </div>
-              <label className={styles.label} htmlFor="review-rationale">Scholarly rationale</label>
-              <textarea className={styles.textarea} id="review-rationale" rows={3} value={rationale}
-                onChange={e=>setRationale(e.target.value)}
-                placeholder="Explain your source check, IJMES choice, uncertainty or reason to defer / reject" maxLength={4000}/>
+              <div className={styles.rationaleHeader}>
+                <label className={styles.label} htmlFor="review-rationale">Scholarly rationale</label>
+                <button className={styles.secondary} type="button" disabled={busy||assisting}
+                  onClick={()=>void generateRationale()}>{assisting?'Generating…':'Suggest rationale with AI'}</button>
+              </div>
+              <textarea className={styles.textarea} id="review-rationale" rows={4} value={rationale}
+                onChange={e=>{setRationale(e.target.value);setRationaleSource('HUMAN');setAttest(false);rationaleVersionRef.current++;}}
+                placeholder="Describe what you verified in the source, and why the IJMES spelling is justified" maxLength={4000}/>
+              <p className={styles.rationaleNotice}>⚑ {rationaleSource==='AI'?'AI-generated, unverified suggestion':rationaleSource==='TEMPLATE'?'Source-grounded editorial checklist (no model inference)':rationaleSource==='HUMAN'?'Edited by reviewer':'Previously saved rationale'}. Never an automatic scholarly approval. Review the Persian and source evidence, then edit this explanation to record your actual findings.</p>
               <label className={styles.checkbox}><input type="checkbox" checked={attest} onChange={e=>setAttest(e.target.checked)}/>
                 I personally verified this exact IJMES form against the Persian evidence and relevant editorial rules.</label>
               <div className={styles.actions}>
