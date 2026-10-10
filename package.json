@@ -62,7 +62,8 @@
     "evidence:staging:import": "tsx src/server/evidence-store/stagingImportCli.ts",
     "evidence:staging:blob-check": "tsx src/server/evidence-store/stagingBlobPreflightCli.ts",
     "evidence:staging:preflight": "tsx src/server/evidence-store/stagingPreflightCli.ts",
-    "test:phase8g:integration": "vitest run src/server/evidence-store/neon.integration.test.ts"
+    "test:phase8g:integration": "vitest run src/server/evidence-store/neon.integration.test.ts",
+    "authority:admin": "tsx src/server/authority/authorityAdminCli.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",

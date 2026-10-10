@@ -322,6 +322,12 @@ export default function Home() {
               {unifiedOutput.noticeText}
             </p>
           )}
+          {result.authority && (
+            <p className="review-warning-note" style={{ background: '#f2f7f4', borderColor: '#b7d5c5', color: '#2d6a4f' }}>
+              <strong>Published Scholarly Authority</strong> · Human-reviewed · Authority version {result.authority.version}
+              <br /><span className="panel-hint">Provenance: review {result.authority.reviewEventId}; publication {result.authority.publicationEventId}</span>
+            </p>
+          )}
 
           {/* Request lifecycle line: never claims 'analyzing' when a current draft exists */}
           {requestInFlight && (
