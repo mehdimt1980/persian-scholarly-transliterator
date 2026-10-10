@@ -31,8 +31,12 @@ export function findPublishedAuthority(snapshot: PublishedAuthoritySnapshot, inp
   validatePublishedAuthoritySnapshot(snapshot);
   if (userDecisions.length > 0) return undefined;
   const normalized = normalizePersian(input).normalizedInput;
-  const matches = snapshot.entries.filter((entry) => entry.status === 'ACTIVE' && entry.profile === profile &&
-    entry.context === context && entry.normalizedPersian === normalized);
-  if (matches.length > 1) throw new Error('AMBIGUOUS_PUBLISHED_AUTHORITY');
-  return matches[0];
+  const exact = snapshot.entries.filter((entry) => entry.status === 'ACTIVE' && entry.profile === profile &&
+    entry.normalizedPersian === normalized);
+  if (exact.length === 0) return undefined;
+  const canonicals = new Set(exact.map((entry) => entry.canonical));
+  if (canonicals.size > 1) throw new Error('AMBIGUOUS_PUBLISHED_AUTHORITY');
+  // The published PERSON_NAME context is itself the reviewed semantic classification. It is
+  // eligible only for an exact normalized phrase/profile match; no substring/name guessing occurs.
+  return exact.find((entry) => entry.context === context) ?? exact.find((entry) => entry.context === 'PERSON_NAME');
 }

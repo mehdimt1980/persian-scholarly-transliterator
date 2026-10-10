@@ -6,7 +6,28 @@ import type { AuthorityContext, PublishedAuthoritySnapshot } from './types';
 export function resolveWithPublishedAuthority(originalInput: string, normalization: NormalizationResult,
   profile: ProfileId, context: AuthorityContext, snapshot: PublishedAuthoritySnapshot,
   reviewDecisions: ReviewDecision[] = []): TransliterationResult | null {
-  const entry = findPublishedAuthority(snapshot, originalInput, profile, context, reviewDecisions);
+  let entry;
+  try {
+    entry = findPublishedAuthority(snapshot, originalInput, profile, context, reviewDecisions);
+  } catch (error) {
+    if (!(error instanceof Error) || error.message !== 'AMBIGUOUS_PUBLISHED_AUTHORITY') throw error;
+    const warning = 'Competing published scholarly authorities require human clarification.';
+    return {
+      originalInput, normalizedInput: normalization.normalizedInput, normalizationChanges: normalization.changes,
+      profile, output: `⟦${normalization.normalizedInput}: ambiguous published authority⟧`, copyable: false,
+      status: 'AMBIGUOUS', analyses: [], morphology: [], relations: [], reviewIssues: [], appliedDecisions: [],
+      staleDecisions: [], reviewReasons: [], warnings: [warning],
+      tokens: [{ normalizedSurface: normalization.normalizedInput, tokenType: 'persian-word',
+        canonicalTransliteration: null, rendered: `⟦${normalization.normalizedInput}: ambiguous published authority⟧`,
+        status: 'AMBIGUOUS', automaticStatus: 'AMBIGUOUS', automaticCanonical: null, confidence: 0,
+        appliedRules: [], lexicalSources: [], warnings: [warning], alternatives: [], normalizedStart: 0,
+        normalizedEnd: normalization.normalizedInput.length,
+        automatic: { status: 'AMBIGUOUS', canonicalTransliteration: null,
+          rendered: `⟦${normalization.normalizedInput}: ambiguous published authority⟧`, confidence: 0,
+          appliedRules: [], lexicalSources: [], warnings: [warning], alternatives: [],
+          blockingReason: 'LEXICAL_AMBIGUITY' }, blockingReason: 'LEXICAL_AMBIGUITY' }]
+    };
+  }
   if (!entry) return null;
   const authority = {
     kind: 'PUBLISHED_SCHOLARLY_AUTHORITY' as const,

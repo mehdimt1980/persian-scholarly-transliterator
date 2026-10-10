@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { transliterate } from '../engine';
 import { renderScholarlyCanonical } from '../presentation';
 import type { PublishedAuthoritySnapshot } from './types';
@@ -6,17 +6,22 @@ import { authorityManifestSha256 } from '../../server/authority/manifest';
 import { assertAuthorityManifest } from '../../server/authority/manifest';
 import { PUBLISHED_AUTHORITY_SNAPSHOT } from '../../data/publishedAuthority';
 import { authorizePublication, prepareAuthorityPublication, rollbackAuthority, withdrawAuthority,
-  type AcceptedReviewRecord, type PublicationAuthorization } from '../../server/authority/authorityPublication';
+  assertVerifiedPublicationAuthorization, type PublicationAuthorization } from '../../server/authority/authorityPublication';
+import { VERIFIED_SOURCE, type VerifiedReviewSource } from '../../server/authority/sourceVerification';
 import { MemoryAuthorityRepository, publishAuthorizedAuthority, rollbackPublishedAuthority,
   withdrawPublishedAuthority } from '../../server/authority/authorityRepository';
 
-const review: AcceptedReviewRecord = {
+const review: VerifiedReviewSource = {
+  [VERIFIED_SOURCE]:true,
   eventId:'review-event-001',candidateId:'candidate-001',activeSnapshotId:'source-snapshot-001',
   sourceVersionId:'BSB:record:version',reviewBasisSha256:'a'.repeat(64),decisionKind:'ACCEPT',
   canonical:'farhang-i Īrān',profile:'ijmes_full',reviewerRef:'reviewer:declared',
   reviewedAt:'2026-10-10T10:00:00.000Z',rationale:'Verified against Persian source and IJMES rules.',
   humanAttestation:'I_PERSONALLY_VERIFIED_THIS_IJMES_FORM',persianSurface:'فرهنگ ایران',
-  candidateContentHash:'b'.repeat(64),latestForCandidate:true,sourceRecordIds:['record-1'],category:'TITLE'
+  candidateContentHash:'b'.repeat(64),latestForCandidate:true,sourceRecordIds:['record-1'],category:'TITLE',
+  verification:{kind:'INDEPENDENT_NEON_READ',verifiedAt:'2026-10-10T10:01:00.000Z',
+    sourceFingerprint:'c'.repeat(64),databaseTargetSha256:'d'.repeat(64),
+    activeManifestChecksum:'e'.repeat(64),latestEventId:'review-event-001'}
 };
 const emptyBase={schemaVersion:'phase8r-authority-snapshot-v1' as const,snapshotId:'empty-authority-v1',
   version:1,generatedAt:'2026-10-10T09:00:00.000Z',entries:[]};
@@ -56,7 +61,8 @@ describe('Phase 8R authority boundary',()=>{
     expect(()=>prepareAuthorityPublication(review,{reviewEventId:review.eventId,expectedReviewBasisSha256:'c'.repeat(64),
       expectedSourceSnapshotId:review.activeSnapshotId,context:'GENERAL_SCHOLARLY_TEXT',publicationReason:'x'},review.activeSnapshotId,[])).toThrow('STALE_REVIEW_BASIS');
     const {entry}=published();
-    expect(()=>prepareAuthorityPublication({...review,eventId:'review-event-002',canonical:'farhang-e Īrān'},
+    expect(()=>prepareAuthorityPublication({...review,eventId:'review-event-002',canonical:'farhang-e Īrān',
+      verification:{...review.verification,latestEventId:'review-event-002'}},
       {reviewEventId:'review-event-002',expectedReviewBasisSha256:review.reviewBasisSha256,
        expectedSourceSnapshotId:review.activeSnapshotId,context:'GENERAL_SCHOLARLY_TEXT',publicationReason:'x'},
       review.activeSnapshotId,[entry])).toThrow('CONFLICTING_PUBLISHED_AUTHORITY');
@@ -81,6 +87,43 @@ describe('Phase 8R authority boundary',()=>{
   it('renders the approved canonical through distinct presentation profiles',()=>{
     expect(renderScholarlyCanonical('Naṣīrī, Muḥammad Riḍā',{id:'full_scholarly_v1'}).output).toBe('Naṣīrī, Muḥammad Riḍā');
     expect(renderScholarlyCanonical('Naṣīrī, Muḥammad Riḍā',{id:'ijmes_publication_v1'},{contentCategory:'BOOK_OR_ARTICLE_TITLE'}).output).not.toBe('Naṣīrī, Muḥammad Riḍā');
+  });
+  it('resolves an exact published personal name through the main engine and presentation path',()=>{
+    const nameReview:VerifiedReviewSource={...review,eventId:'review-event-name',candidateId:'candidate-name',
+      persianSurface:'محمدرضا نصیری',canonical:'Muḥammad Riḍā Naṣīrī',category:'PERSON_NAME',
+      verification:{...review.verification,latestEventId:'review-event-name'}};
+    const preview=prepareAuthorityPublication(nameReview,{reviewEventId:nameReview.eventId,
+      expectedReviewBasisSha256:nameReview.reviewBasisSha256,expectedSourceSnapshotId:nameReview.activeSnapshotId,
+      context:'PERSON_NAME',publicationReason:'Reviewed personal-name authority',
+      personalNameOrderingAttestation:'RUNNING_TEXT_ORDER_VERIFIED'},nameReview.activeSnapshotId,[]);
+    const {snapshot}=authorizePublication(preview,auth,'2026-10-10T11:00:00.000Z',empty);
+    const engineResult=transliterate(nameReview.persianSurface,'ijmes_full',[],undefined,undefined,
+      {publishedAuthoritySnapshot:snapshot});
+    expect(engineResult.output).toBe(nameReview.canonical);
+    expect(engineResult.authority).toMatchObject({kind:'PUBLISHED_SCHOLARLY_AUTHORITY',reviewEventId:nameReview.eventId});
+    expect(renderScholarlyCanonical(engineResult.output,{id:'full_scholarly_v1'}).output).toBe(nameReview.canonical);
+    const citationReview:VerifiedReviewSource={...nameReview,eventId:'review-event-name-title',
+      profile:'ijmes_citation_title',canonical:'Muhammad Riza Nasiri',
+      verification:{...nameReview.verification,latestEventId:'review-event-name-title'}};
+    const citationPreview=prepareAuthorityPublication(citationReview,{reviewEventId:citationReview.eventId,
+      expectedReviewBasisSha256:citationReview.reviewBasisSha256,expectedSourceSnapshotId:citationReview.activeSnapshotId,
+      context:'PERSON_NAME',publicationReason:'Reviewed publication-profile personal name',
+      personalNameOrderingAttestation:'RUNNING_TEXT_ORDER_VERIFIED'},citationReview.activeSnapshotId,snapshot.entries);
+    const citationSnapshot=authorizePublication(citationPreview,auth,'2026-10-10T11:01:00.000Z',snapshot).snapshot;
+    const citationResult=transliterate(nameReview.persianSurface,'ijmes_citation_title',[],undefined,undefined,
+      {publishedAuthoritySnapshot:citationSnapshot});
+    expect(citationResult.output).toBe('Muhammad Riza Nasiri');
+    expect(renderScholarlyCanonical(citationResult.output,{id:'ijmes_publication_v1'},
+      {contentCategory:'BOOK_OR_ARTICLE_TITLE'}).output).toBeTruthy();
+  });
+  it('fails closed when presentation context and personal-name authorities compete',()=>{
+    const first=published().snapshot.entries[0];
+    const person={...first,entryId:'authority-person-conflict',context:'PERSON_NAME' as const,canonical:'different',
+      provenance:{...first.provenance,publicationEventId:'pub-person-conflict'}};
+    const base={...emptyBase,snapshotId:'authority-conflict-v2',version:2,entries:[first,person]};
+    const snapshot={...base,manifestSha256:authorityManifestSha256(base)};
+    const result=transliterate(review.persianSurface,'ijmes_full',[],undefined,undefined,{publishedAuthoritySnapshot:snapshot});
+    expect(result.status).toBe('AMBIGUOUS');expect(result.copyable).toBe(false);expect(result.authority).toBeUndefined();
   });
   it('is idempotent and withdrawal removes runtime authority without erasing history inputs',()=>{
     const first=published();
@@ -109,5 +152,21 @@ describe('Phase 8R authority boundary',()=>{
     const state=await repository.read();
     expect(state.snapshots.has(withdrawn.snapshotId)).toBe(true);
     expect(state.events.map(event=>event.kind)).toEqual(['PUBLISH','WITHDRAW','ROLLBACK']);
+  });
+  it('rolls back a partial repository operation and independently binds publication authorization',async()=>{
+    const repository=new MemoryAuthorityRepository(empty);
+    await expect(repository.transaction(state=>{state.events.push({eventId:'partial',kind:'ROLLBACK',entryId:null,
+      snapshotId:empty.snapshotId,previousSnapshotId:empty.snapshotId,administratorRef:'x',authorizationVersion:'1',
+      reason:'forced failure',occurredAt:'2026-10-10T11:00:00.000Z'});throw new Error('forced');})).rejects.toThrow('forced');
+    expect((await repository.read()).events).toEqual([]);
+    expect(()=>assertVerifiedPublicationAuthorization({...auth,
+      verification:{kind:'INDEPENDENT_ADMIN_FILE_HASH',sha256:'f'.repeat(64)}})).not.toThrow();
+    expect(()=>assertVerifiedPublicationAuthorization(auth as never)).toThrow('PUBLICATION_AUTHORIZATION_NOT_INDEPENDENTLY_VERIFIED');
+  });
+  it('performs published authority lookup without an AI network request',()=>{
+    const fetchSpy=vi.spyOn(globalThis,'fetch');
+    const {snapshot}=published();
+    transliterate(review.persianSurface,'ijmes_full',[],undefined,undefined,{publishedAuthoritySnapshot:snapshot});
+    expect(fetchSpy).not.toHaveBeenCalled();fetchSpy.mockRestore();
   });
 });
