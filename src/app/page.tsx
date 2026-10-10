@@ -326,7 +326,7 @@ export default function Home() {
           {/* Request lifecycle line: never claims 'analyzing' when a current draft exists */}
           {requestInFlight && (
             <p className="panel-hint" role="status" style={{ color: '#6366f1', fontStyle: 'italic' }}>
-              {draftPresent ? 'Regenerating suggestion… current draft shown below remains available.' : 'Analyzing phrase…'}
+              {draftPresent ? 'Regenerating AI suggestion by request…' : 'Generating AI suggestion by request…'}
             </p>
           )}
           {!requestInFlight && phraseAssistError && !draftPresent && (
