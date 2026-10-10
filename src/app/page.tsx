@@ -237,7 +237,7 @@ export default function Home() {
 
           <textarea
             id="source-input"
-            dir="rtl"
+            dir={input.trim() ? "rtl" : "ltr"}
             className="source-textarea"
             placeholder="Enter a Persian title…"
             value={input}
