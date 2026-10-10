@@ -33,6 +33,6 @@ jobs:
         run: npm run evidence:staging:review-ledger -- migrate
       - name: Verify review audit trigger and untouched evidence snapshot
         run: npm run evidence:staging:review-ledger -- verify
-      - name: Final Staging evidence audit: writes stay disabled
+      - name: 'Final Staging evidence audit: writes stay disabled'
         if: always()
         run: npm run evidence:staging:audit
