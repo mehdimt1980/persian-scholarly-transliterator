@@ -138,6 +138,7 @@ export interface TokenResult {
   automaticStatus?: ResultStatus;
   automaticCanonical?: string | null;
   evidenceDerivedProposal?: EvidenceDerivedProposal;
+  authority?: import('./authority/types').ResolvedPublishedAuthority;
 }
 
 export interface TransliterationResult {
@@ -157,6 +158,7 @@ export interface TransliterationResult {
   staleDecisions: ReviewDecision[];
   reviewReasons: string[];
   warnings: string[];
+  authority?: import('./authority/types').ResolvedPublishedAuthority;
 }
 
 export * from './lexicon/types';

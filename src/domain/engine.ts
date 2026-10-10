@@ -11,6 +11,9 @@ import { RULES } from './provenance';
 import { analyzeRelations } from './relations';
 import { tokenize } from './tokenizer';
 import { resolveWithFrozenReviewedAuthority } from './frozenReviewedAuthority';
+import { PUBLISHED_AUTHORITY_SNAPSHOT } from '../data/publishedAuthority';
+import { resolveWithPublishedAuthority } from './authority/resolver';
+import type { AuthorityContext, PublishedAuthoritySnapshot } from './authority/types';
 import {
   AutomaticBlockingReason,
   AutomaticTokenSnapshot,
@@ -349,6 +352,8 @@ export type ResolutionPolicy = 'CURRENT_PRODUCTION' | 'SAFE_WHOLE_WORD_EVIDENCE'
 
 export interface TransliterationOptions {
   resolutionPolicy?: ResolutionPolicy;
+  publishedAuthoritySnapshot?: PublishedAuthoritySnapshot;
+  authorityContext?: AuthorityContext;
 }
 
 export function transliterate(
@@ -371,6 +376,14 @@ export function transliterate(
   lexicon.assertValid();
   effectiveFallback.assertValid();
   const normalization = normalizePersian(input);
+
+  const publishedAuthority = resolveWithPublishedAuthority(
+    input, normalization, profile,
+    options?.authorityContext ?? (profile === 'ijmes_citation_title' ? 'BOOK_OR_ARTICLE_TITLE' : 'GENERAL_SCHOLARLY_TEXT'),
+    options?.publishedAuthoritySnapshot ?? PUBLISHED_AUTHORITY_SNAPSHOT,
+    reviewDecisions
+  );
+  if (publishedAuthority) return publishedAuthority;
 
   // Human-approved frozen V2 authority is an exact normalized phrase/profile layer.
   // It is consulted only after the independent Phase 4.6C baseline was recorded.
