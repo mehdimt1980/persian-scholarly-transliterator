@@ -101,7 +101,7 @@ export class PhraseDraftController {
   private snapshot: DraftControllerSnapshot = {
     currentId: null,
     eligible: false,
-    autoEnabled: true,
+    autoEnabled: false,
     configured: null,
     drafts: {},
     errors: {},
