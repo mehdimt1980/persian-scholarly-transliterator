@@ -140,7 +140,7 @@ export async function saveReviewDecision(input:SaveReviewInput):Promise<ReviewEv
     humanAttestation:input.kind==='ACCEPT'?input.humanAttestation??null:null,
   };
   if(input.kind==='DRAFT'){
-    if(event.humanAttestation||event.canonical?.length!>1000)throw new Error('Invalid draft');
+    if(event.humanAttestation||(event.canonical!==null&&event.canonical.length>1000))throw new Error('Invalid draft');
     // DRAFT never grants scientific authority.
     event.profile=null;
   }else{
