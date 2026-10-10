@@ -82,6 +82,8 @@ export interface PhraseDraftControllerOptions {
   fetchImpl: DraftFetch;
   debounceMs?: number;
   endpoint?: string;
+  /** Prevent every automatic request regardless of state or earlier toggle settings. */
+  manualOnly?: boolean;
   setTimer?: (fn: () => void, ms: number) => unknown;
   clearTimer?: (handle: unknown) => void;
 }
@@ -90,6 +92,7 @@ export class PhraseDraftController {
   private readonly fetchImpl: DraftFetch;
   private readonly debounceMs: number;
   private readonly endpoint: string;
+  private readonly manualOnly: boolean;
   private readonly setTimer: (fn: () => void, ms: number) => unknown;
   private readonly clearTimer: (handle: unknown) => void;
 
@@ -113,6 +116,7 @@ export class PhraseDraftController {
     this.fetchImpl = options.fetchImpl;
     this.debounceMs = options.debounceMs ?? 900;
     this.endpoint = options.endpoint ?? '/api/assist/phrase';
+    this.manualOnly = options.manualOnly ?? false;
     this.setTimer = options.setTimer ?? ((fn, ms) => setTimeout(fn, ms));
     this.clearTimer = options.clearTimer ?? ((h) => clearTimeout(h as ReturnType<typeof setTimeout>));
   }
@@ -210,7 +214,7 @@ export class PhraseDraftController {
     this.cancelTimer();
     const ctx = this.ctx;
     const s = this.snapshot;
-    if (!ctx || !ctx.eligible || !s.autoEnabled || s.configured !== true) return;
+    if (this.manualOnly || !ctx || !ctx.eligible || !s.autoEnabled || s.configured !== true) return;
     const id = ctx.cacheId;
     if (s.drafts[id] || this.attempted.has(id) || s.inflight.includes(id) || s.rejected.includes(id)) return;
     this.timer = this.setTimer(() => {
@@ -223,7 +227,7 @@ export class PhraseDraftController {
     const id = ctx.cacheId;
     if (this.ctx?.cacheId !== id) return;
     if (this.snapshot.inflight.includes(id)) return;
-    if (!manual && (this.snapshot.drafts[id] || this.attempted.has(id))) return;
+    if (!manual && (this.manualOnly || this.snapshot.drafts[id] || this.attempted.has(id))) return;
 
     const controller = new AbortController();
     this.controllers.set(id, controller);
