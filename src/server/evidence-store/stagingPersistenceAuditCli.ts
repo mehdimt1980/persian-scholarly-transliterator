@@ -5,7 +5,7 @@ import { databaseIdentityFingerprint } from './guard';
 const branchId = 'br-noisy-field-b2m5q1zb';
 const host = 'ep-super-meadow-b28s6g97-pooler.c-6.eu-central-1.aws.neon.tech';
 const fingerprint = '721280eed36907f5da9a76e5937c2bda28c70bc9cc01e695d4c6072f80fbeae2';
-const snapshot = 'snapshot-f76feb36ca85541c8faafb42';
+const reviewBaselineSnapshot = 'snapshot-f76feb36ca85541c8faafb42';
 const rollbackSnapshot = 'snapshot-7946161b2af2652b776a6bd4';
 async function main(): Promise<void> {
   const url = process.env.PHASE8G_STAGING_DATABASE_URL;
@@ -31,7 +31,8 @@ async function main(): Promise<void> {
       (SELECT snapshot_id FROM evidence_active_snapshot WHERE singleton=true) AS active_snapshot
   `);
   const metrics = Array.isArray(metricsResult) ? metricsResult[0] : undefined;
-  if (!metrics || metrics.active_snapshot !== snapshot || Number(metrics.raw_sources) < 2
+  const activeSnapshot=String(metrics?.active_snapshot??'');
+  if (!metrics || !/^snapshot-[0-9a-f]{24}$/u.test(activeSnapshot) || Number(metrics.raw_sources) < 2
     || Number(metrics.versions) < 50 || Number(metrics.projections) < 78 || Number(metrics.snapshots) < 2
     || Number(metrics.completed_runs) < 2) throw new Error('Unexpected persisted BSB evidence metrics');
   const checkResult = await sql.query(`
@@ -43,11 +44,11 @@ async function main(): Promise<void> {
         WHERE NOT EXISTS(SELECT 1 FROM evidence_record_version v WHERE v.version_id=src.id)
       ) AS sources_exist
     FROM evidence_snapshot s WHERE s.snapshot_id=$1
-  `,[snapshot]);
+  `,[activeSnapshot]);
   const check = Array.isArray(checkResult) ? checkResult[0] : undefined;
   if (!check || check.status !== 'ACTIVE' || check.checksum_matches !== true
       || check.sources_exist !== true || Number(check.candidate_count) !== Number(check.actual_candidate_count)
-      || Number(check.candidate_count) !== 75) throw new Error('Active snapshot integrity verification failed');
+      || (Number(check.candidate_count)!==75 && (Number(check.candidate_count)<750 || Number(check.candidate_count)>10000))) throw new Error('Active snapshot integrity verification failed');
   const rollbackResult=await sql.query(`
     SELECT s.status,s.candidate_count,
       s.manifest_checksum=evidence_manifest_checksum(s.schema_version,s.extraction_version,s.source_version_ids,s.manifest_json->'candidates') AS checksum_matches,
@@ -62,12 +63,28 @@ async function main(): Promise<void> {
     SELECT count(*)::int AS old_sources FROM evidence_record_version v
     WHERE v.source_record_id=ANY($1) AND v.version_id IN
       (SELECT jsonb_array_elements_text(s.source_version_ids) FROM evidence_snapshot s WHERE s.snapshot_id=$2)
-  `,[['991071006889707356','991144600686807356'],snapshot]);
+  `,[['991071006889707356','991144600686807356'],activeSnapshot]);
   const originalRefs=Array.isArray(originalRefsResult)?originalRefsResult[0]:undefined;
   if(Number(originalRefs?.old_sources)!==2)throw new Error('Active snapshot lost the original source record versions');
+  const baselineRows=await sql.query(`
+    SELECT s.status,s.candidate_count,
+      s.manifest_checksum=evidence_manifest_checksum(s.schema_version,s.extraction_version,s.source_version_ids,s.manifest_json->'candidates') AS checksum_matches,
+      (SELECT count(*)::int FROM evidence_candidate_projection p WHERE p.snapshot_id=s.snapshot_id) AS projections
+    FROM evidence_snapshot s WHERE s.snapshot_id=$1
+  `,[reviewBaselineSnapshot]);
+  const baseline=Array.isArray(baselineRows)?baselineRows[0]:undefined;
+  if(!baseline||baseline.status!==(activeSnapshot===reviewBaselineSnapshot?'ACTIVE':'RETIRED')
+    ||Number(baseline.candidate_count)!==75||Number(baseline.projections)!==75||baseline.checksum_matches!==true)
+    throw new Error('Original 75-candidate scholarly review rollback baseline lost');
+  const authority=await sql.query(`
+    SELECT count(*)::int AS bad FROM evidence_candidate_projection p WHERE p.snapshot_id=$1
+      AND (p.review_status<>'UNREVIEWED' OR p.authority_status<>'NON_AUTHORITATIVE_CANDIDATE')
+  `,[activeSnapshot]);
+  const bad=Array.isArray(authority)?authority[0]:undefined;
+  if(Number(bad?.bad)!==0)throw new Error('Unreviewed source evidence gained unauthorized authority');
   console.log(JSON.stringify({status:'STAGING_PERSISTENCE_AUDIT_OK', branchId,
     previousSnapshot:rollbackSnapshot,rollbackVerified:true,oldSourceVersionsRetained:2,
-    activeSnapshot: snapshot, completedRuns:metrics.completed_runs,
+    activeSnapshot, reviewBaselineSnapshot,reviewBaselineRetained:true, completedRuns:metrics.completed_runs,
     rawSources:metrics.raw_sources,recordVersions:metrics.versions,
     candidateProjections:metrics.projections, snapshotCount:metrics.snapshots,
     activeCandidateCount:check.candidate_count, checksumVerified:true,
