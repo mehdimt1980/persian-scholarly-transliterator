@@ -239,7 +239,7 @@ export default function Home() {
             id="source-input"
             dir="rtl"
             className="source-textarea"
-            placeholder="متن فارسی را وارد کنید..."
+            placeholder="Enter a Persian title…"
             value={input}
             onChange={(event) => setInput(event.target.value)}
           />
