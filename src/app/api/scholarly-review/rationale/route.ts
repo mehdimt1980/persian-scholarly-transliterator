@@ -74,7 +74,7 @@ export async function POST(req:NextRequest){
               sourceUrl:record.sourceUrl,marcEvidence:record.providerFields.slice(0,15)},
             ijmesProfile:input.profile,
             reviewerEnteredCanonical:input.canonical.trim()||null,
-            guide:'https://www.cambridge.org/core/journals/international-journal-of-middle-eastern-studies/information/author-resources',
+            guide:'https://www.cambridge.org/core/journals/international-journal-of-middle-east-studies/information/author-resources/ijmes-translation-and-transliteration-guide',
           })},
         ],
       });
