@@ -27,6 +27,36 @@ function packet(){
     manifestChecksum:'a'.repeat(64),rows,
   });
 }
+describe('Phase 8P snapshot-scalable review guard',()=>{
+  it('accepts a verified new snapshot and a small subset without requiring exactly 75 records',()=>{
+    const prior=packet();
+    const subset=prior.items.slice(0,2).map(item=>({
+      sourceVersionId:item.sourceVersionId,candidate:item.candidateSnapshot,
+    }));
+    const next=buildBsbScholarlyReviewPacket({
+      snapshotId:'snapshot-'+'a'.repeat(24),manifestChecksum:'b'.repeat(64),rows:subset,
+    });
+    expect(next.candidateCount).toBe(2);
+    expect(next.items).toHaveLength(2);
+    expect(next.items[0].reviewBasisSha256).not.toBe(prior.items[0].reviewBasisSha256);
+    const decisions=makePendingDecisionTemplate(next);
+    expect(validateBsbHumanReviewDecisions(next,decisions).counts.PENDING).toBe(2);
+  });
+  it('rejects empty packets, oversized packets and malformed snapshot IDs',()=>{
+    const first=packet().items[0];
+    const row={sourceVersionId:first.sourceVersionId,candidate:first.candidateSnapshot};
+    expect(()=>buildBsbScholarlyReviewPacket({
+      snapshotId:'snapshot-invalid',manifestChecksum:'a'.repeat(64),rows:[row],
+    })).toThrow(/invalid snapshot identity/);
+    expect(()=>buildBsbScholarlyReviewPacket({
+      snapshotId:'snapshot-'+'a'.repeat(24),manifestChecksum:'a'.repeat(64),rows:[],
+    })).toThrow(/invalid candidate review packet size/);
+    expect(()=>buildBsbScholarlyReviewPacket({
+      snapshotId:'snapshot-'+'a'.repeat(24),manifestChecksum:'a'.repeat(64),rows:Array(10001).fill(row),
+    })).toThrow(/invalid candidate review packet size/);
+  });
+});
+
 describe('Phase 8N scientifically honest BSB reviewer queue',()=>{
   it('exports 75 hash-bound UNREVIEWED items with 75 PENDING decisions and no authority grant',()=>{
     const review=packet();
