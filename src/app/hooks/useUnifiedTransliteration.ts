@@ -92,6 +92,8 @@ export function useUnifiedTransliteration({
       debounceMs,
       fetchImpl: (url, init) => fetch(url, init)
     });
+    // Main workspace is strictly user-triggered: no AI call on mount, typing or profile changes.
+    controllerRef.current.setAutoEnabled(false);
   }
   const controller = controllerRef.current;
 
