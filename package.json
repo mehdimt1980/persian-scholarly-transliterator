@@ -56,6 +56,7 @@
     "evidence:staging:audit": "tsx src/server/evidence-store/stagingPersistenceAuditCli.ts",
     "evidence:bsb:review": "tsx src/server/evidence-store/bsbScholarlyReviewCli.ts",
     "evidence:staging:review-ledger": "tsx src/server/review/reviewMigrationCli.ts",
+    "evidence:bsb:scale750": "tsx src/server/evidence-store/bsbScaleHarvestCli.ts",
     "evidence:staging:write-window": "tsx src/server/evidence-store/stagingWriteWindowCli.ts",
     "evidence:staging:import": "tsx src/server/evidence-store/stagingImportCli.ts",
     "evidence:staging:blob-check": "tsx src/server/evidence-store/stagingBlobPreflightCli.ts",
