@@ -143,7 +143,17 @@ suite('Phase 8S Derived Authority isolated Neon integration', () => {
 
   beforeAll(async () => {
     const adminUrl = process.env.PHASE8R_TEST_ADMIN_DATABASE_URL!;
+    const sourceUrl = process.env.PHASE8R_TEST_SOURCE_DATABASE_URL!;
     const admin = neon(adminUrl);
+    // This suite has independent setup: NEVER write unless BOTH credentials
+    // independently confirm the explicit disposable branch.
+    for (const url of [adminUrl, sourceUrl]) {
+      const db = neon(url);
+      const result = await db.query("SELECT current_setting('neon.branch_id',true) AS branch_id") as Array<{branch_id:string}>;
+      if (result[0]?.branch_id !== process.env.PHASE8R_TEST_NEON_BRANCH_ID) {
+        throw new Error('Refusing Phase 8S integration: disposable Neon branch identity mismatch');
+      }
+    }
 
     // Setup authentic parent candidate projection for personal name catalogue record
     const xml = fs.readFileSync(path.resolve(process.cwd(), 'validation/acquisition/bsb/authentic-selected-records.v1.xml'), 'utf8');
