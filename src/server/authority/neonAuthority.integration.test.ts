@@ -278,6 +278,7 @@ suite('Phase 8S Derived Authority isolated Neon integration', () => {
       expectedReviewBasisSha256: s8Basis,
       expectedSourceSnapshotId: s8SnapshotId,
       context: 'PERSON_NAME',
+      personalNameOrderingAttestation: 'RUNNING_TEXT_ORDER_VERIFIED',
       publicationReason: 'Phase 8S disposable integration test'
     };
     s8Verified = (await source.verify(s8Request)) as VerifiedDerivedReviewSource;
