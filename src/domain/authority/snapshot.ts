@@ -18,7 +18,8 @@ export function validatePublishedAuthoritySnapshot(snapshot: PublishedAuthorityS
         !Number.isSafeInteger(entry.version) || entry.version < 1 || !ID.test(p.reviewEventId) ||
         !ID.test(p.publicationEventId) || !ID.test(p.candidateId) || !HASH.test(p.reviewBasisSha256) ||
         !p.sourceSnapshotId || !p.sourceVersionId || !p.reviewerRef ||
-        Number.isNaN(Date.parse(p.reviewedAt)) || Number.isNaN(Date.parse(p.publishedAt)))
+        Number.isNaN(Date.parse(p.reviewedAt)) || Number.isNaN(Date.parse(p.publishedAt)) ||
+        (p.derivedCandidateId != null && (!ID.test(p.derivedCandidateId) || !ID.test(p.derivedReviewEventId ?? '') || !ID.test(p.parentCandidateId ?? ''))))
       throw new Error(`INVALID_AUTHORITY_ENTRY:${entry.entryId}`);
     const key = `${entry.normalizedPersian}\u0000${entry.profile}\u0000${entry.context}`;
     if (keys.has(key)) throw new Error(`CONFLICTING_ACTIVE_AUTHORITY:${key}`);

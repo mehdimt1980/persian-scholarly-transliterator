@@ -5,7 +5,7 @@ import { assertAuthorityManifest } from './manifest';
 import { authorizePublication, assertVerifiedPublicationAuthorization, rollbackAuthority, withdrawAuthority,
   type AuthorityPublicationPreview, type VerifiedPublicationAuthorization } from './authorityPublication';
 import type { PublishedAuthoritySnapshot } from '../../domain/authority/types';
-import type { VerifiedReviewSource } from './sourceVerification';
+import type { VerifiedReviewSource, VerifiedDerivedReviewSource } from './sourceVerification';
 
 type Row=Record<string,unknown>;
 const rows=(value:unknown):Row[]=>Array.isArray(value)?value as Row[]:[];
@@ -57,7 +57,7 @@ export class NeonAuthorityRepository {
     const snapshot=result[0].manifest_json as PublishedAuthoritySnapshot;assertAuthorityManifest(snapshot);return snapshot;
   }
   async publish(preview:AuthorityPublicationPreview,authorization:VerifiedPublicationAuthorization,
-    verifiedSource:VerifiedReviewSource,publishedAt:string):Promise<PublishedAuthoritySnapshot>{
+    verifiedSource:VerifiedReviewSource | VerifiedDerivedReviewSource,publishedAt:string):Promise<PublishedAuthoritySnapshot>{
     const {fingerprint,targetSha256}=await this.preflight();assertVerifiedPublicationAuthorization(authorization);
     if(authorization.verification.sha256!==this.environment.expectedAuthorizationSha256||
       authorization.administratorRef!==this.environment.expectedAdministratorRef)
@@ -67,6 +67,20 @@ export class NeonAuthorityRepository {
     const result=authorizePublication(preview,authorization,publishedAt,previous);
     if(!result.event)return previous;
     const e=result.entry,p=e.provenance,event=result.event,snapshot=result.snapshot;
+
+    const derived = verifiedSource.isDerived ? verifiedSource : null;
+    const isDerived = derived !== null;
+    const parentReviewEventId = derived ? derived.parentReviewEventId : p.reviewEventId;
+    const parentCandidateId = derived ? derived.parentCandidateId : p.candidateId;
+    const derivedReviewEventId = derived ? derived.eventId : null;
+    const derivedCandidateId = derived ? derived.derivedCandidateId : null;
+    const derivationType = derived ? derived.derivationType : null;
+    const derivationExplanation = derived ? derived.derivationExplanation : null;
+
+    const hasDerivedColumns = rows(await this.sql.query(`
+      SELECT 1 FROM information_schema.columns WHERE table_name='phase8r_authority_entry' AND column_name='derived_review_event_id'
+    `)).length > 0;
+
     const q=[
       this.sql`SELECT pg_advisory_xact_lock(hashtext('phase8r-authority-publication'))`,
       this.sql`SELECT pg_advisory_xact_lock(hashtext('phase8g-evidence-publication'))`,
@@ -76,36 +90,101 @@ export class NeonAuthorityRepository {
       this.sql`SELECT 1/count(*)::int AS active_guard FROM phase8r_active_authority_snapshot a
         JOIN phase8r_authority_snapshot sn ON sn.snapshot_id=a.snapshot_id
         WHERE a.singleton=true AND a.snapshot_id=${previous.snapshotId} AND sn.manifest_sha256=${previous.manifestSha256}`,
-      // Revalidate source currentness after the publication lock and immediately before mutations.
+      // Revalidate parent source currentness after the publication lock and immediately before mutations.
       this.sql`SELECT 1/count(*)::int AS source_guard FROM phase8o_review_event review
         JOIN evidence_active_snapshot active ON active.singleton=true AND active.snapshot_id=review.active_snapshot_id
         JOIN evidence_snapshot source_snapshot ON source_snapshot.snapshot_id=active.snapshot_id
         JOIN evidence_candidate_projection candidate ON candidate.snapshot_id=active.snapshot_id AND candidate.candidate_id=review.candidate_id
-        WHERE review.event_id=${p.reviewEventId}::uuid AND review.decision_kind='ACCEPT'
+        WHERE review.event_id=${parentReviewEventId}::uuid AND review.decision_kind='ACCEPT'
           AND review.review_basis_sha256=${p.reviewBasisSha256} AND candidate.source_version_id=${p.sourceVersionId}
           AND candidate.content_hash=${verifiedSource.candidateContentHash}
           AND source_snapshot.manifest_checksum=${verifiedSource.verification.activeManifestChecksum}
-          AND review.decision_json->>'eventId'=${p.reviewEventId}
+          AND review.decision_json->>'eventId'=${parentReviewEventId}
           AND review.decision_json->>'basisSha256'=${p.reviewBasisSha256}
           AND review.decision_json->>'kind'='ACCEPT'
           AND NOT EXISTS(SELECT 1 FROM phase8o_review_event later WHERE later.candidate_id=review.candidate_id
             AND (later.decided_at>review.decided_at OR (later.decided_at=review.decided_at AND later.event_id>review.event_id)))`,
+    ];
+
+    if (isDerived && derivedReviewEventId) {
+      q.push(
+        this.sql`SELECT 1/count(*)::int AS derived_guard FROM phase8s_derived_review_event dreview
+          JOIN phase8s_derived_candidate dc ON dc.derived_candidate_id=dreview.derived_candidate_id
+          WHERE dreview.event_id=CAST(${derivedReviewEventId} AS uuid)
+            AND dreview.derived_candidate_id=${derivedCandidateId}
+            AND dreview.decision_kind='ACCEPT'
+            AND dreview.canonical=${e.canonical}
+            AND dreview.profile=${e.profile}
+            AND dreview.authority_context=${e.context}
+            AND dreview.human_attestation IN ('I_PERSONALLY_VERIFIED_THIS_RUNNING_TEXT_IJMES_FORM', 'I_PERSONALLY_VERIFIED_THIS_IJMES_FORM')
+            AND dc.derived_candidate_id=${derivedCandidateId}
+            AND dc.parent_candidate_id=${parentCandidateId}
+            AND dc.parent_review_event_id=CAST(${parentReviewEventId} AS uuid)
+            AND dc.parent_source_version_id=${p.sourceVersionId}
+            AND dc.source_snapshot_id=${p.sourceSnapshotId}
+            AND dc.review_basis_sha256=${p.reviewBasisSha256}
+            AND dc.running_text_persian_surface=${e.persianSurface}
+            AND NOT EXISTS(SELECT 1 FROM phase8s_derived_review_event later WHERE later.derived_candidate_id=dc.derived_candidate_id
+              AND (later.decided_at>dreview.decided_at OR (later.decided_at=dreview.decided_at AND later.event_id>dreview.event_id)))`
+      );
+    }
+
+    q.push(
       this.sql`SELECT 1/count(*)::int AS conflict_guard FROM (SELECT 1) ok WHERE NOT EXISTS(
         SELECT 1 FROM phase8r_authority_entry WHERE normalized_persian=${e.normalizedPersian} AND profile=${e.profile}
-        AND authority_context=${e.context} AND status='ACTIVE' AND canonical<>${e.canonical})`,
-      this.sql`SELECT 1/count(*)::int AS review_reuse_guard FROM (SELECT 1) ok WHERE NOT EXISTS(
-        SELECT 1 FROM phase8r_authority_entry WHERE review_event_id=${p.reviewEventId}::uuid)`,
-      this.sql`INSERT INTO phase8r_authority_entry(entry_id,normalized_persian,persian_surface,canonical,profile,
-        authority_context,version,status,review_event_id,candidate_id,source_snapshot_id,source_version_id,
-        review_basis_sha256,reviewer_ref,reviewed_at,created_at)
-        VALUES(${e.entryId},${e.normalizedPersian},${e.persianSurface},${e.canonical},${e.profile},${e.context},${e.version},
-        'ACTIVE',${p.reviewEventId}::uuid,${p.candidateId},${p.sourceSnapshotId},${p.sourceVersionId},${p.reviewBasisSha256},
-        ${p.reviewerRef},${p.reviewedAt},${p.publishedAt}) ON CONFLICT(entry_id) DO NOTHING`,
-      this.sql`INSERT INTO phase8r_publication_event(event_id,event_kind,entry_id,review_event_id,preview_sha256,
-        administrator_ref,authorization_version,reason,event_json,occurred_at)
-        VALUES(${event.eventId},'PUBLISH',${e.entryId},${p.reviewEventId}::uuid,${sha(JSON.stringify(preview))},
-        ${authorization.administratorRef},${authorization.authorizationVersion},${event.reason},${JSON.stringify(event)}::jsonb,
-        ${event.occurredAt}) ON CONFLICT(event_id) DO NOTHING`,
+        AND authority_context=${e.context} AND status='ACTIVE' AND canonical<>${e.canonical})`
+    );
+
+    if (isDerived && derivedReviewEventId && hasDerivedColumns) {
+      q.push(
+        this.sql`SELECT 1/count(*)::int AS review_reuse_guard FROM (SELECT 1) ok WHERE NOT EXISTS(
+          SELECT 1 FROM phase8r_authority_entry WHERE derived_review_event_id=CAST(${derivedReviewEventId} AS uuid))`
+      );
+    } else {
+      q.push(
+        this.sql`SELECT 1/count(*)::int AS review_reuse_guard FROM (SELECT 1) ok WHERE NOT EXISTS(
+          SELECT 1 FROM phase8r_authority_entry WHERE review_event_id=CAST(${parentReviewEventId} AS uuid))`
+      );
+    }
+
+    if (hasDerivedColumns) {
+      q.push(
+        this.sql`INSERT INTO phase8r_authority_entry(entry_id,normalized_persian,persian_surface,canonical,profile,
+          authority_context,version,status,review_event_id,candidate_id,source_snapshot_id,source_version_id,
+          review_basis_sha256,reviewer_ref,reviewed_at,created_at,
+          derived_review_event_id,derived_candidate_id,derivation_type,derivation_explanation)
+          VALUES(${e.entryId},${e.normalizedPersian},${e.persianSurface},${e.canonical},${e.profile},${e.context},${e.version},
+          'ACTIVE',CAST(${parentReviewEventId} AS uuid),${parentCandidateId},${p.sourceSnapshotId},${p.sourceVersionId},${p.reviewBasisSha256},
+          ${p.reviewerRef},${p.reviewedAt},${p.publishedAt},
+          CAST(${derivedReviewEventId ?? null} AS uuid),${derivedCandidateId},${derivationType},${derivationExplanation})
+          ON CONFLICT(entry_id) DO NOTHING`
+      );
+      q.push(
+        this.sql`INSERT INTO phase8r_publication_event(event_id,event_kind,entry_id,review_event_id,preview_sha256,
+          administrator_ref,authorization_version,reason,event_json,occurred_at,derived_review_event_id)
+          VALUES(${event.eventId},'PUBLISH',${e.entryId},CAST(${parentReviewEventId} AS uuid),${sha(JSON.stringify(preview))},
+          ${authorization.administratorRef},${authorization.authorizationVersion},${event.reason},${JSON.stringify(event)}::jsonb,
+          ${event.occurredAt},CAST(${derivedReviewEventId ?? null} AS uuid)) ON CONFLICT(event_id) DO NOTHING`
+      );
+    } else {
+      q.push(
+        this.sql`INSERT INTO phase8r_authority_entry(entry_id,normalized_persian,persian_surface,canonical,profile,
+          authority_context,version,status,review_event_id,candidate_id,source_snapshot_id,source_version_id,
+          review_basis_sha256,reviewer_ref,reviewed_at,created_at)
+          VALUES(${e.entryId},${e.normalizedPersian},${e.persianSurface},${e.canonical},${e.profile},${e.context},${e.version},
+          'ACTIVE',CAST(${p.reviewEventId} AS uuid),${p.candidateId},${p.sourceSnapshotId},${p.sourceVersionId},${p.reviewBasisSha256},
+          ${p.reviewerRef},${p.reviewedAt},${p.publishedAt}) ON CONFLICT(entry_id) DO NOTHING`
+      );
+      q.push(
+        this.sql`INSERT INTO phase8r_publication_event(event_id,event_kind,entry_id,review_event_id,preview_sha256,
+          administrator_ref,authorization_version,reason,event_json,occurred_at)
+          VALUES(${event.eventId},'PUBLISH',${e.entryId},CAST(${p.reviewEventId} AS uuid),${sha(JSON.stringify(preview))},
+          ${authorization.administratorRef},${authorization.authorizationVersion},${event.reason},${JSON.stringify(event)}::jsonb,
+          ${event.occurredAt}) ON CONFLICT(event_id) DO NOTHING`
+      );
+    }
+
+    q.push(
       this.sql`INSERT INTO phase8r_authority_snapshot(snapshot_id,version,manifest_sha256,manifest_json,status,created_at,activated_at)
         VALUES(${snapshot.snapshotId},${snapshot.version},${snapshot.manifestSha256},${JSON.stringify(snapshot)}::jsonb,
         'DRAFT',${snapshot.generatedAt},NULL)`,
@@ -114,8 +193,9 @@ export class NeonAuthorityRepository {
         AND sn.manifest_sha256=${snapshot.manifestSha256} AND (SELECT count(*) FROM phase8r_snapshot_entry se WHERE se.snapshot_id=sn.snapshot_id)=${snapshot.entries.length}`,
       this.sql`UPDATE phase8r_authority_snapshot SET status='RETIRED' WHERE snapshot_id=${previous.snapshotId} AND status='ACTIVE'`,
       this.sql`UPDATE phase8r_authority_snapshot SET status='ACTIVE',activated_at=${publishedAt} WHERE snapshot_id=${snapshot.snapshotId} AND status='DRAFT'`,
-      this.sql`UPDATE phase8r_active_authority_snapshot SET snapshot_id=${snapshot.snapshotId} WHERE singleton=true AND snapshot_id=${previous.snapshotId}`,
-    ];
+      this.sql`UPDATE phase8r_active_authority_snapshot SET snapshot_id=${snapshot.snapshotId} WHERE singleton=true AND snapshot_id=${previous.snapshotId}`
+    );
+
     try{await this.sql.transaction(q,{isolationLevel:'Serializable'});}catch(error){
       const concurrent=await this.readActiveSnapshot().catch(()=>null);
       if(concurrent?.entries.some(entry=>entry.entryId===e.entryId))return concurrent;

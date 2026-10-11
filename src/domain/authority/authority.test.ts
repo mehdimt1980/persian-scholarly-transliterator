@@ -48,6 +48,16 @@ function published() {
 }
 
 describe('Phase 8R authority boundary',()=>{
+  it('rejects inverted Persian catalogue-name evidence despite an ordering attestation',()=>{
+    const inverted={...review,persianSurface:'نصیری، محمدرضا',canonical:'Naṣīrī, Muḥammad Riḍā'};
+    const intent={reviewEventId:inverted.eventId,expectedReviewBasisSha256:inverted.reviewBasisSha256,
+      expectedSourceSnapshotId:inverted.activeSnapshotId,context:'PERSON_NAME' as const,
+      publicationReason:'First controlled personal-name publication',
+      personalNameOrderingAttestation:'RUNNING_TEXT_ORDER_VERIFIED' as const};
+    expect(()=>prepareAuthorityPublication(inverted,intent,inverted.activeSnapshotId,[]))
+      .toThrow('CATALOGUE_INVERTED_NAME_NOT_PUBLISHABLE_AS_RUNNING_TEXT');
+  });
+
   it('ships a hash-valid empty snapshot and publishes no real authority entries',()=>{
     expect(()=>assertAuthorityManifest(PUBLISHED_AUTHORITY_SNAPSHOT)).not.toThrow();
     expect(PUBLISHED_AUTHORITY_SNAPSHOT.entries).toEqual([]);

@@ -4,6 +4,7 @@ import type {ReviewQueueData} from '../../server/review/reviewStore';
 import styles from './review.module.css';
 import {PRIMARY_REVIEWER_REF,proposeEvidenceRationale,suggestedIjmesProfile} from '../../server/review/reviewAssistance';
 import type {LexicalCandidateCategory} from '../../validation/lexical-evidence/types';
+import type {AuthorityContext, DerivationType, DerivedReviewRecord} from '../../domain/authority/types';
 
 type Filter='ALL'|'EDITORIAL'|'SPECIALIST'|'FAST'|'NEW';
 type StatusFilter='ALL'|'PENDING'|'DRAFT'|'ACCEPT'|'REJECT'|'DEFER';
@@ -52,6 +53,19 @@ export default function ReviewWorkbench(){
   const [rationale,setRationale]=useState('');
   const [attest,setAttest]=useState(false);
 
+  // Phase 8S: Derived authority state
+  const [derivedRecords,setDerivedRecords]=useState<DerivedReviewRecord[]>([]);
+  const [derivedPersian,setDerivedPersian]=useState('');
+  const [derivedCanonical,setDerivedCanonical]=useState('');
+  const [derivedProfile,setDerivedProfile]=useState<'ijmes_full'|'ijmes_title'>('ijmes_full');
+  const [derivedContext,setDerivedContext]=useState<AuthorityContext>('PERSON_NAME');
+  const [derivedType,setDerivedType]=useState<DerivationType>('RUNNING_TEXT_SURFACE');
+  const [derivedExplanation,setDerivedExplanation]=useState('');
+  const [derivedAttest,setDerivedAttest]=useState(false);
+  const [derivedBusy,setDerivedBusy]=useState(false);
+  const [derivedError,setDerivedError]=useState<string|null>(null);
+  const [derivedNotice,setDerivedNotice]=useState<string|null>(null);
+
   const reload=useCallback(async(nextPage=1,nextGroup:Filter='ALL',nextStatus:StatusFilter='ALL',nextSearch='')=>{
     const qp=new URLSearchParams({page:String(nextPage),pageSize:'25',group:nextGroup,status:nextStatus,search:nextSearch});
     const data=await jsonFetch('/api/scholarly-review/queue?'+qp.toString()) as ReviewQueueData;
@@ -91,12 +105,44 @@ export default function ReviewWorkbench(){
     rationaleVersionRef.current++;
     setAttest(false);
     setNotice(null);
+
+    // Fetch Phase 8S derived records if available
+    let active=true;
+    (async()=>{
+      try{
+        const res=await jsonFetch(`/api/scholarly-review/derived?candidateId=${selected.candidateId}`) as {items:DerivedReviewRecord[]};
+        if(!active)return;
+        setDerivedRecords(res.items??[]);
+        if(res.items&&res.items.length>0){
+          const latest=res.items[res.items.length-1];
+          setDerivedPersian(latest.runningTextPersianSurface);
+          setDerivedCanonical(latest.lastEvent?.canonical??'');
+          setDerivedProfile(latest.lastEvent?.profile==='ijmes_citation_title'?'ijmes_title':'ijmes_full');
+          setDerivedContext(latest.lastEvent?.authorityContext??'PERSON_NAME');
+          setDerivedType(latest.derivationType);
+          setDerivedExplanation(latest.lastEvent?.rationale??latest.derivationExplanation);
+        }else{
+          setDerivedPersian('');
+          setDerivedCanonical('');
+          setDerivedProfile('ijmes_full');
+          setDerivedContext(selected.category==='PERSON_NAME'?'PERSON_NAME':'GENERAL_SCHOLARLY_TEXT');
+          setDerivedType('RUNNING_TEXT_SURFACE');
+          setDerivedExplanation('');
+        }
+        setDerivedAttest(false);
+        setDerivedError(null);
+        setDerivedNotice(null);
+      }catch{
+        if(active)setDerivedRecords([]);
+      }
+    })();
+    return ()=>{active=false;};
   },[selected]);
+
   function changedProposal(nextCanonical:string,nextProfile:'ijmes_full'|'ijmes_title'){
     setCanonical(nextCanonical);setProfile(nextProfile);setAttest(false);
     setAiCanonical(null);setAiWarnings([]);
     rationaleVersionRef.current++;
-    // A rationale generated for another spelling/profile is stale; never leave it as current AI advice.
     if(selected&&(rationaleSource==='TEMPLATE'||rationaleSource==='AI')){
       setRationale(proposeEvidenceRationale({
         candidateId:selected.candidateId,persian:selected.persian,
@@ -165,7 +211,6 @@ export default function ReviewWorkbench(){
         method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({
           candidateId:selected.candidateId,basisSha256:selected.basisSha256,kind,
-          // Sole reviewer ID is set by the authenticated server; client cannot impersonate it.
           canonical:kind==='REJECT'||kind==='DEFER'?null:canonical||null,
           profile:kind==='ACCEPT'?profile:null,
           rationale:rationale||null,
@@ -177,6 +222,43 @@ export default function ReviewWorkbench(){
         'Human review decision recorded. No IJMES authority was published.');
     }catch(e){setError(e instanceof Error?e.message:'Review submission failed');}
     finally{setBusy(false);}
+  }
+
+  async function saveDerived(kind:Submission){
+    if(!selected||derivedBusy)return;
+    if(!selected.lastEvent||selected.lastEvent.kind!=='ACCEPT'){
+      setDerivedError('Parent source candidate must be in ACCEPT status before deriving running-text authority.');
+      return;
+    }
+    if(kind==='ACCEPT'&&!derivedAttest){
+      setDerivedError('You must personally attest to the running-text Persian form and IJMES transliteration.');
+      return;
+    }
+    setDerivedBusy(true);setDerivedError(null);setDerivedNotice(null);
+    try{
+      await jsonFetch('/api/scholarly-review/derived',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          parentCandidateId:selected.candidateId,
+          parentReviewEventId:selected.lastEvent.eventId,
+          runningTextPersianSurface:derivedPersian,
+          derivationType:derivedType,
+          derivationExplanation:derivedExplanation,
+          kind,
+          canonical:kind==='REJECT'||kind==='DEFER'?null:derivedCanonical||null,
+          profile:kind==='ACCEPT'?derivedProfile:null,
+          authorityContext:derivedContext,
+          rationale:derivedExplanation||null,
+          humanAttestation:kind==='ACCEPT'?'I_PERSONALLY_VERIFIED_THIS_RUNNING_TEXT_IJMES_FORM':null,
+        }),
+      });
+      const res=await jsonFetch(`/api/scholarly-review/derived?candidateId=${selected.candidateId}`) as {items:DerivedReviewRecord[]};
+      setDerivedRecords(res.items??[]);
+      setDerivedNotice(kind==='DRAFT'?'Derived authority draft saved.':
+        kind==='ACCEPT'?'Derived running-text authority accepted. Status: ACCEPTED — NOT PUBLISHED.':
+        `Derived authority decision ${kind} recorded.`);
+    }catch(e){setDerivedError(e instanceof Error?e.message:'Derived review submission failed');}
+    finally{setDerivedBusy(false);}
   }
 
   if(auth==='loading')return <section className={styles.center}><div className={styles.loading}>Checking reviewer access…</div></section>;
@@ -203,9 +285,9 @@ export default function ReviewWorkbench(){
 
   return <section className={styles.workbench}>
     <div className={styles.heading}>
-      <div><span className={styles.eyebrow}>PHASE 8Q / HUMAN-GOVERNED EDITORIAL WORKFLOW</span>
+      <div><span className={styles.eyebrow}>PHASE 8S / HUMAN-GOVERNED DERIVED SCHOLARLY WORKFLOW</span>
       <h1>Scholarly Review</h1>
-      <p>Review BSB evidence against IJMES. Drafts remain drafts until you explicitly verify them.</p></div>
+      <p>Review BSB evidence against IJMES. Catalogue forms and derived running-text authorities remain distinct with full provenance.</p></div>
       <button onClick={logout} className={styles.signout}>Sign out</button>
     </div>
     {error&&<div role="alert" className={styles.error}>{error}</div>}
@@ -254,13 +336,24 @@ export default function ReviewWorkbench(){
         </aside>
         <article className={styles.editor}>
           {selected?<div>
-            <div className={styles.caseHeader}><div>
-              <span className={styles.eyebrow}>CURRENT RECORD / {selected.queue==='FAST'?'QUICK CHECK':selected.queue==='EDITORIAL'?'EDITORIAL DRAFT':selected.queue==='NEW'?'NEW EVIDENCE':'SPECIALIST REVIEW'}</span>
-              <h2 lang="fa" dir="rtl" className={styles.persianTitle}>{selected.persian}</h2>
-              <p className={styles.caseId}>{selected.candidateId}</p>
-              </div><span className={styles.statusBadge}>{selected.publicationStatus==='PUBLISHED'?'PUBLISHED':
-                selected.publicationStatus==='WITHDRAWN_OR_SUPERSEDED'?'WITHDRAWN / SUPERSEDED':
-                selected.lastEvent?.kind==='ACCEPT'?'ACCEPTED — NOT PUBLISHED':selected.lastEvent?.kind??'PENDING'}</span></div>
+            <div className={styles.caseHeader}>
+              <div>
+                <span className={styles.eyebrow}>CURRENT RECORD / {selected.queue==='FAST'?'QUICK CHECK':selected.queue==='EDITORIAL'?'EDITORIAL DRAFT':selected.queue==='NEW'?'NEW EVIDENCE':'SPECIALIST REVIEW'}</span>
+                <h2 lang="fa" dir="rtl" className={styles.persianTitle}>{selected.persian}</h2>
+                <p className={styles.caseId}>{selected.candidateId}</p>
+              </div>
+              <div style={{display:'flex',flexDirection:'column',gap:'6px',alignItems:'flex-end'}}>
+                <span className={styles.badgeSource}>SOURCE EVIDENCE — NON-AUTHORITATIVE</span>
+                <span className={
+                  selected.publicationStatus==='PUBLISHED'?styles.badgePublished:
+                  selected.lastEvent?.kind==='ACCEPT'?styles.badgeAccepted:styles.statusBadge
+                }>
+                  {selected.publicationStatus==='PUBLISHED'?'PUBLISHED SCHOLARLY AUTHORITY':
+                   selected.publicationStatus==='WITHDRAWN_OR_SUPERSEDED'?'WITHDRAWN / SUPERSEDED':
+                   selected.lastEvent?.kind==='ACCEPT'?'ACCEPTED — NOT PUBLISHED':selected.lastEvent?.kind??'PENDING'}
+                </span>
+              </div>
+            </div>
             <div className={styles.evidenceGrid}>
               <div className={styles.evidencePanel}>
                 <h3>Observed catalogue evidence <small>not IJMES authority</small></h3>
@@ -325,6 +418,145 @@ export default function ReviewWorkbench(){
                 {selected.lastEvent.reviewerRef?' · '+selected.lastEvent.reviewerRef:''}
                 {selected.lastEvent.reviewedAt?' · '+selected.lastEvent.reviewedAt:''}. Earlier versions remain in the append-only audit ledger.</p>}
             </section>
+
+            {selected.lastEvent?.kind==='ACCEPT'&&(
+              <section className={styles.derivedSection}>
+                <div className={styles.formHeading}>
+                  <div>
+                    <span className={styles.badgeReviewRequired}>DERIVED AUTHORITY — REVIEW REQUIRED</span>
+                    <h3>Derived running-text authority</h3>
+                  </div>
+                  {derivedRecords.length>0&&derivedRecords[derivedRecords.length-1].lastEvent&&(
+                    <span className={
+                      derivedRecords[derivedRecords.length-1].publicationStatus==='PUBLISHED'?styles.badgePublished:
+                      derivedRecords[derivedRecords.length-1].decisionStatus==='ACCEPT'?styles.badgeAccepted:styles.statusBadge
+                    }>
+                      {derivedRecords[derivedRecords.length-1].publicationStatus==='PUBLISHED'?'PUBLISHED SCHOLARLY AUTHORITY':
+                       derivedRecords[derivedRecords.length-1].decisionStatus==='ACCEPT'?'ACCEPTED — NOT PUBLISHED':
+                       derivedRecords[derivedRecords.length-1].decisionStatus}
+                    </span>
+                  )}
+                </div>
+                <p className={styles.draftHint}>
+                  Derive a running-text authority from this accepted catalogue record (e.g., converting catalogue surname-first to direct name order).
+                  The catalogue form remains unchanged in Layer A.
+                </p>
+                {derivedError&&<div role="alert" className={styles.error}>{derivedError}</div>}
+                {derivedNotice&&<div role="status" className={styles.notice}>{derivedNotice}</div>}
+
+                <div className={styles.provenanceBox}>
+                  <div><strong>Parent Candidate:</strong> {selected.candidateId}</div>
+                  <div><strong>Parent ACCEPT Event:</strong> {selected.lastEvent.eventId}</div>
+                  <div><strong>Original Catalogue Form:</strong> {selected.persian}</div>
+                  <div><strong>Parent Canonical:</strong> {selected.lastEvent.canonical}</div>
+                </div>
+
+                <label className={styles.label} htmlFor="derived-persian">Proposed running-text Persian surface</label>
+                <input
+                  className={styles.input}
+                  id="derived-persian"
+                  lang="fa"
+                  dir="rtl"
+                  value={derivedPersian}
+                  onChange={e=>setDerivedPersian(e.target.value)}
+                  placeholder="e.g. محمدرضا نصیری (running text without catalogue comma)"
+                />
+
+                <label className={styles.label} htmlFor="derived-canonical" style={{marginTop:'14px'}}>
+                  Proposed scholarly transliteration
+                </label>
+                <input
+                  className={styles.input}
+                  id="derived-canonical"
+                  value={derivedCanonical}
+                  onChange={e=>setDerivedCanonical(e.target.value)}
+                  placeholder="e.g. Muḥammad Riḍā Naṣīrī (scientifically approved transliteration)"
+                />
+
+                <div className={styles.twoFields}>
+                  <div>
+                    <label className={styles.label} htmlFor="derived-profile">Transliteration profile</label>
+                    <select
+                      className={styles.select}
+                      id="derived-profile"
+                      value={derivedProfile}
+                      onChange={e=>setDerivedProfile(e.target.value as typeof derivedProfile)}
+                    >
+                      <option value="ijmes_full">IJMES full scholarly</option>
+                      <option value="ijmes_title">IJMES titles and proper names</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={styles.label} htmlFor="derived-context">Semantic context</label>
+                    <select
+                      className={styles.select}
+                      id="derived-context"
+                      value={derivedContext}
+                      onChange={e=>setDerivedContext(e.target.value as typeof derivedContext)}
+                    >
+                      <option value="PERSON_NAME">PERSON_NAME</option>
+                      <option value="BOOK_OR_ARTICLE_TITLE">BOOK_OR_ARTICLE_TITLE</option>
+                      <option value="GENERAL_SCHOLARLY_TEXT">GENERAL_SCHOLARLY_TEXT</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className={styles.twoFields}>
+                  <div>
+                    <label className={styles.label} htmlFor="derived-type">Derivation type</label>
+                    <select
+                      className={styles.select}
+                      id="derived-type"
+                      value={derivedType}
+                      onChange={e=>setDerivedType(e.target.value as typeof derivedType)}
+                    >
+                      <option value="RUNNING_TEXT_SURFACE">RUNNING_TEXT_SURFACE</option>
+                      <option value="CATALOGUE_INVERSION_NORMALIZED">CATALOGUE_INVERSION_NORMALIZED</option>
+                      <option value="TITULAR_RUNNING_TEXT">TITULAR_RUNNING_TEXT</option>
+                      <option value="OTHER_SCHOLARLY_DERIVATION">OTHER_SCHOLARLY_DERIVATION</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={styles.label} htmlFor="derived-reviewer">Reviewer reference</label>
+                    <input className={styles.input} id="derived-reviewer" value={PRIMARY_REVIEWER_REF} readOnly />
+                  </div>
+                </div>
+
+                <label className={styles.label} htmlFor="derived-explanation">Derivation explanation & scholarly justification</label>
+                <textarea
+                  className={styles.textarea}
+                  id="derived-explanation"
+                  rows={3}
+                  value={derivedExplanation}
+                  onChange={e=>setDerivedExplanation(e.target.value)}
+                  placeholder="Document why this running-text form and canonical transliteration are justified from the parent evidence"
+                />
+
+                <label className={styles.checkbox}>
+                  <input
+                    type="checkbox"
+                    checked={derivedAttest}
+                    onChange={e=>setDerivedAttest(e.target.checked)}
+                  />
+                  I personally verified this running-text Persian form and scholarly transliteration against the source evidence and editorial rules.
+                </label>
+
+                <div className={styles.actions}>
+                  <button disabled={derivedBusy} className={styles.secondary} onClick={()=>void saveDerived('DRAFT')}>
+                    Save derived draft
+                  </button>
+                  <button disabled={derivedBusy} className={styles.primary} onClick={()=>void saveDerived('ACCEPT')}>
+                    Accept derived authority
+                  </button>
+                  <button disabled={derivedBusy} className={styles.secondary} onClick={()=>void saveDerived('DEFER')}>
+                    Defer derived
+                  </button>
+                  <button disabled={derivedBusy} className={styles.danger} onClick={()=>void saveDerived('REJECT')}>
+                    Reject derived
+                  </button>
+                </div>
+              </section>
+            )}
           </div>:<p>Select a candidate to start review.</p>}
         </article>
       </div>

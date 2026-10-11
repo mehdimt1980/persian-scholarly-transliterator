@@ -3,6 +3,48 @@ import type { ProfileId } from '../types';
 export type AuthorityContext = 'GENERAL_SCHOLARLY_TEXT' | 'BOOK_OR_ARTICLE_TITLE' | 'PERSON_NAME';
 export type AuthorityEntryStatus = 'ACTIVE' | 'WITHDRAWN' | 'SUPERSEDED';
 
+export type DerivationType =
+  | 'RUNNING_TEXT_SURFACE'
+  | 'CATALOGUE_INVERSION_NORMALIZED'
+  | 'TITULAR_RUNNING_TEXT'
+  | 'OTHER_SCHOLARLY_DERIVATION';
+
+export type DerivedDecisionKind = 'DRAFT' | 'ACCEPT' | 'REJECT' | 'DEFER';
+
+export interface DerivedCandidate {
+  derivedCandidateId: string;
+  parentCandidateId: string;
+  parentSourceVersionId: string;
+  parentReviewEventId: string;
+  sourceSnapshotId: string;
+  reviewBasisSha256: string;
+  originalPersianSurface: string;
+  runningTextPersianSurface: string;
+  derivationType: DerivationType;
+  derivationExplanation: string;
+  createdAt: string;
+  createdBy: string;
+}
+
+export interface DerivedReviewEvent {
+  eventId: string;
+  derivedCandidateId: string;
+  decisionKind: DerivedDecisionKind;
+  canonical: string | null;
+  profile: ProfileId | null;
+  authorityContext: AuthorityContext;
+  reviewerRef: string;
+  rationale: string | null;
+  humanAttestation: string | null;
+  decidedAt: string;
+}
+
+export interface DerivedReviewRecord extends DerivedCandidate {
+  lastEvent: DerivedReviewEvent | null;
+  decisionStatus: DerivedDecisionKind | 'PENDING';
+  publicationStatus: 'NOT_PUBLISHED' | 'PUBLISHED' | 'WITHDRAWN_OR_SUPERSEDED';
+}
+
 export interface PublishedAuthorityProvenance {
   reviewEventId: string;
   candidateId: string;
@@ -13,6 +55,14 @@ export interface PublishedAuthorityProvenance {
   reviewedAt: string;
   publicationEventId: string;
   publishedAt: string;
+  derivedCandidateId?: string;
+  derivedReviewEventId?: string;
+  derivationType?: string;
+  derivationExplanation?: string;
+  parentCandidateId?: string;
+  parentSourceVersionId?: string;
+  parentReviewEventId?: string;
+  parentReviewBasisSha256?: string;
 }
 
 export interface PublishedAuthorityEntry {
