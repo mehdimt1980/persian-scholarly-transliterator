@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { sha256 } from '../../validation/acquisition/cinii/identity';
 import { neon } from '@neondatabase/serverless';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { databaseIdentityFingerprint } from '../evidence-store/guard';
@@ -119,7 +120,7 @@ suite('Phase 8R isolated Neon publication integration',()=>{
 });
 
 suite('Phase 8S Derived Authority isolated Neon integration', () => {
-  const parentCandidateId = 'lex-phase8s-parent-nasiri';
+  const parentCandidateId = 'lex-8f03c14482a7a9082f16';
   const parentRecordId = 'bsb-phase8s-rec-001';
   const parentRaw = 'c'.repeat(64);
   const parentVersion = `BSB_SRU_MARCXML:${parentRecordId}:${'d'.repeat(64)}`;
@@ -158,7 +159,7 @@ suite('Phase 8S Derived Authority isolated Neon integration', () => {
     // Setup authentic parent candidate projection for personal name catalogue record
     const xml = fs.readFileSync(path.resolve(process.cwd(), 'validation/acquisition/bsb/authentic-selected-records.v1.xml'), 'utf8');
     const baseCandidate = parseMarcCollection(xml).flatMap(adaptBsbRecord)[0];
-    const parentCandidate = {
+    const parentCandidateFields = {
       ...baseCandidate,
       candidateId: parentCandidateId,
       originalPersianForm: originalCatalogueSurface,
@@ -166,6 +167,8 @@ suite('Phase 8S Derived Authority isolated Neon integration', () => {
       category: 'PERSON_NAME' as const,
       sourceRecordIds: [parentRecordId]
     };
+    // Fixtures must satisfy the same candidate identity and integrity contracts as production evidence.
+    const parentCandidate = { ...parentCandidateFields, contentHash: sha256({ ...parentCandidateFields, contentHash: undefined }) };
 
     const built = buildSnapshot([{ snapshotId: '', sourceVersionId: parentVersion, candidate: parentCandidate }],
       'phase8g-snapshot-v1', 'phase8f-bsb-v1', now);
