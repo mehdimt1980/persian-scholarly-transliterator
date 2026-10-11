@@ -28,7 +28,8 @@ export type ReviewEvent={eventId:string;candidateId:string;basisSha256:string;ki
   rationale:string|null;reviewedAt:string|null;humanAttestation:string|null};
 export type ReviewCard={candidateId:string;basisSha256:string;persian:string;category:string;sourceRecordId:string;
   sourceUrl:string;variants:Array<{value:string;classification:string;sourceField:string}>;
-  providerFields:string[];queue:QueueGroup;draft:string;lastEvent:ReviewEvent|null};
+  providerFields:string[];queue:QueueGroup;draft:string;lastEvent:ReviewEvent|null;
+  publicationStatus:'NOT_PUBLISHED'|'PUBLISHED'|'WITHDRAWN_OR_SUPERSEDED'};
 export type ReviewQueueData={
   snapshotId:string;manifestChecksum:string;items:ReviewCard[];total:number;
   page:number;pageSize:number;pageCount:number;filteredTotal:number;
@@ -128,6 +129,14 @@ export async function loadReviewQueue(params:ReviewQuery={}):Promise<ReviewQueue
     SELECT candidate_id,source_version_id,candidate_json,content_hash,decision_json
     FROM filtered ORDER BY candidate_id,source_version_id LIMIT $7 OFFSET $8
   `,[...bind,q.pageSize,offset]));
+  const authorityTable=rows(await sql.query("SELECT to_regclass('phase8r_authority_entry') AS relation"))[0]?.relation;
+  const publicationRows=pageRows.length&&authorityTable?rows(await sql.query(`
+      SELECT candidate_id,status FROM phase8r_authority_entry
+      WHERE candidate_id=ANY($1::text[]) ORDER BY version DESC
+    `,[pageRows.map(row=>s(row.candidate_id))])):[];
+  const publicationByCandidate=new Map<string,string>();
+  for(const row of publicationRows)if(!publicationByCandidate.has(s(row.candidate_id)))
+    publicationByCandidate.set(s(row.candidate_id),s(row.status));
   const items:ReviewCard[]=pageRows.map(r=>{
     const c=lexicalCandidateSchema.parse(r.candidate_json) as LexicalCandidate;
     assertCandidateContentHash(c);
@@ -144,7 +153,9 @@ export async function loadReviewQueue(params:ReviewQuery={}):Promise<ReviewQueue
       category:c.category,sourceRecordId:c.sourceRecordIds[0],sourceUrl:c.sourceUrls[0]??'',
       variants:c.observedLatinVariants.map(v=>({value:v.value,classification:v.classification,sourceField:v.sourceField})),
       providerFields:(c.providerEvidence??[]).map(v=>v.sourceField+' · '+v.relationship),
-      queue:category.queue,draft:category.draft,lastEvent:event};
+      queue:category.queue,draft:category.draft,lastEvent:event,
+      publicationStatus:publicationByCandidate.get(c.candidateId)==='ACTIVE'?'PUBLISHED':
+        publicationByCandidate.has(c.candidateId)?'WITHDRAWN_OR_SUPERSEDED':'NOT_PUBLISHED'};
   });
   const after=await assertStaging(sql);
   if(after.snapshotId!==meta.snapshotId||after.manifestChecksum!==meta.manifestChecksum)throw new Error('Active snapshot changed mid-query');

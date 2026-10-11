@@ -1,6 +1,6 @@
 'use client';
 import {useCallback,useEffect,useMemo,useRef,useState,type FormEvent} from 'react';
-import type {ReviewCard,ReviewQueueData} from '../../server/review/reviewStore';
+import type {ReviewQueueData} from '../../server/review/reviewStore';
 import styles from './review.module.css';
 import {PRIMARY_REVIEWER_REF,proposeEvidenceRationale,suggestedIjmesProfile} from '../../server/review/reviewAssistance';
 import type {LexicalCandidateCategory} from '../../validation/lexical-evidence/types';
@@ -242,7 +242,9 @@ export default function ReviewWorkbench(){
               className={selectedId===item.candidateId?styles.queueActive:styles.queueItem}
               onClick={()=>setSelectedId(item.candidateId)}>
               <span lang="fa" dir="rtl" className={styles.persianSmall}>{item.persian}</span>
-              <span className={styles.queueMeta}>{item.category.replaceAll('_',' ').toLowerCase()} · {item.lastEvent?.kind??'PENDING'}</span>
+              <span className={styles.queueMeta}>{item.category.replaceAll('_',' ').toLowerCase()} · {
+                item.publicationStatus==='PUBLISHED'?'PUBLISHED':item.publicationStatus==='WITHDRAWN_OR_SUPERSEDED'?'WITHDRAWN / SUPERSEDED':
+                item.lastEvent?.kind==='ACCEPT'?'ACCEPTED — NOT PUBLISHED':item.lastEvent?.kind??'PENDING'}</span>
             </button>)}
           </div>
           <div className={styles.pagination}><p className={styles.small}>Page {page} / {Math.max(1,queue.pageCount)} · {queue.filteredTotal} matches</p>
@@ -256,7 +258,9 @@ export default function ReviewWorkbench(){
               <span className={styles.eyebrow}>CURRENT RECORD / {selected.queue==='FAST'?'QUICK CHECK':selected.queue==='EDITORIAL'?'EDITORIAL DRAFT':selected.queue==='NEW'?'NEW EVIDENCE':'SPECIALIST REVIEW'}</span>
               <h2 lang="fa" dir="rtl" className={styles.persianTitle}>{selected.persian}</h2>
               <p className={styles.caseId}>{selected.candidateId}</p>
-              </div><span className={styles.statusBadge}>{selected.lastEvent?.kind??'PENDING'}</span></div>
+              </div><span className={styles.statusBadge}>{selected.publicationStatus==='PUBLISHED'?'PUBLISHED':
+                selected.publicationStatus==='WITHDRAWN_OR_SUPERSEDED'?'WITHDRAWN / SUPERSEDED':
+                selected.lastEvent?.kind==='ACCEPT'?'ACCEPTED — NOT PUBLISHED':selected.lastEvent?.kind??'PENDING'}</span></div>
             <div className={styles.evidenceGrid}>
               <div className={styles.evidencePanel}>
                 <h3>Observed catalogue evidence <small>not IJMES authority</small></h3>
