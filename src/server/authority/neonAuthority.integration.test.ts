@@ -174,7 +174,12 @@ suite('Phase 8S Derived Authority isolated Neon integration', () => {
     await admin.query(`INSERT INTO evidence_acquisition_run VALUES($1,'BSB_SRU_MARCXML','[]',0,1,'COMPLETE',$2,$2,NULL) ON CONFLICT DO NOTHING`, ['phase8s-test-run', now]);
     await admin.query(`INSERT INTO evidence_raw_source VALUES($1,'BSB_SRU_MARCXML','phase8s-test.xml',1,'application/marcxml+xml',$2,'https://example.invalid/license','phase8s-test-run') ON CONFLICT DO NOTHING`, [parentRaw, now]);
     await admin.query(`INSERT INTO evidence_record_version VALUES($1,'BSB_SRU_MARCXML',$2,$3,$4,'{}','[]',$5,$5,true) ON CONFLICT DO NOTHING`, [parentVersion, parentRecordId, 'd'.repeat(64), parentRaw, now]);
-    await admin.query(`INSERT INTO evidence_snapshot VALUES($1,'phase8g-snapshot-v1','phase8f-bsb-v1',$2,1,$3,$4,'ACTIVE',$5,$5) ON CONFLICT DO NOTHING`, [s8SnapshotId, JSON.stringify([parentVersion]), manifestChecksum, JSON.stringify(built.snapshot.manifest), now]);
+    // Only one ACTIVE Phase 8G snapshot is allowed by evidence_one_active_phase8g_snapshot.
+    // Retire the prior Phase 8R fixture snapshot; retain its immutable history.
+    await admin.query("UPDATE evidence_snapshot SET status='RETIRED' WHERE status='ACTIVE' AND schema_version='phase8g-snapshot-v1'");
+    await admin.query(`INSERT INTO evidence_snapshot VALUES($1,'phase8g-snapshot-v1','phase8f-bsb-v1',$2,1,$3,$4,'ACTIVE',$5,$5)`, [s8SnapshotId, JSON.stringify([parentVersion]), manifestChecksum, JSON.stringify(built.snapshot.manifest), now]);
+    const inserted = await admin.query('SELECT snapshot_id FROM evidence_snapshot WHERE snapshot_id=$1 AND status=$2', [s8SnapshotId, 'ACTIVE']) as Array<{snapshot_id:string}>;
+    expect(inserted).toHaveLength(1);
     await admin.query(`INSERT INTO evidence_candidate_projection VALUES($1,$2,$3,'BSB_SRU_MARCXML',$4,$5,$6,$7,$8,'UNREVIEWED','NON_AUTHORITATIVE_CANDIDATE') ON CONFLICT DO NOTHING`,
       [s8SnapshotId, parentCandidate.candidateId, parentVersion, parentCandidate.originalPersianForm, parentCandidate.normalizedSearchForm, parentCandidate.category, JSON.stringify(parentCandidate), parentCandidate.contentHash]);
     await admin.query(`INSERT INTO evidence_active_snapshot VALUES(true,$1) ON CONFLICT(singleton) DO UPDATE SET snapshot_id=excluded.snapshot_id`, [s8SnapshotId]);
