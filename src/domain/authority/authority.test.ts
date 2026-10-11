@@ -26,6 +26,17 @@ const review: VerifiedReviewSource = {
 const emptyBase={schemaVersion:'phase8r-authority-snapshot-v1' as const,snapshotId:'empty-authority-v1',
   version:1,generatedAt:'2026-10-10T09:00:00.000Z',entries:[]};
 const empty:PublishedAuthoritySnapshot={...emptyBase,manifestSha256:authorityManifestSha256(emptyBase)};
+it('authority manifest survives PostgreSQL jsonb object-key reordering',()=>{
+  const source={...empty, entries:[]};
+  const shuffled=JSON.parse(JSON.stringify(source)) as PublishedAuthoritySnapshot;
+  const reordered={entries:shuffled.entries,generatedAt:shuffled.generatedAt,
+    snapshotId:shuffled.snapshotId,schemaVersion:shuffled.schemaVersion,
+    version:shuffled.version,manifestSha256:shuffled.manifestSha256};
+  assertAuthorityManifest(reordered);
+  const {manifestSha256,...base}=reordered;
+  expect(authorityManifestSha256(base)).toBe(manifestSha256);
+});
+
 const auth:PublicationAuthorization={administratorRef:'publisher:separate-role',authorizedAt:'2026-10-10T11:00:00.000Z',
   scope:'PHASE8R_AUTHORITY_PUBLICATION',authorizationVersion:'1'};
 
