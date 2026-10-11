@@ -60,6 +60,10 @@ export function prepareAuthorityPublication(review: VerifiedReviewSource, reques
   if (!normalizedPersian || !request.publicationReason.trim()) throw new Error('INVALID_PUBLICATION_REQUEST');
   if (request.context === 'PERSON_NAME' && request.personalNameOrderingAttestation !== 'RUNNING_TEXT_ORDER_VERIFIED')
     throw new Error('PERSON_NAME_ORDERING_NOT_VERIFIED');
+  // A reviewer assertion alone cannot convert a catalogue inverted-name string to running text.
+  // Such entries require a new, separately reviewed running-text source identity.
+  if (request.context === 'PERSON_NAME' && /[,،]/u.test(review.persianSurface))
+    throw new Error('CATALOGUE_INVERTED_NAME_NOT_PUBLISHABLE_AS_RUNNING_TEXT');
   const conflict = existing.find(entry => entry.status === 'ACTIVE' && entry.normalizedPersian === normalizedPersian &&
     entry.profile === review.profile && entry.context === request.context && entry.canonical !== canonical.normalized);
   if (conflict) throw new Error(`CONFLICTING_PUBLISHED_AUTHORITY:${conflict.entryId}`);
