@@ -597,4 +597,43 @@ describe('Phase 8S: Derived Scholarly Authority & Controlled Publication', () =>
     // When manual user review decision is provided, findPublishedAuthority yields to user decision
     expect(userOverride.authority).toBeUndefined();
   });
+
+  // 22. Strengthened publication transaction revalidation and fail-closed guards
+  it('22. revalidates derived review against exact candidate ID, parent event, basis, surface, canonical, profile, context, and attestation', async () => {
+    // Missing attestation
+    const rowWithoutAttestation = makeMockDerivedRow({ derived_attestation: 'UNVERIFIED_STATEMENT' });
+    await expect(
+      verifyDerivedReviewSourceWithQuery(mockQuery([rowWithoutAttestation]), derivedEventId, defaultRequest, 'b'.repeat(64))
+    ).rejects.toThrow('INCOMPLETE_HUMAN_ATTESTATION');
+
+    // Mismatched parent basis
+    const rowWithBadBasis = makeMockDerivedRow({ parent_basis: '0'.repeat(64), candidate_basis: '0'.repeat(64) });
+    await expect(
+      verifyDerivedReviewSourceWithQuery(mockQuery([rowWithBadBasis]), derivedEventId, defaultRequest, 'b'.repeat(64))
+    ).rejects.toThrow('REVIEW_BASIS_HASH_MISMATCH');
+
+    // Mismatched source snapshot
+    const staleSnapshot = 'phase8g-old-snapshot';
+    const staleBasis = computeBsbReviewBasis(staleSnapshot, activeManifestChecksum, parentSourceVersionId, parentCandidate);
+    const rowWithStaleSnapshot = makeMockDerivedRow({
+      snapshot_id: staleSnapshot,
+      parent_basis: staleBasis,
+      candidate_basis: staleBasis,
+    });
+    await expect(
+      verifyDerivedReviewSourceWithQuery(mockQuery([rowWithStaleSnapshot]), derivedEventId, defaultRequest, 'b'.repeat(64))
+    ).rejects.toThrow('STALE_REVIEW_BASIS');
+
+    // Comma-separated surface in PERSON_NAME context
+    const rowWithComma = makeMockDerivedRow({ running_text_persian_surface: 'نصیری، محمدرضا' });
+    await expect(
+      verifyDerivedReviewSourceWithQuery(mockQuery([rowWithComma]), derivedEventId, defaultRequest, 'b'.repeat(64))
+    ).rejects.toThrow('CATALOGUE_INVERTED_NAME_NOT_PUBLISHABLE_AS_RUNNING_TEXT');
+
+    // Tampered canonical transliteration
+    const rowWithInvalidCanonical = makeMockDerivedRow({ derived_canonical: '   ' });
+    await expect(
+      verifyDerivedReviewSourceWithQuery(mockQuery([rowWithInvalidCanonical]), derivedEventId, defaultRequest, 'b'.repeat(64))
+    ).rejects.toThrow('INVALID_IJMES_CANONICAL');
+  });
 });

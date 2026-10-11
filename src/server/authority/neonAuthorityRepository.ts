@@ -110,8 +110,23 @@ export class NeonAuthorityRepository {
       q.push(
         this.sql`SELECT 1/count(*)::int AS derived_guard FROM phase8s_derived_review_event dreview
           JOIN phase8s_derived_candidate dc ON dc.derived_candidate_id=dreview.derived_candidate_id
-          WHERE dreview.event_id=${derivedReviewEventId}::uuid AND dreview.decision_kind='ACCEPT'
+          WHERE dreview.event_id=CAST(${derivedReviewEventId} AS uuid)
+            AND dreview.derived_candidate_id=${derivedCandidateId}
+            AND dreview.decision_kind='ACCEPT'
             AND dreview.canonical=${e.canonical}
+            AND dreview.profile=${e.profile}
+            AND dreview.authority_context=${e.context}
+            AND dreview.human_attestation IN ('I_PERSONALLY_VERIFIED_THIS_RUNNING_TEXT_IJMES_FORM', 'I_PERSONALLY_VERIFIED_THIS_IJMES_FORM')
+            AND dc.derived_candidate_id=${derivedCandidateId}
+            AND dc.parent_candidate_id=${parentCandidateId}
+            AND dc.parent_review_event_id=CAST(${parentReviewEventId} AS uuid)
+            AND dc.parent_source_version_id=${p.sourceVersionId}
+            AND dc.source_snapshot_id=${p.sourceSnapshotId}
+            AND dc.review_basis_sha256=${p.reviewBasisSha256}
+            AND dc.derived_persian_surface=${e.persianSurface}
+            AND dc.proposed_canonical=${e.canonical}
+            AND dc.profile=${e.profile}
+            AND dc.context=${e.context}
             AND NOT EXISTS(SELECT 1 FROM phase8s_derived_review_event later WHERE later.derived_candidate_id=dc.derived_candidate_id
               AND (later.decided_at>dreview.decided_at OR (later.decided_at=dreview.decided_at AND later.event_id>dreview.event_id)))`
       );
@@ -126,12 +141,12 @@ export class NeonAuthorityRepository {
     if (isDerived && derivedReviewEventId && hasDerivedColumns) {
       q.push(
         this.sql`SELECT 1/count(*)::int AS review_reuse_guard FROM (SELECT 1) ok WHERE NOT EXISTS(
-          SELECT 1 FROM phase8r_authority_entry WHERE derived_review_event_id=${derivedReviewEventId}::uuid)`
+          SELECT 1 FROM phase8r_authority_entry WHERE derived_review_event_id=CAST(${derivedReviewEventId} AS uuid))`
       );
     } else {
       q.push(
         this.sql`SELECT 1/count(*)::int AS review_reuse_guard FROM (SELECT 1) ok WHERE NOT EXISTS(
-          SELECT 1 FROM phase8r_authority_entry WHERE review_event_id=${parentReviewEventId}::uuid)`
+          SELECT 1 FROM phase8r_authority_entry WHERE review_event_id=CAST(${parentReviewEventId} AS uuid))`
       );
     }
 
@@ -142,17 +157,17 @@ export class NeonAuthorityRepository {
           review_basis_sha256,reviewer_ref,reviewed_at,created_at,
           derived_review_event_id,derived_candidate_id,derivation_type,derivation_explanation)
           VALUES(${e.entryId},${e.normalizedPersian},${e.persianSurface},${e.canonical},${e.profile},${e.context},${e.version},
-          'ACTIVE',${parentReviewEventId}::uuid,${parentCandidateId},${p.sourceSnapshotId},${p.sourceVersionId},${p.reviewBasisSha256},
+          'ACTIVE',CAST(${parentReviewEventId} AS uuid),${parentCandidateId},${p.sourceSnapshotId},${p.sourceVersionId},${p.reviewBasisSha256},
           ${p.reviewerRef},${p.reviewedAt},${p.publishedAt},
-          ${derivedReviewEventId ? derivedReviewEventId + '::uuid' : null},${derivedCandidateId},${derivationType},${derivationExplanation})
+          CAST(${derivedReviewEventId ?? null} AS uuid),${derivedCandidateId},${derivationType},${derivationExplanation})
           ON CONFLICT(entry_id) DO NOTHING`
       );
       q.push(
         this.sql`INSERT INTO phase8r_publication_event(event_id,event_kind,entry_id,review_event_id,preview_sha256,
           administrator_ref,authorization_version,reason,event_json,occurred_at,derived_review_event_id)
-          VALUES(${event.eventId},'PUBLISH',${e.entryId},${parentReviewEventId}::uuid,${sha(JSON.stringify(preview))},
+          VALUES(${event.eventId},'PUBLISH',${e.entryId},CAST(${parentReviewEventId} AS uuid),${sha(JSON.stringify(preview))},
           ${authorization.administratorRef},${authorization.authorizationVersion},${event.reason},${JSON.stringify(event)}::jsonb,
-          ${event.occurredAt},${derivedReviewEventId ? derivedReviewEventId + '::uuid' : null}) ON CONFLICT(event_id) DO NOTHING`
+          ${event.occurredAt},CAST(${derivedReviewEventId ?? null} AS uuid)) ON CONFLICT(event_id) DO NOTHING`
       );
     } else {
       q.push(
@@ -160,13 +175,13 @@ export class NeonAuthorityRepository {
           authority_context,version,status,review_event_id,candidate_id,source_snapshot_id,source_version_id,
           review_basis_sha256,reviewer_ref,reviewed_at,created_at)
           VALUES(${e.entryId},${e.normalizedPersian},${e.persianSurface},${e.canonical},${e.profile},${e.context},${e.version},
-          'ACTIVE',${p.reviewEventId}::uuid,${p.candidateId},${p.sourceSnapshotId},${p.sourceVersionId},${p.reviewBasisSha256},
+          'ACTIVE',CAST(${p.reviewEventId} AS uuid),${p.candidateId},${p.sourceSnapshotId},${p.sourceVersionId},${p.reviewBasisSha256},
           ${p.reviewerRef},${p.reviewedAt},${p.publishedAt}) ON CONFLICT(entry_id) DO NOTHING`
       );
       q.push(
         this.sql`INSERT INTO phase8r_publication_event(event_id,event_kind,entry_id,review_event_id,preview_sha256,
           administrator_ref,authorization_version,reason,event_json,occurred_at)
-          VALUES(${event.eventId},'PUBLISH',${e.entryId},${p.reviewEventId}::uuid,${sha(JSON.stringify(preview))},
+          VALUES(${event.eventId},'PUBLISH',${e.entryId},CAST(${p.reviewEventId} AS uuid),${sha(JSON.stringify(preview))},
           ${authorization.administratorRef},${authorization.authorizationVersion},${event.reason},${JSON.stringify(event)}::jsonb,
           ${event.occurredAt}) ON CONFLICT(event_id) DO NOTHING`
       );

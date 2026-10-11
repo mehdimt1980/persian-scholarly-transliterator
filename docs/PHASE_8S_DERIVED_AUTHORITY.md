@@ -126,7 +126,7 @@ When preparing to publish the first derived authority (e.g., `محمدرضا ن�
   - `001_phase8g_schema.sql`
   - `002_phase8r_authority.sql`
   - `003_phase8s_derived_authority.sql`
-- [ ] Run integration test suite with `PHASE8R_TEST_DISPOSABLE_CONFIRMATION=true`.
+- [ ] Run integration test suite with `PHASE8R_TEST_DISPOSABLE_CONFIRMATION=I_CONFIRM_PHASE8R_DISPOSABLE_ISOLATED_DATABASE` and required environment variables (`PHASE8R_TEST_ADMIN_DATABASE_URL`, `PHASE8R_TEST_SOURCE_DATABASE_URL`, `PHASE8R_TEST_NAMESPACE`, `PHASE8R_TEST_NEON_BRANCH_ID`).
 - [ ] Verify complete transaction rollback on failure and idempotency on repeat publication.
 - [ ] Destroy disposable Neon branch.
 
