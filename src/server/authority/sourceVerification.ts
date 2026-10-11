@@ -38,6 +38,9 @@ export interface SourceVerificationEnvironment {
 }
 const rows = (value: unknown): Row[] => Array.isArray(value) ? value as Row[] : [];
 const text = (value: unknown): string => String(value ?? '');
+// Neon may decode PostgreSQL timestamptz as a Date; String(Date) is locale-dependent
+// (e.g. GMT+0200) and must never be persisted as a PostgreSQL timestamp.
+const isoTimestamp = (value: unknown): string => value instanceof Date ? value.toISOString() : text(value);
 
 const VERIFY_SQL = `
   WITH active AS (
@@ -213,7 +216,7 @@ export async function verifyDerivedReviewSourceWithQuery(query: TrustedSourceQue
     canonical: validatedCanonical.normalized,
     profile,
     reviewerRef: text(row.derived_reviewer_ref) || null,
-    reviewedAt: text(row.derived_decided_at) || null,
+    reviewedAt: isoTimestamp(row.derived_decided_at) || null,
     rationale: text(row.derived_rationale) || null,
     humanAttestation: attestation,
     persianSurface: runningText,
