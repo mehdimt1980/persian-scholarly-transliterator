@@ -310,6 +310,22 @@ suite('Phase 8S Derived Authority isolated Neon integration', () => {
     expect(s8Verified.eventId).toBe(finalAcceptId);
   });
 
+  it('strengthened publication transaction guards reject mismatches and roll back completely', async () => {
+    // Exercise the database guard BEFORE valid publication. A conflicting canonical
+    // after publication would rightly be stopped earlier by the domain preflight.
+    const before = await repository.readActiveSnapshot();
+    const validPreview = prepareAuthorityPublication(s8Verified, s8Request, s8Verified.activeSnapshotId, before.entries);
+    const tamperedPreview = {
+      ...validPreview,
+      entry: { ...validPreview.entry, canonical: 'Wrong Canonical' }
+    };
+
+    await expect(repository.publish(tamperedPreview, auth, s8Verified, '2026-10-10T12:14:00.000Z')).rejects.toThrow();
+
+    const after = await repository.readActiveSnapshot();
+    expect(after).toEqual(before);
+  });
+
   it('publishes derived authority concurrently with idempotent result and exact running-text surface', async () => {
     const active = await repository.readActiveSnapshot();
     const preview = prepareAuthorityPublication(s8Verified, s8Request, s8Verified.activeSnapshotId, active.entries);
@@ -329,17 +345,6 @@ suite('Phase 8S Derived Authority isolated Neon integration', () => {
     expect(entry?.canonical).toBe(approvedRunningCanonical);
     expect(entry?.provenance.derivedCandidateId).toBe(derivedCandidateId);
     expect(entry?.provenance.parentCandidateId).toBe(parentCandidateId);
-  });
-
-  it('strengthened publication transaction guards reject mismatches and roll back completely', async () => {
-    const active = await repository.readActiveSnapshot();
-    const tamperedVerified = { ...s8Verified, canonical: 'Wrong Canonical' } as AnyVerifiedReviewSource;
-    const tamperedPreview = prepareAuthorityPublication(tamperedVerified, s8Request, s8Verified.activeSnapshotId, active.entries);
-
-    await expect(repository.publish(tamperedPreview, auth, tamperedVerified, '2026-10-10T12:16:00.000Z')).rejects.toThrow();
-
-    const current = await repository.readActiveSnapshot();
-    expect(current.snapshotId).toBe(derivedPublishedSnapshotId);
   });
 
   it('withdraws, rolls back derived authority, and reloads across repository restart', async () => {
