@@ -5,7 +5,7 @@ import { validatePublishedAuthoritySnapshot } from '../../domain/authority/snaps
 import { assertAuthorityManifest, authorityManifestSha256 } from './manifest';
 import type { AuthorityContext, PublishedAuthorityEntry, PublishedAuthoritySnapshot } from '../../domain/authority/types';
 import type { ProfileId } from '../../domain/types';
-import { VERIFIED_SOURCE, type VerifiedReviewSource } from './sourceVerification';
+import { VERIFIED_SOURCE, type VerifiedReviewSource, type VerifiedDerivedReviewSource } from './sourceVerification';
 
 export type PublicationEventKind = 'PUBLISH' | 'WITHDRAW' | 'ROLLBACK';
 export interface AcceptedReviewRecord {
@@ -20,6 +20,7 @@ export interface AuthorityPublicationRequest {
   reviewEventId: string; expectedReviewBasisSha256: string; expectedSourceSnapshotId: string;
   context: AuthorityContext; publicationReason: string;
   personalNameOrderingAttestation?: 'RUNNING_TEXT_ORDER_VERIFIED';
+  derivedReviewEventId?: string;
 }
 export interface PublicationAuthorization {
   administratorRef: string; authorizedAt: string;
@@ -30,7 +31,23 @@ export interface VerifiedPublicationAuthorization extends PublicationAuthorizati
 }
 export interface AuthorityPublicationPreview {
   previewId: string; entry: PublishedAuthorityEntry; publicationReason: string; warnings: string[];
-  validation: { evidenceIntact: true; reviewCurrent: true; conflictFree: true; humanAttested: true };
+  validation: { evidenceIntact: true; reviewCurrent: true; conflictFree: true; humanAttested: true; prerequisitesSatisfied: boolean };
+  originalPersianSource?: string;
+  reviewedDerivedPersianSurface?: string;
+  reviewedCanonicalTransliteration?: string;
+  profile?: ProfileId;
+  context?: AuthorityContext;
+  parentSourceProvenance?: {
+    candidateId: string; sourceVersionId: string; sourceSnapshotId: string;
+    reviewBasisSha256: string; parentReviewEventId: string; originalPersianSurface: string;
+  };
+  derivedReviewProvenance?: {
+    derivedCandidateId: string; derivedReviewEventId: string; derivationType: string;
+    derivationExplanation: string; reviewerRef: string; reviewedAt: string;
+  };
+  potentialConflicts: string[];
+  exactRuntimeInputPhrase: string;
+  expectedDeterministicOutput: string;
 }
 export interface AuthorityPublicationEvent {
   eventId: string; kind: PublicationEventKind; entryId: string | null; snapshotId: string;
@@ -41,17 +58,22 @@ export interface AuthorityPublicationEvent {
 const sha = (value: string) => createHash('sha256').update(value).digest('hex');
 const HASH = /^[a-f0-9]{64}$/u;
 
-export function prepareAuthorityPublication(review: VerifiedReviewSource, request: AuthorityPublicationRequest,
+export function prepareAuthorityPublication(review: VerifiedReviewSource | VerifiedDerivedReviewSource, request: AuthorityPublicationRequest,
   activeSourceSnapshotId: string, existing: PublishedAuthorityEntry[]): AuthorityPublicationPreview {
   if (review[VERIFIED_SOURCE] !== true || review.verification?.kind !== 'INDEPENDENT_NEON_READ' || review.verification.latestEventId !== review.eventId ||
       review.verification.sourceFingerprint.length !== 64) throw new Error('INDEPENDENT_SOURCE_VERIFICATION_REQUIRED');
-  if (review.eventId !== request.reviewEventId || review.decisionKind !== 'ACCEPT' || !review.latestForCandidate)
+  const targetEventId = request.derivedReviewEventId ?? request.reviewEventId;
+  if (review.eventId !== targetEventId || review.decisionKind !== 'ACCEPT' || !review.latestForCandidate)
     throw new Error('REVIEW_NOT_CURRENT_ACCEPT');
   if (review.activeSnapshotId !== activeSourceSnapshotId || request.expectedSourceSnapshotId !== activeSourceSnapshotId ||
       review.reviewBasisSha256 !== request.expectedReviewBasisSha256 || !HASH.test(review.reviewBasisSha256))
     throw new Error('STALE_REVIEW_BASIS');
+  const validAttestations = [
+    'I_PERSONALLY_VERIFIED_THIS_IJMES_FORM',
+    'I_PERSONALLY_VERIFIED_THIS_RUNNING_TEXT_IJMES_FORM'
+  ];
   if (!review.canonical || !review.profile || !review.reviewerRef || !review.reviewedAt ||
-      review.humanAttestation !== 'I_PERSONALLY_VERIFIED_THIS_IJMES_FORM') throw new Error('INCOMPLETE_HUMAN_ATTESTATION');
+      !validAttestations.includes(review.humanAttestation ?? '')) throw new Error('INCOMPLETE_HUMAN_ATTESTATION');
   if (Number.isNaN(Date.parse(review.reviewedAt)) || !review.rationale?.trim() || !review.sourceVersionId ||
       !HASH.test(review.candidateContentHash)) throw new Error('INCOMPLETE_REVIEW_PROVENANCE');
   const canonical = validateManualTransliteration(review.canonical);
@@ -62,7 +84,9 @@ export function prepareAuthorityPublication(review: VerifiedReviewSource, reques
     throw new Error('PERSON_NAME_ORDERING_NOT_VERIFIED');
   // A reviewer assertion alone cannot convert a catalogue inverted-name string to running text.
   // Such entries require a new, separately reviewed running-text source identity.
-  if (request.context === 'PERSON_NAME' && /[,،]/u.test(review.persianSurface))
+  if (!review.isDerived && request.context === 'PERSON_NAME' && /[,،]/u.test(review.persianSurface))
+    throw new Error('CATALOGUE_INVERTED_NAME_NOT_PUBLISHABLE_AS_RUNNING_TEXT');
+  if (review.isDerived && /[,،]/u.test(review.persianSurface))
     throw new Error('CATALOGUE_INVERTED_NAME_NOT_PUBLISHABLE_AS_RUNNING_TEXT');
   const conflict = existing.find(entry => entry.status === 'ACTIVE' && entry.normalizedPersian === normalizedPersian &&
     entry.profile === review.profile && entry.context === request.context && entry.canonical !== canonical.normalized);
@@ -70,18 +94,57 @@ export function prepareAuthorityPublication(review: VerifiedReviewSource, reques
   const identity = sha([review.eventId, review.reviewBasisSha256, normalizedPersian, review.profile,
     request.context, canonical.normalized].join('\n'));
   const publicationEventId = `pub-${identity.slice(0, 24)}`;
+  const derived = review.isDerived ? review : null;
   const entry: PublishedAuthorityEntry = {
     entryId: `authority-${identity.slice(0, 24)}`, normalizedPersian, persianSurface: review.persianSurface,
     canonical: canonical.normalized, profile: review.profile, context: request.context, status: 'ACTIVE', version: 1,
-    provenance: { reviewEventId: review.eventId, candidateId: review.candidateId,
+    provenance: {
+      reviewEventId: review.eventId, candidateId: review.candidateId,
       sourceSnapshotId: review.activeSnapshotId, sourceVersionId: review.sourceVersionId,
       reviewBasisSha256: review.reviewBasisSha256, reviewerRef: review.reviewerRef,
-      reviewedAt: review.reviewedAt, publicationEventId, publishedAt: '' }
+      reviewedAt: review.reviewedAt, publicationEventId, publishedAt: '',
+      ...(derived ? {
+        derivedCandidateId: derived.derivedCandidateId,
+        derivedReviewEventId: derived.eventId,
+        derivationType: derived.derivationType,
+        derivationExplanation: derived.derivationExplanation,
+        parentCandidateId: derived.parentCandidateId,
+        parentSourceVersionId: derived.parentSourceVersionId,
+        parentReviewEventId: derived.parentReviewEventId,
+        parentReviewBasisSha256: derived.parentReviewBasisSha256,
+      } : {})
+    }
   };
-  return { previewId: `preview-${sha(JSON.stringify({ entry, request })).slice(0, 24)}`, entry,
-    publicationReason:request.publicationReason.trim(),
+  return {
+    previewId: `preview-${sha(JSON.stringify({ entry, request })).slice(0, 24)}`, entry,
+    publicationReason: request.publicationReason.trim(),
     warnings: request.context === 'PERSON_NAME' ? ['Running-text name order was explicitly attested; catalogue order was not reused automatically.'] : [],
-    validation: { evidenceIntact: true, reviewCurrent: true, conflictFree: true, humanAttested: true } };
+    validation: { evidenceIntact: true, reviewCurrent: true, conflictFree: true, humanAttested: true, prerequisitesSatisfied: true },
+    originalPersianSource: derived ? derived.originalPersianSurface : review.persianSurface,
+    reviewedDerivedPersianSurface: review.persianSurface,
+    reviewedCanonicalTransliteration: canonical.normalized,
+    profile: review.profile,
+    context: request.context,
+    parentSourceProvenance: {
+      candidateId: derived ? derived.parentCandidateId : review.candidateId,
+      sourceVersionId: derived ? derived.parentSourceVersionId : review.sourceVersionId,
+      sourceSnapshotId: review.activeSnapshotId,
+      reviewBasisSha256: derived ? derived.parentReviewBasisSha256 : review.reviewBasisSha256,
+      parentReviewEventId: derived ? derived.parentReviewEventId : review.eventId,
+      originalPersianSurface: derived ? derived.originalPersianSurface : review.persianSurface,
+    },
+    derivedReviewProvenance: derived ? {
+      derivedCandidateId: derived.derivedCandidateId,
+      derivedReviewEventId: derived.eventId,
+      derivationType: derived.derivationType,
+      derivationExplanation: derived.derivationExplanation,
+      reviewerRef: derived.reviewerRef ?? '',
+      reviewedAt: derived.reviewedAt ?? '',
+    } : undefined,
+    potentialConflicts: [],
+    exactRuntimeInputPhrase: review.persianSurface,
+    expectedDeterministicOutput: canonical.normalized,
+  };
 }
 
 export function authorizePublication(preview: AuthorityPublicationPreview, authorization: PublicationAuthorization,

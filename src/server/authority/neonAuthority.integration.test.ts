@@ -11,7 +11,7 @@ import { buildSnapshot } from '../evidence-store/publication';
 import { PUBLISHED_AUTHORITY_SNAPSHOT } from '../../data/publishedAuthority';
 import { prepareAuthorityPublication, type AuthorityPublicationRequest,
   type VerifiedPublicationAuthorization } from './authorityPublication';
-import { NeonReviewSourceVerifier, type VerifiedReviewSource } from './sourceVerification';
+import { NeonReviewSourceVerifier, type AnyVerifiedReviewSource } from './sourceVerification';
 import { NeonAuthorityRepository } from './neonAuthorityRepository';
 
 const confirmation=process.env.PHASE8R_TEST_DISPOSABLE_CONFIRMATION;
@@ -23,7 +23,7 @@ const suite=describe.runIf(enabled);
 const eventId='88888888-8888-4888-8888-888888888888';
 let snapshotId:string,manifest:string;const now='2026-10-10T12:00:00.000Z';
 let repository:NeonAuthorityRepository,source:NeonReviewSourceVerifier,request:AuthorityPublicationRequest;
-let verified:VerifiedReviewSource,publishedSnapshotId:string,adminFingerprint:string,adminHost:string;
+let verified:AnyVerifiedReviewSource,publishedSnapshotId:string,adminFingerprint:string,adminHost:string;
 const auth:VerifiedPublicationAuthorization={administratorRef:'phase8r-integration-admin',authorizedAt:now,
   scope:'PHASE8R_AUTHORITY_PUBLICATION',authorizationVersion:'1',
   verification:{kind:'INDEPENDENT_ADMIN_FILE_HASH',sha256:'9'.repeat(64)}};
@@ -48,7 +48,7 @@ suite('Phase 8R isolated Neon publication integration',()=>{
       const identity=await sql.query("SELECT current_setting('neon.branch_id',true) AS branch_id") as unknown as Array<{branch_id:string}>;
       if(identity[0]?.branch_id!==process.env.PHASE8R_TEST_NEON_BRANCH_ID)throw new Error('Refusing Phase 8R integration: disposable Neon branch identity mismatch');
     }
-    for(const file of ['migrations/evidence/001_phase8g_evidence_store.sql','src/server/review/phase8o_staging_review_ledger.sql','migrations/evidence/002_phase8r_reviewed_authority.sql'])
+    for(const file of ['migrations/evidence/001_phase8g_evidence_store.sql','src/server/review/phase8o_staging_review_ledger.sql','migrations/evidence/002_phase8r_reviewed_authority.sql','migrations/evidence/003_phase8s_derived_authority.sql'])
       await executeScript(admin,fs.readFileSync(path.resolve(process.cwd(),file),'utf8'));
     const identity=async(sql:{query(text:string,values?:unknown[]):Promise<unknown>},url:string)=>{
       const row=(await sql.query('SELECT current_database() AS database,current_user AS user,current_schema() AS schema') as unknown as Record<string,string>[])[0];
