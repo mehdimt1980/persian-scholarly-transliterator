@@ -123,10 +123,10 @@ export class NeonAuthorityRepository {
             AND dc.parent_source_version_id=${p.sourceVersionId}
             AND dc.source_snapshot_id=${p.sourceSnapshotId}
             AND dc.review_basis_sha256=${p.reviewBasisSha256}
-            AND dc.derived_persian_surface=${e.persianSurface}
-            AND dc.proposed_canonical=${e.canonical}
-            AND dc.profile=${e.profile}
-            AND dc.context=${e.context}
+            AND dc.running_text_persian_surface=${e.persianSurface}
+            AND dreview.canonical=${e.canonical}
+            AND dreview.profile=${e.profile}
+            AND dreview.authority_context=${e.context}
             AND NOT EXISTS(SELECT 1 FROM phase8s_derived_review_event later WHERE later.derived_candidate_id=dc.derived_candidate_id
               AND (later.decided_at>dreview.decided_at OR (later.decided_at=dreview.decided_at AND later.event_id>dreview.event_id)))`
       );
