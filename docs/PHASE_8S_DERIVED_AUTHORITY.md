@@ -71,22 +71,34 @@ Any failure, stale hash, or mismatch causes the transaction to **fail closed**.
 
 Migration `migrations/evidence/003_phase8s_derived_authority.sql`:
 - **`phase8s_derived_candidate`**:
-  - `derived_candidate_id` (PK)
-  - `parent_candidate_id` (FK to `phase8g_lexical_candidate`)
-  - `parent_source_version_id` (FK to `phase8g_source_version`)
-  - `parent_review_event_id` (FK to `phase8g_review_event`)
-  - `source_snapshot_id`, `review_basis_sha256`
-  - `original_persian_surface`, `derived_persian_surface`, `normalized_persian`
-  - `proposed_canonical`, `profile`, `context`, `derivation_type`, `explanation`
+  - `derived_candidate_id` (PK, text)
+  - `parent_candidate_id` (text)
+  - `parent_source_version_id` (FK to `evidence_record_version(version_id)`)
+  - `parent_review_event_id` (FK to `phase8o_review_event(event_id)`)
+  - `source_snapshot_id` (FK to `evidence_snapshot(snapshot_id)`)
+  - `review_basis_sha256` (char(64))
+  - `original_persian_surface` (text)
+  - `running_text_persian_surface` (text, check constraint forbidding commas)
+  - `derivation_type` (text, check constraint)
+  - `derivation_explanation` (text)
+  - `created_at` (timestamptz)
+  - `created_by` (text)
 - **`phase8s_derived_review_event`**:
-  - Append-only event table with `event_id` (PK, UUID)
-  - `derived_candidate_id` (FK)
-  - `decision_status` (`DRAFT`, `ACCEPT`, `REJECT`, `DEFER`)
-  - `canonical_transliteration`, `reviewer_ref`, `scholarly_attestation`
-  - Immutable triggers preventing updates/deletions.
+  - `event_id` (PK, UUID)
+  - `derived_candidate_id` (FK to `phase8s_derived_candidate`)
+  - `decision_kind` (`DRAFT`, `ACCEPT`, `REJECT`, `DEFER`)
+  - `canonical` (text)
+  - `profile` (`ijmes_full`, `ijmes_citation_title`)
+  - `authority_context` (`GENERAL_SCHOLARLY_TEXT`, `BOOK_OR_ARTICLE_TITLE`, `PERSON_NAME`)
+  - `reviewer_ref` (text)
+  - `rationale` (text)
+  - `human_attestation` (text)
+  - `decision_json` (jsonb)
+  - `decided_at` (timestamptz)
+  - Append-only immutability trigger `phase8s_derived_event_immutable` blocking UPDATE and DELETE.
 - **`phase8r_authority_entry` & `phase8r_publication_event`**:
-  - Additive columns: `derived_candidate_id`, `parent_candidate_id`, `derivation_type`.
-  - Foreign key constraints linking published authority to derived candidates when applicable.
+  - Additive columns: `derived_review_event_id`, `derived_candidate_id`, `derivation_type`, `derivation_explanation`.
+  - Foreign key constraints linking published authority to derived candidate and event.
 
 Rollback is provided in `migrations/evidence/003_phase8s_derived_authority.down.sql`.
 

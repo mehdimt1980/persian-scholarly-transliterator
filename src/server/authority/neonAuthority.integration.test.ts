@@ -204,20 +204,20 @@ suite('Phase 8S Derived Authority isolated Neon integration', () => {
     await admin.query(`
       INSERT INTO phase8s_derived_candidate(
         derived_candidate_id, parent_candidate_id, parent_source_version_id, parent_review_event_id,
-        source_snapshot_id, review_basis_sha256, original_persian_surface, derived_persian_surface,
-        normalized_persian, proposed_canonical, profile, context, derivation_type, explanation, created_at
-      ) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'ijmes_full','PERSON_NAME','CATALOGUE_INVERSION_NORMALIZED','Natural order running text name.',$11)
+        source_snapshot_id, review_basis_sha256, original_persian_surface, running_text_persian_surface,
+        derivation_type, derivation_explanation, created_at, created_by
+      ) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
       ON CONFLICT(derived_candidate_id) DO NOTHING
     `, [
       derivedCandidateId, parentCandidateId, parentVersion, parentEventId,
       s8SnapshotId, s8Basis, originalCatalogueSurface, runningTextSurface,
-      runningTextSurface, approvedRunningCanonical, now
+      'CATALOGUE_INVERSION_NORMALIZED', 'Natural order running text name.', now, 'phase8s-integration-reviewer'
     ]);
 
     const rows = await admin.query(`SELECT * FROM phase8s_derived_candidate WHERE derived_candidate_id=$1`, [derivedCandidateId]) as Record<string, string>[];
     expect(rows).toHaveLength(1);
     expect(rows[0].parent_candidate_id).toBe(parentCandidateId);
-    expect(rows[0].derived_persian_surface).toBe(runningTextSurface);
+    expect(rows[0].running_text_persian_surface).toBe(runningTextSurface);
   });
 
   it('enforces append-only review lifecycle: DRAFT -> DEFER -> REJECT -> ACCEPT', async () => {
